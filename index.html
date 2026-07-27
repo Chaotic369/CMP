@@ -142,10 +142,12 @@ button.btn:hover { background: rgba(255, 255, 255, 0.15); }
 button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; color: rgba(255,255,255,0.5); }
 
 /* Sidebar Buttons - No Background */
-#repoSidebar > div:first-child > button.btn {
+#repoSidebar > div:first-child > button.btn,
+#bookmarkSidebar > div:last-child > button.btn {
   background: transparent;
 }
-#repoSidebar > div:first-child > button.btn:hover {
+#repoSidebar > div:first-child > button.btn:hover,
+#bookmarkSidebar > div:last-child > button.btn:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -370,8 +372,13 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
                       </div>
   
                       <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0;">
-                                                <div id="bookmarkContent" style="display: flex; flex-direction: column; width: 150px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; overflow-x: hidden;">
-                                                                            <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; width: 100%; flex-shrink: 0;"></div>
+                                                <div id="bookmarkContent">
+                                                  <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; width: 100%; flex-shrink: 0;"></div>
+                                                </div>
+                                                <div style="display:flex; flex-direction:column; gap:8px;">
+                                                  <button id="bookmarkToggleBtn" class="btn" title="Toggle Bookmarks" style="font-weight: bold; width: 22px; font-size: 14px;"><i class="fa-solid fa-chevron-right"></i></button>
+                                                </div>
+                                              </div>
                                                                           </div>
                                                 <div style="display:flex; flex-direction:column; gap:8px;">
                                                   <button id="bookmarkToggleBtn" class="btn" title="Toggle Bookmarks" style="background: transparent; font-weight: bold; width: 22px; font-size: 14px;"><i class="fa-solid fa-chevron-left"></i></button>
@@ -564,12 +571,12 @@ window.renderBookmarks = function() {
     rightList.innerHTML = '';
 
     if (bookmarkCollapsed) {
-        content.classList.add('mini');
-        btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-    } else {
-        content.classList.remove('mini');
-        btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-    }
+            content.classList.add('mini');
+            btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+        } else {
+            content.classList.remove('mini');
+            btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+        }
     
     ghBookmarkedRepos.forEach(r => {
         const name = r.split('/')[1] || r;
@@ -607,10 +614,10 @@ document.getElementById('bookmarkToggleBtn').addEventListener('click', () => {
   
   if (bookmarkCollapsed) {
     content.classList.add('mini');
-    btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+    btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
   } else {
     content.classList.remove('mini');
-    btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+    btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
   }
   
   if (document.getElementById('app-menu').classList.contains('open')) {
