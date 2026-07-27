@@ -362,9 +362,15 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
     
                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                       </div>
-                      <div id="bookmarkRightBar" style="display: none; flex-direction: column; width: 208px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 12px; margin-left: 4px; overflow-x: hidden;">
+  
+                      <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px;">
+                        <div id="bookmarkContent" style="display: flex; flex-direction: column; width: 208px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 12px; overflow-x: hidden;">
                           <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; width: 100%; flex-shrink: 0;"></div>
                         </div>
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                          <button id="bookmarkToggleBtn" class="btn" title="Toggle Bookmarks" style="background: transparent; font-weight: bold; width: 22px; font-size: 14px;"><i class="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                      </div>
                     </div>
 
 <div id="toast"></div>
@@ -491,6 +497,7 @@ var ghFilePath = 'index.html';
 var ghRepos = [];
 var ghBookmarkedRepos = [];
 var repoCollapsed = true;
+var bookmarkCollapsed = false;
 
 let dragSrcEl = null;
 window.nestedExpanded = window.nestedExpanded || {};
@@ -535,17 +542,17 @@ window.switchRepo = function(r) {
 };
 
 window.renderBookmarks = function() {
-    const rightBar = document.getElementById('bookmarkRightBar');
+    const bSidebar = document.getElementById('bookmarkSidebar');
     const rightList = document.getElementById('bookmarkRightList');
     
-    if (!rightBar || !rightList) return;
+    if (!bSidebar || !rightList) return;
     
     if (!ghBookmarkedRepos || ghBookmarkedRepos.length === 0) {
-        rightBar.style.display = 'none';
+        bSidebar.style.display = 'none';
         return;
     }
     
-    rightBar.style.display = 'flex';
+    bSidebar.style.display = 'flex';
     rightList.innerHTML = '';
     
     ghBookmarkedRepos.forEach(r => {
@@ -573,11 +580,29 @@ window.renderBookmarks = function() {
     });
     
     if (document.getElementById('app-menu').classList.contains('open')) {
-        updateMenuPosition();
-    }
-};
+            updateMenuPosition();
+        }
+    };
 
-// Lock in any Code View edits before pushing, exporting, or checking AST
+    document.getElementById('bookmarkToggleBtn').addEventListener('click', () => {
+      bookmarkCollapsed = !bookmarkCollapsed;
+      const content = document.getElementById('bookmarkContent');
+      const btn = document.getElementById('bookmarkToggleBtn');
+  
+      if (bookmarkCollapsed) {
+        content.style.display = 'none';
+        btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+      } else {
+        content.style.display = 'flex';
+        btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+      }
+  
+      if (document.getElementById('app-menu').classList.contains('open')) {
+          updateMenuPosition();
+      }
+    });
+
+    // Lock in any Code View edits before pushing, exporting, or checking AST
 function syncEditorToSource() {
   if (viewMode === 'code' && $codeView.value !== sourceContent) {
     pushState();
