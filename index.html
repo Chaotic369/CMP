@@ -1811,30 +1811,35 @@ document.getElementById('downloadApkBtn').addEventListener('click', async functi
     let artifact = artData.artifacts.find(a => a.name === 'Android-APK');
     if (!artifact) throw new Error('Android-APK artifact not found in the latest build.');
 
-    toast('⏳ Downloading APK zip...', 'info');
-    showProgress(60);
+    toast('⏳ Triggering native download...', 'info');
+        showProgress(60);
     
-    let zipRes = await fetch(artifact.archive_download_url, {
-      headers: { Authorization: `token ${ghToken}` }
-    });
+        const abortCtrl = new AbortController();
+        let zipRes = await fetch(artifact.archive_download_url, {
+          headers: { Authorization: `token ${ghToken}` },
+          signal: abortCtrl.signal
+        });
     
-    if (!zipRes.ok) {
-       window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
-       throw new Error('Direct download blocked by CORS. Opened GitHub Actions page instead.');
-    }
+        if (!zipRes.ok) {
+           window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
+           throw new Error('Direct download blocked by CORS. Opened GitHub Actions page instead.');
+        }
     
-    let blob = await zipRes.blob();
-    let url = URL.createObjectURL(blob);
-    let a = document.createElement('a');
-    a.href = url;
-    a.download = `${ghRepo.split('/')[1]}-APK.zip`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
+        let finalUrl = zipRes.url;
+        abortCtrl.abort(); // Cancel the JavaScript memory download to save RAM
     
-    toast('✅ Download complete!', 'ok');
-    addLog('ok', 'Downloaded latest APK zip successfully.');
+        // Android PWA Fix: Pass the authenticated, redirected S3 URL to the native OS downloader
+        // This bypasses the mobile browser Blob memory limits that cause silent download failures
+        let a = document.createElement('a');
+        a.href = finalUrl;
+        a.target = '_blank';
+        a.download = `${ghRepo.split('/')[1]}-APK.zip`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+    
+        toast('✅ Download handed over to OS!', 'ok');
+        addLog('ok', 'Triggered native OS download for APK zip.');
   } catch(e) {
     toast('❌ ' + e.message, 'err', 5000);
     addLog('err', 'APK Download Error: ' + e.message);
