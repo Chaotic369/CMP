@@ -1800,10 +1800,11 @@ document.getElementById('downloadApkBtn').addEventListener('click', async functi
       return;
     }
     if (run.conclusion !== 'success') {
-      throw new Error(`Last build ended with: ${run.conclusion}`);
-    }
+          window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
+          throw new Error(`Last build ended with: ${run.conclusion}. Opening logs...`);
+        }
 
-    let artRes = await fetch(run.artifacts_url, {
+        let artRes = await fetch(run.artifacts_url, {
       headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
     });
     let artData = await artRes.json();
@@ -1882,14 +1883,14 @@ document.getElementById('buildApkBtn').addEventListener('click', async function(
         
         - name: Build APK
           run: |
-            export CI=true
-            cordova telemetry off
-            mkdir -p /tmp/apk_build
-            cordova create /tmp/apk_build/app com.aicompile.app "App"
-            cp -r * /tmp/apk_build/app/www/ 2>/dev/null || true
-            cd /tmp/apk_build/app
-            cordova platform add android@12.0.0
-            cordova build android
+                    export CI=true
+                    cordova telemetry off
+                    mkdir -p /tmp/apk_build
+                    cordova create /tmp/apk_build/app com.aicompile.app "App"
+                    cp -r * /tmp/apk_build/app/www/ 2>/dev/null || true
+                    cd /tmp/apk_build/app
+                    cordova platform add android@13.0.0
+                    cordova build android
           
         - name: Upload APK
           uses: actions/upload-artifact@v4
