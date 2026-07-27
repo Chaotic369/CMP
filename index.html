@@ -123,19 +123,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
   transform: rotate(45deg);
 }
 
-#floatApkBtn {
-  position: fixed; bottom: 20px; left: 20px; z-index: 10000; width: 42px; height: 42px; border-radius: 14px;
-  background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; user-select: none; touch-action: none;
-  color: var(--green); font-size: 18px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  -webkit-tap-highlight-color: transparent;
-}
-#floatApkBtn:hover {
-  background: rgba(33, 33, 33, 0.75);
-}
-
 #app-menu {
   position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 12px;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 12px; border: none !important; outline: none !important; border-radius: 24px;
@@ -331,10 +318,6 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   <i class="fa-solid fa-plus"></i>
 </button>
 
-<button id="floatApkBtn" title="Build APK via GitHub Actions">
-  <i class="fa-brands fa-android"></i>
-</button>
-
 <div id="app-menu">
   <div id="repoSidebar">
       <div style="display:flex; flex-direction:column; gap:8px;">
@@ -372,10 +355,11 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
     <button id="liveSiteBtn" class="btn" title="View Live Site in Browser" style="color:var(--blue);"><i class="fa-solid fa-globe"></i></button>
     <button id="viewBtn" class="btn" title="Toggle View"><i class="fa-solid fa-eye"></i></button>
         <button id="logBtn" class="btn" title="System Logs"><i class="fa-solid fa-file-lines"></i></button>
-        <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i></button>
-        <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i></button>
+                <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i></button>
+                <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i></button>
+                <button id="buildApkBtn" class="btn" title="Build APK via GitHub Actions" style="color:var(--green);"><i class="fa-brands fa-android"></i></button>
     
-    <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
+            <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
   </div>
 </div>
 
@@ -1747,7 +1731,8 @@ document.getElementById('liveSiteBtn').addEventListener('click', function() {
 });
 
 // Feature 4: GitHub Actions APK Builder
-document.getElementById('floatApkBtn').addEventListener('click', async function() {
+document.getElementById('buildApkBtn').addEventListener('click', async function() {
+  toggleMenu();
   if (!ghToken || !ghRepo) {
     toast('❌ Select a GitHub repo first', 'warn');
     return;
