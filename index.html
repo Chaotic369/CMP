@@ -451,7 +451,9 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   <span class="sb-item" id="sb-ast">AST: –</span>
   <span class="sb-sep">|</span>
   <span class="sb-item" id="sb-status">ready</span>
-</div>
+    <span class="sb-sep" id="sb-build-sep" style="display:none;">|</span>
+    <span class="sb-item" id="sb-build" style="display:none; cursor:pointer;" title="Click to download if ready"></span>
+  </div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1731,6 +1733,50 @@ document.getElementById('liveSiteBtn').addEventListener('click', function() {
   window.open(url, '_blank');
 });
 
+let buildPollTimer = null;
+async function pollBuildStatus() {
+  if (!ghToken || !ghRepo) return;
+  try {
+    let runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-apk.yml/runs?per_page=1`, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' }
+    });
+    if (!runsRes.ok) return;
+    let runsData = await runsRes.json();
+    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) return;
+    
+    let run = runsData.workflow_runs[0];
+    let sbBuild = document.getElementById('sb-build');
+    let sbSep = document.getElementById('sb-build-sep');
+    
+    sbBuild.style.display = 'inline-block';
+    sbSep.style.display = 'inline-block';
+    
+    if (run.status !== 'completed') {
+      sbBuild.style.color = 'var(--amber)';
+      sbBuild.innerHTML = `<i class="fa-solid fa-cog fa-spin"></i> APK: ${run.status}...`;
+      clearTimeout(buildPollTimer);
+      buildPollTimer = setTimeout(pollBuildStatus, 15000); // Poll every 15 seconds
+    } else {
+      if (run.conclusion === 'success') {
+        sbBuild.style.color = 'var(--green)';
+        sbBuild.innerHTML = `<i class="fa-solid fa-check"></i> APK Ready!`;
+        toast('✅ APK Build Completed! Click the zipper icon or status bar to download.', 'ok', 6000);
+        addLog('ok', 'Background APK build finished successfully.');
+      } else {
+        sbBuild.style.color = 'var(--red)';
+        sbBuild.innerHTML = `<i class="fa-solid fa-xmark"></i> APK Failed`;
+        toast('❌ APK Build failed on GitHub. Check Actions tab logs.', 'err', 6000);
+      }
+      // Hide the tracker after 1 minute to keep UI clean
+      setTimeout(() => { sbBuild.style.display = 'none'; sbSep.style.display = 'none'; }, 60000);
+    }
+  } catch(e) {}
+}
+
+document.getElementById('sb-build').addEventListener('click', () => {
+  document.getElementById('downloadApkBtn').click();
+});
+
 // Feature 5: Check & Download APK
 document.getElementById('downloadApkBtn').addEventListener('click', async function() {
   toggleMenu();
@@ -1877,9 +1923,11 @@ jobs:
           body: JSON.stringify({ ref: ghBranch })
         });
         if (!dispatchRes.ok) throw new Error('Dispatch failed');
-        toast('🚀 Build Triggered! Check GitHub Actions tab in 2 mins.', 'ok', 6000);
-        addLog('ok', 'Triggered workflow_dispatch for APK build.');
-      } catch(e) {
+                    toast('🚀 Build Triggered! Tracking progress in status bar...', 'ok', 6000);
+                    addLog('ok', 'Triggered workflow_dispatch for APK build.');
+                    clearTimeout(buildPollTimer);
+                    buildPollTimer = setTimeout(pollBuildStatus, 5000); // Start polling 5 seconds after trigger
+                  } catch(e) {
         toast('✅ Workflow added. Visit GitHub Actions tab to build APK.', 'info', 6000);
         addLog('warn', 'Could not auto-trigger workflow, must be done manually. ' + e.message);
       }
