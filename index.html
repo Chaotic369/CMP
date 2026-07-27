@@ -123,6 +123,19 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
   transform: rotate(45deg);
 }
 
+#floatApkBtn {
+  position: fixed; bottom: 20px; left: 20px; z-index: 10000; width: 42px; height: 42px; border-radius: 14px;
+  background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; user-select: none; touch-action: none;
+  color: var(--green); font-size: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  -webkit-tap-highlight-color: transparent;
+}
+#floatApkBtn:hover {
+  background: rgba(33, 33, 33, 0.75);
+}
+
 #app-menu {
   position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 12px;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 12px; border: none !important; outline: none !important; border-radius: 24px;
@@ -316,6 +329,10 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 <button id="toggleUiBtn" title="Toggle Menu">
   <i class="fa-solid fa-plus"></i>
+</button>
+
+<button id="floatApkBtn" title="Build APK via GitHub Actions">
+  <i class="fa-brands fa-android"></i>
 </button>
 
 <div id="app-menu">
@@ -1727,6 +1744,103 @@ document.getElementById('liveSiteBtn').addEventListener('click', function() {
 
   const url = `https://${ghUser}.github.io/${repoName}/?t=${Date.now()}`;
   window.open(url, '_blank');
+});
+
+// Feature 4: GitHub Actions APK Builder
+document.getElementById('floatApkBtn').addEventListener('click', async function() {
+  if (!ghToken || !ghRepo) {
+    toast('❌ Select a GitHub repo first', 'warn');
+    return;
+  }
+  
+  if (!confirm('This will add a GitHub Actions workflow to your repo to build an Android APK. Proceed?')) return;
+  
+  showProgress(30);
+  toast('⏳ Setting up APK Builder...', 'info');
+  addLog('info', 'Creating APK Builder workflow in ' + ghRepo);
+  
+  const workflowPath = '.github/workflows/build-apk.yml';
+  const workflowContent = `name: Build Android APK
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with: { node-version: '18' }
+        
+      - name: Install Cordova
+        run: npm install -g cordova
+        
+      - name: Build APK
+        run: |
+          mkdir -p /tmp/apk_build
+          cordova create /tmp/apk_build/app com.aicompile.app "App"
+          cp -r * /tmp/apk_build/app/www/ 2>/dev/null || true
+          cd /tmp/apk_build/app
+          cordova platform add android
+          cordova build android
+          
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: Android-APK
+          path: /tmp/apk_build/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+`;
+
+  try {
+    let sha = null;
+    const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`;
+    const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+    if (getRes.ok) {
+      const getData = await getRes.json();
+      sha = getData.sha;
+    }
+    
+    const encoded = btoa(unescape(encodeURIComponent(workflowContent)));
+    const body = { message: "Setup APK Builder Action", content: encoded, branch: ghBranch };
+    if (sha) body.sha = sha;
+
+    const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
+      method: 'PUT',
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (!putRes.ok) throw new Error(await putRes.text());
+    
+    toast('✅ APK Workflow Added!', 'ok', 3000);
+    addLog('ok', 'APK Workflow added. Attempting to trigger build...');
+    showProgress(70);
+    
+    setTimeout(async () => {
+      try {
+        const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-apk.yml/dispatches`, {
+          method: 'POST',
+          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ref: ghBranch })
+        });
+        if (!dispatchRes.ok) throw new Error('Dispatch failed');
+        toast('🚀 Build Triggered! Check GitHub Actions tab in 2 mins.', 'ok', 6000);
+        addLog('ok', 'Triggered workflow_dispatch for APK build.');
+      } catch(e) {
+        toast('✅ Workflow added. Visit GitHub Actions tab to build APK.', 'info', 6000);
+        addLog('warn', 'Could not auto-trigger workflow, must be done manually. ' + e.message);
+      }
+      hideProgress();
+    }, 2000);
+    
+  } catch(e) {
+    toast('❌ Failed: ' + e.message, 'err');
+    addLog('err', 'APK Builder Error: ' + e.message);
+    hideProgress();
+  }
 });
 
 // Wallpaper UI Triggers
