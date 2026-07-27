@@ -1826,19 +1826,14 @@ document.getElementById('downloadApkBtn').addEventListener('click', async functi
         }
     
         let finalUrl = zipRes.url;
-        abortCtrl.abort(); // Cancel the JavaScript memory download to save RAM
+            abortCtrl.abort(); // Cancel the JavaScript memory download to save RAM
     
-        // Android PWA Fix: Pass the authenticated, redirected S3 URL to the native OS downloader
-        // This bypasses the mobile browser Blob memory limits that cause silent download failures
-        let a = document.createElement('a');
-        a.href = finalUrl;
-        a.target = '_blank';
-        a.download = `${ghRepo.split('/')[1]}-APK.zip`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+            // PWA/Mobile WebView Fix: Navigate the *current* frame directly to the Azure Blob URL.
+            // Because the URL contains "Content-Disposition: attachment", it will not navigate away
+            // from the IDE, but will instantly trigger the Android Native Download Manager.
+            window.location.href = finalUrl;
     
-        toast('✅ Download handed over to OS!', 'ok');
+            toast('✅ Download handed over to OS!', 'ok');
         addLog('ok', 'Triggered native OS download for APK zip.');
   } catch(e) {
     toast('❌ ' + e.message, 'err', 5000);
