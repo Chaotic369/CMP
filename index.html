@@ -319,6 +319,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 </button>
 
 <div id="app-menu">
+  <div id="bookmarkTopBar" style="width: 100%; display: none; gap: 8px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 4px; scrollbar-width: none;"></div>
   <div id="repoSidebar">
       <div style="display:flex; flex-direction:column; gap:8px;">
         <button id="repoToggleBtn" class="btn" title="Toggle Sidebar">&lt;</button>
@@ -361,8 +362,12 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
                         <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);"><i class="fa-solid fa-file-zipper"></i></button>
     
                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
-  </div>
-</div>
+                      </div>
+                      <div id="bookmarkRightBar" style="display: none; flex-direction: column; width: 120px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 12px; margin-left: 4px; overflow-y: auto; max-height: 240px; scrollbar-width: none;">
+                         <div style="font-size:9px; color:rgba(255,255,255,0.5); text-align:center; font-weight:bold; letter-spacing:0.5px; margin-bottom: 6px;">BOOKMARKS</div>
+                         <div id="bookmarkRightList" style="display:flex; flex-direction:column;"></div>
+                      </div>
+                    </div>
 
 <div id="toast"></div>
 
@@ -486,6 +491,7 @@ var ghRepo = '';
 var ghBranch = 'main';
 var ghFilePath = 'index.html';
 var ghRepos = [];
+var ghBookmarkedRepos = [];
 var repoCollapsed = true;
 
 let dragSrcEl = null;
@@ -507,6 +513,70 @@ document.getElementById('installBtn').addEventListener('click', async () => {
     deferredPrompt = null;
   }
 });
+
+window.toggleBookmarkRepo = function(r, e) {
+    if(e) e.stopPropagation();
+    if (ghBookmarkedRepos.includes(r)) {
+        ghBookmarkedRepos = ghBookmarkedRepos.filter(x => x !== r);
+    } else {
+        ghBookmarkedRepos.push(r);
+    }
+    ghSaveConfig();
+    renderRepoTabs();
+};
+
+window.switchRepo = function(r) {
+    if (ghRepo === r) return;
+    ghRepo = r;
+    ghSaveConfig();
+    renderRepoTabs();
+    document.getElementById('fileTreeContainer').style.display = 'flex';
+    document.getElementById('repoTabsContainer').classList.remove('expanded');
+    updateRepoSidebar();
+    fetchFileTree(true, false);
+};
+
+window.renderBookmarks = function() {
+    const topBar = document.getElementById('bookmarkTopBar');
+    const rightBar = document.getElementById('bookmarkRightBar');
+    const rightList = document.getElementById('bookmarkRightList');
+    
+    if (!topBar || !rightBar) return;
+    
+    if (!ghBookmarkedRepos || ghBookmarkedRepos.length === 0) {
+        topBar.style.display = 'none';
+        rightBar.style.display = 'none';
+        return;
+    }
+    
+    topBar.style.display = 'flex';
+    rightBar.style.display = 'flex';
+    
+    topBar.innerHTML = '';
+    rightList.innerHTML = '';
+    
+    ghBookmarkedRepos.forEach(r => {
+        const name = r.split('/')[1] || r;
+        
+        const tBtn = document.createElement('button');
+        tBtn.className = 'btn';
+        tBtn.style.cssText = 'padding: 4px 12px; font-size: 11px; width: auto; height: 28px; border-radius: 14px; background: rgba(227, 179, 65, 0.15); color: var(--amber); border: 1px solid rgba(227, 179, 65, 0.3) !important; white-space: nowrap;';
+        tBtn.innerText = name;
+        tBtn.onclick = (e) => { e.stopPropagation(); window.switchRepo(r); };
+        topBar.appendChild(tBtn);
+        
+        const rBtn = document.createElement('div');
+        rBtn.className = 'repo-item';
+        rBtn.style.cssText = 'padding: 6px 10px; font-size: 11px; background: rgba(227, 179, 65, 0.1); color: var(--amber); border: 1px solid rgba(227, 179, 65, 0.2) !important; justify-content: center; margin-bottom: 4px;';
+        rBtn.innerText = name;
+        rBtn.onclick = (e) => { e.stopPropagation(); window.switchRepo(r); };
+        rightList.appendChild(rBtn);
+    });
+    
+    if (document.getElementById('app-menu').classList.contains('open')) {
+        updateMenuPosition();
+    }
+};
 
 // Lock in any Code View edits before pushing, exporting, or checking AST
 function syncEditorToSource() {
@@ -544,9 +614,10 @@ async function ghLoadConfigFromFirebase() {
         ghUser = cfg.user || '';
         ghRepo = cfg.repo || '';
         ghBranch = cfg.branch || 'main';
-        ghFilePath = cfg.filePath || 'index.html';
-        ghRepos = cfg.repos || [];
-        if (cfg.wallpaper !== undefined) {
+                    ghFilePath = cfg.filePath || 'index.html';
+                    ghRepos = cfg.repos || [];
+                    ghBookmarkedRepos = cfg.bookmarkedRepos || [];
+                    if (cfg.wallpaper !== undefined) {
           settings.wallpaper = cfg.wallpaper;
           localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
           applyWallpaper(cfg.wallpaper);
@@ -558,7 +629,7 @@ async function ghLoadConfigFromFirebase() {
 }
 
 function ghSaveConfig() {
-  const cfg = { token: ghToken, user: ghUser, repo: ghRepo, branch: ghBranch, filePath: ghFilePath, repos: ghRepos, wallpaper: settings.wallpaper || '' };
+  const cfg = { token: ghToken, user: ghUser, repo: ghRepo, branch: ghBranch, filePath: ghFilePath, repos: ghRepos, bookmarkedRepos: ghBookmarkedRepos, wallpaper: settings.wallpaper || '' };
   if (window._fbSaveConfig) window._fbSaveConfig(cfg).catch(function(){});
   document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
 }
@@ -751,17 +822,21 @@ function renderRepoTabs() {
             };
 
     const actions = document.createElement('div');
-    actions.className = 'repo-actions';
-    actions.innerHTML = `
-      <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
-      <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
-    `;
+            actions.className = 'repo-actions';
+            const isBookmarked = typeof ghBookmarkedRepos !== 'undefined' && ghBookmarkedRepos.includes(r);
+            const starColor = isBookmarked ? 'color:var(--amber);' : '';
+            actions.innerHTML = `
+              <button class="repo-btn star" style="${starColor}" title="Bookmark Repo" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
+              <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
+              <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
+            `;
 
-    btn.appendChild(nameSpan);
-    btn.appendChild(actions);
-    container.appendChild(btn);
-  });
-}
+            btn.appendChild(nameSpan);
+            btn.appendChild(actions);
+            container.appendChild(btn);
+          });
+          if(window.renderBookmarks) window.renderBookmarks();
+        }
 
 function updateRepoSidebar() {
   const btn = document.getElementById('repoToggleBtn');
