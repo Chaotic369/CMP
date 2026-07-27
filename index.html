@@ -1900,31 +1900,43 @@ document.getElementById('buildApkBtn').addEventListener('click', async function(
   `;
 
   try {
-    let sha = null;
-    const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`;
-    const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
-    if (getRes.ok) {
-      const getData = await getRes.json();
-      sha = getData.sha;
-    }
+      let sha = null;
+      let needsUpdate = true;
+      const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`;
+      const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+      if (getRes.ok) {
+        const getData = await getRes.json();
+        sha = getData.sha;
+        try {
+          const currentYaml = decodeURIComponent(escape(atob(getData.content.replace(/\s/g, ''))));
+          if (currentYaml.includes('android@13.0.0')) needsUpdate = false;
+        } catch(e) {}
+      }
     
-    const encoded = btoa(unescape(encodeURIComponent(workflowContent)));
-    const body = { message: "Setup APK Builder Action", content: encoded, branch: ghBranch };
-    if (sha) body.sha = sha;
+      if (needsUpdate) {
+        toast('⏳ Updating APK Workflow file...', 'info');
+        const encoded = btoa(unescape(encodeURIComponent(workflowContent)));
+        const body = { message: "Setup APK Builder Action", content: encoded, branch: ghBranch };
+        if (sha) body.sha = sha;
 
-    const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
-      method: 'PUT',
-      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+        const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
+          method: 'PUT',
+          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
 
-    if (!putRes.ok) throw new Error(await putRes.text());
+        if (!putRes.ok) throw new Error(await putRes.text());
+      
+        toast('✅ Workflow Updated! Waiting 10s for GitHub...', 'ok', 3000);
+        addLog('ok', 'APK Workflow added. Waiting 10 seconds for GitHub indexer...');
+        await new Promise(r => setTimeout(r, 10000)); // Give GitHub time to parse the new file
+      } else {
+        addLog('info', 'APK workflow already up-to-date. Skipping overwrite.');
+      }
     
-    toast('✅ APK Workflow Added!', 'ok', 3000);
-    addLog('ok', 'APK Workflow added. Attempting to trigger build...');
-    showProgress(70);
+      showProgress(70);
     
-    let retryCount = 0;
+      let retryCount = 0;
         const tryDispatch = async () => {
           try {
             const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-apk.yml/dispatches`, {
