@@ -319,7 +319,6 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 </button>
 
 <div id="app-menu">
-  <div id="bookmarkTopBar" style="width: 100%; display: none; gap: 8px; overflow-x: auto; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; margin-bottom: 4px; scrollbar-width: none;"></div>
   <div id="repoSidebar">
       <div style="display:flex; flex-direction:column; gap:8px;">
         <button id="repoToggleBtn" class="btn" title="Toggle Sidebar">&lt;</button>
@@ -363,9 +362,11 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
     
                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                       </div>
-                      <div id="bookmarkRightBar" style="display: none; flex-direction: column; width: 120px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 12px; margin-left: 4px; overflow-y: auto; max-height: 240px; scrollbar-width: none;">
-                         <div style="font-size:9px; color:rgba(255,255,255,0.5); text-align:center; font-weight:bold; letter-spacing:0.5px; margin-bottom: 6px;">BOOKMARKS</div>
-                         <div id="bookmarkRightList" style="display:flex; flex-direction:column;"></div>
+                      <div id="bookmarkRightBar" style="display: none; flex-direction: column; width: 140px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 12px; margin-left: 4px; overflow-x: hidden;">
+                         <div style="display:flex; flex-direction:column; gap:6px; max-height: 240px; overflow-y: auto; width: 100%;">
+                            <div style="font-size:10px; color:rgba(255,255,255,0.4); font-weight:bold; letter-spacing:0.5px; padding-left:4px; margin-bottom:2px;">★ BOOKMARKS</div>
+                            <div id="bookmarkRightList" style="display:flex; flex-direction:column; gap:4px;"></div>
+                         </div>
                       </div>
                     </div>
 
@@ -537,38 +538,31 @@ window.switchRepo = function(r) {
 };
 
 window.renderBookmarks = function() {
-    const topBar = document.getElementById('bookmarkTopBar');
     const rightBar = document.getElementById('bookmarkRightBar');
     const rightList = document.getElementById('bookmarkRightList');
     
-    if (!topBar || !rightBar) return;
+    if (!rightBar || !rightList) return;
     
     if (!ghBookmarkedRepos || ghBookmarkedRepos.length === 0) {
-        topBar.style.display = 'none';
         rightBar.style.display = 'none';
         return;
     }
     
-    topBar.style.display = 'flex';
     rightBar.style.display = 'flex';
-    
-    topBar.innerHTML = '';
     rightList.innerHTML = '';
     
     ghBookmarkedRepos.forEach(r => {
         const name = r.split('/')[1] || r;
         
-        const tBtn = document.createElement('button');
-        tBtn.className = 'btn';
-        tBtn.style.cssText = 'padding: 4px 12px; font-size: 11px; width: auto; height: 28px; border-radius: 14px; background: rgba(227, 179, 65, 0.15); color: var(--amber); border: 1px solid rgba(227, 179, 65, 0.3) !important; white-space: nowrap;';
-        tBtn.innerText = name;
-        tBtn.onclick = (e) => { e.stopPropagation(); window.switchRepo(r); };
-        topBar.appendChild(tBtn);
-        
         const rBtn = document.createElement('div');
-        rBtn.className = 'repo-item';
-        rBtn.style.cssText = 'padding: 6px 10px; font-size: 11px; background: rgba(227, 179, 65, 0.1); color: var(--amber); border: 1px solid rgba(227, 179, 65, 0.2) !important; justify-content: center; margin-bottom: 4px;';
-        rBtn.innerText = name;
+        rBtn.className = 'repo-item' + (r === ghRepo ? ' active' : '');
+        rBtn.style.cssText = 'padding: 6px 10px; font-size: 12px; margin-bottom: 2px;';
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'repo-name';
+        nameSpan.textContent = name;
+        
+        rBtn.appendChild(nameSpan);
         rBtn.onclick = (e) => { e.stopPropagation(); window.switchRepo(r); };
         rightList.appendChild(rBtn);
     });
