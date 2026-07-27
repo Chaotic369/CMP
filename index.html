@@ -1924,24 +1924,38 @@ document.getElementById('buildApkBtn').addEventListener('click', async function(
     addLog('ok', 'APK Workflow added. Attempting to trigger build...');
     showProgress(70);
     
-    setTimeout(async () => {
-      try {
-        const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-apk.yml/dispatches`, {
-          method: 'POST',
-          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ref: ghBranch })
-        });
-        if (!dispatchRes.ok) throw new Error('Dispatch failed');
-                    toast('🚀 Build Triggered! Tracking progress in status bar...', 'ok', 6000);
-                    addLog('ok', 'Triggered workflow_dispatch for APK build.');
-                    clearTimeout(buildPollTimer);
-                    buildPollTimer = setTimeout(pollBuildStatus, 5000); // Start polling 5 seconds after trigger
-                  } catch(e) {
-        toast('✅ Workflow added. Visit GitHub Actions tab to build APK.', 'info', 6000);
-        addLog('warn', 'Could not auto-trigger workflow, must be done manually. ' + e.message);
-      }
-      hideProgress();
-    }, 2000);
+    let retryCount = 0;
+        const tryDispatch = async () => {
+          try {
+            const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-apk.yml/dispatches`, {
+              method: 'POST',
+              headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ref: ghBranch })
+            });
+        
+            if (!dispatchRes.ok) {
+              const errText = await dispatchRes.text();
+              throw new Error(errText);
+            }
+        
+            toast('🚀 Build Triggered! Tracking progress in status bar...', 'ok', 6000);
+            addLog('ok', 'Triggered workflow_dispatch for APK build.');
+            clearTimeout(buildPollTimer);
+            buildPollTimer = setTimeout(pollBuildStatus, 5000);
+            hideProgress();
+          } catch(e) {
+            retryCount++;
+            if (retryCount <= 3) {
+              addLog('info', `GitHub indexing delay. Retrying dispatch (${retryCount}/3)...`);
+              setTimeout(tryDispatch, 4000); // Wait 4 seconds and try again
+            } else {
+              toast('✅ Workflow added. Visit GitHub Actions tab to build APK.', 'info', 6000);
+              addLog('warn', `Auto-trigger failed after 3 retries: ${e.message}`);
+              hideProgress();
+            }
+          }
+        };
+        setTimeout(tryDispatch, 3000); // Initial 3 second wait
     
   } catch(e) {
     toast('❌ Failed: ' + e.message, 'err');
