@@ -162,7 +162,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #sidebarContent.mini .repo-item { padding: 8px 4px; justify-content: center; text-align: center; flex-direction: column; }
 #sidebarContent.mini #repoTabsContainer { max-height: 140px; }
 
-#bookmarkContent { display: flex; flex-direction: column; width: 110px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; overflow-x: hidden; }
+#bookmarkContent { display: flex; flex-direction: column; width: 150px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; overflow-x: hidden; }
 #bookmarkContent.mini { width: 44px; padding-left: 4px; align-items: center; }
 #bookmarkContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 0.7; }
 #bookmarkContent.mini .repo-actions { display: none !important; }
@@ -370,9 +370,9 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
                       </div>
   
                       <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0;">
-                                                <div id="bookmarkContent" style="display: flex; flex-direction: column; width: 110px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; overflow-x: hidden;">
-                                                  <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto; width: 100%; flex-shrink: 0;"></div>
-                                                </div>
+                                                <div id="bookmarkContent" style="display: flex; flex-direction: column; width: 150px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; overflow-x: hidden;">
+                                                                            <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; width: 100%; flex-shrink: 0;"></div>
+                                                                          </div>
                                                 <div style="display:flex; flex-direction:column; gap:8px;">
                                                   <button id="bookmarkToggleBtn" class="btn" title="Toggle Bookmarks" style="background: transparent; font-weight: bold; width: 22px; font-size: 14px;"><i class="fa-solid fa-chevron-left"></i></button>
                                                 </div>
@@ -582,10 +582,12 @@ window.renderBookmarks = function() {
         nameSpan.textContent = name;
         
         const actions = document.createElement('div');
-        actions.className = 'repo-actions';
-        actions.innerHTML = `
-          <button class="repo-btn star" style="color:var(--amber);" title="Remove Bookmark" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
-        `;
+                actions.className = 'repo-actions';
+                actions.innerHTML = `
+                  <button class="repo-btn star" style="color:var(--amber);" title="Remove Bookmark" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
+                  <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
+                  <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
+                `;
         
         rBtn.appendChild(nameSpan);
         rBtn.appendChild(actions);
