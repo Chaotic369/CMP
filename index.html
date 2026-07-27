@@ -124,9 +124,9 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 }
 
 #app-menu {
-  position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 12px;
+  position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: flex-start; gap: 12px;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 12px; border: none !important; outline: none !important; border-radius: 20px;
-  box-shadow: 0 16px 48px rgba(0,0,0,0.4); max-width: calc(100vw - 20px); max-height: calc(100vh - 80px); overflow-y: auto; overflow-x: hidden;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.4); max-width: calc(100vw - 20px); max-height: calc(100vh - 80px); overflow-y: auto; overflow-x: auto;
   display: none; pointer-events: none;
 }
 #app-menu.open { 
@@ -154,13 +154,19 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #fileAddBtn { width: 22px; font-size: 14px; color: var(--amber); }
 #fileUploadBtn { width: 22px; font-size: 14px; color: var(--blue); }
 
-#repoSidebar { display: flex; flex-direction: row; gap: 8px; }
+#repoSidebar { display: flex; flex-direction: row; gap: 8px; flex-shrink: 0; }
 #sidebarContent { display: flex; flex-direction: column; width: 150px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 8px; overflow-x: hidden; }
 #sidebarContent.mini { width: 44px; padding-right: 4px; align-items: center; }
 #sidebarContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 0.7; }
 #sidebarContent.mini .repo-actions { display: none !important; }
 #sidebarContent.mini .repo-item { padding: 8px 4px; justify-content: center; text-align: center; flex-direction: column; }
 #sidebarContent.mini #repoTabsContainer { max-height: 140px; }
+
+#bookmarkContent { display: flex; flex-direction: column; width: 150px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; overflow-x: hidden; }
+#bookmarkContent.mini { width: 44px; padding-left: 4px; align-items: center; }
+#bookmarkContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 0.7; }
+#bookmarkContent.mini .repo-actions { display: none !important; }
+#bookmarkContent.mini .repo-item { padding: 8px 4px; justify-content: center; text-align: center; flex-direction: column; }
 
 #repoTabsContainer { display: flex; flex-direction: column; gap: 6px; max-height: 120px; overflow-y: auto; flex-shrink: 0; width: 100%; }
 #repoTabsContainer.expanded { max-height: 180px; }
@@ -183,7 +189,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 .repo-btn { background: rgba(255,255,255,0.2); border: none; color: #ffffff; cursor: pointer; padding: 4px 6px; font-size: 11px; border-radius: 8px; }
 .repo-btn.del { color: var(--red); }
 
-#main-controls { display: grid; grid-template-columns: repeat(5, 34px); grid-auto-rows: 34px; gap: 8px; align-content: start; }
+#main-controls { display: grid; grid-template-columns: repeat(5, 34px); grid-auto-rows: 34px; gap: 8px; align-content: start; flex-shrink: 0; }
 
 #toast {
   position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 20px; font-size: 13px; font-weight: 500;
@@ -363,12 +369,12 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                       </div>
   
-                      <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px;">
-                          <div id="bookmarkContent" style="display: flex; flex-direction: column; width: 150px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; overflow-x: hidden;">
-                            <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; width: 100%; flex-shrink: 0;"></div>
+                      <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0;">
+                                                <div id="bookmarkContent" style="display: flex; flex-direction: column; width: 150px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; overflow-x: hidden;">
+                            <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto; width: 100%; flex-shrink: 0;"></div>
                           </div>
                           <div style="display:flex; flex-direction:column; gap:8px;">
-                            <button id="bookmarkToggleBtn" class="btn" title="Toggle Bookmarks" style="background: transparent; font-weight: bold; width: 22px; font-size: 14px;"><i class="fa-solid fa-chevron-right"></i></button>
+                            <button id="bookmarkToggleBtn" class="btn" title="Toggle Bookmarks" style="background: transparent; font-weight: bold; width: 22px; font-size: 14px;"><i class="fa-solid fa-chevron-left"></i></button>
                           </div>
                         </div>
                     </div>
@@ -497,7 +503,7 @@ var ghFilePath = 'index.html';
 var ghRepos = [];
 var ghBookmarkedRepos = [];
 var repoCollapsed = true;
-var bookmarkCollapsed = false;
+var bookmarkCollapsed = true;
 
 let dragSrcEl = null;
 window.nestedExpanded = window.nestedExpanded || {};
@@ -544,6 +550,8 @@ window.switchRepo = function(r) {
 window.renderBookmarks = function() {
     const bSidebar = document.getElementById('bookmarkSidebar');
     const rightList = document.getElementById('bookmarkRightList');
+    const content = document.getElementById('bookmarkContent');
+    const btn = document.getElementById('bookmarkToggleBtn');
     
     if (!bSidebar || !rightList) return;
     
@@ -554,6 +562,14 @@ window.renderBookmarks = function() {
     
     bSidebar.style.display = 'flex';
     rightList.innerHTML = '';
+
+    if (bookmarkCollapsed) {
+        content.classList.add('mini');
+        btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+    } else {
+        content.classList.remove('mini');
+        btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+    }
     
     ghBookmarkedRepos.forEach(r => {
         const name = r.split('/')[1] || r;
@@ -569,8 +585,6 @@ window.renderBookmarks = function() {
         actions.className = 'repo-actions';
         actions.innerHTML = `
           <button class="repo-btn star" style="color:var(--amber);" title="Remove Bookmark" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
-          <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
-          <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
         `;
         
         rBtn.appendChild(nameSpan);
@@ -580,29 +594,29 @@ window.renderBookmarks = function() {
     });
     
     if (document.getElementById('app-menu').classList.contains('open')) {
-            updateMenuPosition();
-        }
-    };
+        updateMenuPosition();
+    }
+};
 
-    document.getElementById('bookmarkToggleBtn').addEventListener('click', () => {
-      bookmarkCollapsed = !bookmarkCollapsed;
-      const content = document.getElementById('bookmarkContent');
-      const btn = document.getElementById('bookmarkToggleBtn');
+document.getElementById('bookmarkToggleBtn').addEventListener('click', () => {
+  bookmarkCollapsed = !bookmarkCollapsed;
+  const content = document.getElementById('bookmarkContent');
+  const btn = document.getElementById('bookmarkToggleBtn');
   
-      if (bookmarkCollapsed) {
-        content.style.display = 'none';
-        btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-      } else {
-        content.style.display = 'flex';
-        btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-      }
+  if (bookmarkCollapsed) {
+    content.classList.add('mini');
+    btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+  } else {
+    content.classList.remove('mini');
+    btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+  }
   
-      if (document.getElementById('app-menu').classList.contains('open')) {
-          updateMenuPosition();
-      }
-    });
+  if (document.getElementById('app-menu').classList.contains('open')) {
+      updateMenuPosition();
+  }
+});
 
-    // Lock in any Code View edits before pushing, exporting, or checking AST
+// Lock in any Code View edits before pushing, exporting, or checking AST
 function syncEditorToSource() {
   if (viewMode === 'code' && $codeView.value !== sourceContent) {
     pushState();
