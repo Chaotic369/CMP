@@ -1954,16 +1954,16 @@ document.getElementById('buildApkBtn').addEventListener('click', async function(
             buildPollTimer = setTimeout(pollBuildStatus, 5000);
             hideProgress();
           } catch(e) {
-            retryCount++;
-            if (retryCount <= 3) {
-              addLog('info', `GitHub indexing delay. Retrying dispatch (${retryCount}/3)...`);
-              setTimeout(tryDispatch, 4000); // Wait 4 seconds and try again
-            } else {
-              toast('✅ Workflow added. Visit GitHub Actions tab to build APK.', 'info', 6000);
-              addLog('warn', `Auto-trigger failed after 3 retries: ${e.message}`);
-              hideProgress();
-            }
-          }
+                      retryCount++;
+                      if (retryCount <= 6) {
+                        addLog('info', `GitHub indexing delay. Retrying dispatch (${retryCount}/6)...`);
+                        setTimeout(tryDispatch, 5000); // Wait 5 seconds and try again
+                      } else {
+                        toast('✅ Workflow added. Visit GitHub Actions tab to build APK.', 'info', 6000);
+                        addLog('warn', `Auto-trigger failed after 6 retries: ${e.message}`);
+                        hideProgress();
+                      }
+                    }
         };
         setTimeout(tryDispatch, 3000); // Initial 3 second wait
     
