@@ -358,8 +358,9 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
                 <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i></button>
                 <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i></button>
                 <button id="buildApkBtn" class="btn" title="Build APK via GitHub Actions" style="color:var(--green);"><i class="fa-brands fa-android"></i></button>
+                        <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);"><i class="fa-solid fa-file-zipper"></i></button>
     
-            <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
+                    <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
   </div>
 </div>
 
@@ -1728,6 +1729,70 @@ document.getElementById('liveSiteBtn').addEventListener('click', function() {
 
   const url = `https://${ghUser}.github.io/${repoName}/?t=${Date.now()}`;
   window.open(url, '_blank');
+});
+
+// Feature 5: Check & Download APK
+document.getElementById('downloadApkBtn').addEventListener('click', async function() {
+  toggleMenu();
+  if (!ghToken || !ghRepo) { toast('❌ Select a GitHub repo first', 'warn'); return; }
+  
+  toast('🔍 Checking build status...', 'info');
+  showProgress(30);
+  try {
+    let runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-apk.yml/runs?per_page=1`, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    if (!runsRes.ok) throw new Error('No builds found. Have you triggered one yet?');
+    
+    let runsData = await runsRes.json();
+    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) throw new Error('No builds found.');
+    
+    let run = runsData.workflow_runs[0];
+    if (run.status !== 'completed') {
+      toast(`⏳ Build is currently ${run.status}. Please wait...`, 'warn', 4000);
+      hideProgress();
+      return;
+    }
+    if (run.conclusion !== 'success') {
+      throw new Error(`Last build ended with: ${run.conclusion}`);
+    }
+
+    let artRes = await fetch(run.artifacts_url, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    let artData = await artRes.json();
+    let artifact = artData.artifacts.find(a => a.name === 'Android-APK');
+    if (!artifact) throw new Error('Android-APK artifact not found in the latest build.');
+
+    toast('⏳ Downloading APK zip...', 'info');
+    showProgress(60);
+    
+    let zipRes = await fetch(artifact.archive_download_url, {
+      headers: { Authorization: `token ${ghToken}` }
+    });
+    
+    if (!zipRes.ok) {
+       window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
+       throw new Error('Direct download blocked by CORS. Opened GitHub Actions page instead.');
+    }
+    
+    let blob = await zipRes.blob();
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = `${ghRepo.split('/')[1]}-APK.zip`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    
+    toast('✅ Download complete!', 'ok');
+    addLog('ok', 'Downloaded latest APK zip successfully.');
+  } catch(e) {
+    toast('❌ ' + e.message, 'err', 5000);
+    addLog('err', 'APK Download Error: ' + e.message);
+  }
+  hideProgress();
 });
 
 // Feature 4: GitHub Actions APK Builder
