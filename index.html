@@ -1858,58 +1858,59 @@ document.getElementById('buildApkBtn').addEventListener('click', async function(
   
   const workflowPath = '.github/workflows/build-apk.yml';
     const workflowContent = [
-      "# Config v3 - Force Newline",
-      "name: Build Android APK",
-      "on:",
-      "  workflow_dispatch:",
-      "",
-      "jobs:",
-      "  build:",
-      "    runs-on: ubuntu-latest",
-      "    steps:",
-      "      - name: Checkout Source",
-      "        uses: actions/checkout@v4",
-      "      - name: Setup Java",
-      "        uses: actions/setup-java@v3",
-      "        with:",
-      "          distribution: 'temurin'",
-      "          java-version: '17'",
-      "      - name: Setup Node.js",
-      "        uses: actions/setup-node@v4",
-      "        with:",
-      "          node-version: '20'",
-      "      - name: Install Cordova",
-      "        run: npm install -g cordova",
-      "      - name: Build APK",
-      "        run: |",
-      "          export CI=true",
-      "          cordova telemetry off",
-      "          mkdir -p /tmp/apk_build",
-      "          cordova create /tmp/apk_build/app com.aicompile.app \"App\"",
-      "          cp -r * /tmp/apk_build/app/www/ 2>/dev/null || true",
-      "          cd /tmp/apk_build/app",
-      "          cordova platform add android@13.0.0",
-      "          cordova build android",
-      "      - name: Upload APK",
-      "        uses: actions/upload-artifact@v4",
-      "        with:",
-      "          name: Android-APK",
-      "          path: /tmp/apk_build/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk"
-    ].join('\n');
+          "# Config v4 - Safe Build",
+          "name: Build Android APK",
+          "on:",
+          "  workflow_dispatch:",
+          "",
+          "jobs:",
+          "  build:",
+          "    runs-on: ubuntu-latest",
+          "    steps:",
+          "      - name: Checkout Source",
+          "        uses: actions/checkout@v4",
+          "      - name: Setup Java",
+          "        uses: actions/setup-java@v3",
+          "        with:",
+          "          distribution: 'temurin'",
+          "          java-version: '17'",
+          "      - name: Setup Node.js",
+          "        uses: actions/setup-node@v4",
+          "        with:",
+          "          node-version: '20'",
+          "      - name: Install Cordova",
+          "        run: npm install -g cordova",
+          "      - name: Build APK",
+          "        run: |",
+          "          export CI=true",
+          "          export CORDOVA_NO_TELEMETRY=1",
+          "          cd /tmp",
+          "          cordova create app com.aicompile.app \"App\" --no-telemetry",
+          "          rm -rf app/www/*",
+          "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
+          "          cd app",
+          "          cordova platform add android@13.0.0 --no-telemetry",
+          "          cordova build android --no-telemetry",
+          "      - name: Upload APK",
+          "        uses: actions/upload-artifact@v4",
+          "        with:",
+          "          name: Android-APK",
+          "          path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk"
+        ].join('\n');
 
-  try {
-      let sha = null;
-      let needsUpdate = true;
-      const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`;
-      const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
-      if (getRes.ok) {
-        const getData = await getRes.json();
-        sha = getData.sha;
-        try {
-                const currentYaml = decodeURIComponent(escape(atob(getData.content.replace(/\s/g, ''))));
-                if (currentYaml.includes('# Config v3')) needsUpdate = false;
-              } catch(e) {}
-      }
+      try {
+          let sha = null;
+          let needsUpdate = true;
+          const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`;
+          const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+          if (getRes.ok) {
+            const getData = await getRes.json();
+            sha = getData.sha;
+            try {
+                    const currentYaml = decodeURIComponent(escape(atob(getData.content.replace(/\s/g, ''))));
+                    if (currentYaml.includes('# Config v4')) needsUpdate = false;
+                  } catch(e) {}
+          }
     
       if (needsUpdate) {
         toast('⏳ Updating APK Workflow file...', 'info');
