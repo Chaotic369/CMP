@@ -1561,8 +1561,6 @@ $backdrop.addEventListener('click', toggleMenu);
 
 // VIEW MODE TOGGLE
 document.getElementById('viewBtn').addEventListener('click', function() {
-  toggleMenu();
-
   if (viewMode === 'preview') {
     viewMode = 'code';
     $pv.style.display = 'none';
@@ -1721,7 +1719,6 @@ document.addEventListener('keydown', function(e) {
 
 // Feature 3: Webview (Live Site in New Tab)
 document.getElementById('liveSiteBtn').addEventListener('click', function() {
-  toggleMenu();
   if (!ghToken || !ghRepo || !ghUser) {
     toast('❌ Select a repo first', 'warn');
     return;
@@ -1779,7 +1776,6 @@ document.getElementById('sb-build').addEventListener('click', () => {
 
 // Feature 5: Check & Download APK
 document.getElementById('downloadApkBtn').addEventListener('click', async function() {
-  toggleMenu();
   if (!ghToken || !ghRepo) { toast('❌ Select a GitHub repo first', 'warn'); return; }
   
   toast('🔍 Checking build status...', 'info');
@@ -1849,7 +1845,6 @@ document.getElementById('downloadApkBtn').addEventListener('click', async functi
 
 // Feature 4: GitHub Actions APK Builder
 document.getElementById('buildApkBtn').addEventListener('click', async function() {
-  toggleMenu();
   if (!ghToken || !ghRepo) {
     toast('❌ Select a GitHub repo first', 'warn');
     return;
@@ -1982,7 +1977,6 @@ document.getElementById('buildApkBtn').addEventListener('click', async function(
 
 // Wallpaper UI Triggers
 document.getElementById('wallpaperBtn').addEventListener('click', function() {
-  toggleMenu();
   document.getElementById('wpUrlInput').value = settings.wallpaper || '';
   document.getElementById('wallpaperModal').classList.add('open');
   $backdrop.classList.add('open');
@@ -2045,14 +2039,12 @@ document.getElementById('payloadBtn').addEventListener('click', function() {
   payload += "=== CURRENT SOURCE ===\n" + (sourceContent ? sourceContent : "(No source loaded)");
   navigator.clipboard.writeText(payload).then(function() {
     toast('🚀 Payload Copied!');
-    toggleMenu();
   }).catch(function() {
     toast('❌ Failed to copy payload', 'err');
   });
 });
 
 document.getElementById('fullScreenBtn').addEventListener('click', function() {
-  toggleMenu();
   try {
     if (!document.fullscreenElement) {
       (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen || document.documentElement.mozRequestFullScreen || document.documentElement.msRequestFullscreen).call(document.documentElement)
@@ -2090,7 +2082,6 @@ function showControls() {
 }
 
 document.getElementById('clearBtn').addEventListener('click', function() {
-  toggleMenu();
   if (confirm('Clear workspace and start fresh?')) {
     sourceContent = ''; undoStack = []; redoStack = []; patchLog = [];
     document.getElementById('sb-status').textContent   = 'ready';
@@ -2109,7 +2100,6 @@ document.getElementById('fileBtn').addEventListener('click', function() {
 document.getElementById('fileInput').addEventListener('change', function(e) {
   var file = e.target.files[0];
   if (!file) return;
-  toggleMenu();
 
   if (file.size > 5 * 1024 * 1024) {
     if (!confirm('File is ' + (file.size / 1024 / 1024).toFixed(1) + ' MB. Large files may be slow. Continue?')) {
@@ -2147,7 +2137,6 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
 });
 
 document.getElementById('exportBtn').addEventListener('click', function() {
-  toggleMenu();
   syncEditorToSource();
   if (!sourceContent) { toast('Nothing to export.', 'warn'); return; }
   try {
@@ -2301,7 +2290,6 @@ function render(src, skipEditorUpdate) {
 }
 
 document.getElementById('astBtn').addEventListener('click', function() {
-  toggleMenu();
   syncEditorToSource();
   $astPanel.style.display = $astPanel.style.display === 'block' ? 'none' : 'block';
   if ($astPanel.style.display === 'block' && sourceContent) runASTCheck(sourceContent);
@@ -2434,7 +2422,6 @@ function astGuardAfterApply() {
 }
 
 document.getElementById('logBtn').addEventListener('click', function() {
-  toggleMenu();
   $logPanel.style.display = $logPanel.style.display === 'block' ? 'none' : 'block';
   if ($logPanel.style.display === 'block') renderLog();
 });
@@ -2709,7 +2696,6 @@ document.addEventListener('paste', function(e) {
 });
 
 document.getElementById('pasteBtn').addEventListener('click', function() {
-  toggleMenu();
   showProgress(5);
   if (!navigator.clipboard || !navigator.clipboard.readText) {
     toast('Clipboard API unavailable – try Ctrl+Shift+V or allow clipboard permission.', 'warn', 5000);
@@ -2728,7 +2714,6 @@ document.getElementById('pasteBtn').addEventListener('click', function() {
 });
 
 document.getElementById('ghSettingsBtn').addEventListener('click', function() {
-  toggleMenu();
   document.getElementById('ghToken').value = ghToken;
   document.getElementById('ghUser').value = ghUser;
   document.getElementById('ghBranch').value = ghBranch;
@@ -2841,12 +2826,10 @@ window.syncCurrentFile = async function() {
 };
 
 document.getElementById('ghSyncBtn').addEventListener('click', async function() {
-  toggleMenu();
   await syncCurrentFile();
 });
 
 document.getElementById('ghPushBtn').addEventListener('click', function() {
-  toggleMenu();
   syncEditorToSource();
   if (!sourceContent) { toast('❌ Nothing to push.', 'warn'); return; }
   if (!ghToken || !ghRepo) { toast('❌ Configure GitHub first.', 'warn'); return; }
