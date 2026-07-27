@@ -362,12 +362,9 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
     
                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                       </div>
-                      <div id="bookmarkRightBar" style="display: none; flex-direction: column; width: 140px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 12px; margin-left: 4px; overflow-x: hidden;">
-                         <div style="display:flex; flex-direction:column; gap:6px; max-height: 240px; overflow-y: auto; width: 100%;">
-                            <div style="font-size:10px; color:rgba(255,255,255,0.4); font-weight:bold; letter-spacing:0.5px; padding-left:4px; margin-bottom:2px;">★ BOOKMARKS</div>
-                            <div id="bookmarkRightList" style="display:flex; flex-direction:column; gap:4px;"></div>
-                         </div>
-                      </div>
+                      <div id="bookmarkRightBar" style="display: none; flex-direction: column; width: 208px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 12px; margin-left: 4px; overflow-x: hidden;">
+                          <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; width: 100%; flex-shrink: 0;"></div>
+                        </div>
                     </div>
 
 <div id="toast"></div>
@@ -556,13 +553,21 @@ window.renderBookmarks = function() {
         
         const rBtn = document.createElement('div');
         rBtn.className = 'repo-item' + (r === ghRepo ? ' active' : '');
-        rBtn.style.cssText = 'padding: 6px 10px; font-size: 12px; margin-bottom: 2px;';
         
         const nameSpan = document.createElement('span');
         nameSpan.className = 'repo-name';
         nameSpan.textContent = name;
         
+        const actions = document.createElement('div');
+        actions.className = 'repo-actions';
+        actions.innerHTML = `
+          <button class="repo-btn star" style="color:var(--amber);" title="Remove Bookmark" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
+          <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
+          <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
+        `;
+        
         rBtn.appendChild(nameSpan);
+        rBtn.appendChild(actions);
         rBtn.onclick = (e) => { e.stopPropagation(); window.switchRepo(r); };
         rightList.appendChild(rBtn);
     });
