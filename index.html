@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -314,11 +315,13 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
         <button id="repoToggleBtn" class="btn" title="Toggle Sidebar">&lt;</button>
         <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:none;"><i class="fa-solid fa-folder-plus"></i></button>
       <button id="fileAddBtn" class="btn" title="Create New File" style="display:none;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
-                  <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:none;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
-                  <button id="folderUploadBtn" class="btn" title="Upload Folder to Repo" style="display:none;" onclick="document.getElementById('repoFolderUploadInput').click()"><i class="fa-solid fa-folder-arrow-up"></i></button>
-                  <input type="file" id="repoUploadInput" style="display:none;" multiple>
-                          <input type="file" id="repoFolderUploadInput" style="display:none;" multiple webkitdirectory="true" mozdirectory="true" directory="true">
-                        </div>
+            <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:none;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
+            <button id="folderUploadBtn" class="btn" title="Upload Folder to Repo" style="display:none;" onclick="document.getElementById('repoFolderUploadInput').click()"><i class="fa-solid fa-folder-arrow-up"></i></button>
+            <button id="zipUploadBtn" class="btn" title="Upload & Extract ZIP" style="display:none;" onclick="document.getElementById('repoZipUploadInput').click()"><i class="fa-solid fa-file-zipper" style="color:var(--purple);"></i></button>
+            <input type="file" id="repoUploadInput" style="display:none;" multiple>
+            <input type="file" id="repoFolderUploadInput" style="display:none;" multiple webkitdirectory="true" mozdirectory="true" directory="true">
+            <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
+          </div>
     <div id="sidebarContent">
       <div id="repoTabsContainer" class="expanded"></div>
       <div id="fileTreeContainer"></div>
@@ -382,29 +385,29 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
   <h4><i class="fa-solid fa-folder-plus"></i> New Repository <span class="panel-close" id="nrCloseBtn">✕</span></h4>
   <div class="gh-row"><label>Name</label><input type="text" id="nrName" placeholder="my-awesome-repo"></div>
   <div style="display:flex; gap:10px; margin: 10px 0; font-size: 13px; flex-wrap: wrap;">
-        <label style="cursor:pointer;"><input type="radio" name="nrSource" value="upload" checked> <i class="fa-solid fa-upload"></i> Upload HTML</label>
-        <label style="cursor:pointer;"><input type="radio" name="nrSource" value="paste"> <i class="fa-solid fa-code"></i> Paste HTML</label>
-        <label style="cursor:pointer;"><input type="radio" name="nrSource" value="files"> <i class="fa-solid fa-file-zipper"></i> Upload Files</label>
-        <label style="cursor:pointer;"><input type="radio" name="nrSource" value="folders"> <i class="fa-solid fa-folder-tree"></i> Upload Folder</label>
-      </div>
+      <label style="cursor:pointer;"><input type="radio" name="nrSource" value="upload" checked> <i class="fa-solid fa-upload"></i> Upload HTML</label>
+      <label style="cursor:pointer;"><input type="radio" name="nrSource" value="paste"> <i class="fa-solid fa-code"></i> Paste HTML</label>
+      <label style="cursor:pointer;"><input type="radio" name="nrSource" value="files"> <i class="fa-solid fa-file-zipper"></i> Upload Files</label>
+      <label style="cursor:pointer;"><input type="radio" name="nrSource" value="folders"> <i class="fa-solid fa-folder-tree"></i> Upload Folder</label>
+    </div>
   
-      <label id="nrFileLabel" for="nrFileInput" style="display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
-        <i class="fa-solid fa-cloud-arrow-up" style="font-size:24px; color:var(--blue);"></i>
-        <span id="nrFileNameDisplay" style="font-size:13px; font-weight:500;">Click to upload HTML file</span>
-      </label>
-      <input type="file" id="nrFileInput" accept=".html,.htm" style="display:none;">
+    <label id="nrFileLabel" for="nrFileInput" style="display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
+      <i class="fa-solid fa-cloud-arrow-up" style="font-size:24px; color:var(--blue);"></i>
+      <span id="nrFileNameDisplay" style="font-size:13px; font-weight:500;">Click to upload HTML file</span>
+    </label>
+    <input type="file" id="nrFileInput" accept=".html,.htm" style="display:none;">
 
-      <label id="nrFilesLabel" for="nrFilesInput" style="display:none; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
-        <i class="fa-solid fa-file-zipper" style="font-size:24px; color:var(--purple);"></i>
-        <span id="nrFilesNameDisplay" style="font-size:13px; font-weight:500;">Click to select any files (multiple allowed)</span>
-      </label>
-      <input type="file" id="nrFilesInput" multiple style="display:none;">
+    <label id="nrFilesLabel" for="nrFilesInput" style="display:none; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
+      <i class="fa-solid fa-file-zipper" style="font-size:24px; color:var(--purple);"></i>
+      <span id="nrFilesNameDisplay" style="font-size:13px; font-weight:500;">Click to select any files (multiple allowed)</span>
+    </label>
+    <input type="file" id="nrFilesInput" multiple style="display:none;">
 
-      <label id="nrFoldersLabel" for="nrFoldersInput" style="display:none; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
-            <i class="fa-solid fa-folder-tree" style="font-size:24px; color:var(--amber);"></i>
-            <span id="nrFoldersNameDisplay" style="font-size:13px; font-weight:500;">Click to select a folder</span>
-          </label>
-          <input type="file" id="nrFoldersInput" multiple webkitdirectory="true" mozdirectory="true" directory="true" style="display:none;">
+    <label id="nrFoldersLabel" for="nrFoldersInput" style="display:none; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
+      <i class="fa-solid fa-folder-tree" style="font-size:24px; color:var(--amber);"></i>
+      <span id="nrFoldersNameDisplay" style="font-size:13px; font-weight:500;">Click to select a folder</span>
+    </label>
+    <input type="file" id="nrFoldersInput" multiple webkitdirectory="true" mozdirectory="true" directory="true" style="display:none;">
   
     <textarea id="nrPasteInput" placeholder="Paste HTML code here..." style="display:none; width:100%; height:120px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:20px; margin-bottom:10px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:12px;"></textarea>
   <div class="gh-actions">
@@ -1032,6 +1035,7 @@ function updateRepoSidebar() {
   const addFileBtn = document.getElementById('fileAddBtn');
   const uploadBtn = document.getElementById('fileUploadBtn');
   const folderUploadBtn = document.getElementById('folderUploadBtn');
+  const zipUploadBtn = document.getElementById('zipUploadBtn');
   const container = document.getElementById('sidebarContent');
   const ftc = document.getElementById('fileTreeContainer');
   
@@ -1044,6 +1048,7 @@ function updateRepoSidebar() {
       addFileBtn.style.display = 'none';
       uploadBtn.style.display = 'none';
       if (folderUploadBtn) folderUploadBtn.style.display = 'none';
+      if (zipUploadBtn) zipUploadBtn.style.display = 'none';
     } else {
       btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
       container.classList.remove('mini');
@@ -1052,10 +1057,12 @@ function updateRepoSidebar() {
         addFileBtn.style.display = 'flex';
         uploadBtn.style.display = 'flex';
         if (folderUploadBtn) folderUploadBtn.style.display = 'flex';
+        if (zipUploadBtn) zipUploadBtn.style.display = 'flex';
     } else {
         addFileBtn.style.display = 'none';
         uploadBtn.style.display = 'none';
         if (folderUploadBtn) folderUploadBtn.style.display = 'none';
+        if (zipUploadBtn) zipUploadBtn.style.display = 'none';
     }
   }
   if ($appMenu.classList.contains('open')) updateMenuPosition();
@@ -1182,40 +1189,40 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
     }
 
     let source = document.querySelector('input[name="nrSource"]:checked').value;
-        let fileInput = document.getElementById('nrFileInput');
-        let pasteInput = document.getElementById('nrPasteInput');
-        let filesInput = document.getElementById('nrFilesInput');
-        let foldersInput = document.getElementById('nrFoldersInput');
-        let fileContent = '';
-        let multiFiles = null;
+    let fileInput = document.getElementById('nrFileInput');
+    let pasteInput = document.getElementById('nrPasteInput');
+    let filesInput = document.getElementById('nrFilesInput');
+    let foldersInput = document.getElementById('nrFoldersInput');
+    let fileContent = '';
+    let multiFiles = null;
 
-        if (source === 'upload') {
-            if (!fileInput.files || !fileInput.files[0]) {
-                toast('❌ Please select an HTML file to upload', 'err'); 
-                addLog('err', 'Repo creation blocked: no file selected');
-                return;
-            }
-            try {
-                fileContent = await new Promise((resolve, reject) => {
-                    let reader = new FileReader();
-                    reader.onload = e => resolve(e.target.result);
-                    reader.onerror = e => reject(new Error("File read error"));
-                    reader.readAsText(fileInput.files[0]);
-                });
-            } catch (e) {
-                toast('❌ ' + e.message, 'err');
-                addLog('err', e.message);
-                return;
-            }
-        } else if (source === 'files' || source === 'folders') {
-            let activeInput = source === 'files' ? filesInput : foldersInput;
-            if (!activeInput.files || activeInput.files.length === 0) {
-                toast('❌ Please select at least one file/folder to upload', 'err');
-                addLog('err', 'Repo creation blocked: no files selected');
-                return;
-            }
-            multiFiles = Array.from(activeInput.files);
-        } else {
+    if (source === 'upload') {
+        if (!fileInput.files || !fileInput.files[0]) {
+            toast('❌ Please select an HTML file to upload', 'err'); 
+            addLog('err', 'Repo creation blocked: no file selected');
+            return;
+        }
+        try {
+            fileContent = await new Promise((resolve, reject) => {
+                let reader = new FileReader();
+                reader.onload = e => resolve(e.target.result);
+                reader.onerror = e => reject(new Error("File read error"));
+                reader.readAsText(fileInput.files[0]);
+            });
+        } catch (e) {
+            toast('❌ ' + e.message, 'err');
+            addLog('err', e.message);
+            return;
+        }
+    } else if (source === 'files' || source === 'folders') {
+        let activeInput = source === 'files' ? filesInput : foldersInput;
+        if (!activeInput.files || activeInput.files.length === 0) {
+            toast('❌ Please select at least one file/folder to upload', 'err');
+            addLog('err', 'Repo creation blocked: no files selected');
+            return;
+        }
+        multiFiles = Array.from(activeInput.files);
+    } else {
         if (!pasteInput.value.trim()) {
             toast('❌ Please paste some HTML code', 'err'); 
             addLog('err', 'Repo creation blocked: paste area empty');
@@ -1251,10 +1258,10 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
     showProgress(40);
 
     let newRepoName = repoData.full_name;
-        let firstUploadedPath = 'index.html';
+    let firstUploadedPath = 'index.html';
 
-        if (source === 'files' || source === 'folders') {
-            // Step 4 & 5: Commit multiple files
+    if (source === 'files' || source === 'folders') {
+        // Step 4 & 5: Commit multiple files
         toast('⏳ Committing files...', 'info');
         addLog('info', `Preparing to commit ${multiFiles.length} file(s) to repository`);
         let uploaded = 0, failed = 0;
@@ -1501,6 +1508,80 @@ if (_repoFolderUp) {
   _repoFolderUp.removeEventListener('change', handleRepoUpload);
   _repoFolderUp.addEventListener('change', handleRepoUpload);
 }
+
+document.getElementById('repoZipUploadInput').addEventListener('change', async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+
+  let baseDir = '';
+  if (ghFilePath && ghFilePath.includes('/')) {
+     baseDir = ghFilePath.substring(0, ghFilePath.lastIndexOf('/') + 1);
+  }
+
+  if (!confirm(`Extract "${file.name}" into "${baseDir || '/'}"?`)) { e.target.value = ''; return; }
+
+  showProgress(10);
+  toast('⏳ Extracting ZIP locally...', 'info');
+  let uploaded = 0, failed = 0;
+  let lastPath = ghFilePath;
+
+  try {
+    const jszip = new JSZip();
+    const zip = await jszip.loadAsync(file);
+    const filesToUpload = [];
+
+    zip.forEach((relativePath, zipEntry) => {
+      if (!zipEntry.dir) {
+        filesToUpload.push(zipEntry);
+      }
+    });
+
+    if (filesToUpload.length === 0) {
+      toast('❌ ZIP is empty or invalid.', 'warn');
+      hideProgress();
+      e.target.value = '';
+      return;
+    }
+
+    for (let i = 0; i < filesToUpload.length; i++) {
+      const zipEntry = filesToUpload[i];
+      showProgress(10 + ((i + 1) / filesToUpload.length) * 80);
+      try {
+        const base64Content = await zipEntry.async("base64");
+        const path = baseDir + zipEntry.name;
+        await uploadSingleFileToRepo(ghRepo, path, base64Content, ghBranch, 'Extracted from ZIP:');
+        uploaded++;
+        lastPath = path;
+      } catch(err) {
+        failed++;
+        addLog('err', 'ZIP extraction upload failed for ' + zipEntry.name + ': ' + err.message);
+      }
+    }
+
+    if (uploaded > 0) {
+      toast(`✅ Extracted & Uploaded ${uploaded}/${filesToUpload.length} file(s)` + (failed ? `, ${failed} failed` : '') + '!', failed ? 'warn' : 'ok');
+      ghFilePath = lastPath;
+      document.getElementById('ghFilePath').value = ghFilePath;
+      ghSaveConfig();
+
+      const ftc = document.getElementById('fileTreeContainer');
+      const rtc = document.getElementById('repoTabsContainer');
+      ftc.style.display = 'flex';
+      rtc.classList.remove('expanded');
+
+      await fetchFileTree(false, false);
+      syncCurrentFile();
+    } else {
+      toast('❌ All ZIP uploads failed. Check the log.', 'err', 5000);
+    }
+  } catch (err) {
+    toast('❌ Failed to read ZIP: ' + err.message, 'err', 5000);
+    addLog('err', 'ZIP parse error: ' + err.message);
+  }
+  hideProgress();
+  e.target.value = '';
+});
 
 window.renameFile = async function(path, e) {
     e.stopPropagation();
