@@ -778,12 +778,13 @@ function renderRepoTabs() {
             btn.dataset.index = index;
 
             let holdTimer;
-            let isDragReady = false;
-            let isDragging = false;
-            let startY = 0, startX = 0;
-            let clone = null;
+                        let isDragReady = false;
+                        let isDragging = false;
+                        let startY = 0, startX = 0;
+                        let clone = null;
+                        let bookmarkArmed = false;
 
-            const onPointerMove = function(e) {
+                        const onPointerMove = function(e) {
               if (!isDragReady && holdTimer) {
                 if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
                    clearTimeout(holdTimer);
@@ -814,63 +815,89 @@ function renderRepoTabs() {
               }
 
               if (isDragging && clone) {
-                clone.style.top = (e.clientY - clone.offsetHeight / 2) + 'px';
-                clone.style.left = (e.clientX - clone.offsetWidth / 2) + 'px';
+                              clone.style.top = (e.clientY - clone.offsetHeight / 2) + 'px';
+                              clone.style.left = (e.clientX - clone.offsetWidth / 2) + 'px';
 
-                let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
-                let targetRepo = elemBelow ? elemBelow.closest('.repo-item') : null;
+                              const bSidebarEl = document.getElementById('bookmarkSidebar');
+                              let overBookmarkZone = false;
+                              if (bSidebarEl && bSidebarEl.style.display !== 'none') {
+                                const bRect = bSidebarEl.getBoundingClientRect();
+                                overBookmarkZone = e.clientX >= bRect.left - 20 && e.clientX <= bRect.right + 20 &&
+                                                    e.clientY >= bRect.top - 20 && e.clientY <= bRect.bottom + 20;
+                              } else {
+                                overBookmarkZone = e.clientX > window.innerWidth - 60;
+                              }
+                              bookmarkArmed = overBookmarkZone;
+                              clone.style.background = bookmarkArmed ? 'rgba(227,179,65,0.35)' : 'rgba(255,255,255,0.15)';
+                              clone.style.borderColor = bookmarkArmed ? 'var(--amber)' : '';
 
-                if (targetRepo && targetRepo !== btn && targetRepo.parentNode === container) {
-                  let rect = targetRepo.getBoundingClientRect();
-                  if (e.clientY < rect.top + rect.height / 2) {
-                    container.insertBefore(btn, targetRepo);
-                  } else {
-                    container.insertBefore(btn, targetRepo.nextSibling);
-                  }
-                }
-              }
-            };
+                              if (!bookmarkArmed) {
+                                let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+                                let targetRepo = elemBelow ? elemBelow.closest('.repo-item') : null;
 
-            const onPointerUp = function(e) {
-              window.removeEventListener('pointermove', onPointerMove);
-              window.removeEventListener('pointerup', onPointerUp);
-              window.removeEventListener('pointercancel', onPointerUp);
+                                if (targetRepo && targetRepo !== btn && targetRepo.parentNode === container) {
+                                  let rect = targetRepo.getBoundingClientRect();
+                                  if (e.clientY < rect.top + rect.height / 2) {
+                                    container.insertBefore(btn, targetRepo);
+                                  } else {
+                                    container.insertBefore(btn, targetRepo.nextSibling);
+                                  }
+                                }
+                              }
+                            }
+                          };
+
+                          const onPointerUp = function(e) {
+                            window.removeEventListener('pointermove', onPointerMove);
+                            window.removeEventListener('pointerup', onPointerUp);
+                            window.removeEventListener('pointercancel', onPointerUp);
           
-              let wasDragging = isDragging;
-              let wasReady = isDragReady;
+                            let wasDragging = isDragging;
+                            let wasReady = isDragReady;
       
-              clearTimeout(holdTimer);
-              if (!isDragging) btn.classList.remove('ready-to-drag');
+                            clearTimeout(holdTimer);
+                            if (!isDragging) btn.classList.remove('ready-to-drag');
       
-              if (wasReady) {
-                 isDragReady = true; 
-                 setTimeout(() => { isDragReady = false; }, 200);
-              } else {
-                 isDragReady = false;
-              }
+                            if (wasReady) {
+                               isDragReady = true; 
+                               setTimeout(() => { isDragReady = false; }, 200);
+                            } else {
+                               isDragReady = false;
+                            }
       
-              if (wasDragging) {
-                isDragging = false;
-                if (clone) clone.remove();
-                btn.style.opacity = '1';
-        
-                let newRepos = [];
-                container.querySelectorAll('.repo-item').forEach(el => {
-                  if (el.dataset.index !== undefined) {
-                     newRepos.push(ghRepos[el.dataset.index]);
-                  }
-                });
-        
-                if (newRepos.length === ghRepos.length) {
-                  ghRepos = newRepos;
-                  ghSaveConfig();
-                }
-                renderRepoTabs();
-              }
+                            if (wasDragging) {
+                              isDragging = false;
+                              if (clone) clone.remove();
+                              btn.style.opacity = '1';
+
+                              if (bookmarkArmed) {
+                                const repoFullName = ghRepos[btn.dataset.index];
+                                if (repoFullName && !ghBookmarkedRepos.includes(repoFullName)) {
+                                  ghBookmarkedRepos.push(repoFullName);
+                                  ghSaveConfig();
+                                  if (window.renderBookmarks) window.renderBookmarks();
+                                  toast('⭐ Bookmarked ' + (repoFullName.split('/')[1] || repoFullName));
+                                }
+                                renderRepoTabs();
+                              } else {
+                                let newRepos = [];
+                                container.querySelectorAll('.repo-item').forEach(el => {
+                                  if (el.dataset.index !== undefined) {
+                                     newRepos.push(ghRepos[el.dataset.index]);
+                                  }
+                                });
           
-              // Bulletproof failsafe for mid-air artifacts
-              document.querySelectorAll('.stray-clone-guard').forEach(el => el.remove());
-            };
+                                if (newRepos.length === ghRepos.length) {
+                                  ghRepos = newRepos;
+                                  ghSaveConfig();
+                                }
+                                renderRepoTabs();
+                              }
+                            }
+          
+                            // Bulletproof failsafe for mid-air artifacts
+                            document.querySelectorAll('.stray-clone-guard').forEach(el => el.remove());
+                          };
 
             btn.addEventListener('pointerdown', function(e) {
               if (e.button !== 0 && e.pointerType === 'mouse') return;
