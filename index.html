@@ -2289,9 +2289,9 @@ document.getElementById('buildApkBtn').addEventListener('click', async function(
   addLog('info', 'Creating APK Builder workflow in ' + ghRepo);
   
   const workflowPath = '.github/workflows/build-apk.yml';
-    const workflowContent = [
-          "# Config v4 - Safe Build",
-          "name: Build Android APK",
+      const workflowContent = [
+            "# Config v5 - Browser Fix",
+            "name: Build Android APK",
           "on:",
           "  workflow_dispatch:",
           "",
@@ -2318,12 +2318,14 @@ document.getElementById('buildApkBtn').addEventListener('click', async function(
           "          export CORDOVA_NO_TELEMETRY=1",
           "          cd /tmp",
           "          cordova create app com.aicompile.app \"App\" --no-telemetry",
-          "          rm -rf app/www/*",
-          "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
-          "          cd app",
-          "          cordova platform add android@13.0.0 --no-telemetry",
-          "          cordova build android --no-telemetry",
-          "      - name: Upload APK",
+                    "          rm -rf app/www/*",
+                    "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
+                    "          cd app",
+                    "          sed -i 's/<\\/widget>/\\n    <allow-navigation href=\"*\" \\/>\\n    <allow-intent href=\"*\" \\/>\\n<\\/widget>/g' config.xml",
+                    "          cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true",
+                    "          cordova platform add android@13.0.0 --no-telemetry",
+                    "          cordova build android --no-telemetry",
+                    "      - name: Upload APK",
           "        uses: actions/upload-artifact@v4",
           "        with:",
           "          name: Android-APK",
@@ -2339,10 +2341,10 @@ document.getElementById('buildApkBtn').addEventListener('click', async function(
             const getData = await getRes.json();
             sha = getData.sha;
             try {
-                    const currentYaml = decodeURIComponent(escape(atob(getData.content.replace(/\s/g, ''))));
-                    if (currentYaml.includes('# Config v4')) needsUpdate = false;
-                  } catch(e) {}
-          }
+                                const currentYaml = decodeURIComponent(escape(atob(getData.content.replace(/\s/g, ''))));
+                                if (currentYaml.includes('# Config v5')) needsUpdate = false;
+                              } catch(e) {}
+                      }
     
       if (needsUpdate) {
         toast('⏳ Updating APK Workflow file...', 'info');
