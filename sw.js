@@ -1,14 +1,21 @@
- // A minimal Service Worker to satisfy the PWA install requirement
-self.addEventListener('install', function(event) {
+const CACHE_NAME = 'sovereign-ide-cache-v1';
+const urlsToCache = [
+  './',
+  './index.html',
+  './manifest.json'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(urlsToCache))
+  );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', function(event) {
-  event.waitUntil(clients.claim());
-});
-
-self.addEventListener('fetch', function(event) {
-  // We don't need to intercept any network requests right now.
-  // Just having this fetch listener present unlocks the PWA install button!
-  return;
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => response || fetch(event.request))
+  );
 });
