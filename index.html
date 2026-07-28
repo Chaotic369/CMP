@@ -125,8 +125,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 #app-menu {
   position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: flex-start; gap: 12px;
-  background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 12px; border: none !important; outline: none !important; border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); width: fit-content; height: fit-content; max-width: calc(100vw - 20px); max-height: calc(100vh - 80px); overflow: visible;
+  background: rgba(0, 0, 0, 0.50); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 12px; border: none !important; outline: none !important; border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4); width: fit-content; height: fit-content; max-width: calc(100vw - 20px); max-height: calc(100vh - 80px); overflow: visible;
   display: none; pointer-events: none;
 }
 #app-menu.open { 
@@ -195,9 +195,9 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 #toast {
   position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 20px; font-size: 13px; font-weight: 500;
-  background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; color: var(--green);
+  background: rgba(0, 0, 0, 0.50); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; color: var(--green);
   z-index: 40000; display: none; max-width: 90vw; text-align: center; white-space: pre-line;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 #toast.show { display: block; }
 #toast.warn { color: var(--amber); }
@@ -205,8 +205,8 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #toast.info { color: var(--blue); }
 
 #astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal {
-  position: fixed; z-index: 98; background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px;
-  padding: 24px; color: #ffffff; font-size: 13px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  position: fixed; z-index: 98; background: rgba(0, 0, 0, 0.50); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px;
+  padding: 24px; color: #ffffff; font-size: 13px; box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
   transform: translateZ(0);
 }
 #astPanel, #logPanel { width: calc(100vw - 40px); max-width: 420px; max-height: 48vh; overflow-y: auto; display: none; line-height: 1.6; left: 50%; transform: translateX(-50%); }
@@ -222,10 +222,10 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 #errOverlay {
   position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 20px;
+  background: rgba(0, 0, 0, 0.50); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 20px;
   padding: 16px; color: var(--red); font-size: 13px; font-weight: 500; font-family: 'JetBrains Mono', monospace; z-index: 25000;
   width: 90vw; max-width: 480px; display: none; white-space: pre-wrap; max-height: 40vh; overflow-y: auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 
 #statusBar {
@@ -272,9 +272,9 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 #fnrPanel {
   position: fixed; top: 0; left: 0; right: 0; z-index: 10001;
-  background: rgba(0, 0, 0, 0.35); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
+  background: rgba(0, 0, 0, 0.50); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
   padding: 16px 20px; display: none; flex-direction: column; gap: 10px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
 }
 .fnr-row { display: flex; gap: 10px; align-items: center; }
 .fnr-row input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); color: #fff; padding: 10px 14px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
