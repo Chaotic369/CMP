@@ -1448,7 +1448,7 @@ async function handleRepoUpload(e) {
 
   let confirmMsg = files.length === 1
     ? `Upload "${files[0].name}" to "${baseDir + files[0].name}"?`
-    : `Upload ${files.length} files to "${baseDir || '/'}"?`;
+    : `Upload ${files.length} items to "${baseDir || '/'}"?`;
   if (!confirm(confirmMsg)) { e.target.value = ''; return; }
 
   showProgress(10);
@@ -1472,7 +1472,7 @@ async function handleRepoUpload(e) {
   }
 
   if (uploaded > 0) {
-    toast(`✅ Uploaded ${uploaded}/${files.length} file(s)` + (failed ? `, ${failed} failed` : '') + '!', failed ? 'warn' : 'ok');
+    toast(`✅ Uploaded ${uploaded}/${files.length} item(s)` + (failed ? `, ${failed} failed` : '') + '!', failed ? 'warn' : 'ok');
     ghFilePath = lastPath;
     document.getElementById('ghFilePath').value = ghFilePath;
     ghSaveConfig();
@@ -1490,8 +1490,17 @@ async function handleRepoUpload(e) {
   hideProgress();
   e.target.value = '';
 }
-document.getElementById('repoUploadInput').addEventListener('change', handleRepoUpload);
-document.getElementById('repoFolderUploadInput').addEventListener('change', handleRepoUpload);
+
+const _repoUp = document.getElementById('repoUploadInput');
+const _repoFolderUp = document.getElementById('repoFolderUploadInput');
+if (_repoUp) {
+  _repoUp.removeEventListener('change', handleRepoUpload);
+  _repoUp.addEventListener('change', handleRepoUpload);
+}
+if (_repoFolderUp) {
+  _repoFolderUp.removeEventListener('change', handleRepoUpload);
+  _repoFolderUp.addEventListener('change', handleRepoUpload);
+}
 
 window.renameFile = async function(path, e) {
     e.stopPropagation();
