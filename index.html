@@ -3103,6 +3103,51 @@ document.getElementById('ghSaveBtn').addEventListener('click', function() {
   toast('💾 GitHub Settings Saved!');
 });
 
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = error => reject(error);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadSingleFileToRepo(repo, path, base64Content, branch, messagePrefix = 'Upload') {
+  let sha = null;
+  try {
+    const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+      cache: 'no-store'
+    });
+    if (getRes.ok) {
+      const getData = await getRes.json();
+      sha = getData.sha;
+    }
+  } catch (e) {}
+
+  const body = {
+    message: `${messagePrefix} ${path}`,
+    content: base64Content,
+    branch: branch
+  };
+  if (sha) body.sha = sha;
+
+  const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+    method: 'PUT',
+    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!putRes.ok) {
+    const errText = await putRes.text();
+    throw new Error(errText);
+  }
+  return await putRes.json();
+}
+
 document.getElementById('ghFetchReposBtn').addEventListener('click', function() {
   ghToken = document.getElementById('ghToken').value.trim();
   ghFetchAllRepos();
