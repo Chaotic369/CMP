@@ -314,9 +314,9 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
         <button id="repoToggleBtn" class="btn" title="Toggle Sidebar">&lt;</button>
         <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:none;"><i class="fa-solid fa-folder-plus"></i></button>
       <button id="fileAddBtn" class="btn" title="Create New File" style="display:none;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
-      <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:none;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
-      <input type="file" id="repoUploadInput" style="display:none;">
-    </div>
+            <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:none;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
+            <input type="file" id="repoUploadInput" style="display:none;" multiple>
+          </div>
     <div id="sidebarContent">
       <div id="repoTabsContainer" class="expanded"></div>
       <div id="fileTreeContainer"></div>
@@ -379,18 +379,25 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 <div id="newRepoModal">
   <h4><i class="fa-solid fa-folder-plus"></i> New Repository <span class="panel-close" id="nrCloseBtn">✕</span></h4>
   <div class="gh-row"><label>Name</label><input type="text" id="nrName" placeholder="my-awesome-repo"></div>
-  <div style="display:flex; gap:10px; margin: 10px 0; font-size: 13px;">
-    <label style="cursor:pointer;"><input type="radio" name="nrSource" value="upload" checked> <i class="fa-solid fa-upload"></i> Upload HTML</label>
-    <label style="cursor:pointer;"><input type="radio" name="nrSource" value="paste"> <i class="fa-solid fa-code"></i> Paste HTML</label>
-  </div>
+  <div style="display:flex; gap:10px; margin: 10px 0; font-size: 13px; flex-wrap: wrap;">
+      <label style="cursor:pointer;"><input type="radio" name="nrSource" value="upload" checked> <i class="fa-solid fa-upload"></i> Upload HTML</label>
+      <label style="cursor:pointer;"><input type="radio" name="nrSource" value="paste"> <i class="fa-solid fa-code"></i> Paste HTML</label>
+      <label style="cursor:pointer;"><input type="radio" name="nrSource" value="files"> <i class="fa-solid fa-file-zipper"></i> Upload Files</label>
+    </div>
   
-  <label id="nrFileLabel" for="nrFileInput" style="display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
-    <i class="fa-solid fa-cloud-arrow-up" style="font-size:24px; color:var(--blue);"></i>
-    <span id="nrFileNameDisplay" style="font-size:13px; font-weight:500;">Click to upload HTML file</span>
-  </label>
-  <input type="file" id="nrFileInput" accept=".html,.htm" style="display:none;">
+    <label id="nrFileLabel" for="nrFileInput" style="display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
+      <i class="fa-solid fa-cloud-arrow-up" style="font-size:24px; color:var(--blue);"></i>
+      <span id="nrFileNameDisplay" style="font-size:13px; font-weight:500;">Click to upload HTML file</span>
+    </label>
+    <input type="file" id="nrFileInput" accept=".html,.htm" style="display:none;">
+
+    <label id="nrFilesLabel" for="nrFilesInput" style="display:none; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
+      <i class="fa-solid fa-file-zipper" style="font-size:24px; color:var(--purple);"></i>
+      <span id="nrFilesNameDisplay" style="font-size:13px; font-weight:500;">Click to select any files (multiple allowed)</span>
+    </label>
+    <input type="file" id="nrFilesInput" multiple style="display:none;">
   
-  <textarea id="nrPasteInput" placeholder="Paste HTML code here..." style="display:none; width:100%; height:120px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:20px; margin-bottom:10px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:12px;"></textarea>
+    <textarea id="nrPasteInput" placeholder="Paste HTML code here..." style="display:none; width:100%; height:120px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:20px; margin-bottom:10px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:12px;"></textarea>
   <div class="gh-actions">
     <button id="nrCancelBtn">✕ Cancel</button>
     <button id="nrAddBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);">Add</button>
@@ -1064,12 +1071,18 @@ document.getElementById('repoToggleBtn').addEventListener('click', () => {
 // Feature 1: New Repo Flow UI Toggles & Input Styling
 document.querySelectorAll('input[name="nrSource"]').forEach(radio => {
   radio.addEventListener('change', (e) => {
+    const fileLabel = document.getElementById('nrFileLabel');
+    const pasteInput = document.getElementById('nrPasteInput');
+    const filesLabel = document.getElementById('nrFilesLabel');
+    fileLabel.style.display = 'none';
+    pasteInput.style.display = 'none';
+    filesLabel.style.display = 'none';
     if (e.target.value === 'upload') {
-      document.getElementById('nrFileLabel').style.display = 'flex';
-      document.getElementById('nrPasteInput').style.display = 'none';
-    } else {
-      document.getElementById('nrFileLabel').style.display = 'none';
-      document.getElementById('nrPasteInput').style.display = 'block';
+      fileLabel.style.display = 'flex';
+    } else if (e.target.value === 'paste') {
+      pasteInput.style.display = 'block';
+    } else if (e.target.value === 'files') {
+      filesLabel.style.display = 'flex';
     }
   });
 });
@@ -1081,13 +1094,33 @@ document.getElementById('nrFileInput').addEventListener('change', function(e) {
   document.getElementById('nrFileLabel').style.borderColor = file ? 'var(--green)' : 'rgba(255,255,255,0.3)';
 });
 
+document.getElementById('nrFilesInput').addEventListener('change', function(e) {
+  const files = e.target.files;
+  const label = document.getElementById('nrFilesLabel');
+  const disp = document.getElementById('nrFilesNameDisplay');
+  if (files && files.length > 0) {
+    disp.textContent = files.length === 1 ? files[0].name : files.length + ' files selected';
+    label.style.borderColor = 'var(--green)';
+  } else {
+    disp.textContent = 'Click to select any files (multiple allowed)';
+    label.style.borderColor = 'rgba(255,255,255,0.3)';
+  }
+});
+
 document.getElementById('repoAddBtn').addEventListener('click', () => {
     if (!ghToken) { toast('❌ Setup GitHub token first', 'warn'); return; }
     document.getElementById('nrName').value = '';
     document.getElementById('nrFileInput').value = '';
     document.getElementById('nrFileNameDisplay').textContent = 'Click to upload HTML file';
     document.getElementById('nrFileLabel').style.borderColor = 'rgba(255,255,255,0.3)';
+    document.getElementById('nrFilesInput').value = '';
+    document.getElementById('nrFilesNameDisplay').textContent = 'Click to select any files (multiple allowed)';
+    document.getElementById('nrFilesLabel').style.borderColor = 'rgba(255,255,255,0.3)';
+    document.getElementById('nrFilesLabel').style.display = 'none';
+    document.getElementById('nrFileLabel').style.display = 'flex';
+    document.getElementById('nrPasteInput').style.display = 'none';
     document.getElementById('nrPasteInput').value = '';
+    document.querySelector('input[name="nrSource"][value="upload"]').checked = true;
     document.getElementById('newRepoModal').classList.add('open');
     document.getElementById('menu-backdrop').classList.add('open');
 });
@@ -1114,7 +1147,9 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
     let source = document.querySelector('input[name="nrSource"]:checked').value;
     let fileInput = document.getElementById('nrFileInput');
     let pasteInput = document.getElementById('nrPasteInput');
+    let filesInput = document.getElementById('nrFilesInput');
     let fileContent = '';
+    let multiFiles = null;
 
     if (source === 'upload') {
         if (!fileInput.files || !fileInput.files[0]) {
@@ -1134,6 +1169,13 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
             addLog('err', e.message);
             return;
         }
+    } else if (source === 'files') {
+        if (!filesInput.files || filesInput.files.length === 0) {
+            toast('❌ Please select at least one file to upload', 'err');
+            addLog('err', 'Repo creation blocked: no files selected');
+            return;
+        }
+        multiFiles = Array.from(filesInput.files);
     } else {
         if (!pasteInput.value.trim()) {
             toast('❌ Please paste some HTML code', 'err'); 
@@ -1169,28 +1211,59 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
     addLog('ok', `Repo created: ${repoData.full_name}`);
     showProgress(40);
 
-    // Step 4 & 5: Commit index.html
-    toast('⏳ Committing index.html...', 'info');
-    addLog('info', 'Preparing to commit index.html to repository');
     let newRepoName = repoData.full_name;
-    let base64Content = btoa(unescape(encodeURIComponent(fileContent)));
+    let firstUploadedPath = 'index.html';
 
-    try {
-        let res = await fetch(`https://api.github.com/repos/${newRepoName}/contents/index.html`, {
-            method: 'PUT',
-            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: `Initial commit: index.html`, content: base64Content, branch: 'main' })
-        });
-        if(!res.ok) throw new Error(await res.text());
-    } catch (e) {
-        toast('❌ File commit failed: ' + e.message, 'err');
-        addLog('err', 'Commit failed: ' + e.message);
-        hideProgress();
-        document.getElementById('nrAddBtn').disabled = false;
-        return;
+    if (source === 'files') {
+        // Step 4 & 5: Commit multiple files
+        toast('⏳ Committing files...', 'info');
+        addLog('info', `Preparing to commit ${multiFiles.length} file(s) to repository`);
+        let uploaded = 0, failed = 0;
+        for (let i = 0; i < multiFiles.length; i++) {
+            const f = multiFiles[i];
+            const relPath = f.webkitRelativePath && f.webkitRelativePath.length > 0 ? f.webkitRelativePath : f.name;
+            showProgress(40 + ((i + 1) / multiFiles.length) * 20);
+            try {
+                const b64 = await readFileAsBase64(f);
+                await uploadSingleFileToRepo(newRepoName, relPath, b64, 'main', 'Initial commit:');
+                uploaded++;
+                if (uploaded === 1) firstUploadedPath = relPath;
+            } catch (e) {
+                failed++;
+                addLog('err', `Commit failed for ${relPath}: ` + e.message);
+            }
+        }
+        if (uploaded === 0) {
+            toast('❌ All file commits failed.', 'err');
+            hideProgress();
+            document.getElementById('nrAddBtn').disabled = false;
+            return;
+        }
+        toast(`✅ ${uploaded}/${multiFiles.length} file(s) committed.`, uploaded === multiFiles.length ? 'ok' : 'warn', 1500);
+        addLog('ok', `${uploaded}/${multiFiles.length} files committed successfully.`);
+    } else {
+        // Step 4 & 5: Commit index.html
+        toast('⏳ Committing index.html...', 'info');
+        addLog('info', 'Preparing to commit index.html to repository');
+        let base64Content = btoa(unescape(encodeURIComponent(fileContent)));
+
+        try {
+            let res = await fetch(`https://api.github.com/repos/${newRepoName}/contents/index.html`, {
+                method: 'PUT',
+                headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: `Initial commit: index.html`, content: base64Content, branch: 'main' })
+            });
+            if(!res.ok) throw new Error(await res.text());
+        } catch (e) {
+            toast('❌ File commit failed: ' + e.message, 'err');
+            addLog('err', 'Commit failed: ' + e.message);
+            hideProgress();
+            document.getElementById('nrAddBtn').disabled = false;
+            return;
+        }
+        toast('✅ File committed.', 'ok', 1500);
+        addLog('ok', 'index.html committed successfully.');
     }
-    toast('✅ File committed.', 'ok', 1500);
-    addLog('ok', 'index.html committed successfully.');
     showProgress(60);
 
     // Step 7: Enable Pages
@@ -1212,11 +1285,11 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
     showProgress(80);
 
     // Step 8: Context Switch
-    toast('⏳ Switching context...', 'info');
-    addLog('info', 'Switching IDE context to new repo...');
-    ghRepo = newRepoName;
-    ghFilePath = 'index.html';
-    ghSaveConfig();
+        toast('⏳ Switching context...', 'info');
+        addLog('info', 'Switching IDE context to new repo...');
+        ghRepo = newRepoName;
+        ghFilePath = firstUploadedPath;
+        ghSaveConfig();
     
     await ghFetchAllRepos();
     renderRepoTabs();
@@ -1325,57 +1398,57 @@ window.createNewFile = async function() {
 };
 
 document.getElementById('repoUploadInput').addEventListener('change', async function(e) {
-  var file = e.target.files[0];
-  if (!file) return;
+  var files = Array.from(e.target.files || []);
+  if (!files.length) return;
   if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
 
-  let defaultPath = file.name;
+  let baseDir = '';
   if (ghFilePath && ghFilePath.includes('/')) {
-     let dir = ghFilePath.substring(0, ghFilePath.lastIndexOf('/') + 1);
-     defaultPath = dir + file.name;
+     baseDir = ghFilePath.substring(0, ghFilePath.lastIndexOf('/') + 1);
   }
 
-  let path = prompt('Upload to path:', defaultPath);
-  if (!path) { e.target.value = ''; return; }
+  let confirmMsg = files.length === 1
+    ? `Upload "${files[0].name}" to "${baseDir + files[0].name}"?`
+    : `Upload ${files.length} files to "${baseDir || '/'}"?`;
+  if (!confirm(confirmMsg)) { e.target.value = ''; return; }
 
-  showProgress(30);
-  try {
-    const reader = new FileReader();
-    reader.onload = async function(ev) {
-        try {
-            let base64Content = ev.target.result.split(',')[1];
-            let res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
-                method: 'PUT',
-                headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: `Upload ${path}`, content: base64Content, branch: ghBranch })
-            });
-            if(!res.ok) throw new Error(await res.text());
-            toast('✅ File uploaded successfully!');
-            
-            ghFilePath = path;
-            document.getElementById('ghFilePath').value = ghFilePath;
-            ghSaveConfig();
-            
-            // Ensure file tree container remains open and visible when file is uploaded
-            const ftc = document.getElementById('fileTreeContainer');
-            const rtc = document.getElementById('repoTabsContainer');
-            ftc.style.display = 'flex';
-            rtc.classList.remove('expanded');
-            
-            await fetchFileTree(false, false);
-            syncCurrentFile();
-            
-        } catch(err) {
-            toast('❌ Upload failed: ' + err.message, 'err');
-        }
-        hideProgress();
-    };
-    reader.onerror = () => { toast('❌ Error reading file', 'err'); hideProgress(); };
-    reader.readAsDataURL(file);
-  } catch (err) {
-      toast('❌ Failed: ' + err.message, 'err');
-      hideProgress();
+  showProgress(10);
+  let uploaded = 0, failed = 0;
+  let lastPath = ghFilePath;
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const relPath = file.webkitRelativePath && file.webkitRelativePath.length > 0 ? file.webkitRelativePath : file.name;
+    const path = baseDir + relPath;
+    showProgress(10 + ((i + 1) / files.length) * 80);
+    try {
+      const base64Content = await readFileAsBase64(file);
+      await uploadSingleFileToRepo(ghRepo, path, base64Content, ghBranch, 'Upload');
+      uploaded++;
+      lastPath = path;
+    } catch(err) {
+      failed++;
+      addLog('err', 'Upload failed for ' + path + ': ' + err.message);
+    }
   }
+
+  if (uploaded > 0) {
+    toast(`✅ Uploaded ${uploaded}/${files.length} file(s)` + (failed ? `, ${failed} failed` : '') + '!', failed ? 'warn' : 'ok');
+    ghFilePath = lastPath;
+    document.getElementById('ghFilePath').value = ghFilePath;
+    ghSaveConfig();
+
+    const ftc = document.getElementById('fileTreeContainer');
+    const rtc = document.getElementById('repoTabsContainer');
+    ftc.style.display = 'flex';
+    rtc.classList.remove('expanded');
+
+    await fetchFileTree(false, false);
+    syncCurrentFile();
+  } else {
+    toast('❌ All uploads failed. Check the log.', 'err', 5000);
+  }
+  hideProgress();
   e.target.value = '';
 });
 
