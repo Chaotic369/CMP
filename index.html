@@ -372,21 +372,13 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
                       </div>
   
                       <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0;">
-                                                                      <div id="bookmarkContent">
-                                                                        <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; width: 100%;"></div>
-                                                                      </div>
-                                                <div style="display:flex; flex-direction:column; gap:8px;">
-                                                  <button id="bookmarkToggleBtn" class="btn" title="Toggle Bookmarks" style="font-weight: bold; width: 22px; font-size: 14px;"><i class="fa-solid fa-chevron-right"></i></button>
-                                                </div>
-                                              </div>
-                                                                          </div>
-                                                <div style="display:flex; flex-direction:column; gap:8px;">
-                                                  <button id="bookmarkToggleBtn" class="btn" title="Toggle Bookmarks" style="background: transparent; font-weight: bold; width: 22px; font-size: 14px;"><i class="fa-solid fa-chevron-left"></i></button>
-                                                </div>
-                                              </div>
-                    </div>
+                                                                                            <div id="bookmarkContent">
+                                                                                              <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; width: 100%;"></div>
+                                                                                            </div>
+                                                                    </div>
+                                          </div>
 
-<div id="toast"></div>
+                      <div id="toast"></div>
 
 <div id="wallpaperModal">
   <h4><i class="fa-solid fa-image"></i> Workspace Wallpaper</h4>
@@ -510,7 +502,6 @@ var ghFilePath = 'index.html';
 var ghRepos = [];
 var ghBookmarkedRepos = [];
 var repoCollapsed = true;
-var bookmarkCollapsed = true;
 
 let dragSrcEl = null;
 window.nestedExpanded = window.nestedExpanded || {};
@@ -558,7 +549,6 @@ window.renderBookmarks = function() {
     const bSidebar = document.getElementById('bookmarkSidebar');
     const rightList = document.getElementById('bookmarkRightList');
     const content = document.getElementById('bookmarkContent');
-    const btn = document.getElementById('bookmarkToggleBtn');
     
     if (!bSidebar || !rightList) return;
     
@@ -569,14 +559,6 @@ window.renderBookmarks = function() {
     
     bSidebar.style.display = 'flex';
     rightList.innerHTML = '';
-
-    if (bookmarkCollapsed) {
-            content.classList.add('mini');
-            btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-        } else {
-            content.classList.remove('mini');
-            btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-        }
     
     ghBookmarkedRepos.forEach(r => {
         const name = r.split('/')[1] || r;
@@ -603,29 +585,11 @@ window.renderBookmarks = function() {
     });
     
     if (document.getElementById('app-menu').classList.contains('open')) {
-        updateMenuPosition();
-    }
-};
+            updateMenuPosition();
+        }
+    };
 
-document.getElementById('bookmarkToggleBtn').addEventListener('click', () => {
-  bookmarkCollapsed = !bookmarkCollapsed;
-  const content = document.getElementById('bookmarkContent');
-  const btn = document.getElementById('bookmarkToggleBtn');
-  
-  if (bookmarkCollapsed) {
-    content.classList.add('mini');
-    btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-  } else {
-    content.classList.remove('mini');
-    btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-  }
-  
-  if (document.getElementById('app-menu').classList.contains('open')) {
-      updateMenuPosition();
-  }
-});
-
-// Lock in any Code View edits before pushing, exporting, or checking AST
+    // Lock in any Code View edits before pushing, exporting, or checking AST
 function syncEditorToSource() {
   if (viewMode === 'code' && $codeView.value !== sourceContent) {
     pushState();
