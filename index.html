@@ -234,7 +234,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 }
 #statusBar .sb-item { white-space: nowrap; }
 #statusBar .sb-ok { color: var(--green); } #statusBar .sb-warn { color: var(--amber); }
-#statusBar .sb-err { color: var(--red); } #statusBar .sb-sep { color: rgba(255,255,255,0.3); }
+#statusBar .sb-err { color: var(--red); } #statusBar .sb-sep { color: #ffffff; }
 
 #progressBar {
   position: fixed; top: 0; left: 0; height: 3px; background: var(--blue); z-index: 30000;
@@ -242,7 +242,8 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 }
 #progressBar.active { display: block; }
 
-.panel-close { float: right; cursor: pointer; color: rgba(255,255,255,0.8); font-size: 18px; line-height: 1; margin-top: -2px; padding: 2px 4px; transition: color 0.2s; }
+.panel-close { float: right; cursor: pointer; color: #ffffff; font-size: 18px; line-height: 1; margin-top: -2px; padding: 2px 4px; transition: color 0.2s; }
+input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 0.8; }
 .panel-close:hover { color: #ffffff; }
 
 .gh-row { display: flex; gap: 8px; align-items: center; }
@@ -287,8 +288,8 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 <div id="emptyState">
   <div id="emptyStateContent" style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-    <i class="fa-solid fa-code" style="font-size:20px; color:rgba(255,255,255,0.3); margin-bottom: 4px; position:relative; z-index:2;"></i>
-    <div style="font-size:11px; color:rgba(255,255,255,0.4); position:relative; z-index:2;">WORKSPACE EMPTY</div>
+    <i class="fa-solid fa-code" style="font-size:20px; color:#ffffff; margin-bottom: 4px; position:relative; z-index:2;"></i>
+    <div style="font-size:11px; color:#ffffff; position:relative; z-index:2;">WORKSPACE EMPTY</div>
   </div>
 </div>
 
@@ -301,7 +302,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 <div id="fnrPanel">
   <div class="fnr-row">
     <input type="text" id="fnrFind" placeholder="Find (case-insensitive)...">
-    <span id="fnrCount" style="font-size:11px; color:rgba(255,255,255,0.5); min-width:35px; text-align:right;">0/0</span>
+    <span id="fnrCount" style="font-size:11px; color:#ffffff; min-width:35px; text-align:right;">0/0</span>
   </div>
   <div class="fnr-row">
     <input type="text" id="fnrReplace" placeholder="Replace with...">
@@ -402,7 +403,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
     <label style="cursor:pointer;"><input type="radio" name="nrSource" value="paste"> <i class="fa-solid fa-code"></i> Paste HTML</label>
   </div>
   
-  <label id="nrFileLabel" for="nrFileInput" style="display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:rgba(255,255,255,0.8); cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
+  <label id="nrFileLabel" for="nrFileInput" style="display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
     <i class="fa-solid fa-cloud-arrow-up" style="font-size:24px; color:var(--blue);"></i>
     <span id="nrFileNameDisplay" style="font-size:13px; font-weight:500;">Click to upload HTML file</span>
   </label>
