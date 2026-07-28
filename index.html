@@ -542,11 +542,12 @@ window.renderBookmarks = function() {
     bSidebar.style.display = 'flex';
     rightList.innerHTML = '';
     
-    ghBookmarkedRepos.forEach(r => {
+    ghBookmarkedRepos.forEach((r, bIndex) => {
         const name = r.split('/')[1] || r;
         
         const rBtn = document.createElement('div');
         rBtn.className = 'repo-item' + (r === ghRepo ? ' active' : '');
+        rBtn.dataset.bindex = bIndex;
         
         const nameSpan = document.createElement('span');
         nameSpan.className = 'repo-name';
@@ -562,7 +563,146 @@ window.renderBookmarks = function() {
         
         rBtn.appendChild(nameSpan);
         rBtn.appendChild(actions);
-        rBtn.onclick = (e) => { e.stopPropagation(); window.switchRepo(r); };
+        rBtn.onclick = (e) => { if (rBtn.dataset.dragReady === '1') return; e.stopPropagation(); window.switchRepo(r); };
+
+        // --- Drag to sort / Drag to delete ---
+        let holdTimer;
+        let isDragReady = false;
+        let isDraggingBm = false;
+        let startY = 0, startX = 0;
+        let clone = null;
+        let deleteArmed = false;
+
+        const onPointerMove = function(e) {
+          if (!isDragReady && holdTimer) {
+            if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
+               clearTimeout(holdTimer);
+            }
+            return;
+          }
+          if (!isDragReady) return;
+
+          if (!isDraggingBm) {
+            isDraggingBm = true;
+            let rect = rBtn.getBoundingClientRect();
+
+            clone = rBtn.cloneNode(true);
+            clone.classList.add('stray-clone-guard');
+            clone.style.position = 'fixed';
+            clone.style.top = rect.top + 'px';
+            clone.style.left = rect.left + 'px';
+            clone.style.width = rect.width + 'px';
+            clone.style.zIndex = '99999';
+            clone.style.pointerEvents = 'none';
+            clone.style.opacity = '0.9';
+            clone.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
+            clone.style.background = 'rgba(255,255,255,0.15)';
+            clone.style.transform = 'scale(1.05)';
+            document.body.appendChild(clone);
+
+            rBtn.style.opacity = '0.3';
+          }
+
+          if (isDraggingBm && clone) {
+            clone.style.top = (e.clientY - clone.offsetHeight / 2) + 'px';
+            clone.style.left = (e.clientX - clone.offsetWidth / 2) + 'px';
+
+            const listRect = rightList.getBoundingClientRect();
+            const sidebarRect = bSidebar.getBoundingClientRect();
+            const offLeft = e.clientX < sidebarRect.left - 40;
+            deleteArmed = offLeft;
+            clone.style.background = deleteArmed ? 'rgba(248,81,73,0.35)' : 'rgba(255,255,255,0.15)';
+            clone.style.borderColor = deleteArmed ? 'var(--red)' : '';
+
+            if (!deleteArmed) {
+              let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+              let targetItem = elemBelow ? elemBelow.closest('.repo-item') : null;
+
+              if (targetItem && targetItem !== rBtn && targetItem.parentNode === rightList) {
+                let rect = targetItem.getBoundingClientRect();
+                if (e.clientY < rect.top + rect.height / 2) {
+                  rightList.insertBefore(rBtn, targetItem);
+                } else {
+                  rightList.insertBefore(rBtn, targetItem.nextSibling);
+                }
+              }
+            }
+          }
+        };
+
+        const onPointerUp = function(e) {
+          window.removeEventListener('pointermove', onPointerMove);
+          window.removeEventListener('pointerup', onPointerUp);
+          window.removeEventListener('pointercancel', onPointerUp);
+
+          let wasDragging = isDraggingBm;
+          let wasReady = isDragReady;
+
+          clearTimeout(holdTimer);
+          if (!isDraggingBm) rBtn.classList.remove('ready-to-drag');
+
+          if (wasReady) {
+             isDragReady = true;
+             rBtn.dataset.dragReady = '1';
+             setTimeout(() => { isDragReady = false; rBtn.dataset.dragReady = '0'; }, 200);
+          } else {
+             isDragReady = false;
+          }
+
+          if (wasDragging) {
+            isDraggingBm = false;
+            if (clone) clone.remove();
+            rBtn.style.opacity = '1';
+
+            if (deleteArmed) {
+              ghBookmarkedRepos = ghBookmarkedRepos.filter(x => x !== r);
+              ghSaveConfig();
+              renderBookmarks();
+            } else {
+              let newBookmarks = [];
+              rightList.querySelectorAll('.repo-item').forEach(el => {
+                if (el.dataset.bindex !== undefined) {
+                   newBookmarks.push(ghBookmarkedRepos[el.dataset.bindex]);
+                }
+              });
+
+              if (newBookmarks.length === ghBookmarkedRepos.length) {
+                ghBookmarkedRepos = newBookmarks;
+                ghSaveConfig();
+              }
+              renderBookmarks();
+            }
+          }
+
+          document.querySelectorAll('.stray-clone-guard').forEach(el => el.remove());
+        };
+
+        rBtn.addEventListener('pointerdown', function(e) {
+          if (e.button !== 0 && e.pointerType === 'mouse') return;
+          startX = e.clientX; startY = e.clientY;
+          clearTimeout(holdTimer);
+          isDragReady = false;
+          deleteArmed = false;
+
+          window.addEventListener('pointermove', onPointerMove, { passive: false });
+          window.addEventListener('pointerup', onPointerUp);
+          window.addEventListener('pointercancel', onPointerUp);
+
+          holdTimer = setTimeout(() => {
+            isDragReady = true;
+            rBtn.classList.add('ready-to-drag');
+            if (navigator.vibrate) navigator.vibrate(50);
+          }, 400);
+        });
+
+        rBtn.addEventListener('touchmove', function(e) {
+          if (isDragReady || isDraggingBm) {
+            if (e.cancelable) e.preventDefault();
+          }
+        }, { passive: false });
+
+        rBtn.addEventListener('contextmenu', (e) => { if(isDragReady || isDraggingBm) e.preventDefault(); });
+
         rightList.appendChild(rBtn);
     });
     
