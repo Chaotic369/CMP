@@ -159,14 +159,14 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #repoSidebar { display: flex; flex-direction: row; gap: 8px; flex-shrink: 0; }
 #sidebarContent { display: flex; flex-direction: column; width: 150px; height: fit-content; max-height: 202px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 8px; overflow-x: hidden; }
 #sidebarContent.mini { width: 44px; padding-right: 4px; align-items: center; }
-#sidebarContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 0.7; }
+#sidebarContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
 #sidebarContent.mini .repo-actions { display: none !important; }
 #sidebarContent.mini .repo-item { padding: 8px 4px; justify-content: center; text-align: center; flex-direction: column; }
 #sidebarContent.mini #repoTabsContainer { max-height: none; }
 
 #bookmarkContent { display: flex; flex-direction: column; width: 150px; height: fit-content; max-height: 202px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; overflow-x: hidden; }
 #bookmarkContent.mini { width: 44px; padding-left: 4px; align-items: center; }
-#bookmarkContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 0.7; }
+#bookmarkContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
 #bookmarkContent.mini .repo-actions { display: none !important; }
 #bookmarkContent.mini .repo-item { padding: 8px 4px; justify-content: center; text-align: center; flex-direction: column; }
 
@@ -183,7 +183,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 .repo-item.ready-to-drag { background: rgba(255,255,255,0.1); cursor: grab; }
 .repo-item.ready-to-drag:active { cursor: grabbing; }
 .repo-item.drag-over { border: 1px dashed var(--green); background: rgba(255,255,255,0.05); opacity: 0.8; }
-.repo-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; pointer-events: none; }
+.repo-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; pointer-events: none; color: #ffffff; opacity: 1; }
 .repo-item.active { background: rgba(255,255,255,0.15); color: #ffffff; font-weight: 600; }
 
 .repo-actions { display: none; align-items: center; gap: 4px; }
