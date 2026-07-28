@@ -316,7 +316,9 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
         <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:none;"><i class="fa-solid fa-folder-plus"></i></button>
       <button id="fileAddBtn" class="btn" title="Create New File" style="display:none;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
             <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:none;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
+                        <button id="zipUploadBtn" class="btn" title="Upload & Extract ZIP" style="display:none;" onclick="document.getElementById('repoZipUploadInput').click()"><i class="fa-solid fa-file-zipper" style="color:var(--purple);"></i></button>
                         <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
+                        <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                       </div>
     <div id="sidebarContent">
       <div id="repoTabsContainer" class="expanded"></div>
@@ -1023,6 +1025,7 @@ function updateRepoSidebar() {
   const addRepoBtn = document.getElementById('repoAddBtn');
   const addFileBtn = document.getElementById('fileAddBtn');
   const uploadBtn = document.getElementById('fileUploadBtn');
+  const zipUploadBtn = document.getElementById('zipUploadBtn');
   const container = document.getElementById('sidebarContent');
   const ftc = document.getElementById('fileTreeContainer');
   
@@ -1034,6 +1037,7 @@ function updateRepoSidebar() {
       addRepoBtn.style.display = 'none';
       addFileBtn.style.display = 'none';
       uploadBtn.style.display = 'none';
+      if (zipUploadBtn) zipUploadBtn.style.display = 'none';
     } else {
       btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
       container.classList.remove('mini');
@@ -1041,9 +1045,11 @@ function updateRepoSidebar() {
     if(ghRepo && ftc.style.display === 'flex') {
         addFileBtn.style.display = 'flex';
         uploadBtn.style.display = 'flex';
+        if (zipUploadBtn) zipUploadBtn.style.display = 'flex';
     } else {
         addFileBtn.style.display = 'none';
         uploadBtn.style.display = 'none';
+        if (zipUploadBtn) zipUploadBtn.style.display = 'none';
     }
   }
   if ($appMenu.classList.contains('open')) updateMenuPosition();
@@ -1544,9 +1550,14 @@ async function handleRepoUpload(e) {
 }
 
 const _repoUp = document.getElementById('repoUploadInput');
+const _repoZipUp = document.getElementById('repoZipUploadInput');
 if (_repoUp) {
   _repoUp.removeEventListener('change', handleRepoUpload);
   _repoUp.addEventListener('change', handleRepoUpload);
+}
+if (_repoZipUp) {
+  _repoZipUp.removeEventListener('change', handleRepoUpload);
+  _repoZipUp.addEventListener('change', handleRepoUpload);
 }
 
 window.renameFile = async function(path, e) {
