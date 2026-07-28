@@ -3129,22 +3129,31 @@ document.addEventListener('paste', function(e) {
   if (raw) doPaste(raw);
 });
 
-document.getElementById('pasteBtn').addEventListener('click', function() {
+document.getElementById('pasteBtn').addEventListener('click', async function() {
   showProgress(5);
-  if (!navigator.clipboard || !navigator.clipboard.readText) {
-    toast('Clipboard API unavailable – try Ctrl+Shift+V or allow clipboard permission.', 'warn', 5000);
-    hideProgress(); return;
+  
+  let raw = "";
+  try {
+    if (window.AndroidClipboard && typeof window.AndroidClipboard.read === 'function') {
+      raw = window.AndroidClipboard.read();
+    } else if (navigator.clipboard && navigator.clipboard.readText) {
+      raw = await navigator.clipboard.readText();
+    } else {
+      toast('Clipboard API unavailable – try Ctrl+Shift+V or allow clipboard permission.', 'warn', 5000);
+      hideProgress(); 
+      return;
+    }
+  } catch (err) {
+    hideProgress();
+    var msg = err.name === 'NotAllowedError'
+      ? 'Clipboard permission denied.\nAllow clipboard access in browser settings.'
+      : 'Could not read clipboard: ' + err.message;
+    toast(msg, 'err', 6000);
+    addLog('err', 'Clipboard read failed: ' + err.message);
+    return;
   }
-  navigator.clipboard.readText()
-    .then(function(raw) { doPaste(raw); })
-    .catch(function(err) {
-      hideProgress();
-      var msg = err.name === 'NotAllowedError'
-        ? 'Clipboard permission denied.\nAllow clipboard access in browser settings.'
-        : 'Could not read clipboard: ' + err.message;
-      toast(msg, 'err', 6000);
-      addLog('err', 'Clipboard read failed: ' + err.message);
-    });
+  
+  doPaste(raw);
 });
 
 document.getElementById('ghSettingsBtn').addEventListener('click', function() {
