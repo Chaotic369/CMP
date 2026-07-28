@@ -1087,7 +1087,11 @@ window.renameRepo = async function(full_name, e) {
         if(!res.ok) throw new Error(await res.text());
         toast('✅ Repo renamed!');
         let updated = await res.json();
-        if (ghRepo === full_name) { ghRepo = updated.full_name; ghSaveConfig(); }
+        if (ghBookmarkedRepos.includes(full_name)) {
+            ghBookmarkedRepos = ghBookmarkedRepos.map(r => r === full_name ? updated.full_name : r);
+        }
+        if (ghRepo === full_name) { ghRepo = updated.full_name; }
+        ghSaveConfig();
         ghFetchAllRepos();
     } catch (err) {
         toast('❌ Failed: ' + err.message, 'err');
