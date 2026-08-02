@@ -1846,6 +1846,19 @@ function hideMenuLoader() {
   if (loader) loader.style.display = 'none';
 }
 
+function showMenuLoader(msg) {
+  var loader = document.getElementById('app-menu-loader');
+  if (loader) {
+    document.getElementById('app-menu-loader-text').textContent = msg || 'Connecting...';
+    loader.style.display = 'flex';
+  }
+}
+
+function hideMenuLoader() {
+  var loader = document.getElementById('app-menu-loader');
+  if (loader) loader.style.display = 'none';
+}
+
 function addLog(type, msg) {
   var ts = new Date().toLocaleTimeString();
   patchLog.unshift({ type: type, msg: msg, ts: ts });
