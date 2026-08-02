@@ -2752,10 +2752,11 @@ function render(src, skipEditorUpdate) {
       ].join('');
 
       if (/<!doctype|<html/i.test(src)) {
-        $pv.srcdoc = src.replace(/<head([^>]*)>/i, '<head$1>' + bridge) || bridge + src;
-      } else {
-        $pv.srcdoc = bridge + src;
-      }
+              $pv.srcdoc = src.replace(/<head([^>]*)>/i, '<head$1>' + bridge) || bridge + src;
+            } else {
+              var safeText = String(src).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+              $pv.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8">' + bridge + '<style>body{background:transparent;color:#eee;font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;margin:0;}</style></head><body>' + safeText + '</body></html>';
+            }
     } catch(e) {
       showErr('Render engine error: ' + e.message);
     }
