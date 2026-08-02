@@ -380,7 +380,7 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 
 <div id="wallpaperModal">
   <h4><i class="fa-solid fa-image"></i> Workspace Wallpaper</h4>
-  <div class="gh-row"><label>Image URL</label><input type="text" id="wpUrlInput" placeholder="https://..."></div>
+  <div class="gh-row"><label>Image URL</label><input type="text" id="wpUrlInput" placeholder=""></div>
   <div style="display:flex; justify-content:center; margin: 10px 0;">
     <button id="wpUploadBtn" style="background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 16px; border-radius: 20px; cursor: pointer; display:flex; align-items:center; gap:8px; transition: background 0.2s;"><i class="fa-solid fa-upload"></i> Or Upload Image</button>
     <input type="file" id="wpFileInput" accept="image/*" style="display:none;">
@@ -394,7 +394,7 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 
 <div id="newRepoModal">
   <h4><i class="fa-solid fa-folder-plus"></i> New Repository <span class="panel-close" id="nrCloseBtn">✕</span></h4>
-  <div class="gh-row"><label>Name</label><input type="text" id="nrName" placeholder="my-awesome-repo"></div>
+  <div class="gh-row"><label>Name</label><input type="text" id="nrName" placeholder=""></div>
   <div style="display:flex; gap:10px; margin: 10px 0; font-size: 13px; flex-wrap: wrap;">
         <label style="cursor:pointer;"><input type="radio" name="nrSource" value="upload" checked> <i class="fa-solid fa-upload"></i> Upload HTML</label>
         <label style="cursor:pointer;"><input type="radio" name="nrSource" value="paste"> <i class="fa-solid fa-code"></i> Paste HTML</label>
@@ -422,10 +422,10 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 
 <div id="ghConfigPanel">
   <h4><i class="fa-brands fa-github"></i> GitHub Integration</h4>
-  <div class="gh-row"><label>Token</label><input type="password" id="ghToken" placeholder="ghp_..."></div>
-  <div class="gh-row"><label>User</label><input type="text" id="ghUser" placeholder="username"></div>
-  <div class="gh-row"><label>Branch</label><input type="text" id="ghBranch" placeholder="main"></div>
-  <div class="gh-row"><label>File Path</label><input type="text" id="ghFilePath" placeholder="index.html"></div>
+  <div class="gh-row"><label>Token</label><input type="password" id="ghToken" placeholder=""></div>
+  <div class="gh-row"><label>User</label><input type="text" id="ghUser" placeholder=""></div>
+  <div class="gh-row"><label>Branch</label><input type="text" id="ghBranch" placeholder=""></div>
+  <div class="gh-row"><label>File Path</label><input type="text" id="ghFilePath" placeholder=""></div>
   <div class="gh-actions">
     <button id="ghFetchReposBtn" style="color:var(--teal); margin-right: auto; background: rgba(45, 212, 191, 0.2);"><i class="fa-solid fa-arrows-rotate"></i> Fetch Repos</button>
     <button id="ghClosePanelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
@@ -435,7 +435,7 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 
 <div id="commitModal">
   <h4><i class="fa-solid fa-arrow-up-from-bracket"></i> Commit & Push</h4>
-  <textarea id="commitMsgInput" placeholder="Update file via AI Compile"></textarea>
+  <textarea id="commitMsgInput" placeholder=""></textarea>
   <div class="gh-actions">
     <button id="cmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
     <button id="cmConfirmBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-arrow-up-from-bracket"></i> Push</button>
@@ -1428,7 +1428,7 @@ window.deleteRepo = async function(full_name, e) {
 
 window.createNewFile = async function() {
     if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
-    let path = prompt('Enter new file path (e.g., script.js or data.json):');
+    let path = prompt('Enter new file path:');
     if (!path) return;
     showProgress(30);
     try {
