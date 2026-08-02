@@ -1645,6 +1645,7 @@ window.deleteFile = async function(path, e) {
 async function ghFetchAllRepos() {
   if (!ghToken) { toast('❌ Token required to fetch repos.', 'warn'); return; }
   toast('🔄 Fetching repos...', 'info');
+  showMenuLoader('Fetching Repositories...');
   try {
     const res = await fetch(`https://api.github.com/user/repos?per_page=100&sort=updated`, {
       headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
@@ -1658,11 +1659,12 @@ async function ghFetchAllRepos() {
     ghSaveConfig();
     renderRepoTabs();
     updateRepoSidebar();
-    if(ghRepo) fetchFileTree(false, true);
+    if(ghRepo) await fetchFileTree(false, true);
     toast('✅ Repos fetched successfully!');
   } catch(e) {
     toast('❌ Error: ' + e.message, 'err');
   }
+  hideMenuLoader();
 }
 
 window.toggleNesting = function(path, e) {
