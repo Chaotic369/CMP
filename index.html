@@ -2527,6 +2527,7 @@ document.getElementById('fullScreenBtn').addEventListener('click', function() {
 });
 
 window.addEventListener('DOMContentLoaded', async function() {
+  showMenuLoader('Connecting to Firebase...');
   try {
     var s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
     Object.assign(settings, s);
@@ -2537,15 +2538,20 @@ window.addEventListener('DOMContentLoaded', async function() {
 
   var fbWait = 0;
   while (!window._fbReady && fbWait < 20) { await new Promise(r => setTimeout(r, 50)); fbWait++; }
+  
+  showMenuLoader('Syncing Configuration...');
   await ghLoadConfigFromFirebase();
   renderRepoTabs();
   
   if (ghRepo && ghToken) {
-    syncCurrentFile();
-    fetchFileTree(false, true);
+    showMenuLoader('Loading Repository...');
+    await syncCurrentFile();
+    await fetchFileTree(false, true);
   } else if (ghRepos.length === 0 && ghToken) {
-    ghFetchAllRepos();
+    showMenuLoader('Fetching Repositories...');
+    await ghFetchAllRepos();
   }
+  hideMenuLoader();
 });
 
 function showControls() {
