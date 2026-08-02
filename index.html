@@ -2591,11 +2591,10 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
     var raw = ev.target.result;
     sourceContent = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     var isHTML = /<!doctype\s+html|<html[\s>]/i.test(sourceContent.slice(0, 500));
-    if (!isHTML) {
-          sourceContent = '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{background:transparent;color:#eee;font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;}</style></head><body>' + escHtml(sourceContent) + '</body></html>';
-          toast('Non-HTML file wrapped for preview.', 'info', 3000);
-      addLog('info', 'Wrapped non-HTML: ' + fileName);
-    }
+        if (!isHTML) {
+          toast('Loaded raw text/code file.', 'info', 3000);
+          addLog('info', 'Loaded non-HTML text: ' + fileName);
+        }
     
     ghFilePath = fileName;
     document.getElementById('ghFilePath').value = ghFilePath;
