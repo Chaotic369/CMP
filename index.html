@@ -3358,38 +3358,45 @@ window.syncCurrentFile = async function() {
         const isMedia = isImage || isAudio || isVideo;
 
         if (isMedia) {
-            let mime = 'application/octet-stream';
-            if (isImage) mime = ext === 'svg' ? 'image/svg+xml' : (ext === 'jpg' ? 'image/jpeg' : `image/${ext}`);
-            if (isAudio) mime = ext === 'mp3' ? 'audio/mpeg' : (ext === 'm4a' ? 'audio/mp4' : `audio/${ext}`);
-            if (isVideo) mime = ext === 'mp4' ? 'video/mp4' : (ext === 'mov' ? 'video/quicktime' : `video/${ext}`);
+                    let mime = 'application/octet-stream';
+                    if (isImage) mime = ext === 'svg' ? 'image/svg+xml' : (ext === 'jpg' ? 'image/jpeg' : `image/${ext}`);
+                    if (isAudio) mime = ext === 'mp3' ? 'audio/mpeg' : (ext === 'm4a' ? 'audio/mp4' : `audio/${ext}`);
+                    if (isVideo) mime = ext === 'mp4' ? 'video/mp4' : (ext === 'mov' ? 'video/quicktime' : `video/${ext}`);
 
-            const mediaSrc = data.download_url || `data:${mime};base64,${(data.content || '').replace(/\s/g, '')}`;
-        
-                    viewMode = 'preview';
-                    $pv.style.display = 'block';
-                    $codeView.style.display = 'none';
-                    document.getElementById('emptyState').style.display = 'none';
-        
-                    let mediaHtml = '';
-                    if (isImage) {
-                        mediaHtml = `<img src="${mediaSrc}" style="max-width:100%;max-height:100%;object-fit:contain;background:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22><path d=%22M1 2V0h1v1H0v1z%22 fill-opacity=%22.05%22/></svg>')">`;
-                    } else if (isAudio) {
-                        mediaHtml = `<audio controls autoplay src="${mediaSrc}" style="width:80%;max-width:400px;"></audio>`;
-                    } else if (isVideo) {
-                        mediaHtml = `<video controls autoplay src="${mediaSrc}" style="max-width:100%;max-height:100%;object-fit:contain;background:#000;"></video>`;
+                    let mediaSrc = data.download_url;
+                    if (!mediaSrc && data.content) {
+                        mediaSrc = `data:${mime};base64,${data.content.replace(/\s/g, '')}`;
                     }
-
-            $pv.srcdoc = `<html style="height:100%;display:flex;align-items:center;justify-content:center;background:#000;">${mediaHtml}</html>`;
+                    if (!mediaSrc) {
+                        mediaSrc = `https://raw.githubusercontent.com/${ghRepo}/${ghBranch}/${ghFilePath}`;
+                        addLog('warn', `File too large for GitHub Contents API inline data; falling back to raw.githubusercontent.com URL for ${ghFilePath}`);
+                    }
         
-            sourceContent = ''; 
-            $codeView.value = '';
+                            viewMode = 'preview';
+                            $pv.style.display = 'block';
+                            $codeView.style.display = 'none';
+                            document.getElementById('emptyState').style.display = 'none';
+        
+                            let mediaHtml = '';
+                            if (isImage) {
+                                mediaHtml = `<img src="${mediaSrc}" style="max-width:100%;max-height:100%;object-fit:contain;background:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22><path d=%22M1 2V0h1v1H0v1z%22 fill-opacity=%22.05%22/></svg>')">`;
+                            } else if (isAudio) {
+                                mediaHtml = `<audio controls autoplay src="${mediaSrc}" style="width:80%;max-width:400px;" onerror="window.parent.postMessage({__compilerWarn:'Media failed to load: ' + this.src}, '*')"></audio>`;
+                            } else if (isVideo) {
+                                mediaHtml = `<video controls autoplay src="${mediaSrc}" style="max-width:100%;max-height:100%;object-fit:contain;background:#000;" onerror="window.parent.postMessage({__compilerWarn:'Media failed to load: ' + this.src}, '*')"></video>`;
+                            }
 
-            toast(`✅ Loaded Media: ${ghFilePath.split('/').pop()}`);
-            addLog('ok', `Synced Media ${ghFilePath}`);
-            document.getElementById('ghPushBtn').disabled = true; 
-            hideProgress();
-            return;
-        }
+                    $pv.srcdoc = `<html style="height:100%;display:flex;align-items:center;justify-content:center;background:#000;">${mediaHtml}</html>`;
+        
+                    sourceContent = ''; 
+                    $codeView.value = '';
+
+                    toast(`✅ Loaded Media: ${ghFilePath.split('/').pop()}`);
+                    addLog('ok', `Synced Media ${ghFilePath}`);
+                    document.getElementById('ghPushBtn').disabled = true; 
+                    hideProgress();
+                    return;
+                }
 
     /* --- JS FIX: Safe TextDecoder for UTF-8 compatibility (Emojis/Foreign Characters) --- */
     const binaryString = atob(data.content.replace(/\s/g, ''));
