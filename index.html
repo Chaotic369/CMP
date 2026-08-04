@@ -104,13 +104,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
   background: rgba(22, 22, 22, 0.85);
   color: var(--green);
 }
-#toggleUiBtn:hover {
-  background: rgba(33, 33, 33, 0.75);
-}
-#toggleUiBtn.active {
-  background: rgba(22, 22, 22, 0.85);
-  color: var(--green);
-}
 #toggleUiBtn.active i {
   transform: rotate(45deg);
 }
@@ -2691,26 +2684,27 @@ document.getElementById('exportBtn').addEventListener('click', function() {
 
 function fixEncoding(src) {
   return src
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-    .replace(/"/g, '"')
-    .replace(/'/g, "'")
-    .replace(/'/g, "'")
-    .replace(/ /g, ' ')
-    .replace(/'/g, "'")
-    .replace(/"/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#8217;/g, "'")
+    .replace(/&#8220;/g, '"')
+    .replace(/&#8221;/g, '"')
     .replace(/â€\x9d/g, '"')
-    .replace(/–/g, '–')
-    .replace(/–/g, '–')
-    .replace(/é/g, 'é')
-    .replace(/à/g, 'à')
-    .replace(/è/g, 'è')
-    .replace(/ê/g, 'ê')
-    .replace(/î/g, 'î')
-    .replace(/ô/g, 'ô')
-    .replace(/û/g, 'û')
-    .replace(/ç/g, 'ç')
+    .replace(/&ndash;/g, '–')
+    .replace(/&mdash;/g, '—')
+    .replace(/&eacute;/g, 'é')
+    .replace(/&agrave;/g, 'à')
+    .replace(/&egrave;/g, 'è')
+    .replace(/&ecirc;/g, 'ê')
+    .replace(/&îsurd;/g, 'î')
+    .replace(/&ocirc;/g, 'ô')
+    .replace(/&ucirc;/g, 'û')
+    .replace(/&ccedil;/g, 'ç')
     .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"');
@@ -2966,7 +2960,7 @@ document.getElementById('logBtn').addEventListener('click', function() {
 });
 
 function escHtml(s) {
-  return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 /* --- JS FIX: Using safe hex codes instead of literal backticks to stop markdown corruption --- */
