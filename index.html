@@ -1920,19 +1920,36 @@ window.addEventListener('unhandledrejection', function(e) {
   showErr('Unhandled Promise: ' + (e.reason && e.reason.message || e.reason || 'unknown rejection'));
 });
 
+let lastMsgTime = 0;
+let msgSpamCount = 0;
 window.addEventListener('message', function(e) {
   if (!e.data) return;
+  
+  let now = Date.now();
+  if (now - lastMsgTime < 500) {
+      msgSpamCount++;
+      if (msgSpamCount > 5) return;
+  } else {
+      msgSpamCount = 0;
+  }
+  lastMsgTime = now;
+
   if (e.data.__compilerErr) {
     showErr(e.data.__compilerErr);
     if (e.data.__compilerErr.includes("SyntaxError")) {
       setTimeout(function() {
         if (document.getElementById('astPanel').style.display !== 'block') {
-          document.getElementById('astBtn').click();
+          document.getElementById('astPanel').style.display = 'block';
+          if (sourceContent) runASTCheck(sourceContent);
         }
       }, 600);
     }
   }
-  if (e.data.__compilerWarn) { toast(e.data.__compilerWarn, 'warn', 4000); addLog('warn', e.data.__compilerWarn); }
+  if (e.data.__compilerWarn) { 
+      if (now - lastMsgTime < 500 && msgSpamCount > 5) return;
+      toast(e.data.__compilerWarn, 'warn', 4000); 
+      addLog('warn', e.data.__compilerWarn); 
+  }
 });
 
 function updateStatusBar() {
@@ -2698,13 +2715,13 @@ function fixEncoding(src) {
     .replace(/&ndash;/g, '–')
     .replace(/&mdash;/g, '—')
     .replace(/&eacute;/g, 'é')
-    .replace(/&agrave;/g, 'à')
-    .replace(/&egrave;/g, 'è')
-    .replace(/&ecirc;/g, 'ê')
-    .replace(/&îsurd;/g, 'î')
-    .replace(/&ocirc;/g, 'ô')
-    .replace(/&ucirc;/g, 'û')
-    .replace(/&ccedil;/g, 'ç')
+        .replace(/&agrave;/g, 'à')
+        .replace(/&egrave;/g, 'è')
+        .replace(/&ecirc;/g, 'ê')
+        .replace(/&icirc;/g, 'î')
+        .replace(/&ocirc;/g, 'ô')
+        .replace(/&ucirc;/g, 'û')
+        .replace(/&ccedil;/g, 'ç')
     .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"');
@@ -2787,30 +2804,44 @@ function render(src, skipEditorUpdate) {
   renderTimer = setTimeout(function() {
     try {
       var bridge = [
-        '<style>html,body{-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto;}</style>',
-        '<scr' + 'ipt>',
-        'window.onerror = function(m,s,l,c,err){',
-        '  window.parent.postMessage({__compilerErr:"Line "+l+": "+m+(err&&err.stack?" | "+err.stack.split("\\n")[1]:"")}, "*");',
-        '  return true;',
-        '};',
-        'window.addEventListener("unhandledrejection", function(e){',
-        '  window.parent.postMessage({__compilerErr:"Promise rejection: "+(e.reason&&e.reason.message||e.reason||"unknown")}, "*");',
-        '});',
-        'window.console.error = (function(orig){',
-        '  return function(){',
-        '    orig.apply(console, arguments);',
-        '    var msg = Array.prototype.slice.call(arguments).join(" ");',
-        '    window.parent.postMessage({__compilerWarn:"console.error: "+msg}, "*");',
-        '  };',
-        '})(window.console.error);',
-        '</scr' + 'ipt>'
-      ].join('');
+              '<style>html,body{-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto;}</style>',
+              '<scr' + 'ipt>',
+              'let __errCount = 0;',
+              'window.onerror = function(m,s,l,c,err){',
+              '  if(__errCount++ > 10) return true;',
+              '  var stack = (err && err.stack) ? (err.stack.split("\\n")[1] || "") : "";',
+              '  window.parent.postMessage({__compilerErr:"Line "+l+": "+m+(stack ? " | "+stack : "")}, "*");',
+              '  return true;',
+              '};',
+              'window.addEventListener("unhandledrejection", function(e){',
+              '  if(__errCount++ > 10) return;',
+              '  var msg = e.reason && e.reason.message ? e.reason.message : String(e.reason);',
+              '  window.parent.postMessage({__compilerErr:"Promise rejection: "+msg}, "*");',
+              '});',
+              'window.console.error = (function(orig){',
+              '  return function(){',
+              '    orig.apply(console, arguments);',
+              '    if(__errCount++ > 10) return;',
+              '    var msg = Array.prototype.slice.call(arguments).join(" ");',
+              '    window.parent.postMessage({__compilerWarn:"console.error: "+msg}, "*");',
+              '  };',
+              '})(window.console.error);',
+              '</scr' + 'ipt>'
+            ].join('');
 
-      if (/<!doctype|<html/i.test(src)) {
-              $pv.srcdoc = src.replace(/<head([^>]*)>/i, '<head$1>' + bridge) || bridge + src;
+            if (/<!doctype|<html/i.test(src)) {
+                let injected = src;
+                if (/<head([^>]*)>/i.test(injected)) {
+                    injected = injected.replace(/<head([^>]*)>/i, '<head$1>\n' + bridge);
+                } else if (/<html([^>]*)>/i.test(injected)) {
+                    injected = injected.replace(/<html([^>]*)>/i, '<html$1>\n<head>' + bridge + '</head>\n');
+                } else {
+                    injected = bridge + injected;
+                }
+                $pv.srcdoc = injected;
             } else {
-              var safeText = String(src).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-              $pv.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8">' + bridge + '<style>body{background:transparent;color:#eee;font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;margin:0;}</style></head><body>' + safeText + '</body></html>';
+                var safeText = String(src).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                $pv.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8">' + bridge + '<style>body{background:transparent;color:#eee;font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;margin:0;}</style></head><body>' + safeText + '</body></html>';
             }
     } catch(e) {
       showErr('Render engine error: ' + e.message);
