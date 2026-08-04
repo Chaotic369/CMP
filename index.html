@@ -3728,3 +3728,16 @@ addLog('info', 'AI Compile PRO Sovereign IDE ready.');
 </script>
 </body>
 </html>
+  if (undoStack.length > 0) {
+    e.preventDefault();
+    e.returnValue = 'You have unsaved patches. Export before leaving?';
+  }
+});
+
+updateMenuPosition();
+sourceContent = '';
+render('', false); 
+addLog('info', 'AI Compile PRO Sovereign IDE ready.');
+</script>
+</body>
+</html>
