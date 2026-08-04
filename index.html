@@ -196,7 +196,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #toast.err  { color: var(--red); }
 #toast.info { color: var(--blue); }
 
-#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal {
+#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #pwaModal {
   position: fixed; z-index: 98; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px;
   padding: 24px; color: #ffffff; font-size: 13px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
   transform: translateZ(0);
@@ -205,10 +205,10 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #astPanel { top: 80px; }
 #logPanel { top: 80px; z-index: 112; }
 
-#ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; z-index: 30000; }
-#ghConfigPanel.open, #commitModal.open, #newRepoModal.open, #wallpaperModal.open { display: flex; }
+#ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #pwaModal { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; z-index: 30000; }
+#ghConfigPanel.open, #commitModal.open, #newRepoModal.open, #wallpaperModal.open, #pwaModal.open { display: flex; }
 
-#astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
+#astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4, #pwaModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
 .ast-ok { color: var(--green); } .ast-warn { color: var(--amber); } .ast-err { color: var(--red); font-weight: bold; }
 .log-ok { color: var(--green); } .log-warn { color: var(--amber); } .log-err { color: var(--red); } .log-info { color: var(--blue); }
 
@@ -364,7 +364,8 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
                 <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i></button>
                 <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i></button>
                 <button id="buildApkBtn" class="btn" title="Build APK via GitHub Actions" style="color:var(--green);"><i class="fa-brands fa-android"></i></button>
-                        <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);"><i class="fa-solid fa-file-zipper"></i></button>
+                                        <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);"><i class="fa-solid fa-file-zipper"></i></button>
+                                        <button id="pwaBtn" class="btn" title="Generate PWA" style="color:var(--amber);"><i class="fa-solid fa-mobile-screen"></i></button>
     
                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                       </div>
@@ -439,6 +440,21 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
   <div class="gh-actions">
     <button id="cmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
     <button id="cmConfirmBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-arrow-up-from-bracket"></i> Push</button>
+  </div>
+</div>
+
+<div id="pwaModal">
+  <h4><i class="fa-solid fa-mobile-screen"></i> PWA Generator <span class="panel-close" id="pwaCloseBtn">✕</span></h4>
+  <div class="gh-row"><label>App Name</label><input type="text" id="pwaName" placeholder="My Awesome App"></div>
+  <div style="display:flex; flex-direction:column; align-items:center; gap:10px; margin: 10px 0;">
+    <div id="pwaImgPreview" style="width:100px; height:100px; border:1px dashed rgba(255,255,255,0.3); border-radius:20px; display:flex; align-items:center; justify-content:center; overflow:hidden; background:rgba(0,0,0,0.5); cursor:pointer;">
+      <span style="font-size:11px; color:rgba(255,255,255,0.5); text-align:center; pointer-events:none;">Click / Paste<br>Image</span>
+    </div>
+    <input type="file" id="pwaFileInput" accept="image/*" style="display:none;">
+  </div>
+  <div class="gh-actions">
+    <button id="pwaCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+    <button id="pwaGenerateBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-bolt"></i> Generate</button>
   </div>
 </div>
 
@@ -3493,6 +3509,7 @@ $backdrop.addEventListener('click', function() {
   document.getElementById('commitModal').classList.remove('open');
   document.getElementById('newRepoModal').classList.remove('open');
   document.getElementById('wallpaperModal').classList.remove('open');
+  document.getElementById('pwaModal').classList.remove('open');
 });
 
 document.addEventListener('dragover', function(e) { e.preventDefault(); });
@@ -3559,6 +3576,138 @@ document.addEventListener('drop', function(e) {
     } else {
       reader.readAsText(file, 'UTF-8');
     }
+});
+
+// --- PWA Generator Logic ---
+let pwaBase64Data = null;
+
+document.getElementById('pwaBtn').addEventListener('click', () => {
+  if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+  document.getElementById('pwaModal').classList.add('open');
+  $backdrop.classList.add('open');
+});
+
+document.getElementById('pwaCloseBtn').addEventListener('click', () => { document.getElementById('pwaModal').classList.remove('open'); $backdrop.classList.remove('open'); });
+document.getElementById('pwaCancelBtn').addEventListener('click', () => { document.getElementById('pwaModal').classList.remove('open'); $backdrop.classList.remove('open'); });
+
+const pwaImgPreview = document.getElementById('pwaImgPreview');
+const pwaFileInput = document.getElementById('pwaFileInput');
+
+pwaImgPreview.addEventListener('click', () => pwaFileInput.click());
+
+function processPwaImage(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    pwaBase64Data = e.target.result;
+    pwaImgPreview.innerHTML = `<img src="${pwaBase64Data}" style="width:100%; height:100%; object-fit:cover;">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+pwaFileInput.addEventListener('change', (e) => processPwaImage(e.target.files[0]));
+
+document.addEventListener('paste', (e) => {
+  if (!document.getElementById('pwaModal').classList.contains('open')) return;
+  if (e.clipboardData && e.clipboardData.items) {
+    for (let item of e.clipboardData.items) {
+      if (item.type.indexOf('image/') !== -1) {
+        processPwaImage(item.getAsFile());
+        e.preventDefault();
+        break;
+      }
+    }
+  }
+});
+
+async function resizePwaImage(src, size) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      // Using canvas to scale the image and maintain aspect ratio
+      ctx.drawImage(img, 0, 0, size, size);
+      resolve(canvas.toDataURL('image/png').split(',')[1]); // return raw base64 for API
+    };
+    img.src = src;
+  });
+}
+
+document.getElementById('pwaGenerateBtn').addEventListener('click', async () => {
+  const appName = document.getElementById('pwaName').value.trim() || 'My PWA';
+  if (!pwaBase64Data) { toast('❌ Please add or paste an icon image first', 'warn'); return; }
+  
+  showProgress(20);
+  toast('⏳ Generating PWA assets & resizing images...', 'info');
+  try {
+    const icon192 = await resizePwaImage(pwaBase64Data, 192);
+    const icon512 = await resizePwaImage(pwaBase64Data, 512);
+
+    const manifest = {
+      name: appName,
+      short_name: appName,
+      start_url: "./",
+      display: "standalone",
+      background_color: "#000000",
+      theme_color: "#000000",
+      icons: [
+        { src: "icon-192.png", sizes: "192x192", type: "image/png" },
+        { src: "icon-512.png", sizes: "512x512", type: "image/png" }
+      ]
+    };
+
+    const swContent = `
+const CACHE_NAME = 'pwa-cache-v1';
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png'])));
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+});
+`.trim();
+
+    let baseDir = ghFilePath.includes('/') ? ghFilePath.substring(0, ghFilePath.lastIndexOf('/') + 1) : '';
+    
+    await uploadSingleFileToRepo(ghRepo, baseDir + 'icon-192.png', icon192, ghBranch, 'Generate PWA icon 192');
+    showProgress(40);
+    await uploadSingleFileToRepo(ghRepo, baseDir + 'icon-512.png', icon512, ghBranch, 'Generate PWA icon 512');
+    showProgress(60);
+    await uploadSingleFileToRepo(ghRepo, baseDir + 'manifest.json', btoa(unescape(encodeURIComponent(JSON.stringify(manifest, null, 2)))), ghBranch, 'Generate PWA manifest');
+    showProgress(80);
+    await uploadSingleFileToRepo(ghRepo, baseDir + 'sw.js', btoa(unescape(encodeURIComponent(swContent))), ghBranch, 'Generate PWA Service Worker');
+    
+    // Inject tags into active HTML editor
+    if (sourceContent && sourceContent.toLowerCase().includes('</head>')) {
+      pushState();
+      const pwaTags = `
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js');
+    }
+  </script>
+`.trim() + '\n';
+      
+      sourceContent = sourceContent.replace(/<\/head>/i, pwaTags + '</head>');
+      render(sourceContent, false);
+      toast('✅ PWA generated & tags injected! Remember to click push to save the HTML.', 'ok', 6000);
+    } else {
+      toast('✅ PWA files created successfully in repo! Add the manifest link to your HTML.', 'ok', 6000);
+    }
+    
+    document.getElementById('pwaModal').classList.remove('open');
+    $backdrop.classList.remove('open');
+    await fetchFileTree(false, false);
+
+  } catch (err) {
+    toast('❌ ' + err.message, 'err');
+  }
+  hideProgress();
 });
 
 window.addEventListener('resize', function() {
