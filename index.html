@@ -364,7 +364,9 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
                 <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i></button>
                 <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i></button>
                 <button id="buildApkBtn" class="btn" title="Build APK via GitHub Actions" style="color:var(--green);"><i class="fa-brands fa-android"></i></button>
-                        <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);"><i class="fa-solid fa-file-zipper"></i></button>
+                                        <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);"><i class="fa-solid fa-file-zipper"></i></button>
+                                <button id="buildExeBtn" class="btn" title="Build Windows EXE via GitHub Actions" style="color:#00a4ef;"><i class="fa-brands fa-windows"></i></button>
+                                        <button id="downloadExeBtn" class="btn" title="Check & Download Latest EXE Zip" style="color:var(--teal);"><i class="fa-solid fa-file-archive"></i></button>
     
                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                       </div>
@@ -471,8 +473,10 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
   <span class="sb-sep">|</span>
   <span class="sb-item" id="sb-status">ready</span>
     <span class="sb-sep" id="sb-build-sep" style="display:none;">|</span>
-    <span class="sb-item" id="sb-build" style="display:none; cursor:pointer;" title="Click to download if ready"></span>
-  </div>
+        <span class="sb-item" id="sb-build" style="display:none; cursor:pointer;" title="Click to download if ready"></span>
+        <span class="sb-sep" id="sb-build-exe-sep" style="display:none;">|</span>
+        <span class="sb-item" id="sb-build-exe" style="display:none; cursor:pointer;" title="Click to download EXE if ready"></span>
+      </div>
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2443,6 +2447,238 @@ document.getElementById('buildApkBtn').addEventListener('click', async function(
   } catch(e) {
     toast('❌ Failed: ' + e.message, 'err');
     addLog('err', 'APK Builder Error: ' + e.message);
+    hideProgress();
+  }
+});
+
+let exeBuildPollTimer = null;
+async function pollExeBuildStatus() {
+  if (!ghToken || !ghRepo) return;
+  try {
+    let runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-exe.yml/runs?per_page=1`, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' }
+    });
+    if (!runsRes.ok) return;
+    let runsData = await runsRes.json();
+    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) return;
+    
+    let run = runsData.workflow_runs[0];
+    let sbBuild = document.getElementById('sb-build-exe');
+    let sbSep = document.getElementById('sb-build-exe-sep');
+    
+    sbBuild.style.display = 'inline-block';
+    sbSep.style.display = 'inline-block';
+    
+    if (run.status !== 'completed') {
+      sbBuild.style.color = 'var(--amber)';
+      sbBuild.innerHTML = `<i class="fa-solid fa-cog fa-spin"></i> EXE: ${run.status}...`;
+      clearTimeout(exeBuildPollTimer);
+      exeBuildPollTimer = setTimeout(pollExeBuildStatus, 15000);
+    } else {
+      if (run.conclusion === 'success') {
+        sbBuild.style.color = 'var(--green)';
+        sbBuild.innerHTML = `<i class="fa-solid fa-check"></i> EXE Ready!`;
+        toast('✅ EXE Build Completed! Click the archive icon or status bar to download.', 'ok', 6000);
+        addLog('ok', 'Background EXE build finished successfully.');
+      } else {
+        sbBuild.style.color = 'var(--red)';
+        sbBuild.innerHTML = `<i class="fa-solid fa-xmark"></i> EXE Failed`;
+        toast('❌ EXE Build failed on GitHub. Check Actions tab logs.', 'err', 6000);
+      }
+      setTimeout(() => { sbBuild.style.display = 'none'; sbSep.style.display = 'none'; }, 60000);
+    }
+  } catch(e) {}
+}
+
+document.getElementById('sb-build-exe').addEventListener('click', () => {
+  document.getElementById('downloadExeBtn').click();
+});
+
+document.getElementById('downloadExeBtn').addEventListener('click', async function() {
+  if (!ghToken || !ghRepo) { toast('❌ Select a GitHub repo first', 'warn'); return; }
+  
+  toast('🔍 Checking EXE build status...', 'info');
+  showProgress(30);
+  try {
+    let runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-exe.yml/runs?per_page=1`, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    if (!runsRes.ok) throw new Error('No builds found. Have you triggered one yet?');
+    
+    let runsData = await runsRes.json();
+    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) throw new Error('No builds found.');
+    
+    let run = runsData.workflow_runs[0];
+    if (run.status !== 'completed') {
+      toast(`⏳ Build is currently ${run.status}. Please wait...`, 'warn', 4000);
+      hideProgress();
+      return;
+    }
+    if (run.conclusion !== 'success') {
+      window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
+      throw new Error(`Last build ended with: ${run.conclusion}. Opening logs...`);
+    }
+
+    let artRes = await fetch(run.artifacts_url, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    let artData = await artRes.json();
+    let artifact = artData.artifacts.find(a => a.name === 'Windows-EXE');
+    if (!artifact) throw new Error('Windows-EXE artifact not found in the latest build.');
+
+    toast('⏳ Triggering native download...', 'info');
+    showProgress(60);
+    
+    let finalUrl = null;
+    try {
+      const abortCtrl = new AbortController();
+      let zipRes = await fetch(artifact.archive_download_url, {
+        headers: { Authorization: `token ${ghToken}` },
+        signal: abortCtrl.signal
+      });
+      if (!zipRes.ok) throw new Error('Response not ok');
+      finalUrl = zipRes.url;
+      abortCtrl.abort(); 
+    } catch (err) {
+      window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
+      throw new Error('Direct download blocked by CORS. Opened GitHub Actions page instead.');
+    }
+    
+    window.location.href = finalUrl;
+    toast('✅ Download handed over to OS!', 'ok');
+    addLog('ok', 'Triggered native OS download for EXE zip.');
+  } catch(e) {
+    toast('❌ ' + e.message, 'err', 5000);
+    addLog('err', 'EXE Download Error: ' + e.message);
+  }
+  hideProgress();
+});
+
+document.getElementById('buildExeBtn').addEventListener('click', async function() {
+  if (!ghToken || !ghRepo) {
+    toast('❌ Select a GitHub repo first', 'warn');
+    return;
+  }
+  if (!confirm('This will add a GitHub Actions workflow to your repo to build a Windows EXE. Proceed?')) return;
+  
+  showProgress(30);
+  toast('⏳ Setting up EXE Builder...', 'info');
+  addLog('info', 'Creating EXE Builder workflow in ' + ghRepo);
+  
+  const workflowPath = '.github/workflows/build-exe.yml';
+  const workflowContent = [
+    "# Config v1 - EXE Builder",
+    "name: Build Windows EXE",
+    "on:",
+    "  workflow_dispatch:",
+    "",
+    "jobs:",
+    "  build:",
+    "    runs-on: windows-latest",
+    "    steps:",
+    "      - name: Checkout Source",
+    "        uses: actions/checkout@v4",
+    "      - name: Setup Node.js",
+    "        uses: actions/setup-node@v4",
+    "        with:",
+    "          node-version: '20'",
+    "      - name: Build App",
+    "        shell: bash",
+    "        run: |",
+    "          mkdir build_app",
+    "          cp -R $GITHUB_WORKSPACE/* build_app/ || true",
+    "          cd build_app",
+    "          npm init -y",
+    "          npm install electron electron-builder --save-dev",
+    "          cat << 'EOF' > main.js",
+    "          const { app, BrowserWindow } = require('electron');",
+    "          app.whenReady().then(() => {",
+    "            let win = new BrowserWindow({ autoHideMenuBar: true, width: 1280, height: 720 });",
+    "            win.loadFile('index.html').catch(() => console.log('No index.html found'));",
+    "          });",
+    "          app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });",
+    "          EOF",
+    "          npm pkg set main=\"main.js\"",
+    "          npm pkg set scripts.build=\"electron-builder --win portable --x64\"",
+    "          npm pkg set build.appId=\"com.aicompile.app\"",
+    "          npm pkg set build.productName=\"App\"",
+    "          npm run build",
+    "      - name: Upload EXE",
+    "        uses: actions/upload-artifact@v4",
+    "        with:",
+    "          name: Windows-EXE",
+    "          path: build_app/dist/*.exe"
+  ].join('\n');
+
+  try {
+    let sha = null;
+    let needsUpdate = true;
+    const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`;
+    const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+    if (getRes.ok) {
+      const getData = await getRes.json();
+      sha = getData.sha;
+      try {
+        const currentYaml = decodeURIComponent(escape(atob(getData.content.replace(/\s/g, ''))));
+        if (currentYaml.includes('# Config v1 - EXE Builder')) needsUpdate = false;
+      } catch(e) {}
+    }
+    
+    if (needsUpdate) {
+      toast('⏳ Updating EXE Workflow file...', 'info');
+      const encoded = btoa(unescape(encodeURIComponent(workflowContent)));
+      const body = { message: "Setup EXE Builder Action", content: encoded, branch: ghBranch };
+      if (sha) body.sha = sha;
+
+      const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
+        method: 'PUT',
+        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+
+      if (!putRes.ok) throw new Error(await putRes.text());
+      toast('✅ Workflow Updated! Waiting 10s for GitHub...', 'ok', 3000);
+      addLog('ok', 'EXE Workflow added. Waiting 10 seconds for GitHub indexer...');
+      await new Promise(r => setTimeout(r, 10000));
+    } else {
+      addLog('info', 'EXE workflow already up-to-date. Skipping overwrite.');
+    }
+    
+    showProgress(70);
+    
+    let retryCount = 0;
+    const tryDispatch = async () => {
+      try {
+        const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-exe.yml/dispatches`, {
+          method: 'POST',
+          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ref: ghBranch })
+        });
+    
+        if (!dispatchRes.ok) throw new Error(await dispatchRes.text());
+    
+        toast('🚀 EXE Build Triggered! Tracking progress in status bar...', 'ok', 6000);
+        addLog('ok', 'Triggered workflow_dispatch for EXE build.');
+        clearTimeout(exeBuildPollTimer);
+        exeBuildPollTimer = setTimeout(pollExeBuildStatus, 5000);
+        hideProgress();
+      } catch(e) {
+        retryCount++;
+        if (retryCount <= 6) {
+          addLog('info', `GitHub indexing delay. Retrying dispatch (${retryCount}/6)...`);
+          setTimeout(tryDispatch, 5000);
+        } else {
+          toast('✅ Workflow added. Visit GitHub Actions tab to build EXE.', 'info', 6000);
+          addLog('warn', `Auto-trigger failed after 6 retries: ${e.message}`);
+          hideProgress();
+        }
+      }
+    };
+    setTimeout(tryDispatch, 3000);
+    
+  } catch(e) {
+    toast('❌ Failed: ' + e.message, 'err');
+    addLog('err', 'EXE Builder Error: ' + e.message);
     hideProgress();
   }
 });
