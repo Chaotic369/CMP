@@ -4045,19 +4045,27 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
     }
 
     const code1 = document.getElementById('bmNativeCode1').value;
-    const code2 = document.getElementById('bmNativeCode2').value;
-    const deps = document.getElementById('bmDependencies').value || '';
+        const code2 = document.getElementById('bmNativeCode2').value;
+        const deps = document.getElementById('bmDependencies').value || '';
 
-    toast(`🚀 Generating Pure Native ${target.toUpperCase()} structure...`, 'info', 4000);
-    addLog('info', `Triggering Pure Native build for ${appName} v${version}. Pushing files to GitHub repo.`);
-    showProgress(20);
+        const preflightIssues = preflightNativeCode(target, code1, code2);
+        if (preflightIssues.length > 0) {
+          toast('❌ Preflight check failed:\n' + preflightIssues.join('\n'), 'err', 8000);
+          addLog('err', 'Native build blocked by preflight: ' + preflightIssues.join(' | '));
+          return;
+        }
+        const safeDeps = target === 'android' ? sanitizeGradleDeps(deps) : deps;
 
-    try {
-      if (target === 'android') {
-        if (code1.trim()) await uploadSingleFileToRepo(ghRepo, 'app/src/main/java/com/aicompile/app/MainActivity.java', btoa(unescape(encodeURIComponent(code1))), ghBranch, 'Native: Add Java logic');
-                if (code2.trim()) await uploadSingleFileToRepo(ghRepo, 'app/src/main/res/layout/activity_main.xml', btoa(unescape(encodeURIComponent(code2))), ghBranch, 'Native: Add XML layout');
+        toast(`🚀 Generating Pure Native ${target.toUpperCase()} structure...`, 'info', 4000);
+        addLog('info', `Triggering Pure Native build for ${appName} v${version}. Pushing files to GitHub repo.`);
+        showProgress(20);
+
+        try {
+          if (target === 'android') {
+            if (code1.trim()) await uploadSingleFileToRepo(ghRepo, 'app/src/main/java/com/aicompile/app/MainActivity.java', btoa(unescape(encodeURIComponent(code1))), ghBranch, 'Native: Add Java logic');
+                    if (code2.trim()) await uploadSingleFileToRepo(ghRepo, 'app/src/main/res/layout/activity_main.xml', btoa(unescape(encodeURIComponent(code2))), ghBranch, 'Native: Add XML layout');
         
-                showProgress(40);
+                    showProgress(40);
 
                 const manifestIconAttr = 'android:icon="@android:drawable/sym_def_app_icon"';
                 const manifestRoundAttr = '';
@@ -4111,32 +4119,12 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
                               "          plugins { id 'com.android.application' }",
                               "          android { namespace 'com.aicompile.app'; compileSdk 33; defaultConfig { applicationId \"com.aicompile.app\"; minSdk 24; targetSdk 33; versionCode 1; versionName \"" + version + "\"; } buildTypes { release { minifyEnabled false } } compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8; } }",
                               "          dependencies {",
-                              "              implementation 'androidx.appcompat:appcompat:1.6.1'",
-                              "              implementation 'com.google.android.material:material:1.9.0'",
-                              "              " + deps.replace(/\n/g, '\n              '),
-                              "          }",
-                              "          EOF",
-                    "          cat << 'EOF' > native_build/app/src/main/AndroidManifest.xml",
-                    "          <?xml version=\"1.0\" encoding=\"utf-8\"?>",
-                    "          <manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"com.aicompile.app\">",
-                    "              <uses-permission android:name=\"android.permission.INTERNET\" />",
-                    "              <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />",
-                    "              <application android:allowBackup=\"true\" android:icon=\"@android:drawable/sym_def_app_icon\" android:label=\"" + appName + "\" android:supportsRtl=\"true\" android:theme=\"@style/Theme.AppCompat.Light.NoActionBar\">",
-                    "                  <activity android:name=\".MainActivity\" android:exported=\"true\">",
-                    "                      <intent-filter>",
-                    "                          <action android:name=\"android.intent.action.MAIN\" />",
-                    "                          <category android:name=\"android.intent.category.LAUNCHER\" />",
-                    "                      </intent-filter>",
-                    "                  </activity>",
-                    "              </application>",
-                    "          </manifest>",
-                    "          EOF",
-                    "          cat << 'EOF' > native_build/app/build.gradle",
-                    "          plugins { id 'com.android.application' }",
-                    "          android { namespace 'com.aicompile.app'; compileSdk 33; defaultConfig { applicationId \"com.aicompile.app\"; minSdk 24; targetSdk 33; versionCode 1; versionName \"" + version + "\"; } buildTypes { release { minifyEnabled false } } compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8; } }",
-                    "          dependencies { implementation 'androidx.appcompat:appcompat:1.6.1'; implementation 'com.google.android.material:material:1.9.0'; " + deps.replace(/\n/g, ' ') + " }",
-                    "          EOF",
-                    "          cat << 'EOF' > native_build/settings.gradle",
+                                                            "              implementation 'androidx.appcompat:appcompat:1.6.1'",
+                                                            "              implementation 'com.google.android.material:material:1.9.0'",
+                                                            "              " + safeDeps.replace(/\n/g, '\n              '),
+                                                            "          }",
+                                                            "          EOF",
+                                                  "          cat << 'EOF' > native_build/settings.gradle",
                     "          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }",
                     "          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }",
                     "          rootProject.name = \"" + appName + "\"",
