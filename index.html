@@ -476,8 +476,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
   <div id="bpStatusText" style="font-size:12px; margin-bottom:8px; color:var(--blue); font-weight:600; min-height:16px;">Initializing...</div>
     <div id="bpLogs" style="font-size:10px; color:rgba(255,255,255,0.7); background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; min-height:80px; max-height:150px; overflow-y:auto; white-space:pre-wrap; word-break:break-all; border:1px solid rgba(255,255,255,0.05);"></div>
-    <button id="bpCloseBtn" style="display:none; margin-top:12px; padding:8px 16px; background:rgba(255,255,255,0.1); border:none; border-radius:12px; color:#fff; cursor:pointer; font-weight:600; font-size:12px; transition:all 0.2s;">Close</button>
-  </div>
+      <div style="display:flex; gap:12px; margin-top:12px;">
+        <button id="bpCancelBtn" style="flex:1; padding:8px 16px; background:rgba(248,81,73,0.15); border:1px solid rgba(248,81,73,0.3); border-radius:12px; color:var(--red); cursor:pointer; font-weight:600; font-size:12px; transition:all 0.2s;">Cancel Build</button>
+        <button id="bpCloseBtn" style="display:none; flex:1; padding:8px 16px; background:rgba(255,255,255,0.1); border:none; border-radius:12px; color:#fff; cursor:pointer; font-weight:600; font-size:12px; transition:all 0.2s;">Close</button>
+      </div>
+    </div>
 
 <div id="newRepoModal">
   <h4><i class="fa-solid fa-folder-plus"></i> New Repository <span class="panel-close" id="nrCloseBtn">✕</span></h4>
@@ -3418,25 +3421,28 @@ function showBuildOverlay(title) {
   document.getElementById('bpStatusText').style.color = 'var(--blue)';
   document.getElementById('bpLogs').textContent = 'Initializing GitHub Actions...\n';
   document.getElementById('bpCloseBtn').style.display = 'none';
-  if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'none';
-  updateStepperUI(10, '');
-  ov.style.display = 'flex';
-}
+    if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'block';
+    if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'none';
+    updateStepperUI(10, '');
+    ov.style.display = 'flex';
+  }
 
 function updateBuildOverlay(status, pct, stateStr) {
   document.getElementById('bpStatusText').textContent = status;
   if (pct) updateStepperUI(pct, stateStr);
   if (stateStr === 'err') {
-    document.getElementById('bpStatusText').style.color = 'var(--red)';
-    document.getElementById('bpCloseBtn').style.display = 'block';
-    if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
-  } else if (stateStr === 'ok') {
-    document.getElementById('bpStatusText').style.color = 'var(--green)';
-    document.getElementById('bpCloseBtn').style.display = 'block';
-    if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
-    document.getElementById('bpCloseBtn').textContent = 'Download Ready / Close';
+      document.getElementById('bpStatusText').style.color = 'var(--red)';
+      if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'none';
+      document.getElementById('bpCloseBtn').style.display = 'block';
+      if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
+    } else if (stateStr === 'ok') {
+      document.getElementById('bpStatusText').style.color = 'var(--green)';
+      if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'none';
+      document.getElementById('bpCloseBtn').style.display = 'block';
+      if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
+      document.getElementById('bpCloseBtn').textContent = 'Download Ready / Close';
+    }
   }
-}
 
 function appendBuildLog(log) {
   const el = document.getElementById('bpLogs');
@@ -3450,6 +3456,31 @@ const closeOverlay = () => {
 };
 document.getElementById('bpCloseBtn').addEventListener('click', closeOverlay);
 if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').addEventListener('click', closeOverlay);
+
+if(document.getElementById('bpCancelBtn')) {
+  document.getElementById('bpCancelBtn').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    clearTimeout(currentOverlayPollTimer);
+    localStorage.removeItem('active_build_v1');
+    document.getElementById('buildProgressOverlay').style.display = 'none';
+    
+    if (currentBuildRunId && ghRepo && ghToken) {
+      toast('⏳ Cancelling build workflow...', 'info');
+      try {
+        await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs/${currentBuildRunId}/cancel`, {
+          method: 'POST',
+          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+        });
+        toast('✅ Build cancelled successfully');
+      } catch(err) {
+        toast('❌ Failed to cancel API build', 'err');
+      }
+    } else {
+      toast('Build tracking stopped.', 'info');
+    }
+    currentBuildRunId = null;
+  });
+}
 
 if(document.getElementById('bpMinBtnIcon')) {
   document.getElementById('bpMinBtnIcon').addEventListener('click', (e) => {
@@ -3641,6 +3672,7 @@ async function pollOverlayStatus(workflowFile, artifactName) {
     }
     
     const run = runsData.workflow_runs[0];
+        currentBuildRunId = run.id;
         try { 
           let ab = JSON.parse(localStorage.getItem('active_build_v1')); 
           if (ab && ab.startTime && new Date(run.created_at).getTime() < ab.startTime - 15000) {
