@@ -3964,6 +3964,24 @@ function scanPermissions() {
   if (/MediaRecorder|AudioRecord/i.test(code)) document.getElementById('perm_mic').checked = true;
   if (/MediaPlayer|AudioTrack|AudioManager/i.test(code)) document.getElementById('perm_audio').checked = true;
 }
+
+// Scenario 20 rollback note: sanitizeGradleDeps only affects text written into
+// generated build.gradle files at build-trigger time; it does not touch any
+// stored/localStorage state, so no reverse patch is required.
+function sanitizeGradleDeps(raw) {
+  if (!raw) return '';
+  return raw
+    .split('\n')
+    .map(function(line) { return line.replace(/\r/g, ''); })
+    // A bare "EOF" line (optionally padded with whitespace) would terminate
+    // the surrounding bash heredoc early and truncate the generated file.
+    .filter(function(line) { return line.trim() !== 'EOF'; })
+    // Strip characters with no legitimate place in a Gradle dependency
+    // coordinate/line, so stray input can't smuggle extra shell/Gradle syntax.
+    .map(function(line) { return line.replace(/[`$\\]/g, ''); })
+    .join('\n')
+    .trim();
+}
 document.getElementById('bmNativeCode1').addEventListener('input', scanPermissions);
 document.getElementById('bmNativeCode2').addEventListener('input', scanPermissions);
 
