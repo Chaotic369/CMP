@@ -1,0 +1,67 @@
+name: Build Pure Native Android APK
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Create Android Project Structure
+        run: |
+          mkdir -p native_build/app/src/main/java/com/aicompile/app
+          mkdir -p native_build/app/src/main/res/layout
+          mkdir -p native_build/app/src/main/res/values
+          mkdir -p native_build/app/src/main/res/mipmap-xxxhdpi
+          cp -R app/src/main/java/com/aicompile/app/* native_build/app/src/main/java/com/aicompile/app/ || true
+          cp -R app/src/main/res/layout/* native_build/app/src/main/res/layout/ || true
+          cp -R app/src/main/res/mipmap-xxxhdpi/* native_build/app/src/main/res/mipmap-xxxhdpi/ || true
+          cat << 'EOF' > native_build/gradle.properties
+          android.useAndroidX=true
+          android.nonTransitiveRClass=true
+          EOF
+          cat << 'EOF' > native_build/app/src/main/AndroidManifest.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.aicompile.app">
+              <uses-permission android:name="android.permission.INTERNET" />
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+              <application android:allowBackup="true" android:icon="@android:drawable/sym_def_app_icon" android:label="File" android:supportsRtl="true" android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+                  <activity android:name=".MainActivity" android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+          cat << 'EOF' > native_build/app/build.gradle
+          plugins { id 'com.android.application' }
+          android { namespace 'com.aicompile.app'; compileSdk 33; defaultConfig { applicationId "com.aicompile.app"; minSdk 24; targetSdk 33; versionCode 1; versionName "1.0.1"; } buildTypes { release { minifyEnabled false } } compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8; } }
+          dependencies { implementation 'androidx.appcompat:appcompat:1.6.1'; implementation 'com.google.android.material:material:1.9.0'; implementation 'com.squareup.okhttp3:okhttp:4.11.0' implementation 'com.google.code.gson:gson:2.10.1'  }
+          EOF
+          cat << 'EOF' > native_build/settings.gradle
+          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }
+          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }
+          rootProject.name = "File"
+          include ':app'
+          EOF
+          cat << 'EOF' > native_build/build.gradle
+          plugins { id 'com.android.application' version '8.1.1' apply false }
+          EOF
+          cd native_build
+          gradle wrapper
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - name: Upload Native APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Android-Native-APK
+          path: native_build/app/build/outputs/apk/debug/app-debug.apk
