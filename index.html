@@ -2387,11 +2387,19 @@ window.addEventListener('DOMContentLoaded', async function() {
   while (!window._fbReady && fbWait < 20) { await new Promise(r => setTimeout(r, 50)); fbWait++; }
   
   showMenuLoader('Syncing Configuration...');
-  await ghLoadConfigFromFirebase();
-  renderRepoTabs();
+    await ghLoadConfigFromFirebase();
+    renderRepoTabs();
   
-  if (ghRepo && ghToken) {
-    showMenuLoader('Loading Repository...');
+    if (ghRepo && ghToken) {
+      try {
+        let activeBuild = JSON.parse(localStorage.getItem('active_build_v1'));
+        if (activeBuild && activeBuild.workflowFile && activeBuild.artifactName) {
+          showBuildOverlay(activeBuild.title || 'Resuming Build...');
+          pollOverlayStatus(activeBuild.workflowFile, activeBuild.artifactName);
+        }
+      } catch(e) {}
+    
+      showMenuLoader('Loading Repository...');
     await syncCurrentFile();
     await fetchFileTree(false, true);
   } else if (ghRepos.length === 0 && ghToken) {
@@ -3438,6 +3446,7 @@ function appendBuildLog(log) {
 
 const closeOverlay = () => {
   document.getElementById('buildProgressOverlay').style.display = 'none';
+  localStorage.removeItem('active_build_v1');
 };
 document.getElementById('bpCloseBtn').addEventListener('click', closeOverlay);
 if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').addEventListener('click', closeOverlay);
@@ -3607,9 +3616,10 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
     if(!dispatchSuccess) throw new Error('Failed to trigger workflow dispatch.');
     
     updateBuildOverlay('Build running. Polling GitHub...', 35);
-    clearTimeout(currentOverlayPollTimer);
+        clearTimeout(currentOverlayPollTimer);
     
-    pollOverlayStatus(workflowPath.split('/').pop(), artifactName);
+        localStorage.setItem('active_build_v1', JSON.stringify({ title, workflowFile: workflowPath.split('/').pop(), artifactName, startTime: Date.now() }));
+        pollOverlayStatus(workflowPath.split('/').pop(), artifactName);
     
   } catch (err) {
     updateBuildOverlay('Build Initialization Failed', 100, 'err');
@@ -3631,13 +3641,22 @@ async function pollOverlayStatus(workflowFile, artifactName) {
     }
     
     const run = runsData.workflow_runs[0];
+        try { 
+          let ab = JSON.parse(localStorage.getItem('active_build_v1')); 
+          if (ab && ab.startTime && new Date(run.created_at).getTime() < ab.startTime - 15000) {
+            appendBuildLog('Waiting for GitHub to queue new run...');
+            currentOverlayPollTimer = setTimeout(() => pollOverlayStatus(workflowFile, artifactName), 5000);
+            return;
+          }
+        } catch(e) {}
     
-    if (run.status !== 'completed') {
-      updateBuildOverlay(`Building: ${run.status}...`, 60);
-      appendBuildLog(`[${new Date().toLocaleTimeString()}] Status: ${run.status}`);
-      currentOverlayPollTimer = setTimeout(() => pollOverlayStatus(workflowFile, artifactName), 10000);
-    } else {
-      if (run.conclusion === 'success') {
+        if (run.status !== 'completed') {
+          updateBuildOverlay(`Building: ${run.status}...`, 60);
+          appendBuildLog(`[${new Date().toLocaleTimeString()}] Status: ${run.status}`);
+          currentOverlayPollTimer = setTimeout(() => pollOverlayStatus(workflowFile, artifactName), 10000);
+        } else {
+          localStorage.removeItem('active_build_v1');
+          if (run.conclusion === 'success') {
         updateBuildOverlay(`Build Success! Fetching Artifact...`, 90);
         appendBuildLog(`[${new Date().toLocaleTimeString()}] Conclusion: SUCCESS`);
         
