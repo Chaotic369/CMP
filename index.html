@@ -408,14 +408,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="buildModal">
   <h4><i class="fa-solid fa-hammer"></i> Build App <span class="panel-close" id="bmCloseBtn">✕</span></h4>
-  
-  <div class="bm-step">
-    <label>How do you want to build?</label>
-    <div style="display:flex; gap:10px;">
-      <button id="bmPathA" class="bm-toggle-btn active"><i class="fa-solid fa-globe"></i> Web Wrapper</button>
-      <button id="bmPathB" class="bm-toggle-btn"><i class="fa-solid fa-microchip"></i> Pure Native</button>
-    </div>
-  </div>
 
   <div id="bmWrapperSettings">
      <div class="bm-step" style="margin-top:10px;">
@@ -425,69 +417,26 @@ select.bm-select option { background: var(--elevated); color: #fff; }
          <option value="exe">Windows EXE (Electron)</option>
        </select>
      </div>
+     <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
+     <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
   </div>
-
-  <div id="bmNativeSettings" style="display:none;">
-     <div class="bm-step" style="margin-top:10px;">
-       <label>Target Platform</label>
-       <select id="bmNativeTarget" class="bm-select">
-         <option value="android">Android (Java/XML)</option>
-         <option value="windows">Windows (C++)</option>
-       </select>
-     </div>
-     <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App"></div>
-     <div class="gh-row" style="margin-top:10px;"><label>Repo Name</label><input type="text" id="bmRepoName" placeholder="my-app-repo"></div>
-     
-     <div style="margin-top:10px;">
-       <label style="font-size: 12px; color:rgba(255,255,255,0.7);">App Icon (PNG/JPG)</label>
-       <input type="file" id="bmIconFile" accept="image/png, image/jpeg" style="font-size:12px;">
-     </div>
-
-     <div id="bmNativeCodeBoxes" style="margin-top:10px;">
-            <div style="display:flex; background: rgba(255,255,255,0.1); border-radius: 12px; align-items: center; height: 34px; padding: 0 4px 0 0; box-sizing: border-box; margin-bottom:8px;">
-              <input type="text" id="bmApkInstruction" placeholder="Describe your APK app..." style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 12px; outline: none; font-size: 12px; height: 34px; line-height: 34px;">
-              <button id="bmApkPayloadBtn" class="btn" title="Copy APK Prompt" style="color: var(--purple); width: 30px; height: 30px; min-width: 30px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 13px;"></i></button>
-            </div>
-            <div style="display:flex; background: rgba(255,255,255,0.1); border-radius: 12px; align-items: center; height: 34px; padding: 0 4px 0 0; box-sizing: border-box; margin-bottom:8px;">
-              <input type="text" id="bmExeInstruction" placeholder="Describe your EXE app..." style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 12px; outline: none; font-size: 12px; height: 34px; line-height: 34px;">
-              <button id="bmExePayloadBtn" class="btn" title="Copy EXE Prompt" style="color: var(--purple); width: 30px; height: 30px; min-width: 30px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 13px;"></i></button>
-            </div>
-            <textarea id="bmNativeCode1" placeholder="Paste Java (Android) or C++ (Windows) Code here..." class="bm-code-box"></textarea>
-            <textarea id="bmNativeCode2" placeholder="Paste XML Layout here (Android only)..." class="bm-code-box"></textarea>
-          </div>
-       </div>
-
-  <details class="bm-advanced">
-    <summary>Advanced Settings & Edge Cases</summary>
-    
-    <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.1"></div>
-    
-    <label style="margin-top:10px; display:block; font-size:12px; color:var(--teal); font-weight:600;">Smart Permissions (Auto-Checked)</label>
-    <div class="bm-permissions-grid">
-       <label><input type="checkbox" id="perm_internet"> Internet</label>
-       <label><input type="checkbox" id="perm_location"> Location</label>
-       <label><input type="checkbox" id="perm_camera"> Camera</label>
-       <label><input type="checkbox" id="perm_storage"> Storage (R/W)</label>
-       <label><input type="checkbox" id="perm_mic"> Microphone</label>
-       <label><input type="checkbox" id="perm_audio"> Audio/Speaker</label>
-    </div>
-
-    <label style="margin-top:10px; display:block; font-size:12px; color:var(--purple); font-weight:600;">Extra Dependencies</label>
-    <button id="bmToggleLibBtn" class="btn" style="width:auto; padding:4px 10px; font-size:11px; margin-bottom:5px; border:1px solid rgba(255,255,255,0.2);">+ Add Library</button>
-    <div id="bmLibArea" style="display:none; flex-direction:column; gap:8px;">
-       <div style="display:flex; gap:6px; flex-wrap:wrap;">
-         <button class="bm-lib-chip" data-lib="implementation 'com.google.code.gson:gson:2.10.1'">Gson</button>
-         <button class="bm-lib-chip" data-lib="implementation 'com.squareup.okhttp3:okhttp:4.11.0'">OkHttp</button>
-         <button class="bm-lib-chip" data-lib="implementation 'androidx.room:room-runtime:2.5.2'">Room</button>
-       </div>
-       <textarea id="bmDependencies" placeholder="Paste dependency code from AI..." class="bm-code-box" style="height:60px;"></textarea>
-    </div>
-  </details>
 
   <div class="gh-actions">
     <button id="bmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
-    <button id="bmCompileBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-rocket"></i> Generate Native App</button>
+    <button id="bmCompileBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-rocket"></i> Build App</button>
   </div>
+</div>
+
+<div id="buildProgressOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:50000; flex-direction:column; padding:40px 20px; color:#fff; font-family:'JetBrains Mono', monospace; overflow-y:auto;">
+  <h3 id="bpTitle" style="color:var(--blue); margin-bottom:20px; text-align:center;">Build in Progress...</h3>
+  <div style="flex:1; max-width:600px; margin:0 auto; width:100%;">
+    <div id="bpStatusText" style="font-size:14px; margin-bottom:10px; color:var(--green); font-weight:600;">Initializing...</div>
+    <div style="width:100%; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; margin-bottom:20px; overflow:hidden;">
+      <div id="bpProgressBar" style="width:0%; height:100%; background:var(--blue); transition:width 0.3s;"></div>
+    </div>
+    <div id="bpLogs" style="font-size:11px; color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; min-height:200px; max-height:400px; overflow-y:auto; white-space:pre-wrap; word-break:break-all;"></div>
+  </div>
+  <button id="bpCloseBtn" style="display:none; margin:20px auto 0; padding:10px 20px; background:var(--blue); border:none; border-radius:10px; color:#fff; cursor:pointer;">Close</button>
 </div>
 
 <div id="newRepoModal">
@@ -2300,564 +2249,7 @@ document.getElementById('liveSiteBtn').addEventListener('click', function() {
   window.open(url, '_blank');
 });
 
-let buildPollTimer = null;
-async function pollBuildStatus() {
-  if (!ghToken || !ghRepo) return;
-  try {
-    let runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-apk.yml/runs?per_page=1`, {
-      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' }
-    });
-    if (!runsRes.ok) return;
-    let runsData = await runsRes.json();
-    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) return;
-    
-    let run = runsData.workflow_runs[0];
-    let sbBuild = document.getElementById('sb-build');
-    let sbSep = document.getElementById('sb-build-sep');
-    
-    sbBuild.style.display = 'inline-block';
-    sbSep.style.display = 'inline-block';
-    
-    if (run.status !== 'completed') {
-      sbBuild.style.color = 'var(--amber)';
-      sbBuild.innerHTML = `<i class="fa-solid fa-cog fa-spin"></i> APK: ${run.status}...`;
-      clearTimeout(buildPollTimer);
-      buildPollTimer = setTimeout(pollBuildStatus, 15000); // Poll every 15 seconds
-    } else {
-      if (run.conclusion === 'success') {
-              sbBuild.style.color = 'var(--green)';
-              sbBuild.innerHTML = `<i class="fa-solid fa-check"></i> APK Ready!`;
-              toast('✅ APK Build Completed! Click the zipper icon or status bar to download.', 'ok', 6000);
-              addLog('ok', 'Background APK build finished successfully.');
-            } else {
-              sbBuild.style.color = 'var(--red)';
-              sbBuild.innerHTML = `<i class="fa-solid fa-xmark"></i> APK Failed`;
-              toast('❌ APK Build failed on GitHub. Click "View Error Log".', 'err', 6000);
-              const logUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
-              $errOverlay.style.display = 'block';
-              $errText.innerHTML = `Build Failed! <button class="btn" style="display:inline-block; margin-left:10px; font-size:11px; padding:4px 8px; width:auto; background:var(--red);" onclick="window.open('${logUrl}', '_blank')">View Error Log</button>`;
-            }
-      // Hide the tracker after 1 minute to keep UI clean
-      setTimeout(() => { sbBuild.style.display = 'none'; sbSep.style.display = 'none'; }, 60000);
-    }
-  } catch(e) {}
-}
 
-document.getElementById('sb-build').addEventListener('click', () => {
-  document.getElementById('downloadApkBtn').click();
-});
-
-async function fetchLatestFailedLog(workflowFile) {
-  if (!ghToken || !ghRepo) { toast('❌ Configure GitHub first', 'warn'); return; }
-  toast('🔍 Fetching latest run...', 'info');
-  showProgress(20);
-  try {
-    const runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowFile}/runs?per_page=1`, {
-      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-    });
-    if (!runsRes.ok) throw new Error('Failed to fetch runs');
-    const runsData = await runsRes.json();
-    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) throw new Error('No runs found');
-    const run = runsData.workflow_runs[0];
-
-    if (run.status !== 'completed') {
-      toast(`⏳ Latest run is still ${run.status}.`, 'warn', 4000);
-      hideProgress();
-      return;
-    }
-
-    showProgress(50);
-    const jobsRes = await fetch(run.jobs_url, {
-      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-    });
-    if (!jobsRes.ok) throw new Error('Failed to fetch jobs');
-    const jobsData = await jobsRes.json();
-    const failedJob = jobsData.jobs.find(j => j.conclusion === 'failure') || jobsData.jobs[0];
-    if (!failedJob) throw new Error('No job data found');
-
-    showProgress(75);
-    const logRes = await fetch(failedJob.url + '/logs', {
-      headers: { Authorization: `token ${ghToken}` }
-    });
-    if (!logRes.ok) throw new Error('Failed to fetch log (status ' + logRes.status + ')');
-    const fullLog = await logRes.text();
-
-    const lines = fullLog.split('\n');
-    const tail = lines.slice(-80).join('\n');
-
-    $errText.textContent = `Job: ${failedJob.name} (${run.conclusion})\n\n` + tail;
-    $errOverlay.style.display = 'block';
-    currentErrText = tail;
-    addLog(run.conclusion === 'success' ? 'ok' : 'err', `Pulled log for ${failedJob.name}: ${run.conclusion}`);
-    toast('✅ Log pulled from GitHub', 'ok');
-  } catch (e) {
-    toast('❌ Log fetch failed: ' + e.message, 'err', 6000);
-    addLog('err', 'Log fetch error: ' + e.message);
-  }
-  hideProgress();
-}
-
-// Feature 5: Check & Download APK
-document.getElementById('downloadApkBtn').addEventListener('click', async function() {
-  if (!ghToken || !ghRepo) { toast('❌ Select a GitHub repo first', 'warn'); return; }
-  
-  toast('🔍 Checking build status...', 'info');
-  showProgress(30);
-  try {
-    let runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-apk.yml/runs?per_page=1`, {
-      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-    });
-    if (!runsRes.ok) throw new Error('No builds found. Have you triggered one yet?');
-    
-    let runsData = await runsRes.json();
-    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) throw new Error('No builds found.');
-    
-    let run = runsData.workflow_runs[0];
-    if (run.status !== 'completed') {
-      toast(`⏳ Build is currently ${run.status}. Please wait...`, 'warn', 4000);
-      hideProgress();
-      return;
-    }
-    if (run.conclusion !== 'success') {
-          window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
-          throw new Error(`Last build ended with: ${run.conclusion}. Opening logs...`);
-        }
-
-        let artRes = await fetch(run.artifacts_url, {
-      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-    });
-    let artData = await artRes.json();
-    let artifact = artData.artifacts.find(a => a.name === 'Android-APK');
-    if (!artifact) throw new Error('Android-APK artifact not found in the latest build.');
-
-    toast('⏳ Triggering native download...', 'info');
-            showProgress(60);
-    
-            let finalUrl = null;
-            try {
-              const abortCtrl = new AbortController();
-              let zipRes = await fetch(artifact.archive_download_url, {
-                headers: { Authorization: `token ${ghToken}` },
-                signal: abortCtrl.signal
-              });
-      
-              if (!zipRes.ok) {
-                 throw new Error('Response not ok');
-              }
-      
-              finalUrl = zipRes.url;
-              abortCtrl.abort(); // Cancel the JavaScript memory download to save RAM
-            } catch (err) {
-              window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
-              throw new Error('Direct download blocked by CORS. Opened GitHub Actions page instead.');
-            }
-    
-                // PWA/Mobile WebView Fix: Navigate the *current* frame directly to the Azure Blob URL.
-                // Because the URL contains "Content-Disposition: attachment", it will not navigate away
-                // from the IDE, but will instantly trigger the Android Native Download Manager.
-                window.location.href = finalUrl;
-    
-                toast('✅ Download handed over to OS!', 'ok');
-            addLog('ok', 'Triggered native OS download for APK zip.');
-  } catch(e) {
-    toast('❌ ' + e.message, 'err', 5000);
-    addLog('err', 'APK Download Error: ' + e.message);
-  }
-  hideProgress();
-});
-
-// Feature 4: GitHub Actions APK Builder
-document.getElementById('buildApkBtn').addEventListener('click', async function() {
-  if (!ghToken || !ghRepo) {
-    toast('❌ Select a GitHub repo first', 'warn');
-    return;
-  }
-  
-  if (!confirm('This will add a GitHub Actions workflow to your repo to build an Android APK. Proceed?')) return;
-  
-  showProgress(30);
-  toast('⏳ Setting up APK Builder...', 'info');
-  addLog('info', 'Creating APK Builder workflow in ' + ghRepo);
-  
-  const workflowPath = '.github/workflows/build-apk.yml';
-      const workflowContent = [
-            "# Config v5 - Browser Fix",
-            "name: Build Android APK",
-          "on:",
-          "  workflow_dispatch:",
-          "",
-          "jobs:",
-          "  build:",
-          "    runs-on: ubuntu-latest",
-          "    steps:",
-          "      - name: Checkout Source",
-          "        uses: actions/checkout@v4",
-          "      - name: Setup Java",
-          "        uses: actions/setup-java@v3",
-          "        with:",
-          "          distribution: 'temurin'",
-          "          java-version: '17'",
-          "      - name: Setup Node.js",
-          "        uses: actions/setup-node@v4",
-          "        with:",
-          "          node-version: '20'",
-          "      - name: Install Cordova",
-          "        run: npm install -g cordova",
-          "      - name: Build APK",
-          "        run: |",
-          "          export CI=true",
-          "          export CORDOVA_NO_TELEMETRY=1",
-          "          cd /tmp",
-          "          cordova create app com.aicompile.app \"App\" --no-telemetry",
-                    "          rm -rf app/www/*",
-                    "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
-                    "          cd app",
-                    "          sed -i 's/<\\/widget>/\\n    <allow-navigation href=\"*\" \\/>\\n    <allow-intent href=\"*\" \\/>\\n<\\/widget>/g' config.xml",
-                    "          cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true",
-                    "          cordova platform add android@13.0.0 --no-telemetry",
-                    "          cordova build android --no-telemetry",
-                    "      - name: Upload APK",
-          "        uses: actions/upload-artifact@v4",
-          "        with:",
-          "          name: Android-APK",
-          "          path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk"
-        ].join('\n');
-
-      try {
-          let sha = null;
-          let needsUpdate = true;
-          const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`;
-          const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
-          if (getRes.ok) {
-            const getData = await getRes.json();
-            sha = getData.sha;
-            try {
-                                const currentYaml = decodeURIComponent(escape(atob(getData.content.replace(/\s/g, ''))));
-                                if (currentYaml.includes('# Config v5')) needsUpdate = false;
-                              } catch(e) {}
-                      }
-    
-      if (needsUpdate) {
-        toast('⏳ Updating APK Workflow file...', 'info');
-        const encoded = btoa(unescape(encodeURIComponent(workflowContent)));
-        const body = { message: "Setup APK Builder Action", content: encoded, branch: ghBranch };
-        if (sha) body.sha = sha;
-
-        const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
-          method: 'PUT',
-          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-
-        if (!putRes.ok) throw new Error(await putRes.text());
-      
-        toast('✅ Workflow Updated! Waiting 10s for GitHub...', 'ok', 3000);
-        addLog('ok', 'APK Workflow added. Waiting 10 seconds for GitHub indexer...');
-        await new Promise(r => setTimeout(r, 10000)); // Give GitHub time to parse the new file
-      } else {
-        addLog('info', 'APK workflow already up-to-date. Skipping overwrite.');
-      }
-    
-      showProgress(70);
-    
-      let retryCount = 0;
-        const tryDispatch = async () => {
-          try {
-            const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-apk.yml/dispatches`, {
-              method: 'POST',
-              headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ref: ghBranch })
-            });
-        
-            if (!dispatchRes.ok) {
-              const errText = await dispatchRes.text();
-              throw new Error(errText);
-            }
-        
-            toast('🚀 Build Triggered! Tracking progress in status bar...', 'ok', 6000);
-            addLog('ok', 'Triggered workflow_dispatch for APK build.');
-            clearTimeout(buildPollTimer);
-            buildPollTimer = setTimeout(pollBuildStatus, 5000);
-            hideProgress();
-          } catch(e) {
-                      retryCount++;
-                      if (retryCount <= 6) {
-                        addLog('info', `GitHub indexing delay. Retrying dispatch (${retryCount}/6)...`);
-                        setTimeout(tryDispatch, 5000); // Wait 5 seconds and try again
-                      } else {
-                        toast('✅ Workflow added. Visit GitHub Actions tab to build APK.', 'info', 6000);
-                        addLog('warn', `Auto-trigger failed after 6 retries: ${e.message}`);
-                        hideProgress();
-                      }
-                    }
-        };
-        setTimeout(tryDispatch, 3000); // Initial 3 second wait
-    
-  } catch(e) {
-    toast('❌ Failed: ' + e.message, 'err');
-    addLog('err', 'APK Builder Error: ' + e.message);
-    hideProgress();
-  }
-});
-
-let exeBuildPollTimer = null;
-async function pollExeBuildStatus() {
-  if (!ghToken || !ghRepo) return;
-  try {
-    let runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-exe.yml/runs?per_page=1`, {
-      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' }
-    });
-    if (!runsRes.ok) return;
-    let runsData = await runsRes.json();
-    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) return;
-    
-    let run = runsData.workflow_runs[0];
-    let sbBuild = document.getElementById('sb-build-exe');
-    let sbSep = document.getElementById('sb-build-exe-sep');
-    
-    sbBuild.style.display = 'inline-block';
-    sbSep.style.display = 'inline-block';
-    
-    if (run.status !== 'completed') {
-      sbBuild.style.color = 'var(--amber)';
-      sbBuild.innerHTML = `<i class="fa-solid fa-cog fa-spin"></i> EXE: ${run.status}...`;
-      clearTimeout(exeBuildPollTimer);
-      exeBuildPollTimer = setTimeout(pollExeBuildStatus, 15000);
-    } else {
-      if (run.conclusion === 'success') {
-              sbBuild.style.color = 'var(--green)';
-              sbBuild.innerHTML = `<i class="fa-solid fa-check"></i> EXE Ready!`;
-              toast('✅ EXE Build Completed! Click the archive icon or status bar to download.', 'ok', 6000);
-              addLog('ok', 'Background EXE build finished successfully.');
-            } else {
-              sbBuild.style.color = 'var(--red)';
-              sbBuild.innerHTML = `<i class="fa-solid fa-xmark"></i> EXE Failed`;
-              toast('❌ EXE Build failed on GitHub. Click "View Error Log".', 'err', 6000);
-              const logUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
-              $errOverlay.style.display = 'block';
-              $errText.innerHTML = `Build Failed! <button class="btn" style="display:inline-block; margin-left:10px; font-size:11px; padding:4px 8px; width:auto; background:var(--red);" onclick="window.open('${logUrl}', '_blank')">View Error Log</button>`;
-            }
-      setTimeout(() => { sbBuild.style.display = 'none'; sbSep.style.display = 'none'; }, 60000);
-    }
-  } catch(e) {}
-}
-
-document.getElementById('sb-build-exe').addEventListener('click', () => {
-  document.getElementById('downloadExeBtn').click();
-});
-
-document.getElementById('downloadExeBtn').addEventListener('click', async function() {
-  if (!ghToken || !ghRepo) { toast('❌ Select a GitHub repo first', 'warn'); return; }
-  
-  toast('🔍 Checking EXE build status...', 'info');
-  showProgress(30);
-  try {
-    let runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-exe.yml/runs?per_page=1`, {
-      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-    });
-    if (!runsRes.ok) throw new Error('No builds found. Have you triggered one yet?');
-    
-    let runsData = await runsRes.json();
-    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) throw new Error('No builds found.');
-    
-    let run = runsData.workflow_runs[0];
-    if (run.status !== 'completed') {
-      toast(`⏳ Build is currently ${run.status}. Please wait...`, 'warn', 4000);
-      hideProgress();
-      return;
-    }
-    if (run.conclusion !== 'success') {
-      window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
-      throw new Error(`Last build ended with: ${run.conclusion}. Opening logs...`);
-    }
-
-    let artRes = await fetch(run.artifacts_url, {
-      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-    });
-    let artData = await artRes.json();
-    let artifact = artData.artifacts.find(a => a.name === 'Windows-EXE');
-    if (!artifact) throw new Error('Windows-EXE artifact not found in the latest build.');
-
-    toast('⏳ Triggering native download...', 'info');
-    showProgress(60);
-    
-    let finalUrl = null;
-    try {
-      const abortCtrl = new AbortController();
-      let zipRes = await fetch(artifact.archive_download_url, {
-        headers: { Authorization: `token ${ghToken}` },
-        signal: abortCtrl.signal
-      });
-      if (!zipRes.ok) throw new Error('Response not ok');
-      finalUrl = zipRes.url;
-      abortCtrl.abort(); 
-    } catch (err) {
-      window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
-      throw new Error('Direct download blocked by CORS. Opened GitHub Actions page instead.');
-    }
-    
-    window.location.href = finalUrl;
-    toast('✅ Download handed over to OS!', 'ok');
-    addLog('ok', 'Triggered native OS download for EXE zip.');
-  } catch(e) {
-    toast('❌ ' + e.message, 'err', 5000);
-    addLog('err', 'EXE Download Error: ' + e.message);
-  }
-  hideProgress();
-});
-
-document.getElementById('buildExeBtn').addEventListener('click', async function() {
-  if (!ghToken || !ghRepo) {
-    toast('❌ Select a GitHub repo first', 'warn');
-    return;
-  }
-  if (!confirm('This will add a GitHub Actions workflow to your repo to build a Windows EXE. Proceed?')) return;
-  
-  showProgress(30);
-  toast('⏳ Setting up EXE Builder...', 'info');
-  addLog('info', 'Creating EXE Builder workflow in ' + ghRepo);
-  
-  const workflowPath = '.github/workflows/build-exe.yml';
-    const workflowContent = [
-      "# Config v3 - Universal EXE Builder",
-      "name: Build Windows EXE",
-      "on:",
-      "  workflow_dispatch:",
-      "",
-      "jobs:",
-      "  build:",
-      "    runs-on: windows-latest",
-      "    steps:",
-      "      - name: Checkout Source",
-      "        uses: actions/checkout@v4",
-      "      - name: Setup Node.js",
-      "        uses: actions/setup-node@v4",
-      "        with:",
-      "          node-version: '20'",
-      "      - name: Build App",
-      "        shell: bash",
-      "        run: |",
-      "          mkdir build_app",
-      "          cp -R $GITHUB_WORKSPACE/* build_app/ || true",
-      "          cd build_app",
-      "          npm init -y",
-      "          npm install electron electron-builder --save-dev",
-      "          ",
-      "          # Dynamically find the main HTML file",
-      "          if [ -f \"index.html\" ]; then",
-      "            MAIN_FILE=\"index.html\"",
-      "          else",
-      "            MAIN_FILE=$(find . -maxdepth 1 -name \"*.html\" | head -n 1 | sed 's|^\\./||')",
-      "          fi",
-      "          if [ -z \"$MAIN_FILE\" ]; then MAIN_FILE=\"index.html\"; fi",
-      "          ",
-      "          # Dynamically get Repo Name for App details",
-      "          REPO_NAME=\"${{ github.event.repository.name }}\"",
-      "          APP_NAME=${REPO_NAME:-App}",
-      "          ",
-      "          cat << EOF > main.js",
-      "          const { app, BrowserWindow } = require('electron');",
-      "          const path = require('path');",
-      "          app.whenReady().then(() => {",
-      "            let win = new BrowserWindow({",
-      "              autoHideMenuBar: true,",
-      "              width: 1280,",
-      "              height: 720,",
-      "              webPreferences: {",
-      "                nodeIntegration: true,",
-      "                contextIsolation: false,",
-      "                webSecurity: false",
-      "              }",
-      "            });",
-      "            win.loadFile(path.join(__dirname, '$MAIN_FILE')).catch(() => console.log('No HTML file found'));",
-      "          });",
-      "          app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });",
-      "          EOF",
-      "          ",
-      "          npm pkg set main=\"main.js\"",
-      "          npm pkg set scripts.build=\"electron-builder --win portable --x64\"",
-      "          npm pkg set build.appId=\"com.aicompile.$APP_NAME\"",
-      "          npm pkg set build.productName=\"$APP_NAME\"",
-      "          npm run build",
-      "      - name: Upload EXE",
-      "        uses: actions/upload-artifact@v4",
-      "        with:",
-      "          name: Windows-EXE",
-      "          path: build_app/dist/*.exe"
-    ].join('\n');
-
-    try {
-      let sha = null;
-      let needsUpdate = true;
-      const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`;
-      const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
-      if (getRes.ok) {
-        const getData = await getRes.json();
-        sha = getData.sha;
-        try {
-          const currentYaml = decodeURIComponent(escape(atob(getData.content.replace(/\s/g, ''))));
-          if (currentYaml.includes('# Config v3 - Universal EXE Builder')) needsUpdate = false;
-        } catch(e) {}
-      }
-    
-    if (needsUpdate) {
-      toast('⏳ Updating EXE Workflow file...', 'info');
-      const encoded = btoa(unescape(encodeURIComponent(workflowContent)));
-      const body = { message: "Setup EXE Builder Action", content: encoded, branch: ghBranch };
-      if (sha) body.sha = sha;
-
-      const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
-        method: 'PUT',
-        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-
-      if (!putRes.ok) throw new Error(await putRes.text());
-      toast('✅ Workflow Updated! Waiting 10s for GitHub...', 'ok', 3000);
-      addLog('ok', 'EXE Workflow added. Waiting 10 seconds for GitHub indexer...');
-      await new Promise(r => setTimeout(r, 10000));
-    } else {
-      addLog('info', 'EXE workflow already up-to-date. Skipping overwrite.');
-    }
-    
-    showProgress(70);
-    
-    let retryCount = 0;
-    const tryDispatch = async () => {
-      try {
-        const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-exe.yml/dispatches`, {
-          method: 'POST',
-          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ref: ghBranch })
-        });
-    
-        if (!dispatchRes.ok) throw new Error(await dispatchRes.text());
-    
-        toast('🚀 EXE Build Triggered! Tracking progress in status bar...', 'ok', 6000);
-        addLog('ok', 'Triggered workflow_dispatch for EXE build.');
-        clearTimeout(exeBuildPollTimer);
-        exeBuildPollTimer = setTimeout(pollExeBuildStatus, 5000);
-        hideProgress();
-      } catch(e) {
-        retryCount++;
-        if (retryCount <= 6) {
-          addLog('info', `GitHub indexing delay. Retrying dispatch (${retryCount}/6)...`);
-          setTimeout(tryDispatch, 5000);
-        } else {
-          toast('✅ Workflow added. Visit GitHub Actions tab to build EXE.', 'info', 6000);
-          addLog('warn', `Auto-trigger failed after 6 retries: ${e.message}`);
-          hideProgress();
-        }
-      }
-    };
-    setTimeout(tryDispatch, 3000);
-    
-  } catch(e) {
-    toast('❌ Failed: ' + e.message, 'err');
-    addLog('err', 'EXE Builder Error: ' + e.message);
-    hideProgress();
-  }
-});
 
 // Wallpaper UI Triggers
 document.getElementById('wallpaperBtn').addEventListener('click', function() {
@@ -2928,29 +2320,7 @@ document.getElementById('payloadBtn').addEventListener('click', function() {
   });
 });
 
-var APK_NATIVE_PROMPT = 'Generate a single-Activity native Android app in plain Java (no Kotlin, no Jetpack Compose) that I will paste into a build tool with these exact constraints:\n\nOUTPUT FORMAT — three separate blocks, each clearly labeled and nothing else outside the labels:\n\n=== JAVA ===\n(one file only — the complete contents of MainActivity.java, package com.aicompile.app, class name MainActivity extending AppCompatActivity, using setContentView(R.layout.activity_main))\n\n=== XML ===\n(one file only — the complete contents of activity_main.xml, a valid Android layout resource with a root ViewGroup, referencing only views/ids that MainActivity.java actually uses via findViewById)\n\n=== DEPENDENCIES ===\n(zero or more lines, each a single Gradle dependency coordinate in this exact form: implementation \'group:artifact:version\' — one per line, nothing else, no comments, no blank lines, no "dependencies {" wrapper)\n\nHARD RULES:\n- Java only. No Kotlin syntax.\n- Single Activity, single layout file. No fragments, no navigation component, no multiple XML files.\n- Do not use androidx.compose, view binding, or data binding — use findViewById directly.\n- Every id referenced in Java via findViewById must exist in the XML with a matching android:id.\n- Do not include the AndroidManifest.xml, build.gradle, or any Gradle Groovy/Kotlin DSL — I generate those separately. Only give me the three blocks above.\n- Do not include package/import lines for anything not actually used.\n- If you need a third-party library, add it to the DEPENDENCIES block using implementation \'...\' syntax only — do not explain it in prose.\n- Assume minSdk 24, targetSdk 33, compileSdk 33, AndroidX already available (androidx.appcompat:appcompat and com.google.android.material:material are already included by the build — do not repeat them in DEPENDENCIES unless you need a newer version).\n- No comments about permissions — I handle permissions separately based on what APIs your code calls.\n- Keep the Java under ~300 lines. If the app needs more, tell me it needs to be split instead of writing something that will silently run over.\n\nMY APP:\n';
 
-var EXE_NATIVE_PROMPT = 'Generate a single-file native Windows desktop app in plain C++ using the Win32 API only (no Qt, no MFC, no wxWidgets, no third-party GUI framework) that I will paste into a build tool with these exact constraints:\n\nOUTPUT FORMAT — one block, labeled, and nothing else outside the label:\n\n=== CPP ===\n(the complete contents of main.cpp — a single translation unit, no headers other than standard C++ and windows.h/commctrl.h/etc as needed, must compile standalone with no other project files)\n\nHARD RULES:\n- C++ only, targeting MinGW-w64 (x86_64-w64-mingw32-g++). Avoid MSVC-only extensions or pragmas.\n- Must define WinMain (not int main) as the entry point, since this builds as a GUI subsystem app.\n- Single file only. No separate headers, no resource (.rc) files, no external assets.\n- Only link against libraries already available in a standard MinGW toolchain: gdi32, user32, kernel32, comctl32, ole32, uuid. If your code needs anything beyond these, say so in one line before the code block instead of silently assuming it\'s linked.\n- Use native Win32 window/controls (CreateWindow, RegisterClass, message loop) — do not assume any packages will be installed at build time, since none are.\n- Include a proper WndProc with at least WM_DESTROY calling PostQuitMessage(0), so the app can actually close.\n- No comments about permissions or installers — just the running app logic.\n- Keep it under ~400 lines. If the app genuinely needs more, tell me it needs to be split instead of writing something that will silently run over.\n\nMY APP:\n';
-
-document.getElementById('bmApkPayloadBtn').addEventListener('click', function() {
-  var instruction = document.getElementById('bmApkInstruction').value.trim();
-  var payload = APK_NATIVE_PROMPT + (instruction || '(describe the app here)');
-  navigator.clipboard.writeText(payload).then(function() {
-    toast('🚀 APK Prompt Copied!');
-  }).catch(function() {
-    toast('❌ Failed to copy APK prompt', 'err');
-  });
-});
-
-document.getElementById('bmExePayloadBtn').addEventListener('click', function() {
-  var instruction = document.getElementById('bmExeInstruction').value.trim();
-  var payload = EXE_NATIVE_PROMPT + (instruction || '(describe the app here)');
-  navigator.clipboard.writeText(payload).then(function() {
-    toast('🚀 EXE Prompt Copied!');
-  }).catch(function() {
-    toast('❌ Failed to copy EXE prompt', 'err');
-  });
-});
 
 document.getElementById('fullScreenBtn').addEventListener('click', function() {
   try {
@@ -3947,440 +3317,268 @@ function closeBuildModal() {
 document.getElementById('bmCloseBtn').addEventListener('click', closeBuildModal);
 document.getElementById('bmCancelBtn').addEventListener('click', closeBuildModal);
 
-// Path Selection (Wrapper vs Native)
-document.getElementById('bmPathA').addEventListener('click', function() {
-  this.classList.add('active');
-  document.getElementById('bmPathB').classList.remove('active');
-  document.getElementById('bmWrapperSettings').style.display = 'block';
-  document.getElementById('bmNativeSettings').style.display = 'none';
-});
-document.getElementById('bmPathB').addEventListener('click', function() {
-  this.classList.add('active');
-  document.getElementById('bmPathA').classList.remove('active');
-  document.getElementById('bmWrapperSettings').style.display = 'none';
-  document.getElementById('bmNativeSettings').style.display = 'block';
-});
+let currentOverlayPollTimer = null;
 
-// Native Target Switch
-document.getElementById('bmNativeTarget').addEventListener('change', function(e) {
-  if (e.target.value === 'windows') {
-    document.getElementById('bmNativeCode2').style.display = 'none';
-    document.getElementById('bmNativeCode1').placeholder = 'Paste C++ (Windows) Code here...';
-  } else {
-    document.getElementById('bmNativeCode2').style.display = 'block';
-    document.getElementById('bmNativeCode1').placeholder = 'Paste Java (Android) Code here...';
+function showBuildOverlay(title) {
+  const ov = document.getElementById('buildProgressOverlay');
+  document.getElementById('bpTitle').textContent = title;
+  document.getElementById('bpStatusText').textContent = 'Starting build...';
+  document.getElementById('bpStatusText').style.color = 'var(--blue)';
+  document.getElementById('bpProgressBar').style.width = '10%';
+  document.getElementById('bpProgressBar').style.background = 'var(--blue)';
+  document.getElementById('bpLogs').textContent = 'Initializing GitHub Actions...\n';
+  document.getElementById('bpCloseBtn').style.display = 'none';
+  ov.style.display = 'flex';
+}
+function updateBuildOverlay(status, pct, stateStr) {
+  document.getElementById('bpStatusText').textContent = status;
+  if (pct) document.getElementById('bpProgressBar').style.width = pct + '%';
+  if (stateStr === 'err') {
+    document.getElementById('bpStatusText').style.color = 'var(--red)';
+    document.getElementById('bpProgressBar').style.background = 'var(--red)';
+    document.getElementById('bpCloseBtn').style.display = 'block';
+  } else if (stateStr === 'ok') {
+    document.getElementById('bpStatusText').style.color = 'var(--green)';
+    document.getElementById('bpProgressBar').style.background = 'var(--green)';
+    document.getElementById('bpCloseBtn').style.display = 'block';
+    document.getElementById('bpCloseBtn').textContent = 'Download Ready / Close';
   }
+}
+function appendBuildLog(log) {
+  const el = document.getElementById('bpLogs');
+  el.textContent += log + '\n';
+  el.scrollTop = el.scrollHeight;
+}
+document.getElementById('bpCloseBtn').addEventListener('click', () => {
+  document.getElementById('buildProgressOverlay').style.display = 'none';
 });
 
-// Add Library Toggle
-document.getElementById('bmToggleLibBtn').addEventListener('click', () => {
-  const el = document.getElementById('bmLibArea');
-  el.style.display = el.style.display === 'none' ? 'flex' : 'none';
-});
-
-// Library Preset Chips
-document.querySelectorAll('.bm-lib-chip').forEach(chip => {
-  chip.addEventListener('click', (e) => {
-    const box = document.getElementById('bmDependencies');
-    box.value += (box.value ? '\n' : '') + e.target.dataset.lib;
-  });
-});
-
-// Smart Permissions Scanner (Regex)
-function scanPermissions() {
-  const code = document.getElementById('bmNativeCode1').value + ' ' + document.getElementById('bmNativeCode2').value;
-  if (/HttpURLConnection|fetch|WebView|okHttp|Retrofit/i.test(code)) document.getElementById('perm_internet').checked = true;
-  if (/LocationManager|FusedLocationProviderClient|ACCESS_FINE_LOCATION/i.test(code)) document.getElementById('perm_location').checked = true;
-  if (/Camera\.open|openCamera|imageCapture|ACTION_IMAGE_CAPTURE/i.test(code)) document.getElementById('perm_camera').checked = true;
-  if (/getExternalStorageDirectory|readExternalStorage|writeExternalStorage|Environment\.getExternalStorage/i.test(code)) document.getElementById('perm_storage').checked = true;
-  if (/MediaRecorder|AudioRecord/i.test(code)) document.getElementById('perm_mic').checked = true;
-  if (/MediaPlayer|AudioTrack|AudioManager/i.test(code)) document.getElementById('perm_audio').checked = true;
-}
-
-// Scenario 20 rollback note: preflight checks only gate whether a commit/dispatch
-// happens; they touch no localStorage keys or stored state, so no reverse patch
-// is required.
-function checkBraceBalance(code) {
-  var depth = 0;
-  for (var i = 0; i < code.length; i++) {
-    if (code[i] === '{') depth++;
-    else if (code[i] === '}') depth--;
-    if (depth < 0) return false;
-  }
-  return depth === 0;
-}
-
-function preflightNativeCode(target, code1, code2) {
-  var issues = [];
-
-  if (target === 'android') {
-    if (!code1.trim()) {
-      issues.push('Java code box is empty — nothing to build.');
-    } else {
-      if (!checkBraceBalance(code1)) issues.push('Java code has unbalanced { } braces.');
-      if (!/\bclass\s+[A-Za-z_$]/.test(code1)) issues.push('Java code has no visible class declaration.');
-    }
-    if (code2.trim()) {
-      var openTags = (code2.match(/<[a-zA-Z][^>]*[^\/]>/g) || []).length;
-      var closeTags = (code2.match(/<\/[a-zA-Z][^>]*>/g) || []).length;
-      var selfClosed = (code2.match(/<[a-zA-Z][^>]*\/>/g) || []).length;
-      if (openTags - selfClosed !== closeTags) issues.push('XML layout has mismatched open/close tags.');
-    }
-  } else if (target === 'windows') {
-    if (!code1.trim()) {
-      issues.push('C++ code box is empty — nothing to build.');
-    } else if (!checkBraceBalance(code1)) {
-      issues.push('C++ code has unbalanced { } braces.');
-    }
-  }
-
-  return issues;
-}
-
-// Scenario 20 rollback note: sanitizeGradleDeps only affects text written into
-// generated build.gradle files at build-trigger time; it does not touch any
-// stored/localStorage state, so no reverse patch is required.
-function sanitizeGradleDeps(raw) {
-  if (!raw) return '';
-  return raw
-    .split('\n')
-    .map(function(line) { return line.replace(/\r/g, ''); })
-    // A bare "EOF" line (optionally padded with whitespace) would terminate
-    // the surrounding bash heredoc early and truncate the generated file.
-    .filter(function(line) { return line.trim() !== 'EOF'; })
-    // Strip characters with no legitimate place in a Gradle dependency
-    // coordinate/line, so stray input can't smuggle extra shell/Gradle syntax.
-    .map(function(line) { return line.replace(/[`$\\]/g, ''); })
-    .join('\n')
-    .trim();
-}
-document.getElementById('bmNativeCode1').addEventListener('input', scanPermissions);
-document.getElementById('bmNativeCode2').addEventListener('input', scanPermissions);
-
-// Compile Trigger Integration
 document.getElementById('bmCompileBtn').addEventListener('click', async () => {
   closeBuildModal();
-  const isNative = document.getElementById('bmPathB').classList.contains('active');
+  const target = document.getElementById('bmWrapperTarget').value;
+  const appName = document.getElementById('bmAppName').value.trim() || 'My App';
+  const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
   
-  if (!isNative) {
-    const target = document.getElementById('bmWrapperTarget').value;
-    if (target === 'apk') document.getElementById('buildApkBtn').click();
-    if (target === 'exe') document.getElementById('buildExeBtn').click();
-  } else {
-    const target = document.getElementById('bmNativeTarget').value;
-    const appName = document.getElementById('bmAppName').value || 'MyNativeApp';
-    const version = document.getElementById('bmVersion').value || '1.0.1';
+  if (!ghToken || !ghRepo) {
+    toast('❌ Select a GitHub repo first', 'warn');
+    return;
+  }
+
+  const isApk = target === 'apk';
+  const workflowPath = isApk ? '.github/workflows/build-apk.yml' : '.github/workflows/build-exe.yml';
+  const artifactName = isApk ? 'Android-APK' : 'Windows-EXE';
+  const title = isApk ? 'Building Android APK' : 'Building Windows EXE';
+  
+  showBuildOverlay(title);
+  
+  try {
+    let workflowContent = '';
     
-    if (!ghToken || !ghRepo) {
-      toast('❌ Select a GitHub repo first', 'warn');
-      return;
+    if (isApk) {
+      const safeName = appName.replace(/"/g, '\\"');
+      workflowContent = [
+        "name: Build Android APK",
+        "on: [workflow_dispatch]",
+        "jobs:",
+        "  build:",
+        "    runs-on: ubuntu-latest",
+        "    steps:",
+        "      - name: Checkout Source",
+        "        uses: actions/checkout@v4",
+        "      - name: Setup Java",
+        "        uses: actions/setup-java@v3",
+        "        with:",
+        "          distribution: 'temurin'",
+        "          java-version: '17'",
+        "      - name: Setup Node.js",
+        "        uses: actions/setup-node@v4",
+        "        with:",
+        "          node-version: '20'",
+        "      - name: Install Cordova",
+        "        run: npm install -g cordova",
+        "      - name: Build APK",
+        "        run: |",
+        "          export CI=true",
+        "          export CORDOVA_NO_TELEMETRY=1",
+        "          cd /tmp",
+        "          cordova create app com.aicompile.app \"" + safeName + "\" --no-telemetry",
+        "          rm -rf app/www/*",
+        "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
+        "          cd app",
+        "          sed -i 's/version=\"1.0.0\"/version=\"" + appVersion + "\"/g' config.xml",
+        "          sed -i 's/<\\/widget>/\\n    <allow-navigation href=\"*\" \\/>\\n    <allow-intent href=\"*\" \\/>\\n<\\/widget>/g' config.xml",
+        "          cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true",
+        "          cordova platform add android@13.0.0 --no-telemetry",
+        "          cordova build android --no-telemetry",
+        "      - name: Upload APK",
+        "        uses: actions/upload-artifact@v4",
+        "        with:",
+        "          name: Android-APK",
+        "          path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk"
+      ].join('\n');
+    } else {
+      const safeName = appName.replace(/"/g, '\\"');
+      workflowContent = [
+        "name: Build Windows EXE",
+        "on: [workflow_dispatch]",
+        "jobs:",
+        "  build:",
+        "    runs-on: windows-latest",
+        "    steps:",
+        "      - name: Checkout Source",
+        "        uses: actions/checkout@v4",
+        "      - name: Setup Node.js",
+        "        uses: actions/setup-node@v4",
+        "        with:",
+        "          node-version: '20'",
+        "      - name: Build App",
+        "        shell: bash",
+        "        run: |",
+        "          mkdir build_app",
+        "          cp -R $GITHUB_WORKSPACE/* build_app/ || true",
+        "          cd build_app",
+        "          npm init -y",
+        "          npm install electron electron-builder --save-dev",
+        "          if [ -f \"index.html\" ]; then",
+        "            MAIN_FILE=\"index.html\"",
+        "          else",
+        "            MAIN_FILE=$(find . -maxdepth 1 -name \"*.html\" | head -n 1 | sed 's|^\\./||')",
+        "          fi",
+        "          if [ -z \"$MAIN_FILE\" ]; then MAIN_FILE=\"index.html\"; fi",
+        "          cat << EOF > main.js",
+        "          const { app, BrowserWindow } = require('electron');",
+        "          const path = require('path');",
+        "          app.whenReady().then(() => {",
+        "            let win = new BrowserWindow({ autoHideMenuBar: true, width: 1280, height: 720, webPreferences: { nodeIntegration: true, contextIsolation: false, webSecurity: false } });",
+        "            win.loadFile(path.join(__dirname, '$MAIN_FILE')).catch(() => console.log('No HTML file found'));",
+        "          });",
+        "          app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });",
+        "          EOF",
+        "          npm pkg set main=\"main.js\"",
+        "          npm pkg set scripts.build=\"electron-builder --win portable --x64\"",
+        "          npm pkg set build.appId=\"com.aicompile." + safeName.replace(/[^a-zA-Z0-9]/g, "") + "\"",
+        "          npm pkg set build.productName=\"" + safeName + "\"",
+        "          npm pkg set version=\"" + appVersion + "\"",
+        "          npm run build",
+        "      - name: Upload EXE",
+        "        uses: actions/upload-artifact@v4",
+        "        with:",
+        "          name: Windows-EXE",
+        "          path: build_app/dist/*.exe"
+      ].join('\n');
     }
 
-    const code1 = document.getElementById('bmNativeCode1').value;
-        const code2 = document.getElementById('bmNativeCode2').value;
-        const deps = document.getElementById('bmDependencies').value || '';
+    appendBuildLog('Updating workflow file in repository...');
+    let sha = null;
+    const getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+    if (getRes.ok) sha = (await getRes.json()).sha;
 
-        const preflightIssues = preflightNativeCode(target, code1, code2);
-        if (preflightIssues.length > 0) {
-          toast('❌ Preflight check failed:\n' + preflightIssues.join('\n'), 'err', 8000);
-          addLog('err', 'Native build blocked by preflight: ' + preflightIssues.join(' | '));
-          return;
-        }
-        const safeDeps = target === 'android' ? sanitizeGradleDeps(deps) : deps;
+    const encodedWf = btoa(unescape(encodeURIComponent(workflowContent)));
+    const body = { message: "Setup App Builder Action", content: encodedWf, branch: ghBranch };
+    if (sha) body.sha = sha;
 
-        toast(`🚀 Generating Pure Native ${target.toUpperCase()} structure...`, 'info', 4000);
-        addLog('info', `Triggering Pure Native build for ${appName} v${version}. Pushing files to GitHub repo.`);
-        showProgress(20);
-
-        try {
-          if (target === 'android') {
-            if (code1.trim()) await uploadSingleFileToRepo(ghRepo, 'app/src/main/java/com/aicompile/app/MainActivity.java', btoa(unescape(encodeURIComponent(code1))), ghBranch, 'Native: Add Java logic');
-                    if (code2.trim()) await uploadSingleFileToRepo(ghRepo, 'app/src/main/res/layout/activity_main.xml', btoa(unescape(encodeURIComponent(code2))), ghBranch, 'Native: Add XML layout');
-        
-                    showProgress(40);
-
-                const manifestIconAttr = 'android:icon="@android:drawable/sym_def_app_icon"';
-                const manifestRoundAttr = '';
-                const workflowPath = '.github/workflows/build-native-apk.yml';
-        const workflowContent = [
-          "name: Build Pure Native Android APK",
-          "on:",
-          "  workflow_dispatch:",
-          "jobs:",
-          "  build:",
-          "    runs-on: ubuntu-latest",
-          "    steps:",
-          "      - name: Checkout Source",
-          "        uses: actions/checkout@v4",
-          "      - name: Setup Java",
-          "        uses: actions/setup-java@v3",
-          "        with:",
-          "          distribution: 'temurin'",
-          "          java-version: '17'",
-          "      - name: Setup Android SDK",
-          "        uses: android-actions/setup-android@v3",
-          "      - name: Create Android Project Structure",
-          "        run: |",
-          "          mkdir -p native_build/app/src/main/java/com/aicompile/app",
-          "          mkdir -p native_build/app/src/main/res/layout",
-          "          mkdir -p native_build/app/src/main/res/values",
-                    "          mkdir -p native_build/app/src/main/res/mipmap-xxxhdpi",
-                    "          cp -R app/src/main/java/com/aicompile/app/* native_build/app/src/main/java/com/aicompile/app/ || true",
-                    "          cp -R app/src/main/res/layout/* native_build/app/src/main/res/layout/ || true",
-                              "          cp -R app/src/main/res/mipmap-xxxhdpi/* native_build/app/src/main/res/mipmap-xxxhdpi/ || true",
-                              "          cat << 'EOF' > native_build/gradle.properties",
-                              "          android.useAndroidX=true",
-                              "          android.nonTransitiveRClass=true",
-                              "          EOF",
-                              "          cat << 'EOF' > native_build/app/src/main/AndroidManifest.xml",
-                              "          <?xml version=\"1.0\" encoding=\"utf-8\"?>",
-                              "          <manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"com.aicompile.app\">",
-                              "              <uses-permission android:name=\"android.permission.INTERNET\" />",
-                              "              <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />",
-                              "              <application android:allowBackup=\"true\" " + manifestIconAttr + " android:label=\"" + appName + "\"" + manifestRoundAttr + " android:supportsRtl=\"true\" android:theme=\"@style/Theme.AppCompat.Light.NoActionBar\">",
-                              "                  <activity android:name=\".MainActivity\" android:exported=\"true\">",
-                              "                      <intent-filter>",
-                              "                          <action android:name=\"android.intent.action.MAIN\" />",
-                              "                          <category android:name=\"android.intent.category.LAUNCHER\" />",
-                              "                      </intent-filter>",
-                              "                  </activity>",
-                              "              </application>",
-                              "          </manifest>",
-                              "          EOF",
-                              "          cat << 'EOF' > native_build/app/build.gradle",
-                              "          plugins { id 'com.android.application' }",
-                              "          android { namespace 'com.aicompile.app'; compileSdk 33; defaultConfig { applicationId \"com.aicompile.app\"; minSdk 24; targetSdk 33; versionCode 1; versionName \"" + version + "\"; } buildTypes { release { minifyEnabled false } } compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8; } }",
-                              "          dependencies {",
-                                                            "              implementation 'androidx.appcompat:appcompat:1.6.1'",
-                                                            "              implementation 'com.google.android.material:material:1.9.0'",
-                                                            "              " + safeDeps.replace(/\n/g, '\n              '),
-                                                            "          }",
-                                                            "          EOF",
-                                                  "          cat << 'EOF' > native_build/settings.gradle",
-                    "          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }",
-                    "          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }",
-                    "          rootProject.name = \"" + appName + "\"",
-                    "          include ':app'",
-                    "          EOF",
-                    "          cat << 'EOF' > native_build/build.gradle",
-                    "          plugins { id 'com.android.application' version '8.1.1' apply false }",
-                    "          EOF",
-                    "          cd native_build",
-                    "          gradle wrapper",
-                    "          chmod +x gradlew",
-                    "          ./gradlew assembleDebug",
-          "      - name: Upload Native APK",
-          "        uses: actions/upload-artifact@v4",
-          "        with:",
-          "          name: Android-Native-APK",
-          "          path: native_build/app/build/outputs/apk/debug/app-debug.apk"
-        ].join('\n');
-
-        let sha = null;
-        const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`;
-        const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
-        if (getRes.ok) sha = (await getRes.json()).sha;
-
-        const encodedWf = btoa(unescape(encodeURIComponent(workflowContent)));
-        const body = { message: "Setup Native Android Builder Action", content: encodedWf, branch: ghBranch };
-        if (sha) body.sha = sha;
-
-        const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
-          method: 'PUT',
-          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        if (!putRes.ok) throw new Error(await putRes.text());
-        
-        toast('✅ Native APK Workflow Pushed! Waiting 10s...', 'ok', 3000);
-        await new Promise(r => setTimeout(r, 10000));
-        
-        showProgress(80);
-        let retryCount = 0;
-        const tryDispatch = async () => {
-          try {
-            const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-native-apk.yml/dispatches`, {
-              method: 'POST',
-              headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ref: ghBranch })
-            });
-            if (!dispatchRes.ok) throw new Error(await dispatchRes.text());
-            toast('🚀 Native APK Build Triggered! Tracking...', 'ok', 6000);
-            clearTimeout(nativeBuildPollTimer);
-            nativeBuildPollTimer = setTimeout(() => pollAnyNativeStatus('build-native-apk.yml', 'Android-Native-APK', 'APK'), 5000);
-            hideProgress();
-          } catch(e) {
-            retryCount++;
-            if (retryCount <= 6) setTimeout(tryDispatch, 5000);
-            else { toast('✅ Workflow added. Build via GitHub Actions.', 'info', 6000); hideProgress(); }
-          }
-        };
-        setTimeout(tryDispatch, 3000);
-
-      } else if (target === 'windows') {
-        if (code1.trim()) await uploadSingleFileToRepo(ghRepo, 'src/main.cpp', btoa(unescape(encodeURIComponent(code1))), ghBranch, 'Native: Add C++ logic');
-        
-        showProgress(40);
-
-        const workflowPath = '.github/workflows/build-native-exe.yml';
-        const workflowContent = [
-          "name: Build Pure Native Windows EXE",
-          "on:",
-          "  workflow_dispatch:",
-          "jobs:",
-          "  build:",
-          "    runs-on: ubuntu-latest",
-          "    steps:",
-          "      - name: Checkout Source",
-          "        uses: actions/checkout@v4",
-          "      - name: Install MinGW",
-          "        run: sudo apt-get update && sudo apt-get install -y mingw-w64",
-          "      - name: Build C++ App",
-          "        run: |",
-          "          mkdir -p native_build_win/src",
-          "          cp -R src/* native_build_win/src/ || true",
-          "          cd native_build_win",
-          "          x86_64-w64-mingw32-g++ src/main.cpp -o \"" + appName + ".exe\" -static-libgcc -static-libstdc++ -lgdi32 -luser32 -lkernel32 -lcomctl32 -lole32 -luuid",
-          "      - name: Upload Native EXE",
-          "        uses: actions/upload-artifact@v4",
-          "        with:",
-          "          name: Windows-Native-EXE",
-          "          path: native_build_win/*.exe"
-        ].join('\n');
-
-        let sha = null;
-        const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`;
-        const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
-        if (getRes.ok) sha = (await getRes.json()).sha;
-
-        const encodedWf = btoa(unescape(encodeURIComponent(workflowContent)));
-        const body = { message: "Setup Native Windows Builder Action", content: encodedWf, branch: ghBranch };
-        if (sha) body.sha = sha;
-
-        const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
-          method: 'PUT',
-          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        if (!putRes.ok) throw new Error(await putRes.text());
-        
-        toast('✅ Native EXE Workflow Pushed! Waiting 10s...', 'ok', 3000);
-        await new Promise(r => setTimeout(r, 10000));
-        
-        showProgress(80);
-        let retryCount = 0;
-        const tryDispatch = async () => {
-          try {
-            const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-native-exe.yml/dispatches`, {
-              method: 'POST',
-              headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ref: ghBranch })
-            });
-            if (!dispatchRes.ok) throw new Error(await dispatchRes.text());
-            toast('🚀 Native EXE Build Triggered! Tracking...', 'ok', 6000);
-            clearTimeout(nativeBuildPollTimer);
-            nativeBuildPollTimer = setTimeout(() => pollAnyNativeStatus('build-native-exe.yml', 'Windows-Native-EXE', 'EXE'), 5000);
-            hideProgress();
-          } catch(e) {
-            retryCount++;
-            if (retryCount <= 6) setTimeout(tryDispatch, 5000);
-            else { toast('✅ Workflow added. Build via GitHub Actions.', 'info', 6000); hideProgress(); }
-          }
-        };
-        setTimeout(tryDispatch, 3000);
-      }
-    } catch (err) {
-      toast('❌ Native Build Failed: ' + err.message, 'err', 5000);
-      addLog('err', 'Native Build Error: ' + err.message);
-      hideProgress();
+    const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
+      method: 'PUT',
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    
+    if (!putRes.ok) throw new Error(await putRes.text());
+    
+    appendBuildLog('Workflow synced. Triggering build dispatch...');
+    updateBuildOverlay('Triggering GitHub Actions...', 25);
+    await new Promise(r => setTimeout(r, 4000));
+    
+    let dispatchSuccess = false;
+    for(let retry=1; retry<=5; retry++){
+      const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowPath.split('/').pop()}/dispatches`, {
+        method: 'POST',
+        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref: ghBranch })
+      });
+      if (dispatchRes.ok) { dispatchSuccess = true; break; }
+      appendBuildLog(`Dispatch retry ${retry}...`);
+      await new Promise(r => setTimeout(r, 4000));
     }
+    
+    if(!dispatchSuccess) throw new Error('Failed to trigger workflow dispatch.');
+    
+    updateBuildOverlay('Build running. Polling GitHub...', 35);
+    clearTimeout(currentOverlayPollTimer);
+    
+    pollOverlayStatus(workflowPath.split('/').pop(), artifactName);
+    
+  } catch (err) {
+    updateBuildOverlay('Build Initialization Failed', 100, 'err');
+    appendBuildLog('ERROR: ' + err.message);
   }
 });
 
-let nativeBuildPollTimer = null;
-async function pollAnyNativeStatus(workflowFile, artifactName, typeLabel) {
-  if (!ghToken || !ghRepo) return;
+async function pollOverlayStatus(workflowFile, artifactName) {
   try {
-    let runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowFile}/runs?per_page=1`, {
+    const runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowFile}/runs?per_page=1`, {
       headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' }
     });
-    if (!runsRes.ok) return;
-    let runsData = await runsRes.json();
-    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) return;
+    if (!runsRes.ok) throw new Error('Failed to fetch runs');
+    const runsData = await runsRes.json();
+    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) {
+      currentOverlayPollTimer = setTimeout(() => pollOverlayStatus(workflowFile, artifactName), 5000);
+      return;
+    }
     
-    let run = runsData.workflow_runs[0];
-    let sbBuild = document.getElementById('sb-build');
-    let sbSep = document.getElementById('sb-build-sep');
-    
-    sbBuild.style.display = 'inline-block';
-    sbSep.style.display = 'inline-block';
+    const run = runsData.workflow_runs[0];
     
     if (run.status !== 'completed') {
-      sbBuild.style.color = 'var(--amber)';
-      sbBuild.innerHTML = `<i class="fa-solid fa-cog fa-spin"></i> Native ${typeLabel}: ${run.status}...`;
-      clearTimeout(nativeBuildPollTimer);
-      nativeBuildPollTimer = setTimeout(() => pollAnyNativeStatus(workflowFile, artifactName, typeLabel), 15000);
+      updateBuildOverlay(`Building: ${run.status}...`, 60);
+      appendBuildLog(`[${new Date().toLocaleTimeString()}] Status: ${run.status}`);
+      currentOverlayPollTimer = setTimeout(() => pollOverlayStatus(workflowFile, artifactName), 10000);
     } else {
       if (run.conclusion === 'success') {
-        sbBuild.style.color = 'var(--green)';
-        sbBuild.innerHTML = `<i class="fa-solid fa-check"></i> Native ${typeLabel} Ready!`;
-        toast(`✅ Native ${typeLabel} Build Completed! Click the status bar to download.`, 'ok', 6000);
-        addLog('ok', `Background Native ${typeLabel} build finished successfully.`);
+        updateBuildOverlay(`Build Success! Fetching Artifact...`, 90);
+        appendBuildLog(`[${new Date().toLocaleTimeString()}] Conclusion: SUCCESS`);
         
-        sbBuild.onclick = () => downloadNativeArtifact(run, artifactName);
+        let artRes = await fetch(run.artifacts_url, { headers: { Authorization: `token ${ghToken}` }});
+        let artData = await artRes.json();
+        let artifact = artData.artifacts.find(a => a.name === artifactName);
+        if (!artifact) throw new Error('Artifact not found in success run.');
+        
+        appendBuildLog(`Triggering artifact download...`);
+        let finalUrl = null;
+        try {
+          const abortCtrl = new AbortController();
+          let zipRes = await fetch(artifact.archive_download_url, { headers: { Authorization: `token ${ghToken}` }, signal: abortCtrl.signal });
+          if (!zipRes.ok) throw new Error('Response not ok');
+          finalUrl = zipRes.url;
+          abortCtrl.abort();
+        } catch(err) {
+          finalUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
+        }
+        window.location.href = finalUrl;
+        updateBuildOverlay('Build Complete. Check Downloads.', 100, 'ok');
       } else {
-        sbBuild.style.color = 'var(--red)';
-        sbBuild.innerHTML = `<i class="fa-solid fa-xmark"></i> Native ${typeLabel} Failed`;
-        toast(`❌ Native ${typeLabel} Build failed on GitHub. Click "View Error Log".`, 'err', 6000);
-        const logUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
-        document.getElementById('errOverlay').style.display = 'block';
-        document.getElementById('errText').innerHTML = `Build Failed! <button class="btn" style="display:inline-block; margin-left:10px; font-size:11px; padding:4px 8px; width:auto; background:var(--red);" onclick="window.open('${logUrl}', '_blank')">View Error Log</button>`;
+        updateBuildOverlay(`Build Failed (${run.conclusion})`, 100, 'err');
+        appendBuildLog(`\n[${new Date().toLocaleTimeString()}] CONCLUSION: ${run.conclusion.toUpperCase()}\nFetching detailed error logs from GitHub...`);
+        
+        try {
+          const jobsRes = await fetch(run.jobs_url, { headers: { Authorization: `token ${ghToken}` }});
+          const jobsData = await jobsRes.json();
+          const failedJob = jobsData.jobs.find(j => j.conclusion === 'failure') || jobsData.jobs[0];
+          if(failedJob) {
+            const logRes = await fetch(failedJob.url + '/logs', { headers: { Authorization: `token ${ghToken}` }});
+            const fullLog = await logRes.text();
+            const lines = fullLog.split('\n');
+            const tail = lines.slice(-40).join('\n'); // Show last 40 lines of error
+            appendBuildLog(`\n=== ERROR TRACE ===\n${tail}`);
+          }
+        } catch(logErr) {
+          appendBuildLog(`Failed to pull direct logs. View on GitHub: https://github.com/${ghRepo}/actions/runs/${run.id}`);
+        }
       }
-      setTimeout(() => { 
-        sbBuild.style.display = 'none'; 
-        sbSep.style.display = 'none'; 
-        sbBuild.onclick = () => document.getElementById('downloadApkBtn').click();
-      }, 60000);
     }
-  } catch(e) {}
-}
-
-async function downloadNativeArtifact(runObj, artifactName) {
-  if (!ghToken || !ghRepo) return;
-  toast('🔍 Checking Native artifact...', 'info');
-  showProgress(30);
-  try {
-    let artRes = await fetch(runObj.artifacts_url, {
-      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-    });
-    let artData = await artRes.json();
-    let artifact = artData.artifacts.find(a => a.name === artifactName);
-    if (!artifact) throw new Error(`${artifactName} not found in the latest build.`);
-
-    toast('⏳ Triggering native download...', 'info');
-    showProgress(60);
-    
-    let finalUrl = null;
-    try {
-      const abortCtrl = new AbortController();
-      let zipRes = await fetch(artifact.archive_download_url, {
-        headers: { Authorization: `token ${ghToken}` },
-        signal: abortCtrl.signal
-      });
-      if (!zipRes.ok) throw new Error('Response not ok');
-      finalUrl = zipRes.url;
-      abortCtrl.abort(); 
-    } catch (err) {
-      window.open(`https://github.com/${ghRepo}/actions/runs/${runObj.id}`, '_blank');
-      throw new Error('Direct download blocked by CORS. Opened GitHub Actions page instead.');
-    }
-    
-    window.location.href = finalUrl;
-    toast('✅ Download handed over to OS!', 'ok');
-  } catch(e) {
-    toast('❌ ' + e.message, 'err', 5000);
+  } catch(err) {
+    appendBuildLog('Polling error: ' + err.message);
+    currentOverlayPollTimer = setTimeout(() => pollOverlayStatus(workflowFile, artifactName), 10000);
   }
-  hideProgress();
 }
 
 document.addEventListener('dragover', function(e) { e.preventDefault(); });
