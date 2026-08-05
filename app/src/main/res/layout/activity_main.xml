@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- Wallpaper Overlay -->
+    <ImageView
+        android:id="@+id/bgOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:alpha="0.45" />
+
+    <!-- Top Bar Actions -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="20dp"
+        android:background="#73161616"
+        android:orientation="horizontal"
+        android:padding="4dp">
+        
+        <ImageButton
+            android:id="@+id/btnWallpapers"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@android:color/transparent"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:tint="#e5e0da" />
+            
+        <ImageButton
+            android:id="@+id/btnStorage"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:background="@android:color/transparent"
+            android:src="@android:drawable/ic_menu_info_details"
+            android:tint="#e5e0da" />
+    </LinearLayout>
+
+    <!-- Main Workspace ScrollView -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="70dp"
+        android:layout_marginBottom="90dp"
+        android:padding="24dp">
+        
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            
+            <!-- Notes Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="QUICK NOTES"
+                android:textColor="#e3b341"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"
+                android:layout_marginBottom="8dp"/>
+                
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/notesContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                android:layout_marginBottom="32dp"/>
+
+            <!-- Storage Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CLOUD STORAGE FILES"
+                android:textColor="#e3b341"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"
+                android:layout_marginBottom="8dp"/>
+                
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/filesContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"/>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Floating Upload Squircle -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/uploadSquircleBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="44dp"
+        android:src="@android:drawable/ic_menu_upload"
+        android:backgroundTint="#1c1c1b"
+        android:tint="#e5e0da" />
+
+    <!-- Quick Input Bar -->
+    <LinearLayout
+        android:id="@+id/quickInputBar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_alignParentBottom="true"
+        android:layout_toStartOf="@id/uploadSquircleBtn"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="44dp"
+        android:layout_marginStart="20dp"
+        android:background="#73161616"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp">
+        
+        <EditText
+            android:id="@+id/quickNoteInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@null"
+            android:hint="Write me !"
+            android:textColorHint="#b3ffffff"
+            android:textColor="#ffffff"
+            android:textSize="14sp"
+            android:maxLines="1"
+            android:inputType="text"/>
+    </LinearLayout>
+
+    <!-- Status Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:layout_alignParentBottom="true"
+        android:background="#1c1c1b"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp">
+        
+        <TextView
+            android:id="@+id/sbCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="— files"
+            android:textColor="#8b8984"
+            android:textSize="11sp"/>
+            
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="  |  Bucket: docs  |  "
+            android:textColor="#4d8b8984"
+            android:textSize="11sp"/>
+            
+        <TextView
+            android:id="@+id/sbStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ready"
+            android:textColor="#39d353"
+            android:textSize="11sp"/>
+    </LinearLayout>
+</RelativeLayout>
