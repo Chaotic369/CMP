@@ -377,6 +377,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <button id="buildApkBtn" class="btn" style="display:none;"></button>
     <button id="buildExeBtn" class="btn" style="display:none;"></button>
     <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);"><i class="fa-solid fa-file-zipper"></i></button>
+        <button id="pullApkLogBtn" class="btn" title="Pull Last APK Build Log" style="color:var(--red);" onclick="fetchLatestFailedLog('build-native-apk.yml')"><i class="fa-solid fa-file-waveform"></i></button>
     <button id="downloadExeBtn" class="btn" title="Check & Download Latest EXE Zip" style="color:var(--teal);"><i class="fa-solid fa-file-archive"></i></button>
     
                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
@@ -2337,6 +2338,56 @@ async function pollBuildStatus() {
 document.getElementById('sb-build').addEventListener('click', () => {
   document.getElementById('downloadApkBtn').click();
 });
+
+async function fetchLatestFailedLog(workflowFile) {
+  if (!ghToken || !ghRepo) { toast('❌ Configure GitHub first', 'warn'); return; }
+  toast('🔍 Fetching latest run...', 'info');
+  showProgress(20);
+  try {
+    const runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowFile}/runs?per_page=1`, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    if (!runsRes.ok) throw new Error('Failed to fetch runs');
+    const runsData = await runsRes.json();
+    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) throw new Error('No runs found');
+    const run = runsData.workflow_runs[0];
+
+    if (run.status !== 'completed') {
+      toast(`⏳ Latest run is still ${run.status}.`, 'warn', 4000);
+      hideProgress();
+      return;
+    }
+
+    showProgress(50);
+    const jobsRes = await fetch(run.jobs_url, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    if (!jobsRes.ok) throw new Error('Failed to fetch jobs');
+    const jobsData = await jobsRes.json();
+    const failedJob = jobsData.jobs.find(j => j.conclusion === 'failure') || jobsData.jobs[0];
+    if (!failedJob) throw new Error('No job data found');
+
+    showProgress(75);
+    const logRes = await fetch(failedJob.url + '/logs', {
+      headers: { Authorization: `token ${ghToken}` }
+    });
+    if (!logRes.ok) throw new Error('Failed to fetch log (status ' + logRes.status + ')');
+    const fullLog = await logRes.text();
+
+    const lines = fullLog.split('\n');
+    const tail = lines.slice(-80).join('\n');
+
+    $errText.textContent = `Job: ${failedJob.name} (${run.conclusion})\n\n` + tail;
+    $errOverlay.style.display = 'block';
+    currentErrText = tail;
+    addLog(run.conclusion === 'success' ? 'ok' : 'err', `Pulled log for ${failedJob.name}: ${run.conclusion}`);
+    toast('✅ Log pulled from GitHub', 'ok');
+  } catch (e) {
+    toast('❌ Log fetch failed: ' + e.message, 'err', 6000);
+    addLog('err', 'Log fetch error: ' + e.message);
+  }
+  hideProgress();
+}
 
 // Feature 5: Check & Download APK
 document.getElementById('downloadApkBtn').addEventListener('click', async function() {
