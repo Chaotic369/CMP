@@ -3464,10 +3464,10 @@ if(document.getElementById('bpCancelBtn')) {
     localStorage.removeItem('active_build_v1');
     document.getElementById('buildProgressOverlay').style.display = 'none';
     
-    if (currentBuildRunId && ghRepo && ghToken) {
+    if (window.currentBuildRunId && ghRepo && ghToken) {
       toast('⏳ Cancelling build workflow...', 'info');
       try {
-        await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs/${currentBuildRunId}/cancel`, {
+        await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs/${window.currentBuildRunId}/cancel`, {
           method: 'POST',
           headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
         });
@@ -3478,7 +3478,7 @@ if(document.getElementById('bpCancelBtn')) {
     } else {
       toast('Build tracking stopped.', 'info');
     }
-    currentBuildRunId = null;
+    window.currentBuildRunId = null;
   });
 }
 
