@@ -564,6 +564,82 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
 </div>
 
+<div id="buildModal">
+  <h4><i class="fa-solid fa-hammer"></i> Build App <span class="panel-close" id="bmCloseBtn">✕</span></h4>
+  
+  <div class="bm-step">
+    <label>How do you want to build?</label>
+    <div style="display:flex; gap:10px;">
+      <button id="bmPathA" class="bm-toggle-btn active"><i class="fa-solid fa-globe"></i> Web Wrapper</button>
+      <button id="bmPathB" class="bm-toggle-btn"><i class="fa-solid fa-microchip"></i> Pure Native</button>
+    </div>
+  </div>
+
+  <div id="bmWrapperSettings">
+     <div class="bm-step" style="margin-top:10px;">
+       <label>Target Platform</label>
+       <select id="bmWrapperTarget" class="bm-select">
+         <option value="apk">Android APK (Cordova)</option>
+         <option value="exe">Windows EXE (Electron)</option>
+       </select>
+     </div>
+  </div>
+
+  <div id="bmNativeSettings" style="display:none;">
+     <div class="bm-step" style="margin-top:10px;">
+       <label>Target Platform</label>
+       <select id="bmNativeTarget" class="bm-select">
+         <option value="android">Android (Java/XML)</option>
+         <option value="windows">Windows (C++)</option>
+       </select>
+     </div>
+     <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App"></div>
+     <div class="gh-row" style="margin-top:10px;"><label>Repo Name</label><input type="text" id="bmRepoName" placeholder="my-app-repo"></div>
+     
+     <div style="margin-top:10px;">
+       <label style="font-size: 12px; color:rgba(255,255,255,0.7);">App Icon (PNG/JPG)</label>
+       <input type="file" id="bmIconFile" accept="image/png, image/jpeg" style="font-size:12px;">
+     </div>
+
+     <div id="bmNativeCodeBoxes" style="margin-top:10px;">
+       <textarea id="bmNativeCode1" placeholder="Paste Java (Android) or C++ (Windows) Code here..." class="bm-code-box"></textarea>
+       <textarea id="bmNativeCode2" placeholder="Paste XML Layout here (Android only)..." class="bm-code-box"></textarea>
+     </div>
+  </div>
+
+  <details class="bm-advanced">
+    <summary>Advanced Settings & Edge Cases</summary>
+    
+    <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.1"></div>
+    
+    <label style="margin-top:10px; display:block; font-size:12px; color:var(--teal); font-weight:600;">Smart Permissions (Auto-Checked)</label>
+    <div class="bm-permissions-grid">
+       <label><input type="checkbox" id="perm_internet"> Internet</label>
+       <label><input type="checkbox" id="perm_location"> Location</label>
+       <label><input type="checkbox" id="perm_camera"> Camera</label>
+       <label><input type="checkbox" id="perm_storage"> Storage (R/W)</label>
+       <label><input type="checkbox" id="perm_mic"> Microphone</label>
+       <label><input type="checkbox" id="perm_audio"> Audio/Speaker</label>
+    </div>
+
+    <label style="margin-top:10px; display:block; font-size:12px; color:var(--purple); font-weight:600;">Extra Dependencies</label>
+    <button id="bmToggleLibBtn" class="btn" style="width:auto; padding:4px 10px; font-size:11px; margin-bottom:5px; border:1px solid rgba(255,255,255,0.2);">+ Add Library</button>
+    <div id="bmLibArea" style="display:none; flex-direction:column; gap:8px;">
+       <div style="display:flex; gap:6px; flex-wrap:wrap;">
+         <button class="bm-lib-chip" data-lib="implementation 'com.google.code.gson:gson:2.10.1'">Gson</button>
+         <button class="bm-lib-chip" data-lib="implementation 'com.squareup.okhttp3:okhttp:4.11.0'">OkHttp</button>
+         <button class="bm-lib-chip" data-lib="implementation 'androidx.room:room-runtime:2.5.2'">Room</button>
+       </div>
+       <textarea id="bmDependencies" placeholder="Paste dependency code from AI..." class="bm-code-box" style="height:60px;"></textarea>
+    </div>
+  </details>
+
+  <div class="gh-actions">
+    <button id="bmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+    <button id="bmCompileBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-rocket"></i> Generate Native App</button>
+  </div>
+</div>
+
 <div id="newRepoModal">
   <h4><i class="fa-solid fa-folder-plus"></i> New Repository <span class="panel-close" id="nrCloseBtn">✕</span></h4>
   <div class="gh-row"><label>Name</label><input type="text" id="nrName" placeholder=""></div>
