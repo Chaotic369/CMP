@@ -3369,6 +3369,7 @@ document.getElementById('bmCloseBtn').addEventListener('click', closeBuildModal)
 document.getElementById('bmCancelBtn').addEventListener('click', closeBuildModal);
 
 let currentOverlayPollTimer = null;
+let currentBuildRunId = null;
 
 function updateStepperUI(pct, stateStr) {
   const stepperFill = document.getElementById('bpStepperProgress');
