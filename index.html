@@ -274,6 +274,23 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 .fnr-row input:focus { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.2); }
 .fnr-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
 .fnr-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* Dual-Engine Build Modal */
+#buildModal { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px; padding: 24px; color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); max-height: 85vh; overflow-y: auto; }
+#buildModal.open { display: flex; }
+#buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
+.bm-step label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--blue); }
+.bm-toggle-btn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500; }
+.bm-toggle-btn.active { background: rgba(92, 157, 255, 0.2); border-color: var(--blue); }
+.bm-code-box { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; padding: 12px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; min-height: 80px; resize: vertical; margin-bottom: 8px; }
+.bm-permissions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
+.bm-permissions-grid label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.bm-advanced { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-top: 4px; }
+.bm-advanced summary { cursor: pointer; font-size: 13px; font-weight: 600; outline: none; user-select: none; }
+.bm-lib-chip { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 6px 10px; border-radius: 10px; font-size: 11px; cursor: pointer; }
+.bm-lib-chip:hover { background: rgba(255,255,255,0.2); }
+select.bm-select { width: 100%; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 12px; outline: none; font-size: 13px; -webkit-appearance: none; }
+select.bm-select option { background: var(--elevated); color: #fff; }
 </style>
 </head>
 <body>
