@@ -3946,11 +3946,13 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
     try {
       if (target === 'android') {
         if (code1.trim()) await uploadSingleFileToRepo(ghRepo, 'app/src/main/java/com/aicompile/app/MainActivity.java', btoa(unescape(encodeURIComponent(code1))), ghBranch, 'Native: Add Java logic');
-        if (code2.trim()) await uploadSingleFileToRepo(ghRepo, 'app/src/main/res/layout/activity_main.xml', btoa(unescape(encodeURIComponent(code2))), ghBranch, 'Native: Add XML layout');
+                if (code2.trim()) await uploadSingleFileToRepo(ghRepo, 'app/src/main/res/layout/activity_main.xml', btoa(unescape(encodeURIComponent(code2))), ghBranch, 'Native: Add XML layout');
         
-        showProgress(40);
+                showProgress(40);
 
-        const workflowPath = '.github/workflows/build-native-apk.yml';
+                const manifestIconAttr = 'android:icon="@android:drawable/sym_def_app_icon"';
+                const manifestRoundAttr = '';
+                const workflowPath = '.github/workflows/build-native-apk.yml';
         const workflowContent = [
           "name: Build Pure Native Android APK",
           "on:",
