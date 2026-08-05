@@ -2567,7 +2567,7 @@ document.getElementById('buildExeBtn').addEventListener('click', async function(
   
   const workflowPath = '.github/workflows/build-exe.yml';
   const workflowContent = [
-    "# Config v1 - EXE Builder",
+    "# Config v2 - Universal EXE Builder",
     "name: Build Windows EXE",
     "on:",
     "  workflow_dispatch:",
@@ -2590,18 +2590,32 @@ document.getElementById('buildExeBtn').addEventListener('click', async function(
     "          cd build_app",
     "          npm init -y",
     "          npm install electron electron-builder --save-dev",
-    "          cat << 'EOF' > main.js",
+    "          ",
+    "          # Dynamically find the main HTML file",
+    "          if [ -f \"index.html\" ]; then",
+    "            MAIN_FILE=\"index.html\"",
+    "          else",
+    "            MAIN_FILE=$(find . -maxdepth 1 -name \"*.html\" | head -n 1 | sed 's|^\\./||')",
+    "          fi",
+    "          if [ -z \"$MAIN_FILE\" ]; then MAIN_FILE=\"index.html\"; fi",
+    "          ",
+    "          # Dynamically get Repo Name for App details",
+    "          REPO_NAME=\"${{ github.event.repository.name }}\"",
+    "          APP_NAME=${REPO_NAME:-App}",
+    "          ",
+    "          cat << EOF > main.js",
     "          const { app, BrowserWindow } = require('electron');",
     "          app.whenReady().then(() => {",
     "            let win = new BrowserWindow({ autoHideMenuBar: true, width: 1280, height: 720 });",
-    "            win.loadFile('index.html').catch(() => console.log('No index.html found'));",
+    "            win.loadFile('$MAIN_FILE').catch(() => console.log('No HTML file found'));",
     "          });",
     "          app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });",
     "          EOF",
+    "          ",
     "          npm pkg set main=\"main.js\"",
     "          npm pkg set scripts.build=\"electron-builder --win portable --x64\"",
-    "          npm pkg set build.appId=\"com.aicompile.app\"",
-    "          npm pkg set build.productName=\"App\"",
+    "          npm pkg set build.appId=\"com.aicompile.$APP_NAME\"",
+    "          npm pkg set build.productName=\"$APP_NAME\"",
     "          npm run build",
     "      - name: Upload EXE",
     "        uses: actions/upload-artifact@v4",
@@ -2620,7 +2634,7 @@ document.getElementById('buildExeBtn').addEventListener('click', async function(
       sha = getData.sha;
       try {
         const currentYaml = decodeURIComponent(escape(atob(getData.content.replace(/\s/g, ''))));
-        if (currentYaml.includes('# Config v1 - EXE Builder')) needsUpdate = false;
+        if (currentYaml.includes('# Config v2 - Universal EXE Builder')) needsUpdate = false;
       } catch(e) {}
     }
     
