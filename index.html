@@ -3930,11 +3930,6 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
     const appName = document.getElementById('bmAppName').value || 'MyNativeApp';
     const version = document.getElementById('bmVersion').value || '1.0.1';
     
-    if (target !== 'android') {
-      toast('❌ Windows Native (C++) is not yet implemented natively.', 'warn');
-      return;
-    }
-
     if (!ghToken || !ghRepo) {
       toast('❌ Select a GitHub repo first', 'warn');
       return;
@@ -3949,192 +3944,189 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
     showProgress(20);
 
     try {
-      if (code1.trim()) {
-        await uploadSingleFileToRepo(ghRepo, 'app/src/main/java/com/aicompile/app/MainActivity.java', btoa(unescape(encodeURIComponent(code1))), ghBranch, 'Native: Add Java logic');
-      }
-      if (code2.trim()) {
-        await uploadSingleFileToRepo(ghRepo, 'app/src/main/res/layout/activity_main.xml', btoa(unescape(encodeURIComponent(code2))), ghBranch, 'Native: Add XML layout');
-      }
+      if (target === 'android') {
+        if (code1.trim()) await uploadSingleFileToRepo(ghRepo, 'app/src/main/java/com/aicompile/app/MainActivity.java', btoa(unescape(encodeURIComponent(code1))), ghBranch, 'Native: Add Java logic');
+        if (code2.trim()) await uploadSingleFileToRepo(ghRepo, 'app/src/main/res/layout/activity_main.xml', btoa(unescape(encodeURIComponent(code2))), ghBranch, 'Native: Add XML layout');
+        
+        showProgress(40);
 
-      showProgress(40);
+        const workflowPath = '.github/workflows/build-native-apk.yml';
+        const workflowContent = [
+          "name: Build Pure Native Android APK",
+          "on:",
+          "  workflow_dispatch:",
+          "jobs:",
+          "  build:",
+          "    runs-on: ubuntu-latest",
+          "    steps:",
+          "      - name: Checkout Source",
+          "        uses: actions/checkout@v4",
+          "      - name: Setup Java",
+          "        uses: actions/setup-java@v3",
+          "        with:",
+          "          distribution: 'temurin'",
+          "          java-version: '17'",
+          "      - name: Setup Android SDK",
+          "        uses: android-actions/setup-android@v3",
+          "      - name: Create Android Project Structure",
+          "        run: |",
+          "          mkdir -p native_build/app/src/main/java/com/aicompile/app",
+          "          mkdir -p native_build/app/src/main/res/layout",
+          "          mkdir -p native_build/app/src/main/res/values",
+          "          cp -R app/src/main/java/com/aicompile/app/* native_build/app/src/main/java/com/aicompile/app/ || true",
+          "          cp -R app/src/main/res/layout/* native_build/app/src/main/res/layout/ || true",
+          "          cat << 'EOF' > native_build/app/src/main/AndroidManifest.xml",
+          "          <?xml version=\"1.0\" encoding=\"utf-8\"?>",
+          "          <manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"com.aicompile.app\">",
+          "              <uses-permission android:name=\"android.permission.INTERNET\" />",
+          "              <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />",
+          "              <application android:allowBackup=\"true\" android:icon=\"@mipmap/ic_launcher\" android:label=\"" + appName + "\" android:roundIcon=\"@mipmap/ic_launcher_round\" android:supportsRtl=\"true\" android:theme=\"@style/Theme.AppCompat.Light.NoActionBar\">",
+          "                  <activity android:name=\".MainActivity\" android:exported=\"true\">",
+          "                      <intent-filter>",
+          "                          <action android:name=\"android.intent.action.MAIN\" />",
+          "                          <category android:name=\"android.intent.category.LAUNCHER\" />",
+          "                      </intent-filter>",
+          "                  </activity>",
+          "              </application>",
+          "          </manifest>",
+          "          EOF",
+          "          cat << 'EOF' > native_build/app/build.gradle",
+          "          plugins { id 'com.android.application' }",
+          "          android { namespace 'com.aicompile.app'; compileSdk 33; defaultConfig { applicationId \"com.aicompile.app\"; minSdk 24; targetSdk 33; versionCode 1; versionName \"" + version + "\"; } buildTypes { release { minifyEnabled false } } compileOptions { sourceCompatibility JavaVersion.VERSION_1_8; targetCompatibility JavaVersion.VERSION_1_8; } }",
+          "          dependencies { implementation 'androidx.appcompat:appcompat:1.6.1'; implementation 'com.google.android.material:material:1.9.0'; " + deps.replace(/\n/g, ' ') + " }",
+          "          EOF",
+          "          cat << 'EOF' > native_build/settings.gradle",
+          "          pluginManagement { repositories { google(); mavenCentral(); gradlePluginPortal() } }",
+          "          dependencyResolutionManagement { repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS); repositories { google(); mavenCentral() } }",
+          "          rootProject.name = \"" + appName + "\"",
+          "          include ':app'",
+          "          EOF",
+          "          cat << 'EOF' > native_build/build.gradle",
+          "          plugins { id 'com.android.application' version '8.1.1' apply false }",
+          "          EOF",
+          "          cd native_build",
+          "          gradle wrapper",
+          "          ./gradlew assembleDebug",
+          "      - name: Upload Native APK",
+          "        uses: actions/upload-artifact@v4",
+          "        with:",
+          "          name: Android-Native-APK",
+          "          path: native_build/app/build/outputs/apk/debug/app-debug.apk"
+        ].join('\n');
 
-      const workflowPath = '.github/workflows/build-native-apk.yml';
-      const workflowContent = [
-        "name: Build Pure Native Android APK",
-        "on:",
-        "  workflow_dispatch:",
-        "",
-        "jobs:",
-        "  build:",
-        "    runs-on: ubuntu-latest",
-        "    steps:",
-        "      - name: Checkout Source",
-        "        uses: actions/checkout@v4",
-        "      - name: Setup Java",
-        "        uses: actions/setup-java@v3",
-        "        with:",
-        "          distribution: 'temurin'",
-        "          java-version: '17'",
-        "      - name: Setup Android SDK",
-        "        uses: android-actions/setup-android@v3",
-        "      - name: Create Android Project Structure",
-        "        run: |",
-        "          mkdir -p native_build/app/src/main/java/com/aicompile/app",
-        "          mkdir -p native_build/app/src/main/res/layout",
-        "          mkdir -p native_build/app/src/main/res/values",
-        "          ",
-        "          cp -R app/src/main/java/com/aicompile/app/* native_build/app/src/main/java/com/aicompile/app/ || true",
-        "          cp -R app/src/main/res/layout/* native_build/app/src/main/res/layout/ || true",
-        "          ",
-        "          cat << 'EOF' > native_build/app/src/main/AndroidManifest.xml",
-        "          <?xml version=\"1.0\" encoding=\"utf-8\"?>",
-        "          <manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"",
-        "              package=\"com.aicompile.app\">",
-        "              <uses-permission android:name=\"android.permission.INTERNET\" />",
-        "              <uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\" />",
-        "              <application",
-        "                  android:allowBackup=\"true\"",
-        "                  android:icon=\"@mipmap/ic_launcher\"",
-        "                  android:label=\"" + appName + "\"",
-        "                  android:roundIcon=\"@mipmap/ic_launcher_round\"",
-        "                  android:supportsRtl=\"true\"",
-        "                  android:theme=\"@style/Theme.AppCompat.Light.NoActionBar\">",
-        "                  <activity",
-        "                      android:name=\".MainActivity\"",
-        "                      android:exported=\"true\">",
-        "                      <intent-filter>",
-        "                          <action android:name=\"android.intent.action.MAIN\" />",
-        "                          <category android:name=\"android.intent.category.LAUNCHER\" />",
-        "                      </intent-filter>",
-        "                  </activity>",
-        "              </application>",
-        "          </manifest>",
-        "          EOF",
-        "          ",
-        "          cat << 'EOF' > native_build/app/build.gradle",
-        "          plugins {",
-        "              id 'com.android.application'",
-        "          }",
-        "          android {",
-        "              namespace 'com.aicompile.app'",
-        "              compileSdk 33",
-        "              defaultConfig {",
-        "                  applicationId \"com.aicompile.app\"",
-        "                  minSdk 24",
-        "                  targetSdk 33",
-        "                  versionCode 1",
-        "                  versionName \"" + version + "\"",
-        "              }",
-        "              buildTypes {",
-        "                  release {",
-        "                      minifyEnabled false",
-        "                  }",
-        "              }",
-        "              compileOptions {",
-        "                  sourceCompatibility JavaVersion.VERSION_1_8",
-        "                  targetCompatibility JavaVersion.VERSION_1_8",
-        "              }",
-        "          }",
-        "          dependencies {",
-        "              implementation 'androidx.appcompat:appcompat:1.6.1'",
-        "              implementation 'com.google.android.material:material:1.9.0'",
-        "              " + deps.replace(/\n/g, '\n              '),
-        "          }",
-        "          EOF",
-        "          ",
-        "          cat << 'EOF' > native_build/settings.gradle",
-        "          pluginManagement {",
-        "              repositories {",
-        "                  google()",
-        "                  mavenCentral()",
-        "                  gradlePluginPortal()",
-        "              }",
-        "          }",
-        "          dependencyResolutionManagement {",
-        "              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)",
-        "              repositories {",
-        "                  google()",
-        "                  mavenCentral()",
-        "              }",
-        "          }",
-        "          rootProject.name = \"" + appName + "\"",
-        "          include ':app'",
-        "          EOF",
-        "          ",
-        "          cat << 'EOF' > native_build/build.gradle",
-        "          plugins {",
-        "              id 'com.android.application' version '8.1.1' apply false",
-        "          }",
-        "          EOF",
-        "          ",
-        "          cd native_build",
-        "          gradle wrapper",
-        "          ./gradlew assembleDebug",
-        "      - name: Upload Native APK",
-        "        uses: actions/upload-artifact@v4",
-        "        with:",
-        "          name: Android-Native-APK",
-        "          path: native_build/app/build/outputs/apk/debug/app-debug.apk"
-      ].join('\n');
+        let sha = null;
+        const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`;
+        const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+        if (getRes.ok) sha = (await getRes.json()).sha;
 
-      showProgress(60);
+        const encodedWf = btoa(unescape(encodeURIComponent(workflowContent)));
+        const body = { message: "Setup Native Android Builder Action", content: encodedWf, branch: ghBranch };
+        if (sha) body.sha = sha;
 
-      let sha = null;
-      const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`;
-      const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
-      if (getRes.ok) {
-        const getData = await getRes.json();
-        sha = getData.sha;
-      }
-
-      const encodedWf = btoa(unescape(encodeURIComponent(workflowContent)));
-      const body = { message: "Setup Native Android Builder Action", content: encodedWf, branch: ghBranch };
-      if (sha) body.sha = sha;
-
-      const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
-        method: 'PUT',
-        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-
-      if (!putRes.ok) throw new Error(await putRes.text());
-      
-      toast('✅ Native Structure & Workflow Pushed! Waiting 10s for GitHub...', 'ok', 3000);
-      addLog('ok', 'Native workflow added. Waiting 10 seconds for GitHub indexer...');
-      await new Promise(r => setTimeout(r, 10000));
-      
-      showProgress(80);
-
-      let retryCount = 0;
-      const tryDispatch = async () => {
-        try {
-          const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-native-apk.yml/dispatches`, {
-            method: 'POST',
-            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ref: ghBranch })
-          });
-      
-          if (!dispatchRes.ok) throw new Error(await dispatchRes.text());
-      
-          toast('🚀 Native Build Triggered! Tracking progress in status bar...', 'ok', 6000);
-          addLog('ok', 'Triggered workflow_dispatch for Native build.');
-          clearTimeout(nativeBuildPollTimer);
-          nativeBuildPollTimer = setTimeout(pollNativeBuildStatus, 5000);
-          hideProgress();
-        } catch(e) {
-          retryCount++;
-          if (retryCount <= 6) {
-            addLog('info', `GitHub indexing delay. Retrying dispatch (${retryCount}/6)...`);
-            setTimeout(tryDispatch, 5000);
-          } else {
-            toast('✅ Native Workflow added. Visit GitHub Actions tab to build.', 'info', 6000);
-            addLog('warn', `Auto-trigger failed after 6 retries: ${e.message}`);
+        const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
+          method: 'PUT',
+          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (!putRes.ok) throw new Error(await putRes.text());
+        
+        toast('✅ Native APK Workflow Pushed! Waiting 10s...', 'ok', 3000);
+        await new Promise(r => setTimeout(r, 10000));
+        
+        showProgress(80);
+        let retryCount = 0;
+        const tryDispatch = async () => {
+          try {
+            const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-native-apk.yml/dispatches`, {
+              method: 'POST',
+              headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ref: ghBranch })
+            });
+            if (!dispatchRes.ok) throw new Error(await dispatchRes.text());
+            toast('🚀 Native APK Build Triggered! Tracking...', 'ok', 6000);
+            clearTimeout(nativeBuildPollTimer);
+            nativeBuildPollTimer = setTimeout(() => pollAnyNativeStatus('build-native-apk.yml', 'Android-Native-APK', 'APK'), 5000);
             hideProgress();
+          } catch(e) {
+            retryCount++;
+            if (retryCount <= 6) setTimeout(tryDispatch, 5000);
+            else { toast('✅ Workflow added. Build via GitHub Actions.', 'info', 6000); hideProgress(); }
           }
-        }
-      };
-      setTimeout(tryDispatch, 3000);
+        };
+        setTimeout(tryDispatch, 3000);
 
+      } else if (target === 'windows') {
+        if (code1.trim()) await uploadSingleFileToRepo(ghRepo, 'src/main.cpp', btoa(unescape(encodeURIComponent(code1))), ghBranch, 'Native: Add C++ logic');
+        
+        showProgress(40);
+
+        const workflowPath = '.github/workflows/build-native-exe.yml';
+        const workflowContent = [
+          "name: Build Pure Native Windows EXE",
+          "on:",
+          "  workflow_dispatch:",
+          "jobs:",
+          "  build:",
+          "    runs-on: ubuntu-latest",
+          "    steps:",
+          "      - name: Checkout Source",
+          "        uses: actions/checkout@v4",
+          "      - name: Install MinGW",
+          "        run: sudo apt-get update && sudo apt-get install -y mingw-w64",
+          "      - name: Build C++ App",
+          "        run: |",
+          "          mkdir -p native_build_win/src",
+          "          cp -R src/* native_build_win/src/ || true",
+          "          cd native_build_win",
+          "          x86_64-w64-mingw32-g++ src/main.cpp -o \"" + appName + ".exe\" -static-libgcc -static-libstdc++ -lgdi32 -luser32 -lkernel32 -lcomctl32 -lole32 -luuid",
+          "      - name: Upload Native EXE",
+          "        uses: actions/upload-artifact@v4",
+          "        with:",
+          "          name: Windows-Native-EXE",
+          "          path: native_build_win/*.exe"
+        ].join('\n');
+
+        let sha = null;
+        const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`;
+        const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+        if (getRes.ok) sha = (await getRes.json()).sha;
+
+        const encodedWf = btoa(unescape(encodeURIComponent(workflowContent)));
+        const body = { message: "Setup Native Windows Builder Action", content: encodedWf, branch: ghBranch };
+        if (sha) body.sha = sha;
+
+        const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
+          method: 'PUT',
+          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (!putRes.ok) throw new Error(await putRes.text());
+        
+        toast('✅ Native EXE Workflow Pushed! Waiting 10s...', 'ok', 3000);
+        await new Promise(r => setTimeout(r, 10000));
+        
+        showProgress(80);
+        let retryCount = 0;
+        const tryDispatch = async () => {
+          try {
+            const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-native-exe.yml/dispatches`, {
+              method: 'POST',
+              headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+              body: JSON.stringify({ ref: ghBranch })
+            });
+            if (!dispatchRes.ok) throw new Error(await dispatchRes.text());
+            toast('🚀 Native EXE Build Triggered! Tracking...', 'ok', 6000);
+            clearTimeout(nativeBuildPollTimer);
+            nativeBuildPollTimer = setTimeout(() => pollAnyNativeStatus('build-native-exe.yml', 'Windows-Native-EXE', 'EXE'), 5000);
+            hideProgress();
+          } catch(e) {
+            retryCount++;
+            if (retryCount <= 6) setTimeout(tryDispatch, 5000);
+            else { toast('✅ Workflow added. Build via GitHub Actions.', 'info', 6000); hideProgress(); }
+          }
+        };
+        setTimeout(tryDispatch, 3000);
+      }
     } catch (err) {
       toast('❌ Native Build Failed: ' + err.message, 'err', 5000);
       addLog('err', 'Native Build Error: ' + err.message);
@@ -4144,10 +4136,10 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
 });
 
 let nativeBuildPollTimer = null;
-async function pollNativeBuildStatus() {
+async function pollAnyNativeStatus(workflowFile, artifactName, typeLabel) {
   if (!ghToken || !ghRepo) return;
   try {
-    let runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/build-native-apk.yml/runs?per_page=1`, {
+    let runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowFile}/runs?per_page=1`, {
       headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' }
     });
     if (!runsRes.ok) return;
@@ -4163,21 +4155,21 @@ async function pollNativeBuildStatus() {
     
     if (run.status !== 'completed') {
       sbBuild.style.color = 'var(--amber)';
-      sbBuild.innerHTML = `<i class="fa-solid fa-cog fa-spin"></i> Native: ${run.status}...`;
+      sbBuild.innerHTML = `<i class="fa-solid fa-cog fa-spin"></i> Native ${typeLabel}: ${run.status}...`;
       clearTimeout(nativeBuildPollTimer);
-      nativeBuildPollTimer = setTimeout(pollNativeBuildStatus, 15000);
+      nativeBuildPollTimer = setTimeout(() => pollAnyNativeStatus(workflowFile, artifactName, typeLabel), 15000);
     } else {
       if (run.conclusion === 'success') {
         sbBuild.style.color = 'var(--green)';
-        sbBuild.innerHTML = `<i class="fa-solid fa-check"></i> Native Ready!`;
-        toast('✅ Native Build Completed! Click the zipper icon or status bar to download.', 'ok', 6000);
-        addLog('ok', 'Background Native build finished successfully.');
+        sbBuild.innerHTML = `<i class="fa-solid fa-check"></i> Native ${typeLabel} Ready!`;
+        toast(`✅ Native ${typeLabel} Build Completed! Click the status bar to download.`, 'ok', 6000);
+        addLog('ok', `Background Native ${typeLabel} build finished successfully.`);
         
-        sbBuild.onclick = () => downloadNativeApk(run);
+        sbBuild.onclick = () => downloadNativeArtifact(run, artifactName);
       } else {
         sbBuild.style.color = 'var(--red)';
-        sbBuild.innerHTML = `<i class="fa-solid fa-xmark"></i> Native Failed`;
-        toast('❌ Native Build failed on GitHub. Click "View Error Log".', 'err', 6000);
+        sbBuild.innerHTML = `<i class="fa-solid fa-xmark"></i> Native ${typeLabel} Failed`;
+        toast(`❌ Native ${typeLabel} Build failed on GitHub. Click "View Error Log".`, 'err', 6000);
         const logUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
         document.getElementById('errOverlay').style.display = 'block';
         document.getElementById('errText').innerHTML = `Build Failed! <button class="btn" style="display:inline-block; margin-left:10px; font-size:11px; padding:4px 8px; width:auto; background:var(--red);" onclick="window.open('${logUrl}', '_blank')">View Error Log</button>`;
@@ -4191,17 +4183,17 @@ async function pollNativeBuildStatus() {
   } catch(e) {}
 }
 
-async function downloadNativeApk(runObj) {
+async function downloadNativeArtifact(runObj, artifactName) {
   if (!ghToken || !ghRepo) return;
-  toast('🔍 Checking Native APK artifact...', 'info');
+  toast('🔍 Checking Native artifact...', 'info');
   showProgress(30);
   try {
     let artRes = await fetch(runObj.artifacts_url, {
       headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
     });
     let artData = await artRes.json();
-    let artifact = artData.artifacts.find(a => a.name === 'Android-Native-APK');
-    if (!artifact) throw new Error('Android-Native-APK artifact not found in the latest build.');
+    let artifact = artData.artifacts.find(a => a.name === artifactName);
+    if (!artifact) throw new Error(`${artifactName} not found in the latest build.`);
 
     toast('⏳ Triggering native download...', 'info');
     showProgress(60);
@@ -4223,10 +4215,8 @@ async function downloadNativeApk(runObj) {
     
     window.location.href = finalUrl;
     toast('✅ Download handed over to OS!', 'ok');
-    addLog('ok', 'Triggered native OS download for Native APK zip.');
   } catch(e) {
     toast('❌ ' + e.message, 'err', 5000);
-    addLog('err', 'Native Download Error: ' + e.message);
   }
   hideProgress();
 }
