@@ -427,16 +427,45 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
 </div>
 
-<div id="buildProgressOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:50000; flex-direction:column; padding:40px 20px; color:#fff; font-family:'JetBrains Mono', monospace; overflow-y:auto;">
-  <h3 id="bpTitle" style="color:var(--blue); margin-bottom:20px; text-align:center;">Build in Progress...</h3>
-  <div style="flex:1; max-width:600px; margin:0 auto; width:100%;">
-    <div id="bpStatusText" style="font-size:14px; margin-bottom:10px; color:var(--green); font-weight:600;">Initializing...</div>
-    <div style="width:100%; height:8px; background:rgba(255,255,255,0.1); border-radius:4px; margin-bottom:20px; overflow:hidden;">
-      <div id="bpProgressBar" style="width:0%; height:100%; background:var(--blue); transition:width 0.3s;"></div>
-    </div>
-    <div id="bpLogs" style="font-size:11px; color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; min-height:200px; max-height:400px; overflow-y:auto; white-space:pre-wrap; word-break:break-all;"></div>
+<div id="buildProgressOverlay" style="display:none; position:fixed; top:calc(20px + env(safe-area-inset-top, 0px)); right:calc(20px + env(safe-area-inset-right, 0px)); width:320px; background:rgba(22, 22, 22, 0.85); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:20px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:0 16px 48px rgba(0,0,0,0.5);">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px;">
+    <h4 id="bpTitle" style="color:#fff; margin:0; font-size:15px; font-weight:600; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</h4>
+    <i class="fa-solid fa-xmark panel-close" id="bpCloseBtnIcon" style="cursor:pointer; display:none; color:rgba(255,255,255,0.7); font-size:18px;"></i>
   </div>
-  <button id="bpCloseBtn" style="display:none; margin:20px auto 0; padding:10px 20px; background:var(--blue); border:none; border-radius:10px; color:#fff; cursor:pointer;">Close</button>
+  
+  <div class="stepper-wrapper" id="bpStepper" style="display:flex; flex-direction:column; gap:16px; margin-bottom:16px; position:relative; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    <div style="position:absolute; left:11px; top:12px; bottom:12px; width:2px; background:rgba(255,255,255,0.1); z-index:1;">
+      <div id="bpStepperProgress" style="width:100%; height:0%; background:var(--blue); transition:height 0.4s ease;"></div>
+    </div>
+    <div class="step-item" id="step1" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
+      <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
+      <div style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="font-size:13px; font-weight:600; color:#fff;">Initialize Engine</div>
+      </div>
+    </div>
+    <div class="step-item" id="step2" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
+      <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
+      <div style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="font-size:13px; font-weight:600; color:#fff;">Dispatch Workflow</div>
+      </div>
+    </div>
+    <div class="step-item" id="step3" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
+      <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
+      <div style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="font-size:13px; font-weight:600; color:#fff;">Compile Target</div>
+      </div>
+    </div>
+    <div class="step-item" id="step4" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
+      <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
+      <div style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="font-size:13px; font-weight:600; color:#fff;">Finalize Artifact</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bpStatusText" style="font-size:12px; margin-bottom:8px; color:var(--blue); font-weight:600; min-height:16px; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">Initializing...</div>
+  <div id="bpLogs" style="font-family:'JetBrains Mono', monospace; font-size:10px; color:rgba(255,255,255,0.7); background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; min-height:80px; max-height:150px; overflow-y:auto; white-space:pre-wrap; word-break:break-all; border:1px solid rgba(255,255,255,0.05);"></div>
+  <button id="bpCloseBtn" style="display:none; margin-top:12px; padding:8px 16px; background:rgba(255,255,255,0.1); border:none; border-radius:12px; color:#fff; cursor:pointer; font-weight:600; font-size:12px; transition:all 0.2s; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">Close</button>
 </div>
 
 <div id="newRepoModal">
@@ -3319,39 +3348,87 @@ document.getElementById('bmCancelBtn').addEventListener('click', closeBuildModal
 
 let currentOverlayPollTimer = null;
 
+function updateStepperUI(pct, stateStr) {
+  const stepperFill = document.getElementById('bpStepperProgress');
+  if(stepperFill) stepperFill.style.height = pct + '%';
+  
+  let currentStep = 1;
+  if (pct >= 25) currentStep = 2;
+  if (pct >= 35) currentStep = 3;
+  if (pct >= 90) currentStep = 4;
+  
+  for(let i=1; i<=4; i++) {
+    let el = document.getElementById('step' + i);
+    if(!el) continue;
+    let circle = el.querySelector('.step-circle');
+    
+    if (i < currentStep || (i === 4 && pct === 100 && stateStr !== 'err')) {
+      el.style.opacity = '1';
+      let c = (i===4 && stateStr==='ok') ? 'var(--green)' : 'var(--blue)';
+      circle.style.borderColor = c;
+      circle.style.background = c;
+      circle.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px; color:#fff;"></i>';
+    } else if (i === currentStep) {
+      el.style.opacity = '1';
+      let c = stateStr === 'err' ? 'var(--red)' : 'var(--blue)';
+      circle.style.borderColor = c;
+      circle.style.background = 'var(--surface)';
+      circle.innerHTML = '<div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:'+c+';"></div>';
+    } else {
+      el.style.opacity = '0.5';
+      circle.style.borderColor = 'rgba(255,255,255,0.2)';
+      circle.style.background = 'var(--surface)';
+      circle.innerHTML = '<div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div>';
+    }
+  }
+  
+  if (stateStr === 'err') {
+    if(stepperFill) stepperFill.style.background = 'var(--red)';
+  } else if (stateStr === 'ok') {
+    if(stepperFill) stepperFill.style.background = 'var(--green)';
+  } else {
+    if(stepperFill) stepperFill.style.background = 'var(--blue)';
+  }
+}
+
 function showBuildOverlay(title) {
   const ov = document.getElementById('buildProgressOverlay');
-  document.getElementById('bpTitle').textContent = title;
+  document.getElementById('bpTitle').innerHTML = '<i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>' + title;
   document.getElementById('bpStatusText').textContent = 'Starting build...';
   document.getElementById('bpStatusText').style.color = 'var(--blue)';
-  document.getElementById('bpProgressBar').style.width = '10%';
-  document.getElementById('bpProgressBar').style.background = 'var(--blue)';
   document.getElementById('bpLogs').textContent = 'Initializing GitHub Actions...\n';
   document.getElementById('bpCloseBtn').style.display = 'none';
+  if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'none';
+  updateStepperUI(10, '');
   ov.style.display = 'flex';
 }
+
 function updateBuildOverlay(status, pct, stateStr) {
   document.getElementById('bpStatusText').textContent = status;
-  if (pct) document.getElementById('bpProgressBar').style.width = pct + '%';
+  if (pct) updateStepperUI(pct, stateStr);
   if (stateStr === 'err') {
     document.getElementById('bpStatusText').style.color = 'var(--red)';
-    document.getElementById('bpProgressBar').style.background = 'var(--red)';
     document.getElementById('bpCloseBtn').style.display = 'block';
+    if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
   } else if (stateStr === 'ok') {
     document.getElementById('bpStatusText').style.color = 'var(--green)';
-    document.getElementById('bpProgressBar').style.background = 'var(--green)';
     document.getElementById('bpCloseBtn').style.display = 'block';
+    if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
     document.getElementById('bpCloseBtn').textContent = 'Download Ready / Close';
   }
 }
+
 function appendBuildLog(log) {
   const el = document.getElementById('bpLogs');
   el.textContent += log + '\n';
   el.scrollTop = el.scrollHeight;
 }
-document.getElementById('bpCloseBtn').addEventListener('click', () => {
+
+const closeOverlay = () => {
   document.getElementById('buildProgressOverlay').style.display = 'none';
-});
+};
+document.getElementById('bpCloseBtn').addEventListener('click', closeOverlay);
+if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').addEventListener('click', closeOverlay);
 
 document.getElementById('bmCompileBtn').addEventListener('click', async () => {
   closeBuildModal();
