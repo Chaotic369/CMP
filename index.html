@@ -3347,7 +3347,9 @@ function reindent(code, baseIndent) {
 function autoLockAndApply(parsed, blockNum) {
   if (!sourceContent) { addLog('err', 'No source loaded.'); return false; }
 
-  if (!parsed.oldCode) {
+  var cleanOld = parsed.oldCode ? parsed.oldCode.replace(/\r\n/g, '\n').replace(/\r/g, '\n') : '';
+
+  if (!cleanOld) {
     if (parsed.newCode) {
       pushState();
       if (/<body[^>]*>/i.test(sourceContent)) {
@@ -3360,11 +3362,11 @@ function autoLockAndApply(parsed, blockNum) {
       return true;
     }
     return false;
-  }
+      }
 
-  var loc = findFingerprintedChunk(sourceContent, parsed.oldCode);
-  if (!loc) {
-    var preview = parsed.oldCode.substring(0, 60).replace(/\n/g, '↵');
+      var loc = findFingerprintedChunk(sourceContent, cleanOld);
+      if (!loc) {
+        var preview = cleanOld.substring(0, 60).replace(/\n/g, '↵');
     var errMsg  = 'Block ' + blockNum + ': no match found.\n"' + preview + '…"';
     toast(errMsg, 'err', 7000);
     addLog('err', 'Block ' + blockNum + ' MISS: "' + preview + '"');
