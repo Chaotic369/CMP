@@ -444,10 +444,18 @@ select.bm-select option { background: var(--elevated); color: #fff; }
      </div>
 
      <div id="bmNativeCodeBoxes" style="margin-top:10px;">
-       <textarea id="bmNativeCode1" placeholder="Paste Java (Android) or C++ (Windows) Code here..." class="bm-code-box"></textarea>
-       <textarea id="bmNativeCode2" placeholder="Paste XML Layout here (Android only)..." class="bm-code-box"></textarea>
-     </div>
-  </div>
+            <div style="display:flex; background: rgba(255,255,255,0.1); border-radius: 12px; align-items: center; height: 34px; padding: 0 4px 0 0; box-sizing: border-box; margin-bottom:8px;">
+              <input type="text" id="bmApkInstruction" placeholder="Describe your APK app..." style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 12px; outline: none; font-size: 12px; height: 34px; line-height: 34px;">
+              <button id="bmApkPayloadBtn" class="btn" title="Copy APK Prompt" style="color: var(--purple); width: 30px; height: 30px; min-width: 30px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 13px;"></i></button>
+            </div>
+            <div style="display:flex; background: rgba(255,255,255,0.1); border-radius: 12px; align-items: center; height: 34px; padding: 0 4px 0 0; box-sizing: border-box; margin-bottom:8px;">
+              <input type="text" id="bmExeInstruction" placeholder="Describe your EXE app..." style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 12px; outline: none; font-size: 12px; height: 34px; line-height: 34px;">
+              <button id="bmExePayloadBtn" class="btn" title="Copy EXE Prompt" style="color: var(--purple); width: 30px; height: 30px; min-width: 30px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 13px;"></i></button>
+            </div>
+            <textarea id="bmNativeCode1" placeholder="Paste Java (Android) or C++ (Windows) Code here..." class="bm-code-box"></textarea>
+            <textarea id="bmNativeCode2" placeholder="Paste XML Layout here (Android only)..." class="bm-code-box"></textarea>
+          </div>
+       </div>
 
   <details class="bm-advanced">
     <summary>Advanced Settings & Edge Cases</summary>
@@ -2917,6 +2925,30 @@ document.getElementById('payloadBtn').addEventListener('click', function() {
     toast('🚀 Payload Copied!');
   }).catch(function() {
     toast('❌ Failed to copy payload', 'err');
+  });
+});
+
+var APK_NATIVE_PROMPT = 'Generate a single-Activity native Android app in plain Java (no Kotlin, no Jetpack Compose) that I will paste into a build tool with these exact constraints:\n\nOUTPUT FORMAT — three separate blocks, each clearly labeled and nothing else outside the labels:\n\n=== JAVA ===\n(one file only — the complete contents of MainActivity.java, package com.aicompile.app, class name MainActivity extending AppCompatActivity, using setContentView(R.layout.activity_main))\n\n=== XML ===\n(one file only — the complete contents of activity_main.xml, a valid Android layout resource with a root ViewGroup, referencing only views/ids that MainActivity.java actually uses via findViewById)\n\n=== DEPENDENCIES ===\n(zero or more lines, each a single Gradle dependency coordinate in this exact form: implementation \'group:artifact:version\' — one per line, nothing else, no comments, no blank lines, no "dependencies {" wrapper)\n\nHARD RULES:\n- Java only. No Kotlin syntax.\n- Single Activity, single layout file. No fragments, no navigation component, no multiple XML files.\n- Do not use androidx.compose, view binding, or data binding — use findViewById directly.\n- Every id referenced in Java via findViewById must exist in the XML with a matching android:id.\n- Do not include the AndroidManifest.xml, build.gradle, or any Gradle Groovy/Kotlin DSL — I generate those separately. Only give me the three blocks above.\n- Do not include package/import lines for anything not actually used.\n- If you need a third-party library, add it to the DEPENDENCIES block using implementation \'...\' syntax only — do not explain it in prose.\n- Assume minSdk 24, targetSdk 33, compileSdk 33, AndroidX already available (androidx.appcompat:appcompat and com.google.android.material:material are already included by the build — do not repeat them in DEPENDENCIES unless you need a newer version).\n- No comments about permissions — I handle permissions separately based on what APIs your code calls.\n- Keep the Java under ~300 lines. If the app needs more, tell me it needs to be split instead of writing something that will silently run over.\n\nMY APP:\n';
+
+var EXE_NATIVE_PROMPT = 'Generate a single-file native Windows desktop app in plain C++ using the Win32 API only (no Qt, no MFC, no wxWidgets, no third-party GUI framework) that I will paste into a build tool with these exact constraints:\n\nOUTPUT FORMAT — one block, labeled, and nothing else outside the label:\n\n=== CPP ===\n(the complete contents of main.cpp — a single translation unit, no headers other than standard C++ and windows.h/commctrl.h/etc as needed, must compile standalone with no other project files)\n\nHARD RULES:\n- C++ only, targeting MinGW-w64 (x86_64-w64-mingw32-g++). Avoid MSVC-only extensions or pragmas.\n- Must define WinMain (not int main) as the entry point, since this builds as a GUI subsystem app.\n- Single file only. No separate headers, no resource (.rc) files, no external assets.\n- Only link against libraries already available in a standard MinGW toolchain: gdi32, user32, kernel32, comctl32, ole32, uuid. If your code needs anything beyond these, say so in one line before the code block instead of silently assuming it\'s linked.\n- Use native Win32 window/controls (CreateWindow, RegisterClass, message loop) — do not assume any packages will be installed at build time, since none are.\n- Include a proper WndProc with at least WM_DESTROY calling PostQuitMessage(0), so the app can actually close.\n- No comments about permissions or installers — just the running app logic.\n- Keep it under ~400 lines. If the app genuinely needs more, tell me it needs to be split instead of writing something that will silently run over.\n\nMY APP:\n';
+
+document.getElementById('bmApkPayloadBtn').addEventListener('click', function() {
+  var instruction = document.getElementById('bmApkInstruction').value.trim();
+  var payload = APK_NATIVE_PROMPT + (instruction || '(describe the app here)');
+  navigator.clipboard.writeText(payload).then(function() {
+    toast('🚀 APK Prompt Copied!');
+  }).catch(function() {
+    toast('❌ Failed to copy APK prompt', 'err');
+  });
+});
+
+document.getElementById('bmExePayloadBtn').addEventListener('click', function() {
+  var instruction = document.getElementById('bmExeInstruction').value.trim();
+  var payload = EXE_NATIVE_PROMPT + (instruction || '(describe the app here)');
+  navigator.clipboard.writeText(payload).then(function() {
+    toast('🚀 EXE Prompt Copied!');
+  }).catch(function() {
+    toast('❌ Failed to copy EXE prompt', 'err');
   });
 });
 
