@@ -165,7 +165,9 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #sidebarContent.mini #repoTabsContainer { max-height: none; }
 
 #bookmarkContent { display: flex; flex-direction: column; width: 140px; height: fit-content; max-height: 45vh; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 4px; overflow-x: hidden; }
-#bookmarkContent .repo-item { background: rgba(255,255,255,0.06); border-radius: 8px; margin-bottom: 2px; }
+#bookmarkContent .repo-item { background: transparent; border-radius: 8px; margin-bottom: 2px; }
+#bookmarkContent .repo-item:active { background: rgba(255,255,255,0.15); }
+#bookmarkContent .repo-item.active { background: rgba(255,255,255,0.15); }
 #bookmarkContent.mini { width: 34px; padding-left: 2px; align-items: center; }
 #bookmarkContent.mini .repo-name { font-size: 6px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
 #bookmarkContent.mini .repo-actions { display: none !important; }
