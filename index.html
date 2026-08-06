@@ -883,6 +883,7 @@ async function ghLoadConfigFromFirebase() {
   try {
     if (window._fbLoadConfig) {
       const cfg = await window._fbLoadConfig();
+      console.log('[bookmarks] Firebase config loaded:', cfg);
       if (cfg) {
         ghToken = cfg.token || '';
         ghUser = cfg.user || '';
@@ -891,15 +892,21 @@ async function ghLoadConfigFromFirebase() {
                     ghFilePath = cfg.filePath || 'index.html';
                     ghRepos = cfg.repos || [];
                     ghBookmarkedRepos = cfg.bookmarkedRepos || [];
+                    console.log('[bookmarks] ghBookmarkedRepos set to:', ghBookmarkedRepos);
                     if (cfg.wallpaper !== undefined) {
           settings.wallpaper = cfg.wallpaper;
           localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
           applyWallpaper(cfg.wallpaper);
         }
         document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
+        if (window.renderBookmarks) window.renderBookmarks();
       }
+    } else {
+      console.log('[bookmarks] window._fbLoadConfig not available');
     }
-  } catch(e) {}
+  } catch(e) {
+    console.log('[bookmarks] load error:', e);
+  }
 }
 
 function ghSaveConfig() {
