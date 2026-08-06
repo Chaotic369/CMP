@@ -3944,22 +3944,24 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
     if (!putRes.ok) throw new Error(await putRes.text());
     
     appendBuildLog('Workflow synced. Triggering build dispatch...');
-    updateBuildOverlay('Triggering GitHub Actions...', 25);
-    await new Promise(r => setTimeout(r, 4000));
+        updateBuildOverlay('Triggering GitHub Actions...', 25);
+        await new Promise(r => setTimeout(r, 6000));
     
-    let dispatchSuccess = false;
-    for(let retry=1; retry<=5; retry++){
-      const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowPath.split('/').pop()}/dispatches`, {
-        method: 'POST',
-        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ref: ghBranch })
-      });
-      if (dispatchRes.ok) { dispatchSuccess = true; break; }
-      appendBuildLog(`Dispatch retry ${retry}...`);
-      await new Promise(r => setTimeout(r, 4000));
-    }
+        let dispatchSuccess = false;
+        let lastDispatchErr = '';
+        for(let retry=1; retry<=8; retry++){
+          const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowPath.split('/').pop()}/dispatches`, {
+            method: 'POST',
+            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ref: ghBranch })
+          });
+          if (dispatchRes.ok) { dispatchSuccess = true; break; }
+          lastDispatchErr = await dispatchRes.text().catch(() => dispatchRes.statusText);
+          appendBuildLog(`Dispatch retry ${retry}: ${lastDispatchErr}`);
+          await new Promise(r => setTimeout(r, 3000 * retry));
+        }
     
-    if(!dispatchSuccess) throw new Error('Failed to trigger workflow dispatch.');
+        if(!dispatchSuccess) throw new Error('Failed to trigger workflow dispatch: ' + lastDispatchErr);
     
     updateBuildOverlay('Build running. Polling GitHub...', 35);
         clearTimeout(currentOverlayPollTimer);
