@@ -3785,9 +3785,11 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
   closeBuildModal();
   const target = document.getElementById('bmWrapperTarget').value;
   const appName = document.getElementById('bmAppName').value.trim() || 'My App';
-  const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
+    const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
+    const appIdSlug = appName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'app';
+    const appId = 'com.aicompile.' + appIdSlug + Date.now().toString().slice(-5);
   
-  if (!ghToken || !ghRepo) {
+    if (!ghToken || !ghRepo) {
     toast('❌ Select a GitHub repo first', 'warn');
     return;
   }
@@ -3847,12 +3849,12 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
                 "      - name: Install Cordova",
                 "        run: npm install -g cordova",
                 "      - name: Build APK",
-                "        run: |",
-                "          export CI=true",
-                "          export CORDOVA_NO_TELEMETRY=1",
-                "          export CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https\\://services.gradle.org/distributions/gradle-8.7-all.zip",
-                "          cd /tmp",
-        "          cordova create app com.aicompile.app \"" + safeName + "\" --no-telemetry",
+                        "        run: |",
+                        "          export CI=true",
+                        "          export CORDOVA_NO_TELEMETRY=1",
+                        "          export CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https\\://services.gradle.org/distributions/gradle-8.7-all.zip",
+                        "          cd /tmp",
+                        "          cordova create app " + appId + " \"" + safeName + "\" --no-telemetry",
         "          rm -rf app/www/*",
         "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
         "          cd app",
