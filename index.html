@@ -369,12 +369,12 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <button id="fullScreenBtn" class="btn" title="Full Screen"><i class="fa-solid fa-expand"></i></button>
   
     <button id="ghSettingsBtn" class="btn" title="GitHub Settings"><i class="fa-solid fa-gear"></i></button>
-    <button id="ghSyncBtn" class="btn" title="Sync Selected File" style="color:var(--teal);"><i class="fa-solid fa-arrows-rotate"></i></button>
-    <button id="ghPushBtn" class="btn" title="Push to GitHub" disabled style="color:var(--blue);"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
-    <button id="exportBtn" class="btn" title="Export File" style="color:var(--purple);"><i class="fa-solid fa-floppy-disk"></i></button>
-    <button id="clearBtn" class="btn" title="Reset Workspace" style="color:var(--red);"><i class="fa-solid fa-trash"></i></button>
+        <button id="ghSyncBtn" class="btn" title="Sync & Fetch Repos" style="color:var(--teal);"><i class="fa-solid fa-arrows-rotate"></i></button>
+        <button id="ghPushBtn" class="btn" title="Push to GitHub" disabled style="color:var(--blue);"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
+        <button id="exportBtn" class="btn" title="Export File" style="color:var(--purple);"><i class="fa-solid fa-floppy-disk"></i></button>
+        <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i></button>
   
-    <div style="grid-column: span 5; display: flex; background: rgba(255,255,255,0.1); border-radius: 20px; align-items: center; height: 34px; padding: 0 4px 0 0; box-sizing: border-box;">
+        <div style="grid-column: span 5; display: flex; background: rgba(255,255,255,0.1); border-radius: 20px; align-items: center; height: 34px; padding: 0 4px 0 0; box-sizing: border-box;">
               <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 12px; outline: none; font-size: 12px; height: 34px; line-height: 34px;">
               <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 30px; height: 30px; min-width: 30px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 13px;"></i></button>
             </div>
@@ -385,14 +385,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <button id="logBtn" class="btn" title="System Logs"><i class="fa-solid fa-file-lines"></i></button>
     <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i></button>
     <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i></button>
-    <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i></button>
-    <button id="buildApkBtn" class="btn" style="display:none;"></button>
-    <button id="buildExeBtn" class="btn" style="display:none;"></button>
-    <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);"><i class="fa-solid fa-file-zipper"></i></button>
-        <button id="pullApkLogBtn" class="btn" title="Pull Last APK Build Log" style="color:var(--red);" onclick="fetchLatestFailedLog('build-native-apk.yml')"><i class="fa-solid fa-file-waveform"></i></button>
-    <button id="downloadExeBtn" class="btn" title="Check & Download Latest EXE Zip" style="color:var(--teal);"><i class="fa-solid fa-file-archive"></i></button>
-    
-                    <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
+    <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                       </div>
   
                       <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0;">
@@ -431,13 +424,22 @@ select.bm-select option { background: var(--elevated); color: #fff; }
      </div>
      <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
      <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
-  </div>
+          <div class="gh-row" style="margin-top:10px;"><label>App Icon</label><input type="file" id="bmAppIcon" accept="image/png, image/jpeg" style="font-size:11px;"></div>
+       </div>
 
-  <div class="gh-actions">
-    <button id="bmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
-    <button id="bmCompileBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-rocket"></i> Build App</button>
-  </div>
-</div>
+       <div class="gh-actions">
+         <button id="bmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+         <button id="bmCompileBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-rocket"></i> Build App</button>
+       </div>
+       <div style="margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:16px;">
+         <label style="display:block; font-size:13px; font-weight:600; margin-bottom:10px; color:var(--blue);">Artifacts & Logs</label>
+         <div style="display:flex; flex-direction:column; gap:8px;">
+           <button id="downloadApkBtn" style="background: rgba(45, 212, 191, 0.1); border: 1px solid rgba(45, 212, 191, 0.2); color: var(--teal); padding: 10px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; text-align: left; transition: all 0.2s;"><i class="fa-solid fa-file-zipper" style="margin-right:8px; width:16px;"></i> Download Latest APK</button>
+           <button id="downloadExeBtn" style="background: rgba(45, 212, 191, 0.1); border: 1px solid rgba(45, 212, 191, 0.2); color: var(--teal); padding: 10px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; text-align: left; transition: all 0.2s;"><i class="fa-solid fa-file-archive" style="margin-right:8px; width:16px;"></i> Download Latest EXE Zip</button>
+           <button id="pullApkLogBtn" style="background: rgba(248, 81, 73, 0.1); border: 1px solid rgba(248, 81, 73, 0.2); color: var(--red); padding: 10px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; text-align: left; transition: all 0.2s;"><i class="fa-solid fa-file-waveform" style="margin-right:8px; width:16px;"></i> Pull Last Build Log</button>
+         </div>
+       </div>
+     </div>
 
 <style>
     #buildProgressOverlay { transition: all 0.3s ease; }
@@ -1460,17 +1462,20 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
     showProgress(80);
 
     // Step 8: Context Switch
-        toast('⏳ Switching context...', 'info');
-        addLog('info', 'Switching IDE context to new repo...');
-        ghRepo = newRepoName;
-        ghFilePath = firstUploadedPath;
-        ghSaveConfig();
+            toast('⏳ Switching context...', 'info');
+            addLog('info', 'Switching IDE context to new repo...');
+            ghRepo = newRepoName;
+            ghFilePath = firstUploadedPath;
+            if (!ghRepos.includes(newRepoName)) ghRepos.unshift(newRepoName);
+            ghSaveConfig();
     
-    await ghFetchAllRepos();
-    renderRepoTabs();
-    await fetchFileTree(true);
+        renderRepoTabs();
+        currentTreeFiles = multiFiles && source === 'files' ? filesToProcess.map(f => ({ path: f.name, type: 'blob' })) : [{ path: 'index.html', type: 'blob' }];
+        renderFileTreeUI();
+        document.getElementById('fileTreeContainer').style.display = 'flex';
+        document.getElementById('repoTabsContainer').classList.remove('expanded');
 
-    toast(`✅ Repo '${name}' created and live!`, 'ok');
+        toast(`✅ Repo '${name}' created and live!`, 'ok');
     addLog('ok', `Repo creation pipeline complete for ${newRepoName}`);
 
     document.getElementById('newRepoModal').classList.remove('open');
@@ -1554,18 +1559,23 @@ window.createNewFile = async function() {
         });
         if(!res.ok) throw new Error(await res.text());
         toast('✅ File created!');
-        ghFilePath = path;
-        document.getElementById('ghFilePath').value = path;
-        ghSaveConfig();
+                ghFilePath = path;
+                document.getElementById('ghFilePath').value = path;
+                ghSaveConfig();
         
-        // Ensure file tree container remains open and visible when file is added
-        const ftc = document.getElementById('fileTreeContainer');
-        const rtc = document.getElementById('repoTabsContainer');
-        ftc.style.display = 'flex';
-        rtc.classList.remove('expanded');
+                if (!currentTreeFiles.find(f => f.path === path)) {
+                    currentTreeFiles.push({ path: path, type: 'blob' });
+                    currentTreeFiles.sort((a,b) => a.path.localeCompare(b.path));
+                }
+
+                // Ensure file tree container remains open and visible when file is added
+                const ftc = document.getElementById('fileTreeContainer');
+                const rtc = document.getElementById('repoTabsContainer');
+                ftc.style.display = 'flex';
+                rtc.classList.remove('expanded');
         
-        await fetchFileTree(false, false);
-        syncCurrentFile();
+                renderFileTreeUI();
+                syncCurrentFile();
     } catch (err) {
         toast('❌ Failed: ' + err.message, 'err');
     }
@@ -2438,17 +2448,7 @@ function showControls() {
   document.getElementById('sb-status').textContent = fileName;
 }
 
-document.getElementById('clearBtn').addEventListener('click', function() {
-  if (confirm('Clear workspace and start fresh?')) {
-    sourceContent = ''; undoStack = []; redoStack = []; patchLog = [];
-    document.getElementById('sb-status').textContent   = 'ready';
-    $codeView.value = '';
-    
-    syncUndoRedo(); render('', false); updateStatusBar();
-    addLog('info', 'Workspace cleared.');
-    toast('Cleared.'); lastClip = '';
-  }
-});
+
 
 document.getElementById('fileBtn').addEventListener('click', function() {
   document.getElementById('fileInput').click();
@@ -3339,6 +3339,7 @@ window.syncCurrentFile = async function() {
 };
 
 document.getElementById('ghSyncBtn').addEventListener('click', async function() {
+  await ghFetchAllRepos();
   await syncCurrentFile();
 });
 
@@ -3563,6 +3564,12 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
     return;
   }
 
+  let iconBase64 = '';
+  const iconInput = document.getElementById('bmAppIcon');
+  if (iconInput && iconInput.files[0]) {
+    try { iconBase64 = await readFileAsBase64(iconInput.files[0]); } catch(e){}
+  }
+
   const isApk = target === 'apk';
   const workflowPath = isApk ? '.github/workflows/build-apk.yml' : '.github/workflows/build-exe.yml';
   const artifactName = isApk ? 'Android-APK' : 'Windows-EXE';
@@ -3605,8 +3612,10 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
         "          rm -rf app/www/*",
         "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
         "          cd app",
+        "          mkdir -p res",
+        iconBase64 ? `          echo "${iconBase64}" | base64 -d > res/icon.png || true` : "",
         "          sed -i 's/version=\"1.0.0\"/version=\"" + appVersion + "\"/g' config.xml",
-        "          sed -i 's/<\\/widget>/\\n    <allow-navigation href=\"*\" \\/>\\n    <allow-intent href=\"*\" \\/>\\n<\\/widget>/g' config.xml",
+        iconBase64 ? "          sed -i 's/<\\/widget>/\\n    <icon src=\"res\\/icon.png\" \\/>\\n    <allow-navigation href=\"*\" \\/>\\n    <allow-intent href=\"*\" \\/>\\n<\\/widget>/g' config.xml" : "          sed -i 's/<\\/widget>/\\n    <allow-navigation href=\"*\" \\/>\\n    <allow-intent href=\"*\" \\/>\\n<\\/widget>/g' config.xml",
         "          cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true",
         "          cordova platform add android@13.0.0 --no-telemetry",
         "          cordova build android --no-telemetry",
@@ -3615,7 +3624,7 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
         "        with:",
         "          name: Android-APK",
         "          path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk"
-      ].join('\n');
+      ].filter(Boolean).join('\n');
     } else {
       const safeName = appName.replace(/"/g, '\\"');
       workflowContent = [
@@ -3639,6 +3648,8 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
         "          cd build_app",
         "          npm init -y",
         "          npm install electron electron-builder --save-dev",
+        iconBase64 ? `          echo "${iconBase64}" | base64 -d > icon.png || true` : "",
+        iconBase64 ? "          npm pkg set build.icon=\"icon.png\"" : "",
         "          cat << 'EOF' > main.js",
                 "const { app, BrowserWindow } = require('electron');",
                 "const path = require('path');",
@@ -3665,7 +3676,7 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
         "        with:",
         "          name: Windows-EXE",
         "          path: build_app/dist/*.exe"
-      ].join('\n');
+      ].filter(Boolean).join('\n');
     }
 
     appendBuildLog('Updating workflow file in repository...');
