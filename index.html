@@ -362,11 +362,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         <span id="app-menu-loader-text" style="font-size: 6px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">Connecting...</span>
   </div>
   <div id="repoSidebar">
-      <div style="display:flex; flex-direction:column; gap:3px;">
-              <button id="repoToggleBtn" class="btn" title="Toggle Sidebar">&lt;</button>
-              <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:none;"><i class="fa-solid fa-folder-plus"></i></button>
-            <button id="fileAddBtn" class="btn" title="Create New File" style="display:none;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
-                        <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:none;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
+      <div style="display:flex; flex-direction:column; gap:0px;">
+              <button id="repoToggleBtn" class="btn" title="Toggle Sidebar" style="width:18px; height:18px;">&lt;</button>
+              <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:none; width:18px; height:18px;"><i class="fa-solid fa-folder-plus"></i></button>
+            <button id="fileAddBtn" class="btn" title="Create New File" style="display:none; width:18px; height:18px;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
+                        <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:none; width:18px; height:18px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
                                     <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
                               <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                             </div>
