@@ -156,7 +156,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #fileUploadBtn { width: 18px; font-size: 6px; color: var(--blue); }
 
 #repoSidebar { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; height: fit-content; }
-#sidebarContent { display: flex; flex-direction: column; width: 140px; height: auto; max-height: 260px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 4px; overflow-y: hidden; }
+#sidebarContent { display: flex; flex-direction: column; width: 140px; height: auto; max-height: 260px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 4px; overflow-x: hidden; overflow-y: visible; }
 #sidebarContent.mini { max-height: 216px; }
 #sidebarContent.mini { width: 34px; padding-right: 2px; align-items: center; }
 #sidebarContent.mini .repo-name { font-size: 6px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
@@ -363,7 +363,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
   <div id="repoSidebar">
       <div style="display:flex; flex-direction:column; gap:0px;">
-              <button id="repoToggleBtn" class="btn" title="Toggle Sidebar" style="width:18px; height:18px;">&lt;</button>
+              <button id="repoToggleBtn" class="btn" title="Toggle Sidebar" style="width:24px; height:24px;">&lt;</button>
               <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:none; width:18px; height:18px;"><i class="fa-solid fa-folder-plus"></i></button>
             <button id="fileAddBtn" class="btn" title="Create New File" style="display:none; width:18px; height:18px;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
                         <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:none; width:18px; height:18px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
