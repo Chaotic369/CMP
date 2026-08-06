@@ -120,7 +120,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 }
 
 #app-menu {
-  position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 6px;
+  position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 6px;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 6px; border: none !important; outline: none !important; border-radius: 14px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); width: fit-content; height: fit-content;
   max-width: min(calc(100vw - 12px), calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 12px));
@@ -155,8 +155,8 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #fileAddBtn { width: 18px; font-size: 10px; color: var(--amber); }
 #fileUploadBtn { width: 18px; font-size: 10px; color: var(--blue); }
 
-#repoSidebar { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; align-self: stretch; }
-#sidebarContent { display: flex; flex-direction: column; width: 140px; height: auto; max-height: 100%; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 4px; overflow-x: hidden; overflow-y: auto; align-self: stretch; }
+#repoSidebar { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; height: fit-content; }
+#sidebarContent { display: flex; flex-direction: column; width: 140px; height: auto; max-height: 220px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 4px; overflow-x: hidden; overflow-y: auto; }
 #sidebarContent.mini { max-height: 216px; }
 #sidebarContent.mini { width: 34px; padding-right: 2px; align-items: center; }
 #sidebarContent.mini .repo-name { font-size: 8px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
