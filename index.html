@@ -364,9 +364,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   <div id="repoSidebar">
       <div style="display:flex; flex-direction:column; gap:0px;">
               <button id="repoToggleBtn" class="btn" title="Toggle Sidebar" style="width:24px; height:24px;">&lt;</button>
-              <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:none; width:18px; height:18px;"><i class="fa-solid fa-folder-plus"></i></button>
-            <button id="fileAddBtn" class="btn" title="Create New File" style="display:none; width:18px; height:18px;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
-                        <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:none; width:18px; height:18px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
+              <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:flex; width:18px; height:18px;"><i class="fa-solid fa-folder-plus"></i></button>
+                          <button id="fileAddBtn" class="btn" title="Create New File" style="display:flex; width:18px; height:18px;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
+                                      <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:flex; width:18px; height:18px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
                                     <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
                               <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                             </div>
