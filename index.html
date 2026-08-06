@@ -1952,7 +1952,7 @@ function renderFileTreeUI() {
                             <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
                                 ${hasChildren ? `<i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'}" style="font-size:8px; color:rgba(255,255,255,0.6); margin-right:4px; cursor:pointer;" onclick="toggleNesting('${f.path}', event)"></i>` : (isChild ? '' : `<i class="fa-solid fa-minus" style="font-size:8px; color:transparent; margin-right:4px;"></i>`)}
                                 <i class="${icon.i}" style="margin-right:6px; font-size:11px; color:${isTarget ? 'var(--blue)' : icon.c};"></i>
-                                <span style="font-size:10px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; font-weight: ${isTarget ? '600' : '400'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</span>
+                                <span style="font-size:8px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; font-weight: ${isTarget ? '600' : '400'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</span>
                             </div>
                         <div class="repo-actions">
                 <button class="repo-btn" title="Rename File" onclick="renameFile('${f.path}', event)"><i class="fa-solid fa-pen"></i></button>
