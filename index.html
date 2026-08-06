@@ -4010,18 +4010,23 @@ async function pollOverlayStatus(workflowFile, artifactName) {
         if (!artifact) throw new Error('Artifact not found in success run.');
         
         appendBuildLog(`Triggering artifact download...`);
-        let finalUrl = null;
-        try {
-          const abortCtrl = new AbortController();
-          let zipRes = await fetch(artifact.archive_download_url, { headers: { Authorization: `token ${ghToken}` }, signal: abortCtrl.signal });
-          if (!zipRes.ok) throw new Error('Response not ok');
-          finalUrl = zipRes.url;
-          abortCtrl.abort();
-        } catch(err) {
-          finalUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
-        }
-        window.location.href = finalUrl;
-        updateBuildOverlay('Build Complete. Check Downloads.', 100, 'ok');
+                try {
+                  let zipRes = await fetch(artifact.archive_download_url, { headers: { Authorization: `token ${ghToken}` } });
+                  if (!zipRes.ok) throw new Error('Response not ok');
+                  let blob = await zipRes.blob();
+                  let url = URL.createObjectURL(blob);
+                  let a = document.createElement('a');
+                  a.href = url;
+                  a.download = artifactName + '.zip';
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  setTimeout(() => URL.revokeObjectURL(url), 10000);
+                } catch(err) {
+                  appendBuildLog(`Direct download blocked. Opening GitHub page in new tab...`);
+                  window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
+                }
+                updateBuildOverlay('Build Complete. Check Downloads.', 100, 'ok');
       } else {
         updateBuildOverlay(`Build Failed (${run.conclusion})`, 100, 'err');
         appendBuildLog(`\n[${new Date().toLocaleTimeString()}] CONCLUSION: ${run.conclusion.toUpperCase()}\nFetching detailed error logs from GitHub...`);
@@ -4150,18 +4155,23 @@ async function fetchAndDownloadArtifact(workflowFile, artifactName) {
     if (!artifact) { toast('❌ Artifact not found in the latest run.', 'err'); return; }
     
     toast(`✅ Found ${artifactName}! Starting download...`, 'ok');
-    let finalUrl = null;
-    try {
-      const abortCtrl = new AbortController();
-      let zipRes = await fetch(artifact.archive_download_url, { headers: { Authorization: `token ${ghToken}` }, signal: abortCtrl.signal });
-      if (!zipRes.ok) throw new Error('Not ok');
-      finalUrl = zipRes.url;
-      abortCtrl.abort();
-    } catch(err) {
-      finalUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
-    }
-    window.location.href = finalUrl;
-  } catch(err) {
+        try {
+          let zipRes = await fetch(artifact.archive_download_url, { headers: { Authorization: `token ${ghToken}` } });
+          if (!zipRes.ok) throw new Error('Not ok');
+          let blob = await zipRes.blob();
+          let url = URL.createObjectURL(blob);
+          let a = document.createElement('a');
+          a.href = url;
+          a.download = artifactName + '.zip';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 10000);
+        } catch(err) {
+          toast(`⚠ Download via API failed. Opening in new tab...`, 'warn', 4000);
+          window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
+        }
+      } catch(err) {
     toast('❌ Download failed: ' + err.message, 'err');
   }
 }
