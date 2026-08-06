@@ -88,7 +88,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
   position: fixed; top: env(safe-area-inset-top, 0px); left: env(safe-area-inset-left, 0px);
   width: calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
   height: calc(100vh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
-  background: var(--surface); color: #ffffff; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  background: var(--surface); color: #ffffff; font-family: 'JetBrains Mono', monospace; font-size: 11px;
   padding: 20px; border: none; outline: none; resize: none; z-index: 1; display: none; white-space: pre; overflow: auto;
   -webkit-user-select: auto; user-select: auto;
 }
@@ -134,7 +134,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 /* Squircle Base Buttons */
 button.btn {
-  background: rgba(255, 255, 255, 0.08); border: none; color: #ffffff; border-radius: 6px; font-size: 9px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.08); border: none; color: #ffffff; border-radius: 6px; font-size: 8px; cursor: pointer;
   display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; outline: none;
 }
 button.btn:hover { background: rgba(255, 255, 255, 0.15); }
@@ -150,23 +150,23 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   background: rgba(255, 255, 255, 0.1);
 }
 
-#repoToggleBtn { font-weight: bold; width: 18px; font-size: 10px; }
-#repoAddBtn { width: 18px; font-size: 10px; color: var(--green); }
-#fileAddBtn { width: 18px; font-size: 10px; color: var(--amber); }
-#fileUploadBtn { width: 18px; font-size: 10px; color: var(--blue); }
+#repoToggleBtn { font-weight: bold; width: 18px; font-size: 6px; }
+#repoAddBtn { width: 18px; font-size: 6px; color: var(--green); }
+#fileAddBtn { width: 18px; font-size: 6px; color: var(--amber); }
+#fileUploadBtn { width: 18px; font-size: 6px; color: var(--blue); }
 
 #repoSidebar { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; height: fit-content; }
 #sidebarContent { display: flex; flex-direction: column; width: 140px; height: auto; max-height: 100%; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 4px; overflow-x: hidden; overflow-y: auto; }
 #sidebarContent.mini { max-height: 216px; }
 #sidebarContent.mini { width: 34px; padding-right: 2px; align-items: center; }
-#sidebarContent.mini .repo-name { font-size: 8px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
+#sidebarContent.mini .repo-name { font-size: 6px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
 #sidebarContent.mini .repo-actions { display: none !important; }
 #sidebarContent.mini .repo-item { padding: 4px 2px; justify-content: center; text-align: center; flex-direction: column; }
 #sidebarContent.mini #repoTabsContainer { max-height: none; }
 
 #bookmarkContent { display: flex; flex-direction: column; width: 140px; height: fit-content; max-height: 45vh; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 4px; overflow-x: hidden; }
 #bookmarkContent.mini { width: 34px; padding-left: 2px; align-items: center; }
-#bookmarkContent.mini .repo-name { font-size: 8px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
+#bookmarkContent.mini .repo-name { font-size: 6px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
 #bookmarkContent.mini .repo-actions { display: none !important; }
 #bookmarkContent.mini .repo-item { padding: 4px 2px; justify-content: center; text-align: center; flex-direction: column; }
 
@@ -175,7 +175,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #fileTreeContainer { display: none; flex-direction: column; gap: 2px; flex: 1; min-height: 40px; max-height: 100%; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 4px; margin-top: 4px; }
 
 .repo-item {
-  padding: 3px 6px; font-size: 8px; border-radius: 8px; border: none; background: transparent;
+  padding: 3px 6px; font-size: 7px; border-radius: 8px; border: none; background: transparent;
   cursor: pointer; text-align: left; font-weight: 500;
   display: flex; align-items: center; justify-content: space-between; gap: 4px; user-select: none; color: #ffffff;
 }
@@ -188,13 +188,13 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 .repo-actions { display: none; align-items: center; gap: 3px; }
 .repo-item.active .repo-actions { display: flex; }
-.repo-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 2px 4px; font-size: 9px; border-radius: 6px; }
+.repo-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 2px 4px; font-size: 6px; border-radius: 6px; }
 .repo-btn.del { color: var(--red); }
 
 #main-controls { display: grid; grid-template-columns: repeat(5, 24px); grid-auto-rows: 24px; gap: 4px; align-content: start; flex-shrink: 0; height: fit-content; }
 
 #toast {
-  position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 20px; font-size: 13px; font-weight: 500;
+  position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 20px; font-size: 6px; font-weight: 500;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; color: var(--green);
   z-index: 40000; display: none; max-width: 90vw; text-align: center; white-space: pre-line;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
@@ -206,7 +206,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 #astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal {
   position: fixed; z-index: 98; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px;
-  padding: 24px; color: #ffffff; font-size: 13px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  padding: 24px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
   transform: translateZ(0);
   max-height: calc(100vh - 40px); overflow-y: auto;
 }
@@ -217,21 +217,21 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; z-index: 30000; }
 #ghConfigPanel.open, #commitModal.open, #newRepoModal.open, #wallpaperModal.open { display: flex; }
 
-#astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
+#astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
 .ast-ok { color: var(--green); } .ast-warn { color: var(--amber); } .ast-err { color: var(--red); font-weight: bold; }
 .log-ok { color: var(--green); } .log-warn { color: var(--amber); } .log-err { color: var(--red); } .log-info { color: var(--blue); }
 
 #errOverlay {
   position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 20px;
-  padding: 16px; color: var(--red); font-size: 13px; font-weight: 500; z-index: 25000;
+  padding: 16px; color: var(--red); font-size: 6px; font-weight: 500; z-index: 25000;
   width: 90vw; max-width: 480px; display: none; white-space: pre-wrap; max-height: 40vh; overflow-y: auto;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
 }
 
 #statusBar {
   position: fixed; bottom: 0; left: 0; right: 0; height: calc(24px + env(safe-area-inset-bottom, 0px)); background: #000000; border-top: none;
-  display: flex; align-items: center; padding: 0 12px env(safe-area-inset-bottom, 0px) 12px; gap: 12px; font-size: 11px; font-weight: 500; color: #ffffff; z-index: 9990;
+  display: flex; align-items: center; padding: 0 12px env(safe-area-inset-bottom, 0px) 12px; gap: 12px; font-size: 9px; font-weight: 500; color: #ffffff; z-index: 9990;
 }
 #statusBar .sb-item { white-space: nowrap; }
 #statusBar .sb-ok { color: var(--green); } #statusBar .sb-warn { color: var(--amber); }
@@ -250,12 +250,12 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 :fullscreen #app-menu, :-webkit-full-screen #app-menu { transform: scale(0.85); }
 :fullscreen #fnrPanel, :-webkit-full-screen #fnrPanel { transform: scale(0.85); transform-origin: top center; }
 
-.panel-close { float: right; cursor: pointer; color: #ffffff; font-size: 18px; line-height: 1; margin-top: -2px; padding: 2px 4px; transition: color 0.2s; }
+.panel-close { float: right; cursor: pointer; color: #ffffff; font-size: 6px; line-height: 1; margin-top: -2px; padding: 2px 4px; transition: color 0.2s; }
 input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 0.8; }
 .panel-close:hover { color: #ffffff; }
 
 .gh-row { display: flex; gap: 8px; align-items: center; }
-.gh-row label { width: 70px; color: #ffffff; font-size: 13px; font-weight: 500; }
+.gh-row label { width: 70px; color: #ffffff; font-size: 11px; font-weight: 500; }
 .gh-row input { flex: 1; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 20px; outline: none; }
 .gh-row input:focus { background: rgba(255, 255, 255, 0.15); }
 
@@ -274,7 +274,7 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
   position: fixed; bottom: calc(85px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 10000; width: 42px; height: 42px; border-radius: 14px;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
   display: none; align-items: center; justify-content: center;
-  cursor: pointer; color: #ffffff; font-size: 16px;
+  cursor: pointer; color: #ffffff; font-size: 6px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 #searchCodeBtn:hover { background: rgba(33, 33, 33, 0.75); color: var(--blue); }
@@ -286,26 +286,26 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
 }
 .fnr-row { display: flex; gap: 10px; align-items: center; }
-.fnr-row input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); color: #fff; padding: 10px 14px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.fnr-row input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); color: #fff; padding: 10px 14px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
 .fnr-row input:focus { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.2); }
-.fnr-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.fnr-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
 .fnr-btn:hover { background: rgba(255,255,255,0.2); }
 
 /* Dual-Engine Build Modal */
 #buildModal { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px; padding: 24px; color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); max-height: 85vh; overflow-y: auto; }
 #buildModal.open { display: flex; }
-#buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
-.bm-step label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--blue); }
-.bm-toggle-btn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500; }
+#buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 6px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
+.bm-step label { display: block; font-size: 6px; font-weight: 600; margin-bottom: 6px; color: var(--blue); }
+.bm-toggle-btn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 6px; font-weight: 500; }
 .bm-toggle-btn.active { background: rgba(92, 157, 255, 0.2); border-color: var(--blue); }
-.bm-code-box { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; padding: 12px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; min-height: 80px; resize: vertical; margin-bottom: 8px; }
-.bm-permissions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
+.bm-code-box { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; padding: 12px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 6px; min-height: 80px; resize: vertical; margin-bottom: 8px; }
+.bm-permissions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 6px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
 .bm-permissions-grid label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .bm-advanced { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-top: 4px; }
-.bm-advanced summary { cursor: pointer; font-size: 13px; font-weight: 600; outline: none; user-select: none; }
-.bm-lib-chip { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 6px 10px; border-radius: 10px; font-size: 11px; cursor: pointer; }
+.bm-advanced summary { cursor: pointer; font-size: 6px; font-weight: 600; outline: none; user-select: none; }
+.bm-lib-chip { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 6px 10px; border-radius: 10px; font-size: 6px; cursor: pointer; }
 .bm-lib-chip:hover { background: rgba(255,255,255,0.2); }
-select.bm-select { width: 100%; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 12px; outline: none; font-size: 13px; -webkit-appearance: none; }
+select.bm-select { width: 100%; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 12px; outline: none; font-size: 6px; -webkit-appearance: none; }
 select.bm-select option { background: var(--elevated); color: #fff; }
 </style>
 </head>
@@ -313,8 +313,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="emptyState">
   <div id="emptyStateContent" style="display:flex; flex-direction:column; align-items:center; gap:3px;">
-    <i class="fa-solid fa-code" style="font-size:16px; color:#ffffff; margin-bottom: 3px; position:relative; z-index:2;"></i>
-    <div style="font-size:9px; color:#ffffff; position:relative; z-index:2;">WORKSPACE EMPTY</div>
+    <i class="fa-solid fa-code" style="font-size:6px; color:#ffffff; margin-bottom: 3px; position:relative; z-index:2;"></i>
+        <div style="font-size:6px; color:#ffffff; position:relative; z-index:2;">WORKSPACE EMPTY</div>
   </div>
 </div>
 
@@ -327,7 +327,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <div id="fnrPanel">
   <div class="fnr-row">
     <input type="text" id="fnrFind" placeholder="Find (case-insensitive)...">
-    <span id="fnrCount" style="font-size:11px; color:#ffffff; min-width:35px; text-align:right;">0/0</span>
+    <span id="fnrCount" style="font-size:6px; color:#ffffff; min-width:35px; text-align:right;">0/0</span>
   </div>
   <div class="fnr-row">
     <input type="text" id="fnrReplace" placeholder="Replace with...">
@@ -354,8 +354,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="app-menu">
   <div id="app-menu-loader" style="display: none; position: absolute; inset: 0; z-index: 10000; background: rgba(22, 22, 22, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px; align-items: center; justify-content: center; flex-direction: column; gap: 10px;">
-    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 28px; color: var(--blue);"></i>
-    <span id="app-menu-loader-text" style="font-size: 11px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">Connecting...</span>
+    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 6px; color: var(--blue);"></i>
+        <span id="app-menu-loader-text" style="font-size: 6px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">Connecting...</span>
   </div>
   <div id="repoSidebar">
       <div style="display:flex; flex-direction:column; gap:8px;">
@@ -393,8 +393,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                             <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i></button>
                                 <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                                     <div style="grid-column: 1 / -1; grid-row: 3; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05);">
-                                                                                                          <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 9px; height: 20px; line-height: 20px;">
-                                                                                                          <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 8px;"></i></button>
+                                                                                                          <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
+                                                                                                                                                                                                                    <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
                                                                                                         </div>
                                                                                     </div>
   
@@ -435,10 +435,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
      <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
      <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
           <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
-            <label style="font-size:13px; font-weight:600; color:var(--blue);">App Icon (PNG)</label>
-            <label for="bmAppIcon" style="display:flex; align-items:center; justify-content:center; gap:8px; background:rgba(255,255,255,0.05); padding:12px; border-radius:12px; cursor:pointer; border:1px dashed rgba(255,255,255,0.3); transition:all 0.2s;">
-              <i class="fa-solid fa-image" style="color:var(--purple); font-size:16px;"></i>
-              <span id="bmAppIconLabel" style="font-size:12px; color:#fff;">Upload Image (Auto-resized)</span>
+            <label style="font-size:6px; font-weight:600; color:var(--blue);">App Icon (PNG)</label>
+                   <label for="bmAppIcon" style="display:flex; align-items:center; justify-content:center; gap:8px; background:rgba(255,255,255,0.05); padding:12px; border-radius:12px; cursor:pointer; border:1px dashed rgba(255,255,255,0.3); transition:all 0.2s;">
+                          <i class="fa-solid fa-image" style="color:var(--purple); font-size:6px;"></i>
+                          <span id="bmAppIconLabel" style="font-size:6px; color:#fff;">Upload Image (Auto-resized)</span>
             </label>
             <input type="file" id="bmAppIcon" accept="image/*" style="display:none;" onchange="document.getElementById('bmAppIconLabel').textContent = this.files[0] ? this.files[0].name : 'Upload Image (Auto-resized)'; this.parentElement.style.borderColor = this.files[0] ? 'var(--green)' : 'rgba(255,255,255,0.3)';">
           </div>
@@ -449,7 +449,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
          <button id="bmCompileBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-rocket"></i> Build App</button>
        </div>
        <div style="margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:16px;">
-         <label style="display:block; font-size:13px; font-weight:600; margin-bottom:10px; color:var(--blue);">Artifacts & Logs</label>
+         <label style="display:block; font-size:6px; font-weight:600; margin-bottom:10px; color:var(--blue);">Artifacts & Logs</label>
          <div style="display:flex; flex-direction:column; gap:8px;">
            <button id="downloadApkBtn" style="background: rgba(45, 212, 191, 0.1); border: 1px solid rgba(45, 212, 191, 0.2); color: var(--teal); padding: 10px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; text-align: left; transition: all 0.2s;"><i class="fa-solid fa-file-zipper" style="margin-right:8px; width:16px;"></i> Download Latest APK</button>
            <button id="downloadExeBtn" style="background: rgba(45, 212, 191, 0.1); border: 1px solid rgba(45, 212, 191, 0.2); color: var(--teal); padding: 10px 16px; border-radius: 12px; font-weight: 600; cursor: pointer; text-align: left; transition: all 0.2s;"><i class="fa-solid fa-file-archive" style="margin-right:8px; width:16px;"></i> Download Latest EXE Zip</button>
@@ -468,10 +468,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     </style>
 <div id="buildProgressOverlay" style="display:none; position:fixed; top:80px; left:50%; transform:translateX(-50%); width:calc(100vw - 40px); max-width:420px; background:rgba(22, 22, 22, 0.85); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:20px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:0 16px 48px rgba(0,0,0,0.5);">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px;">
-      <h4 id="bpTitle" style="color:#fff; margin:0; font-size:15px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</h4>
-      <div style="display:flex; gap:16px; align-items:center;">
-        <i class="fa-solid fa-chevron-right panel-close" id="bpMinBtnIcon" style="cursor:pointer; color:rgba(255,255,255,0.7); font-size:16px;" title="Minimize"></i>
-        <i class="fa-solid fa-xmark panel-close" id="bpCloseBtnIcon" style="cursor:pointer; display:none; color:rgba(255,255,255,0.7); font-size:18px;"></i>
+      <h4 id="bpTitle" style="color:#fff; margin:0; font-size:6px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</h4>
+            <div style="display:flex; gap:16px; align-items:center;">
+              <i class="fa-solid fa-chevron-right panel-close" id="bpMinBtnIcon" style="cursor:pointer; color:rgba(255,255,255,0.7); font-size:6px;" title="Minimize"></i>
+              <i class="fa-solid fa-xmark panel-close" id="bpCloseBtnIcon" style="cursor:pointer; display:none; color:rgba(255,255,255,0.7); font-size:6px;"></i>
       </div>
     </div>
   
@@ -482,59 +482,59 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <div class="step-item" id="step1" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
       <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
       <div style="display:flex; flex-direction:column; justify-content:center;">
-        <div style="font-size:13px; font-weight:600; color:#fff;">Initialize Engine</div>
-      </div>
-    </div>
-    <div class="step-item" id="step2" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
-      <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
-      <div style="display:flex; flex-direction:column; justify-content:center;">
-        <div style="font-size:13px; font-weight:600; color:#fff;">Dispatch Workflow</div>
-      </div>
-    </div>
-    <div class="step-item" id="step3" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
-      <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
-      <div style="display:flex; flex-direction:column; justify-content:center;">
-        <div style="font-size:13px; font-weight:600; color:#fff;">Compile Target</div>
-      </div>
-    </div>
-    <div class="step-item" id="step4" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
-      <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
-      <div style="display:flex; flex-direction:column; justify-content:center;">
-        <div style="font-size:13px; font-weight:600; color:#fff;">Finalize Artifact</div>
-      </div>
-    </div>
-  </div>
+              <div style="font-size:6px; font-weight:600; color:#fff;">Initialize Engine</div>
+            </div>
+          </div>
+          <div class="step-item" id="step2" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
+            <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
+            <div style="display:flex; flex-direction:column; justify-content:center;">
+              <div style="font-size:6px; font-weight:600; color:#fff;">Dispatch Workflow</div>
+            </div>
+          </div>
+          <div class="step-item" id="step3" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
+            <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
+            <div style="display:flex; flex-direction:column; justify-content:center;">
+              <div style="font-size:6px; font-weight:600; color:#fff;">Compile Target</div>
+            </div>
+          </div>
+          <div class="step-item" id="step4" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
+            <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
+            <div style="display:flex; flex-direction:column; justify-content:center;">
+              <div style="font-size:6px; font-weight:600; color:#fff;">Finalize Artifact</div>
+            </div>
+          </div>
+        </div>
 
-  <div id="bpStatusText" style="font-size:12px; margin-bottom:8px; color:var(--blue); font-weight:600; min-height:16px;">Initializing...</div>
-    <div id="bpLogs" style="font-size:10px; color:rgba(255,255,255,0.7); background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; min-height:80px; max-height:150px; overflow-y:auto; white-space:pre-wrap; word-break:break-all; border:1px solid rgba(255,255,255,0.05);"></div>
-      <div style="display:flex; gap:12px; margin-top:12px;">
-        <button id="bpCancelBtn" style="flex:1; padding:8px 16px; background:rgba(248,81,73,0.15); border:1px solid rgba(248,81,73,0.3); border-radius:12px; color:var(--red); cursor:pointer; font-weight:600; font-size:12px; transition:all 0.2s;">Cancel Build</button>
-        <button id="bpCloseBtn" style="display:none; flex:1; padding:8px 16px; background:rgba(255,255,255,0.1); border:none; border-radius:12px; color:#fff; cursor:pointer; font-weight:600; font-size:12px; transition:all 0.2s;">Close</button>
+        <div id="bpStatusText" style="font-size:6px; margin-bottom:8px; color:var(--blue); font-weight:600; min-height:16px;">Initializing...</div>
+          <div id="bpLogs" style="font-size:6px; color:rgba(255,255,255,0.7); background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; min-height:80px; max-height:150px; overflow-y:auto; white-space:pre-wrap; word-break:break-all; border:1px solid rgba(255,255,255,0.05);"></div>
+            <div style="display:flex; gap:12px; margin-top:12px;">
+              <button id="bpCancelBtn" style="flex:1; padding:8px 16px; background:rgba(248,81,73,0.15); border:1px solid rgba(248,81,73,0.3); border-radius:12px; color:var(--red); cursor:pointer; font-weight:600; font-size:6px; transition:all 0.2s;">Cancel Build</button>
+              <button id="bpCloseBtn" style="display:none; flex:1; padding:8px 16px; background:rgba(255,255,255,0.1); border:none; border-radius:12px; color:#fff; cursor:pointer; font-weight:600; font-size:6px; transition:all 0.2s;">Close</button>
       </div>
     </div>
 
 <div id="newRepoModal">
   <h4><i class="fa-solid fa-folder-plus"></i> New Repository <span class="panel-close" id="nrCloseBtn">✕</span></h4>
   <div class="gh-row"><label>Name</label><input type="text" id="nrName" placeholder=""></div>
-  <div style="display:flex; gap:10px; margin: 10px 0; font-size: 13px; flex-wrap: wrap;">
-        <label style="cursor:pointer;"><input type="radio" name="nrSource" value="upload" checked> <i class="fa-solid fa-upload"></i> Upload HTML</label>
-        <label style="cursor:pointer;"><input type="radio" name="nrSource" value="paste"> <i class="fa-solid fa-code"></i> Paste HTML</label>
-        <label style="cursor:pointer;"><input type="radio" name="nrSource" value="files"> <i class="fa-solid fa-file-zipper"></i> Upload Files (ZIPs auto-extract)</label>
-      </div>
+  <div style="display:flex; gap:10px; margin: 10px 0; font-size: 6px; flex-wrap: wrap;">
+          <label style="cursor:pointer;"><input type="radio" name="nrSource" value="upload" checked> <i class="fa-solid fa-upload"></i> Upload HTML</label>
+          <label style="cursor:pointer;"><input type="radio" name="nrSource" value="paste"> <i class="fa-solid fa-code"></i> Paste HTML</label>
+          <label style="cursor:pointer;"><input type="radio" name="nrSource" value="files"> <i class="fa-solid fa-file-zipper"></i> Upload Files (ZIPs auto-extract)</label>
+        </div>
   
-    <label id="nrFileLabel" for="nrFileInput" style="display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
-      <i class="fa-solid fa-cloud-arrow-up" style="font-size:24px; color:var(--blue);"></i>
-      <span id="nrFileNameDisplay" style="font-size:13px; font-weight:500;">Click to upload HTML file</span>
-    </label>
-    <input type="file" id="nrFileInput" accept=".html,.htm" style="display:none;">
+      <label id="nrFileLabel" for="nrFileInput" style="display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
+        <i class="fa-solid fa-cloud-arrow-up" style="font-size:6px; color:var(--blue);"></i>
+        <span id="nrFileNameDisplay" style="font-size:6px; font-weight:500;">Click to upload HTML file</span>
+      </label>
+      <input type="file" id="nrFileInput" accept=".html,.htm" style="display:none;">
 
-    <label id="nrFilesLabel" for="nrFilesInput" style="display:none; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
-      <i class="fa-solid fa-file-zipper" style="font-size:24px; color:var(--purple);"></i>
-      <span id="nrFilesNameDisplay" style="font-size:13px; font-weight:500;">Click to select any files (multiple allowed)</span>
-    </label>
-    <input type="file" id="nrFilesInput" multiple style="display:none;">
+      <label id="nrFilesLabel" for="nrFilesInput" style="display:none; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
+        <i class="fa-solid fa-file-zipper" style="font-size:6px; color:var(--purple);"></i>
+        <span id="nrFilesNameDisplay" style="font-size:6px; font-weight:500;">Click to select any files (multiple allowed)</span>
+      </label>
+      <input type="file" id="nrFilesInput" multiple style="display:none;">
 
-    <textarea id="nrPasteInput" placeholder="" style="display:none; width:100%; height:120px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:4px; margin-bottom:10px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:12px;"></textarea>
+      <textarea id="nrPasteInput" placeholder="" style="display:none; width:100%; height:120px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:4px; margin-bottom:10px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:6px;"></textarea>
   <div class="gh-actions">
     <button id="nrCancelBtn">✕ Cancel</button>
     <button id="nrAddBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);">Add</button>
@@ -571,13 +571,13 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <div id="errOverlay">
   <div style="display: flex; justify-content: space-between; align-items: flex-start;">
     <span id="errText" style="flex: 1;"></span>
-    <button id="copyErrBtn" class="btn" style="padding: 4px 12px; font-size: 14px; width:auto; margin-left: 10px; border-radius: 12px;">📋</button>
-  </div>
-  <div style="margin-top: 12px; font-size: 11px; color: var(--red); cursor: pointer; opacity: 0.8;" id="dismissErrText">[tap here to dismiss]</div>
+    <button id="copyErrBtn" class="btn" style="padding: 4px 12px; font-size: 6px; width:auto; margin-left: 10px; border-radius: 12px;">📋</button>
+      </div>
+      <div style="margin-top: 12px; font-size: 6px; color: var(--red); cursor: pointer; opacity: 0.8;" id="dismissErrText">[tap here to dismiss]</div>
 </div>
 
 <div id="logPanel">
-  <h4 style="color: #ffffff; margin-bottom: 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px;">🪵 Patch Log <span class="panel-close" onclick="document.getElementById('logPanel').style.display='none'">✕</span></h4>
+  <h4 style="color: #ffffff; margin-bottom: 16px; font-size: 6px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px;">🪵 Patch Log <span class="panel-close" onclick="document.getElementById('logPanel').style.display='none'">✕</span></h4
   <div id="logContent"></div>
 </div>
 
