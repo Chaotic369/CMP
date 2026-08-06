@@ -367,9 +367,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                         <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                       </div>
     <div id="sidebarContent">
-      <div id="repoTabsContainer" class="expanded"></div>
-      <div id="fileTreeContainer"></div>
-    </div>
+          <div id="repoTabsContainer" class="expanded"></div>
+          <div id="fileTreeContainer"></div>
+        </div>
   </div>
 
   <div id="main-controls">
@@ -399,7 +399,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                                                                     </div>
   
                                                         <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0; position: relative; max-height: 100%;">
-                                                                                                                                        <div id="bookmarkContent" class="mini">
+                                                                                                                                                                                                <div id="bookmarkContent" class="mini">
                                                                                                                     <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 6px; max-height: 216px; overflow-y: auto; width: 100%;"></div>
                                                                                                                   </div>
                                                                                           </div>
@@ -629,7 +629,7 @@ var ghBranch = 'main';
 var ghFilePath = 'index.html';
 var ghRepos = [];
 var ghBookmarkedRepos = [];
-var repoCollapsed = true;
+var repoCollapsed = localStorage.getItem('repo_collapsed') === 'false' ? false : true;
 
 let dragSrcEl = null;
 window.nestedExpanded = window.nestedExpanded || {};
@@ -660,6 +660,7 @@ window.toggleBookmarkRepo = function(r, e) {
     }
     ghSaveConfig();
     renderRepoTabs();
+    if(window.renderBookmarks) window.renderBookmarks();
 };
 
 window.switchRepo = function(r) {
@@ -1180,21 +1181,24 @@ function updateRepoSidebar() {
   const addFileBtn = document.getElementById('fileAddBtn');
   const uploadBtn = document.getElementById('fileUploadBtn');
   const container = document.getElementById('sidebarContent');
-  const ftc = document.getElementById('fileTreeContainer');
+  const bContainer = document.getElementById('bookmarkContent');
+  const rtc = document.getElementById('repoTabsContainer');
   
   container.style.display = 'flex';
   
   if (repoCollapsed) {
       btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
       container.classList.add('mini');
+      if (bContainer) bContainer.classList.add('mini');
       addRepoBtn.style.display = 'none';
       addFileBtn.style.display = 'none';
       uploadBtn.style.display = 'none';
     } else {
       btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
       container.classList.remove('mini');
+      if (bContainer) bContainer.classList.remove('mini');
     addRepoBtn.style.display = 'flex';
-    if(ghRepo && ftc.style.display === 'flex') {
+    if(ghRepo && rtc && !rtc.classList.contains('expanded')) {
         addFileBtn.style.display = 'flex';
         uploadBtn.style.display = 'flex';
     } else {
@@ -2197,11 +2201,15 @@ function toggleMenu() {
   $toggleBtn.classList.toggle('active', isOpen);
   $backdrop.classList.toggle('open', isOpen);
   if (isOpen) {
-    // Always reset to mini sidebar when opening
-    repoCollapsed = true;
-    document.getElementById('fileTreeContainer').style.display = 'none';
-    document.getElementById('repoTabsContainer').classList.add('expanded');
-    updateRepoSidebar();
+      // Restore user's last sidebar state instead of forcing collapse
+      if (repoCollapsed) {
+          document.getElementById('fileTreeContainer').style.display = 'none';
+          document.getElementById('repoTabsContainer').classList.add('expanded');
+      } else {
+          document.getElementById('fileTreeContainer').style.display = 'flex';
+          document.getElementById('repoTabsContainer').classList.remove('expanded');
+      }
+      updateRepoSidebar();
     
     // Force a position refresh the moment it opens to account for layout shifts
     updateMenuPosition();
