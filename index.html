@@ -153,22 +153,23 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #fileAddBtn { width: 22px; font-size: 14px; color: var(--amber); }
 #fileUploadBtn { width: 22px; font-size: 14px; color: var(--blue); }
 
-#repoSidebar { display: flex; flex-direction: row; gap: 8px; flex-shrink: 0; }
-#sidebarContent { display: flex; flex-direction: column; width: 150px; height: fit-content; max-height: 202px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 8px; overflow-x: hidden; }
-#sidebarContent.mini { width: 44px; padding-right: 4px; align-items: center; }
+#repoSidebar { display: flex; flex-direction: row; gap: 8px; flex-shrink: 0; position: relative; }
+#sidebarContent { display: flex; flex-direction: column; width: 280px; height: fit-content; max-height: 60vh; border: 1px solid rgba(255,255,255,0.1); background: rgba(22, 22, 22, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; box-shadow: 0 16px 48px rgba(0,0,0,0.5); padding: 12px; overflow-x: hidden; position: absolute; bottom: calc(100% + 12px); left: 0; z-index: 10001; }
+#sidebarContent.mini { position: relative; bottom: auto; left: auto; width: 44px; border: none; border-right: 1px solid rgba(255,255,255,0.1); background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; border-radius: 0; padding: 0 4px 0 0; align-items: center; max-height: 202px; }
 #sidebarContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
 #sidebarContent.mini .repo-actions { display: none !important; }
 #sidebarContent.mini .repo-item { padding: 8px 4px; justify-content: center; text-align: center; flex-direction: column; }
 #sidebarContent.mini #repoTabsContainer { max-height: none; }
 
-#bookmarkContent { display: flex; flex-direction: column; width: 150px; height: fit-content; max-height: 202px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; overflow-x: hidden; }
-#bookmarkContent.mini { width: 44px; padding-left: 4px; align-items: center; }
+#bookmarkSidebar { position: relative; }
+#bookmarkContent { display: flex; flex-direction: column; width: 280px; height: fit-content; max-height: 60vh; border: 1px solid rgba(255,255,255,0.1); background: rgba(22, 22, 22, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; box-shadow: 0 16px 48px rgba(0,0,0,0.5); padding: 12px; overflow-x: hidden; position: absolute; bottom: calc(100% + 12px); right: 0; z-index: 10001; }
+#bookmarkContent.mini { position: relative; bottom: auto; right: auto; width: 44px; border: none; border-left: 1px solid rgba(255,255,255,0.1); background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; border-radius: 0; padding: 0 0 0 4px; align-items: center; max-height: 202px; }
 #bookmarkContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
 #bookmarkContent.mini .repo-actions { display: none !important; }
 #bookmarkContent.mini .repo-item { padding: 8px 4px; justify-content: center; text-align: center; flex-direction: column; }
 
-#repoTabsContainer { display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto; flex-shrink: 0; width: 100%; }
-#repoTabsContainer.expanded { max-height: 202px; overflow-y: auto; flex: none; }
+#repoTabsContainer { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; flex-shrink: 0; width: 100%; }
+#repoTabsContainer.expanded { max-height: calc(60vh - 20px); overflow-y: auto; flex: none; }
 #fileTreeContainer { display: none; flex-direction: column; gap: 2px; flex: 1; max-height: none; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px; }
 
 .repo-item {
@@ -371,10 +372,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <button id="ghSettingsBtn" class="btn" title="GitHub Settings"><i class="fa-solid fa-gear"></i></button>
         <button id="ghSyncBtn" class="btn" title="Sync & Fetch Repos" style="color:var(--teal);"><i class="fa-solid fa-arrows-rotate"></i></button>
         <button id="ghPushBtn" class="btn" title="Push to GitHub" disabled style="color:var(--blue);"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
-        <button id="exportBtn" class="btn" title="Export File" style="color:var(--purple);"><i class="fa-solid fa-floppy-disk"></i></button>
-        <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i></button>
+            <button id="exportBtn" class="btn" title="Export File" style="color:var(--purple);"><i class="fa-solid fa-floppy-disk"></i></button>
   
-        <div style="grid-column: span 5; display: flex; background: rgba(255,255,255,0.1); border-radius: 20px; align-items: center; height: 34px; padding: 0 4px 0 0; box-sizing: border-box;">
+            <div style="grid-column: span 5; display: flex; background: rgba(255,255,255,0.1); border-radius: 20px; align-items: center; height: 34px; padding: 0 4px 0 0; box-sizing: border-box;">
               <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 12px; outline: none; font-size: 12px; height: 34px; line-height: 34px;">
               <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 30px; height: 30px; min-width: 30px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 13px;"></i></button>
             </div>
@@ -388,8 +388,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                       </div>
   
-                      <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0;">
-                                                                                            <div id="bookmarkContent" class="mini">
+                      <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0; position: relative;">
+                                                                                                                  <div id="bookmarkContent" class="mini">
                                                                                               <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; width: 100%;"></div>
                                                                                             </div>
                                                                     </div>
@@ -424,7 +424,14 @@ select.bm-select option { background: var(--elevated); color: #fff; }
      </div>
      <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
      <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
-          <div class="gh-row" style="margin-top:10px;"><label>App Icon</label><input type="file" id="bmAppIcon" accept="image/png, image/jpeg" style="font-size:11px;"></div>
+          <div style="margin-top:10px; display:flex; flex-direction:column; gap:6px;">
+            <label style="font-size:13px; font-weight:600; color:var(--blue);">App Icon (PNG)</label>
+            <label for="bmAppIcon" style="display:flex; align-items:center; justify-content:center; gap:8px; background:rgba(255,255,255,0.05); padding:12px; border-radius:12px; cursor:pointer; border:1px dashed rgba(255,255,255,0.3); transition:all 0.2s;">
+              <i class="fa-solid fa-image" style="color:var(--purple); font-size:16px;"></i>
+              <span id="bmAppIconLabel" style="font-size:12px; color:#fff;">Upload Image (Auto-resized)</span>
+            </label>
+            <input type="file" id="bmAppIcon" accept="image/*" style="display:none;" onchange="document.getElementById('bmAppIconLabel').textContent = this.files[0] ? this.files[0].name : 'Upload Image (Auto-resized)'; this.parentElement.style.borderColor = this.files[0] ? 'var(--green)' : 'rgba(255,255,255,0.3)';">
+          </div>
        </div>
 
        <div class="gh-actions">
@@ -1660,23 +1667,32 @@ async function handleRepoUpload(e) {
   }
 
   if (uploaded > 0) {
-    let msg = `✅ Uploaded ${uploaded}/${filesToProcess.length} file(s)`;
-    if (totalExtracted > 0) msg += ` (extracted ${totalExtracted} ZIPs)`;
-    if (failed > 0) msg += `, ${failed} failed`;
+      let msg = `✅ Uploaded ${uploaded}/${filesToProcess.length} file(s)`;
+      if (totalExtracted > 0) msg += ` (extracted ${totalExtracted} ZIPs)`;
+      if (failed > 0) msg += `, ${failed} failed`;
     
-    toast(msg, failed ? 'warn' : 'ok');
-    ghFilePath = lastPath;
-    document.getElementById('ghFilePath').value = ghFilePath;
-    ghSaveConfig();
+      toast(msg, failed ? 'warn' : 'ok');
+      ghFilePath = lastPath;
+      document.getElementById('ghFilePath').value = ghFilePath;
+      ghSaveConfig();
 
-    const ftc = document.getElementById('fileTreeContainer');
-    const rtc = document.getElementById('repoTabsContainer');
-    ftc.style.display = 'flex';
-    rtc.classList.remove('expanded');
+      filesToProcess.forEach(f => {
+         const p = baseDir + f.name;
+         if (!currentTreeFiles.find(x => x.path === p)) {
+             currentTreeFiles.push({ path: p, type: 'blob' });
+         }
+      });
+      currentTreeFiles.sort((a,b) => a.path.localeCompare(b.path));
 
-    await fetchFileTree(false, false);
-    syncCurrentFile();
-  } else {
+      const ftc = document.getElementById('fileTreeContainer');
+      const rtc = document.getElementById('repoTabsContainer');
+      ftc.style.display = 'flex';
+      rtc.classList.remove('expanded');
+
+      renderFileTreeUI();
+      syncCurrentFile();
+      fetchFileTree(false, true);
+    } else {
     toast('❌ All uploads failed. Check the log.', 'err', 5000);
   }
   hideProgress();
@@ -1815,9 +1831,10 @@ async function fetchFileTree(autoLoad = false, silent = false) {
            if (repoInfo.default_branch) ghBranch = repoInfo.default_branch;
         }
 
-        const res = await fetch(`https://api.github.com/repos/${ghRepo}/git/trees/${ghBranch}?recursive=1`, {
-            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-        });
+        const res = await fetch(`https://api.github.com/repos/${ghRepo}/git/trees/${ghBranch}?recursive=1&t=${Date.now()}`, {
+                    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+                    cache: 'no-store'
+                });
         if (!res.ok) throw new Error('Tree fetch failed');
         const data = await res.json();
         
@@ -3565,10 +3582,26 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
   }
 
   let iconBase64 = '';
-  const iconInput = document.getElementById('bmAppIcon');
-  if (iconInput && iconInput.files[0]) {
-    try { iconBase64 = await readFileAsBase64(iconInput.files[0]); } catch(e){}
-  }
+    const iconInput = document.getElementById('bmAppIcon');
+    if (iconInput && iconInput.files[0]) {
+      try {
+        iconBase64 = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              canvas.width = 512; canvas.height = 512;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, 512, 512);
+              resolve(canvas.toDataURL('image/png').split(',')[1]);
+            };
+            img.src = e.target.result;
+          };
+          reader.readAsDataURL(iconInput.files[0]);
+        });
+      } catch(e){}
+    }
 
   const isApk = target === 'apk';
   const workflowPath = isApk ? '.github/workflows/build-apk.yml' : '.github/workflows/build-exe.yml';
