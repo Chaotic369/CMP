@@ -120,7 +120,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 }
 
 #app-menu {
-  position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: flex-start; gap: 12px;
+  position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: stretch; gap: 12px;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 12px; border: none !important; outline: none !important; border-radius: 20px;
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); width: fit-content; height: fit-content;
   max-width: min(calc(100vw - 20px), calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 20px));
@@ -155,8 +155,9 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #fileAddBtn { width: 22px; font-size: 14px; color: var(--amber); }
 #fileUploadBtn { width: 22px; font-size: 14px; color: var(--blue); }
 
-#repoSidebar { display: flex; flex-direction: row; gap: 8px; flex-shrink: 0; }
-#sidebarContent { display: flex; flex-direction: column; width: 220px; height: fit-content; max-height: min(50vh, calc(100vh - 220px)); border-right: 1px solid rgba(255,255,255,0.1); padding-right: 8px; overflow-x: hidden; overflow-y: auto; }
+#repoSidebar { display: flex; flex-direction: row; gap: 8px; flex-shrink: 0; max-height: 100%; }
+#sidebarContent { display: flex; flex-direction: column; width: 220px; height: auto; max-height: 320px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 8px; overflow-x: hidden; overflow-y: auto; }
+#sidebarContent.mini { max-height: 216px; }
 #sidebarContent.mini { width: 44px; padding-right: 4px; align-items: center; }
 #sidebarContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
 #sidebarContent.mini .repo-actions { display: none !important; }
@@ -170,8 +171,8 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #bookmarkContent.mini .repo-item { padding: 8px 4px; justify-content: center; text-align: center; flex-direction: column; }
 
 #repoTabsContainer { display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; flex-shrink: 0; width: 100%; }
-#repoTabsContainer.expanded { max-height: min(50vh, calc(100vh - 220px)); overflow-y: auto; flex: none; }
-#fileTreeContainer { display: none; flex-direction: column; gap: 2px; flex: 1; max-height: min(45vh, calc(100vh - 240px)); overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px; }
+#repoTabsContainer.expanded { max-height: 100%; overflow-y: auto; flex: 1; min-height: 40px; }
+#fileTreeContainer { display: none; flex-direction: column; gap: 2px; flex: 1; min-height: 40px; max-height: 100%; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px; }
 
 .repo-item {
   padding: 8px 12px; font-size: 13px; border-radius: 12px; border: none; background: transparent;
@@ -190,7 +191,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 .repo-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 4px 6px; font-size: 11px; border-radius: 8px; }
 .repo-btn.del { color: var(--red); }
 
-#main-controls { display: grid; grid-template-columns: repeat(5, 34px); grid-auto-rows: 34px; gap: 8px; align-content: start; flex-shrink: 0; }
+#main-controls { display: grid; grid-template-columns: repeat(5, 34px); grid-auto-rows: 34px; gap: 8px; align-content: start; flex-shrink: 0; height: fit-content; }
 
 #toast {
   position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 20px; font-size: 13px; font-weight: 500;
