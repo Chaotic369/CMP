@@ -100,11 +100,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 /* Action Pop Up Button */
 #toggleUiBtn {
-  position: fixed; bottom: calc(130px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 10000; width: 32px; height: 32px; border-radius: 11px;
+  position: fixed; bottom: calc(130px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 10000; width: 42px; height: 42px; border-radius: 14px;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; user-select: none; touch-action: none;
-  color: #ffffff; font-size: 14px;
+  color: #ffffff; font-size: 18px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   -webkit-tap-highlight-color: transparent;
 }
@@ -134,8 +134,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 /* Squircle Base Buttons */
 button.btn {
-  background: rgba(255, 255, 255, 0.08); border: none; color: #ffffff; border-radius: 5px; font-size: 8px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; flex-shrink: 0; outline: none;
+  background: rgba(255, 255, 255, 0.08); border: none; color: #ffffff; border-radius: 6px; font-size: 9px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; outline: none;
 }
 button.btn:hover { background: rgba(255, 255, 255, 0.15); }
 button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; color: rgba(255,255,255,0.5); }
@@ -191,7 +191,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 .repo-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 2px 4px; font-size: 9px; border-radius: 6px; }
 .repo-btn.del { color: var(--red); }
 
-#main-controls { display: grid; grid-template-columns: repeat(5, 20px); grid-auto-rows: 20px; gap: 4px; align-content: start; flex-shrink: 0; height: fit-content; }
+#main-controls { display: grid; grid-template-columns: repeat(5, 24px); grid-auto-rows: 24px; gap: 4px; align-content: start; flex-shrink: 0; height: fit-content; }
 
 #toast {
   position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 20px; font-size: 13px; font-weight: 500;
