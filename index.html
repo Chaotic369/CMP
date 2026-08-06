@@ -32,13 +32,23 @@
   const db = getDatabase(app);
 
   window._fbSaveConfig = async function(cfg) {
-      const userKey = cfg.user || 'default';
-      await set(ref(db, 'aicompiler/users/' + userKey + '/gh_config_v2'), cfg);
+      try {
+        // Clean object to prevent Firebase crashing on 'undefined' properties
+        const cleanCfg = JSON.parse(JSON.stringify(cfg));
+        await set(ref(db, 'aicompiler/gh_config_v2'), cleanCfg);
+      } catch (err) {
+        console.error('Firebase save error:', err);
+        if (window.toast) window.toast('Save Error: ' + err.message, 'err');
+      }
     };
-    window._fbLoadConfig = async function(userKey) {
-      const key = userKey || 'default';
-      const snap = await get(ref(db, 'aicompiler/users/' + key + '/gh_config_v2'));
-      return snap.exists() ? snap.val() : null;
+    window._fbLoadConfig = async function() {
+      try {
+        const snap = await get(ref(db, 'aicompiler/gh_config_v2'));
+        return snap.exists() ? snap.val() : null;
+      } catch (err) {
+        console.error('Firebase load error:', err);
+        return null;
+      }
     };
   window._fbReady = true;
 </script>
@@ -857,9 +867,8 @@ function applyWallpaper(url) {
 
 async function ghLoadConfigFromFirebase() {
   try {
-    let activeUser = localStorage.getItem('gh_active_user') || 'default';
     if (window._fbLoadConfig) {
-      const cfg = await window._fbLoadConfig(activeUser);
+      const cfg = await window._fbLoadConfig();
       if (cfg) {
         ghToken = cfg.token || '';
         ghUser = cfg.user || '';
@@ -881,8 +890,17 @@ async function ghLoadConfigFromFirebase() {
 
 function ghSaveConfig() {
   if (ghUser) localStorage.setItem('gh_active_user', ghUser);
-  const cfg = { token: ghToken, user: ghUser, repo: ghRepo, branch: ghBranch, filePath: ghFilePath, repos: ghRepos, bookmarkedRepos: ghBookmarkedRepos, wallpaper: settings.wallpaper || '' };
-  if (window._fbSaveConfig) window._fbSaveConfig(cfg).catch(function(){});
+  const cfg = { 
+    token: ghToken || '', 
+    user: ghUser || '', 
+    repo: ghRepo || '', 
+    branch: ghBranch || 'main', 
+    filePath: ghFilePath || 'index.html', 
+    repos: ghRepos || [], 
+    bookmarkedRepos: ghBookmarkedRepos || [], 
+    wallpaper: settings.wallpaper || '' 
+  };
+  if (window._fbSaveConfig) window._fbSaveConfig(cfg).catch(function(e){ console.error(e); });
   document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
 }
 
