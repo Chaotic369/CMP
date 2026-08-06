@@ -2123,7 +2123,13 @@ function syncSidebarHeightToControls() {
   var sc = document.getElementById('sidebarContent');
   if (!mc || !sc) return;
   var h = mc.getBoundingClientRect().height;
-  if (h > 0) sc.style.maxHeight = h + 'px';
+  if (h > 0) {
+    if (sc.classList.contains('mini')) {
+      sc.style.maxHeight = h + 'px';
+    } else {
+      sc.style.maxHeight = 'none';
+    }
+  }
 }
 
 function updateMenuPosition() {
