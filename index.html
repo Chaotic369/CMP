@@ -154,7 +154,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #fileUploadBtn { width: 22px; font-size: 14px; color: var(--blue); }
 
 #repoSidebar { display: flex; flex-direction: row; gap: 8px; flex-shrink: 0; position: relative; }
-#sidebarContent { display: flex; flex-direction: column; width: 280px; height: fit-content; max-height: 60vh; border: 1px solid rgba(255,255,255,0.1); background: rgba(22, 22, 22, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; box-shadow: 0 16px 48px rgba(0,0,0,0.5); padding: 12px; overflow-x: hidden; position: absolute; bottom: calc(100% + 12px); left: 0; z-index: 10001; }
+#sidebarContent { display: flex; flex-direction: column; width: 360px; height: fit-content; max-height: 80vh; border: 1px solid rgba(255,255,255,0.1); background: rgba(22, 22, 22, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; box-shadow: 0 16px 48px rgba(0,0,0,0.5); padding: 12px; overflow-x: hidden; position: absolute; bottom: calc(100% + 12px); left: 0; z-index: 10001; }
 #sidebarContent.mini { position: relative; bottom: auto; left: auto; width: 44px; border: none; border-right: 1px solid rgba(255,255,255,0.1); background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; border-radius: 0; padding: 0 4px 0 0; align-items: center; max-height: 202px; }
 #sidebarContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
 #sidebarContent.mini .repo-actions { display: none !important; }
@@ -162,15 +162,15 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #sidebarContent.mini #repoTabsContainer { max-height: none; }
 
 #bookmarkSidebar { position: relative; }
-#bookmarkContent { display: flex; flex-direction: column; width: 280px; height: fit-content; max-height: 60vh; border: 1px solid rgba(255,255,255,0.1); background: rgba(22, 22, 22, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; box-shadow: 0 16px 48px rgba(0,0,0,0.5); padding: 12px; overflow-x: hidden; position: absolute; bottom: calc(100% + 12px); right: 0; z-index: 10001; }
+#bookmarkContent { display: flex; flex-direction: column; width: 360px; height: fit-content; max-height: 80vh; border: 1px solid rgba(255,255,255,0.1); background: rgba(22, 22, 22, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 20px; box-shadow: 0 16px 48px rgba(0,0,0,0.5); padding: 12px; overflow-x: hidden; position: absolute; bottom: calc(100% + 12px); right: 0; z-index: 10001; }
 #bookmarkContent.mini { position: relative; bottom: auto; right: auto; width: 44px; border: none; border-left: 1px solid rgba(255,255,255,0.1); background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; border-radius: 0; padding: 0 0 0 4px; align-items: center; max-height: 202px; }
 #bookmarkContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
 #bookmarkContent.mini .repo-actions { display: none !important; }
 #bookmarkContent.mini .repo-item { padding: 8px 4px; justify-content: center; text-align: center; flex-direction: column; }
 
-#repoTabsContainer { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; flex-shrink: 0; width: 100%; }
-#repoTabsContainer.expanded { max-height: calc(60vh - 20px); overflow-y: auto; flex: none; }
-#fileTreeContainer { display: none; flex-direction: column; gap: 2px; flex: 1; max-height: none; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px; }
+#repoTabsContainer { display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto; flex-shrink: 0; width: 100%; }
+#repoTabsContainer.expanded { max-height: calc(80vh - 20px); overflow-y: auto; flex: none; }
+#fileTreeContainer { display: none; flex-direction: column; gap: 2px; flex: 1; max-height: 50vh; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px; }
 
 .repo-item {
   padding: 8px 12px; font-size: 13px; border-radius: 12px; border: none; background: transparent;
@@ -382,11 +382,12 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <button id="astBtn" class="btn" title="AST Guard Logs" style="color:var(--amber);"><i class="fa-solid fa-brain"></i></button>
     <button id="liveSiteBtn" class="btn" title="View Live Site in Browser" style="color:var(--blue);"><i class="fa-solid fa-globe"></i></button>
     <button id="viewBtn" class="btn" title="Toggle View"><i class="fa-solid fa-eye"></i></button>
-    <button id="logBtn" class="btn" title="System Logs"><i class="fa-solid fa-file-lines"></i></button>
-    <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i></button>
-    <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i></button>
-    <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
-                      </div>
+        <button id="logBtn" class="btn" title="System Logs"><i class="fa-solid fa-file-lines"></i></button>
+        <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i></button>
+        <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i></button>
+        <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i></button>
+        <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
+                          </div>
   
                       <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0; position: relative;">
                                                                                                                   <div id="bookmarkContent" class="mini">
@@ -1469,20 +1470,24 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
     showProgress(80);
 
     // Step 8: Context Switch
-            toast('⏳ Switching context...', 'info');
-            addLog('info', 'Switching IDE context to new repo...');
-            ghRepo = newRepoName;
-            ghFilePath = firstUploadedPath;
-            if (!ghRepos.includes(newRepoName)) ghRepos.unshift(newRepoName);
-            ghSaveConfig();
+                toast('⏳ Switching context...', 'info');
+                addLog('info', 'Switching IDE context to new repo...');
+                ghRepo = newRepoName;
+                ghFilePath = firstUploadedPath;
+                if (!ghRepos.includes(newRepoName)) ghRepos.unshift(newRepoName);
+                ghSaveConfig();
     
-        renderRepoTabs();
-        currentTreeFiles = multiFiles && source === 'files' ? filesToProcess.map(f => ({ path: f.name, type: 'blob' })) : [{ path: 'index.html', type: 'blob' }];
-        renderFileTreeUI();
-        document.getElementById('fileTreeContainer').style.display = 'flex';
-        document.getElementById('repoTabsContainer').classList.remove('expanded');
+            repoCollapsed = false;
+            localStorage.setItem('repo_collapsed', repoCollapsed);
+            updateRepoSidebar();
+        
+            renderRepoTabs();
+            currentTreeFiles = multiFiles && source === 'files' ? filesToProcess.map(f => ({ path: f.name, type: 'blob' })) : [{ path: 'index.html', type: 'blob' }];
+            renderFileTreeUI();
+            document.getElementById('fileTreeContainer').style.display = 'flex';
+            document.getElementById('repoTabsContainer').classList.remove('expanded');
 
-        toast(`✅ Repo '${name}' created and live!`, 'ok');
+            toast(`✅ Repo '${name}' created and live!`, 'ok');
     addLog('ok', `Repo creation pipeline complete for ${newRepoName}`);
 
     document.getElementById('newRepoModal').classList.remove('open');
@@ -1566,24 +1571,28 @@ window.createNewFile = async function() {
         });
         if(!res.ok) throw new Error(await res.text());
         toast('✅ File created!');
-                ghFilePath = path;
-                document.getElementById('ghFilePath').value = path;
-                ghSaveConfig();
+                        ghFilePath = path;
+                        document.getElementById('ghFilePath').value = path;
+                        ghSaveConfig();
         
-                if (!currentTreeFiles.find(f => f.path === path)) {
-                    currentTreeFiles.push({ path: path, type: 'blob' });
-                    currentTreeFiles.sort((a,b) => a.path.localeCompare(b.path));
-                }
+                        if (!currentTreeFiles.find(f => f.path === path)) {
+                            currentTreeFiles.push({ path: path, type: 'blob' });
+                            currentTreeFiles.sort((a,b) => a.path.localeCompare(b.path));
+                        }
 
-                // Ensure file tree container remains open and visible when file is added
-                const ftc = document.getElementById('fileTreeContainer');
-                const rtc = document.getElementById('repoTabsContainer');
-                ftc.style.display = 'flex';
-                rtc.classList.remove('expanded');
+                        repoCollapsed = false;
+                        localStorage.setItem('repo_collapsed', repoCollapsed);
+                        updateRepoSidebar();
+
+                        // Ensure file tree container remains open and visible when file is added
+                        const ftc = document.getElementById('fileTreeContainer');
+                        const rtc = document.getElementById('repoTabsContainer');
+                        ftc.style.display = 'flex';
+                        rtc.classList.remove('expanded');
         
-                renderFileTreeUI();
-                syncCurrentFile();
-    } catch (err) {
+                        renderFileTreeUI();
+                        syncCurrentFile();
+            } catch (err) {
         toast('❌ Failed: ' + err.message, 'err');
     }
     hideProgress();
@@ -1667,32 +1676,36 @@ async function handleRepoUpload(e) {
   }
 
   if (uploaded > 0) {
-      let msg = `✅ Uploaded ${uploaded}/${filesToProcess.length} file(s)`;
-      if (totalExtracted > 0) msg += ` (extracted ${totalExtracted} ZIPs)`;
-      if (failed > 0) msg += `, ${failed} failed`;
+        let msg = `✅ Uploaded ${uploaded}/${filesToProcess.length} file(s)`;
+        if (totalExtracted > 0) msg += ` (extracted ${totalExtracted} ZIPs)`;
+        if (failed > 0) msg += `, ${failed} failed`;
     
-      toast(msg, failed ? 'warn' : 'ok');
-      ghFilePath = lastPath;
-      document.getElementById('ghFilePath').value = ghFilePath;
-      ghSaveConfig();
+        toast(msg, failed ? 'warn' : 'ok');
+        ghFilePath = lastPath;
+        document.getElementById('ghFilePath').value = ghFilePath;
+        ghSaveConfig();
 
-      filesToProcess.forEach(f => {
-         const p = baseDir + f.name;
-         if (!currentTreeFiles.find(x => x.path === p)) {
-             currentTreeFiles.push({ path: p, type: 'blob' });
-         }
-      });
-      currentTreeFiles.sort((a,b) => a.path.localeCompare(b.path));
+        filesToProcess.forEach(f => {
+           const p = baseDir + f.name;
+           if (!currentTreeFiles.find(x => x.path === p)) {
+               currentTreeFiles.push({ path: p, type: 'blob' });
+           }
+        });
+        currentTreeFiles.sort((a,b) => a.path.localeCompare(b.path));
 
-      const ftc = document.getElementById('fileTreeContainer');
-      const rtc = document.getElementById('repoTabsContainer');
-      ftc.style.display = 'flex';
-      rtc.classList.remove('expanded');
+        repoCollapsed = false;
+        localStorage.setItem('repo_collapsed', repoCollapsed);
+        updateRepoSidebar();
 
-      renderFileTreeUI();
-      syncCurrentFile();
-      fetchFileTree(false, true);
-    } else {
+        const ftc = document.getElementById('fileTreeContainer');
+        const rtc = document.getElementById('repoTabsContainer');
+        ftc.style.display = 'flex';
+        rtc.classList.remove('expanded');
+
+        renderFileTreeUI();
+        syncCurrentFile();
+        fetchFileTree(false, true);
+      } else {
     toast('❌ All uploads failed. Check the log.', 'err', 5000);
   }
   hideProgress();
@@ -2438,8 +2451,12 @@ window.addEventListener('DOMContentLoaded', async function() {
   var fbWait = 0;
   while (!window._fbReady && fbWait < 20) { await new Promise(r => setTimeout(r, 50)); fbWait++; }
   
-  showMenuLoader('Syncing Configuration...');
-    await ghLoadConfigFromFirebase();
+  try {
+    showMenuLoader('Syncing Configuration...');
+    await Promise.race([
+      ghLoadConfigFromFirebase(),
+      new Promise(r => setTimeout(r, 6000))
+    ]);
     renderRepoTabs();
   
     if (ghRepo && ghToken) {
@@ -2452,20 +2469,23 @@ window.addEventListener('DOMContentLoaded', async function() {
       } catch(e) {}
     
       showMenuLoader('Loading Repository...');
-    await syncCurrentFile();
-    await fetchFileTree(false, true);
-  } else if (ghRepos.length === 0 && ghToken) {
-    showMenuLoader('Fetching Repositories...');
-    await ghFetchAllRepos();
+      await syncCurrentFile();
+      await fetchFileTree(false, true);
+    } else if (ghRepos.length === 0 && ghToken) {
+      showMenuLoader('Fetching Repositories...');
+      await ghFetchAllRepos();
+    }
+  } catch (err) {
+    console.error("Init Error:", err);
+    toast('Initialization error: ' + (err.message || 'unknown'), 'err', 5000);
+  } finally {
+    hideMenuLoader();
   }
-  hideMenuLoader();
 });
 
 function showControls() {
   document.getElementById('sb-status').textContent = fileName;
 }
-
-
 
 document.getElementById('fileBtn').addEventListener('click', function() {
   document.getElementById('fileInput').click();
@@ -3355,11 +3375,6 @@ window.syncCurrentFile = async function() {
   hideProgress();
 };
 
-document.getElementById('ghSyncBtn').addEventListener('click', async function() {
-  await ghFetchAllRepos();
-  await syncCurrentFile();
-});
-
 document.getElementById('ghPushBtn').addEventListener('click', function() {
   syncEditorToSource();
   if (!sourceContent) { toast('❌ Nothing to push.', 'warn'); return; }
@@ -3816,19 +3831,10 @@ async function pollOverlayStatus(workflowFile, artifactName) {
         appendBuildLog(`\n[${new Date().toLocaleTimeString()}] CONCLUSION: ${run.conclusion.toUpperCase()}\nFetching detailed error logs from GitHub...`);
         
         try {
-          const jobsRes = await fetch(run.jobs_url, { headers: { Authorization: `token ${ghToken}` }});
-          const jobsData = await jobsRes.json();
-          const failedJob = jobsData.jobs.find(j => j.conclusion === 'failure') || jobsData.jobs[0];
-          if(failedJob) {
-            const logRes = await fetch(failedJob.url + '/logs', { headers: { Authorization: `token ${ghToken}` }});
-            const fullLog = await logRes.text();
-            const lines = fullLog.split('\n');
-            const tail = lines.slice(-40).join('\n'); // Show last 40 lines of error
-            appendBuildLog(`\n=== ERROR TRACE ===\n${tail}`);
-          }
-        } catch(logErr) {
-          appendBuildLog(`Failed to pull direct logs. View on GitHub: https://github.com/${ghRepo}/actions/runs/${run.id}`);
-        }
+                  appendBuildLog(`\nView detailed logs directly on GitHub:\n${run.html_url}`);
+                } catch(logErr) {
+                  appendBuildLog(`Failed to pull direct logs. View on GitHub: https://github.com/${ghRepo}/actions/runs/${run.id}`);
+                }
       }
     }
   } catch(err) {
@@ -3913,6 +3919,62 @@ window.addEventListener('beforeunload', function(e) {
     e.returnValue = 'You have unsaved patches. Export before leaving?';
   }
 });
+
+window.fetchLatestFailedLog = async function(workflowFile) {
+  if (!ghToken || !ghRepo) { toast('❌ GitHub not configured', 'warn'); return; }
+  toast('⏳ Locating latest run...', 'info');
+  try {
+    const runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowFile}/runs?per_page=1`, { headers: { Authorization: `token ${ghToken}` }});
+    if (!runsRes.ok) throw new Error('Failed to fetch runs');
+    const runsData = await runsRes.json();
+    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) { toast('No runs found.', 'info'); return; }
+    const run = runsData.workflow_runs[0];
+    
+    window.open(run.html_url, '_blank');
+    toast('✅ Opened run in new tab to view logs natively.', 'ok');
+    closeBuildModal();
+  } catch (err) {
+    toast('❌ Log fetch failed: ' + err.message, 'err');
+  }
+};
+
+async function fetchAndDownloadArtifact(workflowFile, artifactName) {
+  if (!ghToken || !ghRepo) { toast('❌ GitHub not configured', 'warn'); return; }
+  toast(`⏳ Checking for latest ${artifactName}...`, 'info');
+  try {
+    const runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowFile}/runs?status=success&per_page=1`, { headers: { Authorization: `token ${ghToken}` }});
+    if (!runsRes.ok) throw new Error('Failed to fetch runs');
+    const runsData = await runsRes.json();
+    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) { toast('❌ No successful builds found.', 'warn'); return; }
+    
+    const run = runsData.workflow_runs[0];
+    const artRes = await fetch(run.artifacts_url, { headers: { Authorization: `token ${ghToken}` }});
+    const artData = await artRes.json();
+    const artifact = artData.artifacts.find(a => a.name === artifactName);
+    if (!artifact) { toast('❌ Artifact not found in the latest run.', 'err'); return; }
+    
+    toast(`✅ Found ${artifactName}! Starting download...`, 'ok');
+    let finalUrl = null;
+    try {
+      const abortCtrl = new AbortController();
+      let zipRes = await fetch(artifact.archive_download_url, { headers: { Authorization: `token ${ghToken}` }, signal: abortCtrl.signal });
+      if (!zipRes.ok) throw new Error('Not ok');
+      finalUrl = zipRes.url;
+      abortCtrl.abort();
+    } catch(err) {
+      finalUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
+    }
+    window.location.href = finalUrl;
+  } catch(err) {
+    toast('❌ Download failed: ' + err.message, 'err');
+  }
+}
+
+const btnApk = document.getElementById('downloadApkBtn');
+if (btnApk) btnApk.addEventListener('click', () => fetchAndDownloadArtifact('build-apk.yml', 'Android-APK'));
+
+const btnExe = document.getElementById('downloadExeBtn');
+if (btnExe) btnExe.addEventListener('click', () => fetchAndDownloadArtifact('build-exe.yml', 'Windows-EXE'));
 
 updateMenuPosition();
 sourceContent = '';
