@@ -16,31 +16,30 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
   import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   const firebaseConfig = {
-        apiKey: "AIzaSyCEbrFDt_Kpnpwhl8kP_Hz-5Pm8MI3anQE",
-        authDomain: "github-space-31f74.firebaseapp.com",
-        databaseURL: "https://github-space-31f74-default-rtdb.firebaseio.com",
-        projectId: "github-space-31f74",
-        storageBucket: "github-space-31f74.firebasestorage.app",
-        messagingSenderId: "949940750271",
-        appId: "1:949940750271:web:6998fc15d6e878481e430a",
-        measurementId: "G-XSGJNKNQMR"
+        apiKey: "AIzaSyCsN9OHN4SKKzMvaUnWPGUHK4VrJICL-Eo",
+        authDomain: "ghub-fcc39.firebaseapp.com",
+        databaseURL: "https://ghub-fcc39-default-rtdb.firebaseio.com",
+        projectId: "ghub-fcc39",
+        storageBucket: "ghub-fcc39.firebasestorage.app",
+        messagingSenderId: "628055095678",
+        appId: "1:628055095678:web:c92a270a0a68aadb729b2f"
       };
   
   const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
   const db = getDatabase(app);
 
   window._fbSaveConfig = async function(cfg) {
-    await set(ref(db, 'aicompiler/gh_config_v2'), cfg);
-  };
-  window._fbLoadConfig = async function() {
-    const snap = await get(ref(db, 'aicompiler/gh_config_v2'));
-    return snap.exists() ? snap.val() : null;
-  };
+      const userKey = cfg.user || 'default';
+      await set(ref(db, 'aicompiler/users/' + userKey + '/gh_config_v2'), cfg);
+    };
+    window._fbLoadConfig = async function(userKey) {
+      const key = userKey || 'default';
+      const snap = await get(ref(db, 'aicompiler/users/' + key + '/gh_config_v2'));
+      return snap.exists() ? snap.val() : null;
+    };
   window._fbReady = true;
 </script>
 
@@ -858,8 +857,9 @@ function applyWallpaper(url) {
 
 async function ghLoadConfigFromFirebase() {
   try {
+    let activeUser = localStorage.getItem('gh_active_user') || 'default';
     if (window._fbLoadConfig) {
-      const cfg = await window._fbLoadConfig();
+      const cfg = await window._fbLoadConfig(activeUser);
       if (cfg) {
         ghToken = cfg.token || '';
         ghUser = cfg.user || '';
@@ -880,6 +880,7 @@ async function ghLoadConfigFromFirebase() {
 }
 
 function ghSaveConfig() {
+  if (ghUser) localStorage.setItem('gh_active_user', ghUser);
   const cfg = { token: ghToken, user: ghUser, repo: ghRepo, branch: ghBranch, filePath: ghFilePath, repos: ghRepos, bookmarkedRepos: ghBookmarkedRepos, wallpaper: settings.wallpaper || '' };
   if (window._fbSaveConfig) window._fbSaveConfig(cfg).catch(function(){});
   document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
@@ -3116,14 +3117,32 @@ document.getElementById('ghClosePanelBtn').addEventListener('click', function() 
 });
 
 document.getElementById('ghSaveBtn').addEventListener('click', function() {
-  ghToken = document.getElementById('ghToken').value.trim();
-  ghUser = document.getElementById('ghUser').value.trim();
+  let newUser = document.getElementById('ghUser').value.trim();
+  let newToken = document.getElementById('ghToken').value.trim();
+  
+  if ((newUser !== ghUser && newUser !== '') || (newToken !== ghToken && newToken !== '')) {
+    ghRepos = [];
+    ghBookmarkedRepos = [];
+    ghRepo = '';
+    const ftc = document.getElementById('fileTreeContainer');
+    const rtc = document.getElementById('repoTabsContainer');
+    if(ftc) ftc.innerHTML = '';
+    if(rtc) rtc.innerHTML = '';
+  }
+  
+  ghToken = newToken;
+  ghUser = newUser;
   ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
   ghFilePath = document.getElementById('ghFilePath').value.trim() || 'index.html';
+  
   ghSaveConfig();
   document.getElementById('ghConfigPanel').classList.remove('open');
   $backdrop.classList.remove('open');
   toast('💾 GitHub Settings Saved!');
+  
+  if (ghToken && ghUser && ghRepos.length === 0) {
+    ghFetchAllRepos();
+  }
 });
 
 function readFileAsBase64(file) {
@@ -3172,7 +3191,23 @@ async function uploadSingleFileToRepo(repo, path, base64Content, branch, message
 }
 
 document.getElementById('ghFetchReposBtn').addEventListener('click', function() {
-  ghToken = document.getElementById('ghToken').value.trim();
+  let newUser = document.getElementById('ghUser').value.trim();
+  let newToken = document.getElementById('ghToken').value.trim();
+  
+  if ((newUser !== ghUser && newUser !== '') || (newToken !== ghToken && newToken !== '')) {
+    ghRepos = [];
+    ghBookmarkedRepos = [];
+    ghRepo = '';
+    const ftc = document.getElementById('fileTreeContainer');
+    const rtc = document.getElementById('repoTabsContainer');
+    if(ftc) ftc.innerHTML = '';
+    if(rtc) rtc.innerHTML = '';
+  }
+  
+  ghToken = newToken;
+  ghUser = newUser;
+  ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
+  ghSaveConfig();
   ghFetchAllRepos();
 });
 
