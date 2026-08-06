@@ -1191,23 +1191,16 @@ function updateRepoSidebar() {
   container.style.display = 'flex';
   if (bContainer) bContainer.classList.add('mini');
   
+  addRepoBtn.style.display = 'flex';
+  addFileBtn.style.display = 'flex';
+  uploadBtn.style.display = 'flex';
+
   if (repoCollapsed) {
       btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
       container.classList.add('mini');
-      addRepoBtn.style.display = 'none';
-      addFileBtn.style.display = 'none';
-      uploadBtn.style.display = 'none';
     } else {
       btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
       container.classList.remove('mini');
-    addRepoBtn.style.display = 'flex';
-    if(ghRepo && rtc && !rtc.classList.contains('expanded')) {
-        addFileBtn.style.display = 'flex';
-        uploadBtn.style.display = 'flex';
-    } else {
-        addFileBtn.style.display = 'none';
-        uploadBtn.style.display = 'none';
-    }
   }
   if ($appMenu.classList.contains('open')) updateMenuPosition();
 }
