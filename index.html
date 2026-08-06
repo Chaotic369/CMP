@@ -16,19 +16,22 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics.js";
   import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
   const firebaseConfig = {
-        apiKey: "AIzaSyCsN9OHN4SKKzMvaUnWPGUHK4VrJICL-Eo",
-        authDomain: "ghub-fcc39.firebaseapp.com",
-        databaseURL: "https://ghub-fcc39-default-rtdb.firebaseio.com",
-        projectId: "ghub-fcc39",
-        storageBucket: "ghub-fcc39.firebasestorage.app",
-        messagingSenderId: "628055095678",
-        appId: "1:628055095678:web:c92a270a0a68aadb729b2f"
+        apiKey: "AIzaSyCEbrFDt_Kpnpwhl8kP_Hz-5Pm8MI3anQE",
+        authDomain: "github-space-31f74.firebaseapp.com",
+        databaseURL: "https://github-space-31f74-default-rtdb.firebaseio.com",
+        projectId: "github-space-31f74",
+        storageBucket: "github-space-31f74.firebasestorage.app",
+        messagingSenderId: "949940750271",
+        appId: "1:949940750271:web:6998fc15d6e878481e430a",
+        measurementId: "G-XSGJNKNQMR"
       };
   
   const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
   const db = getDatabase(app);
 
   window._fbSaveConfig = async function(cfg) {
