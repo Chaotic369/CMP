@@ -2477,11 +2477,19 @@ document.getElementById('fullScreenBtn').addEventListener('click', function() {
   try {
     if (!document.fullscreenElement) {
       (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen || document.documentElement.mozRequestFullScreen || document.documentElement.msRequestFullscreen).call(document.documentElement)
+        .then(function() { document.getElementById('statusBar').style.display = 'none'; })
         .catch(function(err) { toast('Fullscreen: ' + err.message, 'warn'); });
     } else {
       (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen).call(document);
     }
   } catch(e) { toast('Fullscreen not supported here.', 'warn'); }
+});
+
+document.addEventListener('fullscreenchange', function() {
+  document.getElementById('statusBar').style.display = document.fullscreenElement ? 'none' : 'flex';
+});
+document.addEventListener('webkitfullscreenchange', function() {
+  document.getElementById('statusBar').style.display = document.webkitFullscreenElement ? 'none' : 'flex';
 });
 
 window.addEventListener('DOMContentLoaded', async function() {
