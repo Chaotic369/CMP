@@ -1188,18 +1188,17 @@ function updateRepoSidebar() {
   const rtc = document.getElementById('repoTabsContainer');
   
   container.style.display = 'flex';
+  if (bContainer) bContainer.classList.add('mini');
   
   if (repoCollapsed) {
       btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
       container.classList.add('mini');
-      if (bContainer) bContainer.classList.add('mini');
       addRepoBtn.style.display = 'none';
       addFileBtn.style.display = 'none';
       uploadBtn.style.display = 'none';
     } else {
       btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
       container.classList.remove('mini');
-      if (bContainer) bContainer.classList.remove('mini');
     addRepoBtn.style.display = 'flex';
     if(ghRepo && rtc && !rtc.classList.contains('expanded')) {
         addFileBtn.style.display = 'flex';
