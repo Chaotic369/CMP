@@ -1,0 +1,3823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>AI Compile PRO - Sovereign IDE</title>
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+        apiKey: "AIzaSyCsN9OHN4SKKzMvaUnWPGUHK4VrJICL-Eo",
+        authDomain: "ghub-fcc39.firebaseapp.com",
+        databaseURL: "https://ghub-fcc39-default-rtdb.firebaseio.com",
+        projectId: "ghub-fcc39",
+        storageBucket: "ghub-fcc39.firebasestorage.app",
+        messagingSenderId: "628055095678",
+        appId: "1:628055095678:web:c92a270a0a68aadb729b2f"
+      };
+  
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  window._fbSaveConfig = async function(cfg) {
+    await set(ref(db, 'aicompiler/gh_config_v2'), cfg);
+  };
+  window._fbLoadConfig = async function() {
+    const snap = await get(ref(db, 'aicompiler/gh_config_v2'));
+    return snap.exists() ? snap.val() : null;
+  };
+  window._fbReady = true;
+</script>
+
+<style>
+:root {
+  --blue: #5c9dff; --green: #39d353; --red: #f85149;
+  --amber: #e3b341; --purple: #bc8cff; --teal: #2dd4bf;
+  --surface: #000000; 
+  --elevated: #070b4a; 
+  --panel: #030835;
+  --border: transparent;
+  --tp: #ffffff; 
+  --tm: #ffffff; 
+  --td: #ffffff;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surface); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #ffffff; }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+
+#emptyState {
+  position: fixed; inset: 0; background: #000000; z-index: 0; display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 10px; color: #ffffff; font-family: 'JetBrains Mono', monospace; font-size: 14px; letter-spacing: 0.1em;
+}
+
+#preview {
+  position: fixed; top: env(safe-area-inset-top, 0px); left: env(safe-area-inset-left, 0px);
+  width: calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+  height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  border: none; background: transparent; z-index: 1; display: none; -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto; color-scheme: dark;
+}
+
+#codeView {
+  position: fixed; top: env(safe-area-inset-top, 0px); left: env(safe-area-inset-left, 0px);
+  width: calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+  height: calc(100vh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  background: var(--surface); color: #ffffff; font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  padding: 20px; border: none; outline: none; resize: none; z-index: 1; display: none; white-space: pre; overflow: auto;
+  -webkit-user-select: auto; user-select: auto;
+}
+
+#fring { position: fixed; inset: 0; z-index: 99; border: 3px solid var(--green); pointer-events: none; opacity: 0; }
+#fring.on { opacity: 1; }
+#menu-backdrop { position: fixed; inset: 0; z-index: 9998; background: transparent; display: none; }
+#menu-backdrop.open { display: block; }
+
+/* Action Pop Up Button */
+#toggleUiBtn {
+  position: fixed; bottom: calc(130px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 10000; width: 42px; height: 42px; border-radius: 14px;
+  background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; user-select: none; touch-action: none;
+  color: #ffffff; font-size: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  -webkit-tap-highlight-color: transparent;
+}
+#toggleUiBtn:hover {
+  background: rgba(33, 33, 33, 0.75);
+}
+#toggleUiBtn.active {
+  background: rgba(22, 22, 22, 0.85);
+  color: var(--green);
+}
+#toggleUiBtn.active i {
+  transform: rotate(45deg);
+}
+
+#app-menu {
+  position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: nowrap; justify-content: center; align-items: flex-start; gap: 12px;
+  background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 12px; border: none !important; outline: none !important; border-radius: 20px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); width: fit-content; height: fit-content; max-width: calc(100vw - 20px); max-height: calc(100vh - 80px); overflow: visible;
+  display: none; pointer-events: none;
+}
+#app-menu.open { 
+  display: flex; pointer-events: auto;
+}
+
+/* Squircle Base Buttons */
+button.btn {
+  background: rgba(255, 255, 255, 0.08); border: none; color: #ffffff; border-radius: 10px; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex-shrink: 0; outline: none;
+}
+button.btn:hover { background: rgba(255, 255, 255, 0.15); }
+button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; color: rgba(255,255,255,0.5); }
+
+/* Sidebar Buttons - No Background */
+#repoSidebar > div:first-child > button.btn,
+#bookmarkSidebar > div:last-child > button.btn {
+  background: transparent;
+}
+#repoSidebar > div:first-child > button.btn:hover,
+#bookmarkSidebar > div:last-child > button.btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+#repoToggleBtn { font-weight: bold; width: 22px; font-size: 14px; }
+#repoAddBtn { width: 22px; font-size: 14px; color: var(--green); }
+#fileAddBtn { width: 22px; font-size: 14px; color: var(--amber); }
+#fileUploadBtn { width: 22px; font-size: 14px; color: var(--blue); }
+
+#repoSidebar { display: flex; flex-direction: row; gap: 8px; flex-shrink: 0; }
+#sidebarContent { display: flex; flex-direction: column; width: 150px; height: fit-content; max-height: 202px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 8px; overflow-x: hidden; }
+#sidebarContent.mini { width: 44px; padding-right: 4px; align-items: center; }
+#sidebarContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
+#sidebarContent.mini .repo-actions { display: none !important; }
+#sidebarContent.mini .repo-item { padding: 8px 4px; justify-content: center; text-align: center; flex-direction: column; }
+#sidebarContent.mini #repoTabsContainer { max-height: none; }
+
+#bookmarkContent { display: flex; flex-direction: column; width: 150px; height: fit-content; max-height: 202px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 8px; overflow-x: hidden; }
+#bookmarkContent.mini { width: 44px; padding-left: 4px; align-items: center; }
+#bookmarkContent.mini .repo-name { font-size: 9px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
+#bookmarkContent.mini .repo-actions { display: none !important; }
+#bookmarkContent.mini .repo-item { padding: 8px 4px; justify-content: center; text-align: center; flex-direction: column; }
+
+#repoTabsContainer { display: flex; flex-direction: column; gap: 6px; max-height: 140px; overflow-y: auto; flex-shrink: 0; width: 100%; }
+#repoTabsContainer.expanded { max-height: 202px; overflow-y: auto; flex: none; }
+#fileTreeContainer { display: none; flex-direction: column; gap: 2px; flex: 1; max-height: none; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; margin-top: 8px; }
+
+.repo-item {
+  padding: 8px 12px; font-size: 13px; border-radius: 12px; border: none; background: transparent;
+  cursor: pointer; text-align: left; font-weight: 500;
+  display: flex; align-items: center; justify-content: space-between; gap: 6px; user-select: none; color: #ffffff;
+}
+.repo-item.file-item { padding: 6px 8px; border-radius: 10px; }
+.repo-item.ready-to-drag { background: rgba(255,255,255,0.1); cursor: grab; }
+.repo-item.ready-to-drag:active { cursor: grabbing; }
+.repo-item.drag-over { border: 1px dashed var(--green); background: rgba(255,255,255,0.05); opacity: 0.8; }
+.repo-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; pointer-events: none; color: #ffffff; opacity: 1; }
+.repo-item.active { background: rgba(255,255,255,0.15); color: #ffffff; font-weight: 600; }
+
+.repo-actions { display: none; align-items: center; gap: 4px; }
+.repo-item.active .repo-actions { display: flex; }
+.repo-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 4px 6px; font-size: 11px; border-radius: 8px; }
+.repo-btn.del { color: var(--red); }
+
+#main-controls { display: grid; grid-template-columns: repeat(5, 34px); grid-auto-rows: 34px; gap: 8px; align-content: start; flex-shrink: 0; }
+
+#toast {
+  position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 20px; font-size: 13px; font-weight: 500;
+  background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; color: var(--green);
+  z-index: 40000; display: none; max-width: 90vw; text-align: center; white-space: pre-line;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+#toast.show { display: block; }
+#toast.warn { color: var(--amber); }
+#toast.err  { color: var(--red); }
+#toast.info { color: var(--blue); }
+
+#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal {
+  position: fixed; z-index: 98; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px;
+  padding: 24px; color: #ffffff; font-size: 13px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+  transform: translateZ(0);
+}
+#astPanel, #logPanel { width: calc(100vw - 40px); max-width: 420px; max-height: 48vh; overflow-y: auto; display: none; line-height: 1.6; left: 50%; transform: translateX(-50%); }
+#astPanel { top: 80px; }
+#logPanel { top: 80px; z-index: 112; }
+
+#ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; z-index: 30000; }
+#ghConfigPanel.open, #commitModal.open, #newRepoModal.open, #wallpaperModal.open { display: flex; }
+
+#astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
+.ast-ok { color: var(--green); } .ast-warn { color: var(--amber); } .ast-err { color: var(--red); font-weight: bold; }
+.log-ok { color: var(--green); } .log-warn { color: var(--amber); } .log-err { color: var(--red); } .log-info { color: var(--blue); }
+
+#errOverlay {
+  position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
+  background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 20px;
+  padding: 16px; color: var(--red); font-size: 13px; font-weight: 500; z-index: 25000;
+  width: 90vw; max-width: 480px; display: none; white-space: pre-wrap; max-height: 40vh; overflow-y: auto;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+
+#statusBar {
+  position: fixed; bottom: 0; left: 0; right: 0; height: calc(24px + env(safe-area-inset-bottom, 0px)); background: #000000; border-top: none;
+  display: flex; align-items: center; padding: 0 12px env(safe-area-inset-bottom, 0px) 12px; gap: 12px; font-size: 11px; font-weight: 500; color: #ffffff; z-index: 9990;
+}
+#statusBar .sb-item { white-space: nowrap; }
+#statusBar .sb-ok { color: var(--green); } #statusBar .sb-warn { color: var(--amber); }
+#statusBar .sb-err { color: var(--red); } #statusBar .sb-sep { color: #ffffff; }
+
+#progressBar {
+  position: fixed; top: 0; left: 0; height: 3px; background: var(--blue); z-index: 30000;
+  width: 0%; display: none; box-shadow: 0 0 10px var(--blue);
+}
+#progressBar.active { display: block; }
+
+.panel-close { float: right; cursor: pointer; color: #ffffff; font-size: 18px; line-height: 1; margin-top: -2px; padding: 2px 4px; transition: color 0.2s; }
+input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 0.8; }
+.panel-close:hover { color: #ffffff; }
+
+.gh-row { display: flex; gap: 8px; align-items: center; }
+.gh-row label { width: 70px; color: #ffffff; font-size: 13px; font-weight: 500; }
+.gh-row input { flex: 1; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 20px; outline: none; }
+.gh-row input:focus { background: rgba(255, 255, 255, 0.15); }
+
+.gh-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+.gh-actions button { background: rgba(255, 255, 255, 0.15); border: none; color: #ffffff; padding: 8px 16px; border-radius: 20px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.gh-actions button:hover { background: rgba(255, 255, 255, 0.25); }
+
+#commitMsgInput {
+  width: 100%; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff;
+  padding: 14px; border-radius: 20px; min-height: 90px; resize: vertical; outline: none;
+}
+#commitMsgInput:focus { background: rgba(255, 255, 255, 0.15); }
+
+/* Find and Replace Panel */
+#searchCodeBtn {
+  position: fixed; bottom: calc(85px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 10000; width: 42px; height: 42px; border-radius: 14px;
+  background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
+  display: none; align-items: center; justify-content: center;
+  cursor: pointer; color: #ffffff; font-size: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+#searchCodeBtn:hover { background: rgba(33, 33, 33, 0.75); color: var(--blue); }
+
+#fnrPanel {
+  position: fixed; top: env(safe-area-inset-top, 0px); left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px); z-index: 10001;
+  background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
+  padding: 16px 20px; display: none; flex-direction: column; gap: 10px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
+}
+.fnr-row { display: flex; gap: 10px; align-items: center; }
+.fnr-row input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); color: #fff; padding: 10px 14px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+.fnr-row input:focus { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.2); }
+.fnr-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.fnr-btn:hover { background: rgba(255,255,255,0.2); }
+
+/* Dual-Engine Build Modal */
+#buildModal { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px; padding: 24px; color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); max-height: 85vh; overflow-y: auto; }
+#buildModal.open { display: flex; }
+#buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
+.bm-step label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--blue); }
+.bm-toggle-btn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500; }
+.bm-toggle-btn.active { background: rgba(92, 157, 255, 0.2); border-color: var(--blue); }
+.bm-code-box { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; padding: 12px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; min-height: 80px; resize: vertical; margin-bottom: 8px; }
+.bm-permissions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
+.bm-permissions-grid label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.bm-advanced { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-top: 4px; }
+.bm-advanced summary { cursor: pointer; font-size: 13px; font-weight: 600; outline: none; user-select: none; }
+.bm-lib-chip { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 6px 10px; border-radius: 10px; font-size: 11px; cursor: pointer; }
+.bm-lib-chip:hover { background: rgba(255,255,255,0.2); }
+select.bm-select { width: 100%; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 12px; outline: none; font-size: 13px; -webkit-appearance: none; }
+select.bm-select option { background: var(--elevated); color: #fff; }
+</style>
+</head>
+<body>
+
+<div id="emptyState">
+  <div id="emptyStateContent" style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+    <i class="fa-solid fa-code" style="font-size:20px; color:#ffffff; margin-bottom: 4px; position:relative; z-index:2;"></i>
+    <div style="font-size:11px; color:#ffffff; position:relative; z-index:2;">WORKSPACE EMPTY</div>
+  </div>
+</div>
+
+<div id="progressBar"></div>
+
+<iframe id="preview" sandbox="allow-scripts allow-same-origin allow-modals allow-forms allow-popups"></iframe>
+<textarea id="codeView" spellcheck="false" placeholder="Code will appear here..."></textarea>
+
+<button id="searchCodeBtn" title="Find & Replace"><i class="fa-solid fa-magnifying-glass"></i></button>
+<div id="fnrPanel">
+  <div class="fnr-row">
+    <input type="text" id="fnrFind" placeholder="Find (case-insensitive)...">
+    <span id="fnrCount" style="font-size:11px; color:#ffffff; min-width:35px; text-align:right;">0/0</span>
+  </div>
+  <div class="fnr-row">
+    <input type="text" id="fnrReplace" placeholder="Replace with...">
+  </div>
+  <div class="fnr-row" style="justify-content: space-between; margin-top: 4px;">
+    <div style="display:flex; gap:6px;">
+      <button class="fnr-btn" id="fnrPrev" title="Previous"><i class="fa-solid fa-chevron-up"></i></button>
+      <button class="fnr-btn" id="fnrNext" title="Next"><i class="fa-solid fa-chevron-down"></i></button>
+    </div>
+    <div style="display:flex; gap:6px;">
+      <button class="fnr-btn" id="fnrRep" style="color:var(--amber);">Replace</button>
+      <button class="fnr-btn" id="fnrRepAll" style="color:var(--red);">All</button>
+      <button class="fnr-btn" id="fnrClose" style="margin-left: 8px;"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+  </div>
+</div>
+
+<div id="fring"></div>
+<div id="menu-backdrop"></div>
+
+<button id="toggleUiBtn" title="Toggle Menu">
+  <i class="fa-solid fa-plus"></i>
+</button>
+
+<div id="app-menu">
+  <div id="app-menu-loader" style="display: none; position: absolute; inset: 0; z-index: 10000; background: rgba(22, 22, 22, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px; align-items: center; justify-content: center; flex-direction: column; gap: 10px;">
+    <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 28px; color: var(--blue);"></i>
+    <span id="app-menu-loader-text" style="font-size: 11px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">Connecting...</span>
+  </div>
+  <div id="repoSidebar">
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button id="repoToggleBtn" class="btn" title="Toggle Sidebar">&lt;</button>
+        <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:none;"><i class="fa-solid fa-folder-plus"></i></button>
+      <button id="fileAddBtn" class="btn" title="Create New File" style="display:none;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
+                  <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:none;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
+                              <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
+                        <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
+                      </div>
+    <div id="sidebarContent">
+      <div id="repoTabsContainer" class="expanded"></div>
+      <div id="fileTreeContainer"></div>
+    </div>
+  </div>
+
+  <div id="main-controls">
+    <button id="pasteBtn" class="btn" title="Paste & Apply" style="color:var(--green);"><i class="fa-solid fa-bolt"></i></button>
+    <button id="undoBtn" class="btn" title="Undo" disabled><i class="fa-solid fa-arrow-rotate-left"></i></button>
+    <button id="redoBtn" class="btn" title="Redo" disabled><i class="fa-solid fa-arrow-rotate-right"></i></button>
+    <button id="fileBtn" class="btn" title="Load File" style="color:var(--amber);"><i class="fa-solid fa-folder"></i></button>
+    <button id="fullScreenBtn" class="btn" title="Full Screen"><i class="fa-solid fa-expand"></i></button>
+  
+    <button id="ghSettingsBtn" class="btn" title="GitHub Settings"><i class="fa-solid fa-gear"></i></button>
+    <button id="ghSyncBtn" class="btn" title="Sync Selected File" style="color:var(--teal);"><i class="fa-solid fa-arrows-rotate"></i></button>
+    <button id="ghPushBtn" class="btn" title="Push to GitHub" disabled style="color:var(--blue);"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
+    <button id="exportBtn" class="btn" title="Export File" style="color:var(--purple);"><i class="fa-solid fa-floppy-disk"></i></button>
+    <button id="clearBtn" class="btn" title="Reset Workspace" style="color:var(--red);"><i class="fa-solid fa-trash"></i></button>
+  
+    <div style="grid-column: span 5; display: flex; background: rgba(255,255,255,0.1); border-radius: 20px; align-items: center; height: 34px; padding: 0 4px 0 0; box-sizing: border-box;">
+              <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 12px; outline: none; font-size: 12px; height: 34px; line-height: 34px;">
+              <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 30px; height: 30px; min-width: 30px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 13px;"></i></button>
+            </div>
+  
+    <button id="astBtn" class="btn" title="AST Guard Logs" style="color:var(--amber);"><i class="fa-solid fa-brain"></i></button>
+    <button id="liveSiteBtn" class="btn" title="View Live Site in Browser" style="color:var(--blue);"><i class="fa-solid fa-globe"></i></button>
+    <button id="viewBtn" class="btn" title="Toggle View"><i class="fa-solid fa-eye"></i></button>
+    <button id="logBtn" class="btn" title="System Logs"><i class="fa-solid fa-file-lines"></i></button>
+    <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i></button>
+    <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i></button>
+    <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i></button>
+    <button id="buildApkBtn" class="btn" style="display:none;"></button>
+    <button id="buildExeBtn" class="btn" style="display:none;"></button>
+    <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);"><i class="fa-solid fa-file-zipper"></i></button>
+        <button id="pullApkLogBtn" class="btn" title="Pull Last APK Build Log" style="color:var(--red);" onclick="fetchLatestFailedLog('build-native-apk.yml')"><i class="fa-solid fa-file-waveform"></i></button>
+    <button id="downloadExeBtn" class="btn" title="Check & Download Latest EXE Zip" style="color:var(--teal);"><i class="fa-solid fa-file-archive"></i></button>
+    
+                    <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
+                      </div>
+  
+                      <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0;">
+                                                                                            <div id="bookmarkContent" class="mini">
+                                                                                              <div id="bookmarkRightList" style="display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; width: 100%;"></div>
+                                                                                            </div>
+                                                                    </div>
+                                          </div>
+
+                      <div id="toast"></div>
+
+<div id="wallpaperModal">
+  <h4><i class="fa-solid fa-image"></i> Workspace Wallpaper</h4>
+  <div class="gh-row"><label>Image URL</label><input type="text" id="wpUrlInput" placeholder=""></div>
+  <div style="display:flex; justify-content:center; margin: 10px 0;">
+    <button id="wpUploadBtn" style="background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 16px; border-radius: 20px; cursor: pointer; display:flex; align-items:center; gap:8px; transition: background 0.2s;"><i class="fa-solid fa-upload"></i> Or Upload Image</button>
+    <input type="file" id="wpFileInput" accept="image/*" style="display:none;">
+  </div>
+  <div class="gh-actions">
+    <button id="wpClearBtn" style="color:var(--red); margin-right:auto; background:rgba(248, 81, 73, 0.2);"><i class="fa-solid fa-trash"></i> Clear</button>
+    <button id="wpCancelBtn"><i class="fa-solid fa-xmark"></i> Close</button>
+    <button id="wpSaveBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-check"></i> Apply</button>
+  </div>
+</div>
+
+<div id="buildModal">
+  <h4><i class="fa-solid fa-hammer"></i> Build App <span class="panel-close" id="bmCloseBtn">✕</span></h4>
+
+  <div id="bmWrapperSettings">
+     <div class="bm-step" style="margin-top:10px;">
+       <label>Target Platform</label>
+       <select id="bmWrapperTarget" class="bm-select">
+         <option value="apk">Android APK (Cordova)</option>
+         <option value="exe">Windows EXE (Electron)</option>
+       </select>
+     </div>
+     <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
+     <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
+  </div>
+
+  <div class="gh-actions">
+    <button id="bmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+    <button id="bmCompileBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-rocket"></i> Build App</button>
+  </div>
+</div>
+
+<style>
+    #buildProgressOverlay { transition: all 0.3s ease; }
+    #buildProgressOverlay.minimized { width: 48px !important; top: calc(20px + env(safe-area-inset-top, 0px)) !important; left: auto !important; right: calc(20px + env(safe-area-inset-right, 0px)) !important; transform: none !important; background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; border: none !important; padding: 12px !important; cursor: pointer; }
+    #buildProgressOverlay.minimized > div:not(#bpStepper), #buildProgressOverlay.minimized > button { display: none !important; }
+    #buildProgressOverlay.minimized .step-item > div:nth-child(2) { display: none !important; }
+    #buildProgressOverlay.minimized #bpStepper { margin: 0 !important; }
+    #buildProgressOverlay.minimized:hover { background: transparent !important; opacity: 0.8; }
+    </style>
+<div id="buildProgressOverlay" style="display:none; position:fixed; top:80px; left:50%; transform:translateX(-50%); width:calc(100vw - 40px); max-width:420px; background:rgba(22, 22, 22, 0.85); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:20px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:0 16px 48px rgba(0,0,0,0.5);">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px;">
+      <h4 id="bpTitle" style="color:#fff; margin:0; font-size:15px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</h4>
+      <div style="display:flex; gap:16px; align-items:center;">
+        <i class="fa-solid fa-chevron-right panel-close" id="bpMinBtnIcon" style="cursor:pointer; color:rgba(255,255,255,0.7); font-size:16px;" title="Minimize"></i>
+        <i class="fa-solid fa-xmark panel-close" id="bpCloseBtnIcon" style="cursor:pointer; display:none; color:rgba(255,255,255,0.7); font-size:18px;"></i>
+      </div>
+    </div>
+  
+    <div class="stepper-wrapper" id="bpStepper" style="display:flex; flex-direction:column; gap:16px; margin-bottom:16px; position:relative;">
+    <div style="position:absolute; left:11px; top:12px; bottom:12px; width:2px; background:rgba(255,255,255,0.1); z-index:1;">
+      <div id="bpStepperProgress" style="width:100%; height:0%; background:var(--blue); transition:height 0.4s ease;"></div>
+    </div>
+    <div class="step-item" id="step1" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
+      <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
+      <div style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="font-size:13px; font-weight:600; color:#fff;">Initialize Engine</div>
+      </div>
+    </div>
+    <div class="step-item" id="step2" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
+      <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
+      <div style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="font-size:13px; font-weight:600; color:#fff;">Dispatch Workflow</div>
+      </div>
+    </div>
+    <div class="step-item" id="step3" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
+      <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
+      <div style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="font-size:13px; font-weight:600; color:#fff;">Compile Target</div>
+      </div>
+    </div>
+    <div class="step-item" id="step4" style="display:flex; gap:12px; position:relative; z-index:2; opacity:0.5;">
+      <div class="step-circle" style="width:24px; height:24px; border-radius:50%; background:var(--surface); border:2px solid rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0;"><div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div></div>
+      <div style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="font-size:13px; font-weight:600; color:#fff;">Finalize Artifact</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="bpStatusText" style="font-size:12px; margin-bottom:8px; color:var(--blue); font-weight:600; min-height:16px;">Initializing...</div>
+    <div id="bpLogs" style="font-size:10px; color:rgba(255,255,255,0.7); background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; min-height:80px; max-height:150px; overflow-y:auto; white-space:pre-wrap; word-break:break-all; border:1px solid rgba(255,255,255,0.05);"></div>
+      <div style="display:flex; gap:12px; margin-top:12px;">
+        <button id="bpCancelBtn" style="flex:1; padding:8px 16px; background:rgba(248,81,73,0.15); border:1px solid rgba(248,81,73,0.3); border-radius:12px; color:var(--red); cursor:pointer; font-weight:600; font-size:12px; transition:all 0.2s;">Cancel Build</button>
+        <button id="bpCloseBtn" style="display:none; flex:1; padding:8px 16px; background:rgba(255,255,255,0.1); border:none; border-radius:12px; color:#fff; cursor:pointer; font-weight:600; font-size:12px; transition:all 0.2s;">Close</button>
+      </div>
+    </div>
+
+<div id="newRepoModal">
+  <h4><i class="fa-solid fa-folder-plus"></i> New Repository <span class="panel-close" id="nrCloseBtn">✕</span></h4>
+  <div class="gh-row"><label>Name</label><input type="text" id="nrName" placeholder=""></div>
+  <div style="display:flex; gap:10px; margin: 10px 0; font-size: 13px; flex-wrap: wrap;">
+        <label style="cursor:pointer;"><input type="radio" name="nrSource" value="upload" checked> <i class="fa-solid fa-upload"></i> Upload HTML</label>
+        <label style="cursor:pointer;"><input type="radio" name="nrSource" value="paste"> <i class="fa-solid fa-code"></i> Paste HTML</label>
+        <label style="cursor:pointer;"><input type="radio" name="nrSource" value="files"> <i class="fa-solid fa-file-zipper"></i> Upload Files (ZIPs auto-extract)</label>
+      </div>
+  
+    <label id="nrFileLabel" for="nrFileInput" style="display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
+      <i class="fa-solid fa-cloud-arrow-up" style="font-size:24px; color:var(--blue);"></i>
+      <span id="nrFileNameDisplay" style="font-size:13px; font-weight:500;">Click to upload HTML file</span>
+    </label>
+    <input type="file" id="nrFileInput" accept=".html,.htm" style="display:none;">
+
+    <label id="nrFilesLabel" for="nrFilesInput" style="display:none; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
+      <i class="fa-solid fa-file-zipper" style="font-size:24px; color:var(--purple);"></i>
+      <span id="nrFilesNameDisplay" style="font-size:13px; font-weight:500;">Click to select any files (multiple allowed)</span>
+    </label>
+    <input type="file" id="nrFilesInput" multiple style="display:none;">
+
+    <textarea id="nrPasteInput" placeholder="" style="display:none; width:100%; height:120px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:4px; margin-bottom:10px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:12px;"></textarea>
+  <div class="gh-actions">
+    <button id="nrCancelBtn">✕ Cancel</button>
+    <button id="nrAddBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);">Add</button>
+  </div>
+</div>
+
+<div id="ghConfigPanel">
+  <h4><i class="fa-brands fa-github"></i> GitHub Integration</h4>
+  <div class="gh-row"><label>Token</label><input type="password" id="ghToken" placeholder=""></div>
+  <div class="gh-row"><label>User</label><input type="text" id="ghUser" placeholder=""></div>
+  <div class="gh-row"><label>Branch</label><input type="text" id="ghBranch" placeholder=""></div>
+  <div class="gh-row"><label>File Path</label><input type="text" id="ghFilePath" placeholder=""></div>
+  <div class="gh-actions">
+    <button id="ghFetchReposBtn" style="color:var(--teal); margin-right: auto; background: rgba(45, 212, 191, 0.2);"><i class="fa-solid fa-arrows-rotate"></i> Fetch Repos</button>
+    <button id="ghClosePanelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+    <button id="ghSaveBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+  </div>
+</div>
+
+<div id="commitModal">
+  <h4><i class="fa-solid fa-arrow-up-from-bracket"></i> Commit & Push</h4>
+  <textarea id="commitMsgInput" placeholder=""></textarea>
+  <div class="gh-actions">
+    <button id="cmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+    <button id="cmConfirmBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-arrow-up-from-bracket"></i> Push</button>
+  </div>
+</div>
+
+<div id="astPanel">
+  <h4>🧠 AST Health <span class="panel-close" onclick="document.getElementById('astPanel').style.display='none'">✕</span></h4>
+  <div id="astContent">Load a file to analyse.</div>
+</div>
+
+<div id="errOverlay">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <span id="errText" style="flex: 1;"></span>
+    <button id="copyErrBtn" class="btn" style="padding: 4px 12px; font-size: 14px; width:auto; margin-left: 10px; border-radius: 12px;">📋</button>
+  </div>
+  <div style="margin-top: 12px; font-size: 11px; color: var(--red); cursor: pointer; opacity: 0.8;" id="dismissErrText">[tap here to dismiss]</div>
+</div>
+
+<div id="logPanel">
+  <h4 style="color: #ffffff; margin-bottom: 16px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px;">🪵 Patch Log <span class="panel-close" onclick="document.getElementById('logPanel').style.display='none'">✕</span></h4>
+  <div id="logContent"></div>
+</div>
+
+<div id="statusBar">
+  <span class="sb-item" id="sb-lines">– lines</span>
+  <span class="sb-sep">|</span>
+  <span class="sb-item" id="sb-size">– KB</span>
+  <span class="sb-sep">|</span>
+  <span class="sb-item" id="sb-undo">undo:0</span>
+  <span class="sb-sep">|</span>
+  <span class="sb-item" id="sb-ast">AST: –</span>
+  <span class="sb-sep">|</span>
+  <span class="sb-item" id="sb-status">ready</span>
+    <span class="sb-sep" id="sb-build-sep" style="display:none;">|</span>
+        <span class="sb-item" id="sb-build" style="display:none; cursor:pointer;" title="Click to download if ready"></span>
+        <span class="sb-sep" id="sb-build-exe-sep" style="display:none;">|</span>
+        <span class="sb-item" id="sb-build-exe" style="display:none; cursor:pointer;" title="Click to download EXE if ready"></span>
+      </div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// CONSTANTS & STATE
+// ═══════════════════════════════════════════════════════════════════════════
+var SETTINGS_KEY   = 'compiler_settings_v2';
+var MAX_UNDO       = 50;
+var SPLIT_TOKEN    = '===SPLIT===';
+var BLOCK_TOKEN    = '===BLOCK===';
+var NUKE_THRESHOLD = 0.60;
+
+var lastClip       = '';
+var sourceContent  = '';
+var undoStack      = [];
+var redoStack      = [];
+var fileName       = 'index.html';
+var patchLog       = [];
+var isDragging     = false;
+var viewMode       = 'preview'; 
+var dragStartX, dragStartY, initialBtnX, initialBtnY;
+var currentErrText = '';
+
+// AST Guard disabled by default to prevent apply rejections
+var settings = { astGuard: false, indentFix: true, warnAmbiguous: true };
+
+// GitHub Vars
+var ghToken = '';
+var ghUser = '';
+var ghRepo = '';
+var ghBranch = 'main';
+var ghFilePath = 'index.html';
+var ghRepos = [];
+var ghBookmarkedRepos = [];
+var repoCollapsed = true;
+
+let dragSrcEl = null;
+window.nestedExpanded = window.nestedExpanded || {};
+let currentTreeFiles = [];
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('installBtn').style.display = 'flex';
+});
+
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') document.getElementById('installBtn').style.display = 'none';
+    deferredPrompt = null;
+  }
+});
+
+window.toggleBookmarkRepo = function(r, e) {
+    if(e) e.stopPropagation();
+    if (ghBookmarkedRepos.includes(r)) {
+        ghBookmarkedRepos = ghBookmarkedRepos.filter(x => x !== r);
+    } else {
+        ghBookmarkedRepos.push(r);
+    }
+    ghSaveConfig();
+    renderRepoTabs();
+};
+
+window.switchRepo = function(r) {
+    if (ghRepo === r) return;
+    ghRepo = r;
+    ghSaveConfig();
+    renderRepoTabs();
+    document.getElementById('fileTreeContainer').style.display = 'flex';
+    document.getElementById('repoTabsContainer').classList.remove('expanded');
+    updateRepoSidebar();
+    fetchFileTree(true, false);
+};
+
+window.renderBookmarks = function() {
+    const bSidebar = document.getElementById('bookmarkSidebar');
+    const rightList = document.getElementById('bookmarkRightList');
+    const content = document.getElementById('bookmarkContent');
+    
+    if (!bSidebar || !rightList) return;
+    
+    if (!ghBookmarkedRepos || ghBookmarkedRepos.length === 0) {
+        bSidebar.style.display = 'none';
+        return;
+    }
+    
+    bSidebar.style.display = 'flex';
+    rightList.innerHTML = '';
+    
+    ghBookmarkedRepos.forEach((r, bIndex) => {
+        const name = r.split('/')[1] || r;
+        
+        const rBtn = document.createElement('div');
+        rBtn.className = 'repo-item' + (r === ghRepo ? ' active' : '');
+        rBtn.dataset.bindex = bIndex;
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'repo-name';
+        nameSpan.textContent = name;
+        
+        const actions = document.createElement('div');
+                actions.className = 'repo-actions';
+                actions.innerHTML = `
+                  <button class="repo-btn star" style="color:var(--amber);" title="Remove Bookmark" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
+                  <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
+                  <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
+                `;
+        
+        rBtn.appendChild(nameSpan);
+        rBtn.appendChild(actions);
+        rBtn.onclick = (e) => { if (rBtn.dataset.dragReady === '1') return; e.stopPropagation(); window.switchRepo(r); };
+
+        // --- Drag to sort / Drag to delete ---
+        let holdTimer;
+        let isDragReady = false;
+        let isDraggingBm = false;
+        let startY = 0, startX = 0;
+        let clone = null;
+        let deleteArmed = false;
+
+        const onPointerMove = function(e) {
+          if (!isDragReady && holdTimer) {
+            if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
+               clearTimeout(holdTimer);
+            }
+            return;
+          }
+          if (!isDragReady) return;
+
+          if (!isDraggingBm) {
+            isDraggingBm = true;
+            let rect = rBtn.getBoundingClientRect();
+
+            clone = rBtn.cloneNode(true);
+            clone.classList.add('stray-clone-guard');
+            clone.style.position = 'fixed';
+            clone.style.top = rect.top + 'px';
+            clone.style.left = rect.left + 'px';
+            clone.style.width = rect.width + 'px';
+            clone.style.zIndex = '99999';
+            clone.style.pointerEvents = 'none';
+            clone.style.opacity = '0.9';
+            clone.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
+            clone.style.background = 'rgba(255,255,255,0.15)';
+            clone.style.transform = 'scale(1.05)';
+            document.body.appendChild(clone);
+
+            rBtn.style.opacity = '0.3';
+          }
+
+          if (isDraggingBm && clone) {
+            clone.style.top = (e.clientY - clone.offsetHeight / 2) + 'px';
+            clone.style.left = (e.clientX - clone.offsetWidth / 2) + 'px';
+
+            const listRect = rightList.getBoundingClientRect();
+            const sidebarRect = bSidebar.getBoundingClientRect();
+            const offLeft = e.clientX < sidebarRect.left - 40;
+            deleteArmed = offLeft;
+            clone.style.background = deleteArmed ? 'rgba(248,81,73,0.35)' : 'rgba(255,255,255,0.15)';
+            clone.style.borderColor = deleteArmed ? 'var(--red)' : '';
+
+            if (!deleteArmed) {
+              let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+              let targetItem = elemBelow ? elemBelow.closest('.repo-item') : null;
+
+              if (targetItem && targetItem !== rBtn && targetItem.parentNode === rightList) {
+                let rect = targetItem.getBoundingClientRect();
+                if (e.clientY < rect.top + rect.height / 2) {
+                  rightList.insertBefore(rBtn, targetItem);
+                } else {
+                  rightList.insertBefore(rBtn, targetItem.nextSibling);
+                }
+              }
+            }
+          }
+        };
+
+        const onPointerUp = function(e) {
+          window.removeEventListener('pointermove', onPointerMove);
+          window.removeEventListener('pointerup', onPointerUp);
+          window.removeEventListener('pointercancel', onPointerUp);
+
+          let wasDragging = isDraggingBm;
+          let wasReady = isDragReady;
+
+          clearTimeout(holdTimer);
+          if (!isDraggingBm) rBtn.classList.remove('ready-to-drag');
+
+          if (wasReady) {
+             isDragReady = true;
+             rBtn.dataset.dragReady = '1';
+             setTimeout(() => { isDragReady = false; rBtn.dataset.dragReady = '0'; }, 200);
+          } else {
+             isDragReady = false;
+          }
+
+          if (wasDragging) {
+            isDraggingBm = false;
+            if (clone) clone.remove();
+            rBtn.style.opacity = '1';
+
+            if (deleteArmed) {
+              ghBookmarkedRepos = ghBookmarkedRepos.filter(x => x !== r);
+              ghSaveConfig();
+              renderBookmarks();
+            } else {
+              let newBookmarks = [];
+              rightList.querySelectorAll('.repo-item').forEach(el => {
+                if (el.dataset.bindex !== undefined) {
+                   newBookmarks.push(ghBookmarkedRepos[el.dataset.bindex]);
+                }
+              });
+
+              if (newBookmarks.length === ghBookmarkedRepos.length) {
+                ghBookmarkedRepos = newBookmarks;
+                ghSaveConfig();
+              }
+              renderBookmarks();
+            }
+          }
+
+          document.querySelectorAll('.stray-clone-guard').forEach(el => el.remove());
+        };
+
+        rBtn.addEventListener('pointerdown', function(e) {
+          if (e.button !== 0 && e.pointerType === 'mouse') return;
+          startX = e.clientX; startY = e.clientY;
+          clearTimeout(holdTimer);
+          isDragReady = false;
+          deleteArmed = false;
+
+          window.addEventListener('pointermove', onPointerMove, { passive: false });
+          window.addEventListener('pointerup', onPointerUp);
+          window.addEventListener('pointercancel', onPointerUp);
+
+          holdTimer = setTimeout(() => {
+            isDragReady = true;
+            rBtn.classList.add('ready-to-drag');
+            if (navigator.vibrate) navigator.vibrate(50);
+          }, 400);
+        });
+
+        rBtn.addEventListener('touchmove', function(e) {
+          if (isDragReady || isDraggingBm) {
+            if (e.cancelable) e.preventDefault();
+          }
+        }, { passive: false });
+
+        rBtn.addEventListener('contextmenu', (e) => { if(isDragReady || isDraggingBm) e.preventDefault(); });
+
+        rightList.appendChild(rBtn);
+    });
+    
+    if (document.getElementById('app-menu').classList.contains('open')) {
+            updateMenuPosition();
+        }
+    };
+
+    // Lock in any Code View edits before pushing, exporting, or checking AST
+function syncEditorToSource() {
+  if (viewMode === 'code' && $codeView.value !== sourceContent) {
+    pushState();
+    sourceContent = $codeView.value;
+    render(sourceContent, true);
+  }
+}
+
+// Wallpaper Logic
+function applyWallpaper(url) {
+  const stateObj = document.getElementById('emptyState');
+  const emptyContent = document.getElementById('emptyStateContent');
+  if (url) {
+    stateObj.style.backgroundImage = 'url("' + url + '")';
+    stateObj.style.backgroundSize = 'contain';
+    stateObj.style.backgroundPosition = 'center';
+    stateObj.style.backgroundRepeat = 'no-repeat';
+    stateObj.style.backgroundColor = 'var(--surface)';
+    if(emptyContent) emptyContent.style.display = 'none';
+  } else {
+    stateObj.style.backgroundImage = 'none';
+    stateObj.style.backgroundColor = 'var(--surface)';
+    if(emptyContent) emptyContent.style.display = 'flex';
+  }
+}
+
+async function ghLoadConfigFromFirebase() {
+  try {
+    if (window._fbLoadConfig) {
+      const cfg = await window._fbLoadConfig();
+      if (cfg) {
+        ghToken = cfg.token || '';
+        ghUser = cfg.user || '';
+        ghRepo = cfg.repo || '';
+        ghBranch = cfg.branch || 'main';
+                    ghFilePath = cfg.filePath || 'index.html';
+                    ghRepos = cfg.repos || [];
+                    ghBookmarkedRepos = cfg.bookmarkedRepos || [];
+                    if (cfg.wallpaper !== undefined) {
+          settings.wallpaper = cfg.wallpaper;
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+          applyWallpaper(cfg.wallpaper);
+        }
+        document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
+      }
+    }
+  } catch(e) {}
+}
+
+function ghSaveConfig() {
+  const cfg = { token: ghToken, user: ghUser, repo: ghRepo, branch: ghBranch, filePath: ghFilePath, repos: ghRepos, bookmarkedRepos: ghBookmarkedRepos, wallpaper: settings.wallpaper || '' };
+  if (window._fbSaveConfig) window._fbSaveConfig(cfg).catch(function(){});
+  document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
+}
+
+function renderRepoTabs() {
+  const container = document.getElementById('repoTabsContainer');
+  container.innerHTML = '';
+  
+  ghRepos.forEach((r, index) => {
+    const btn = document.createElement('div');
+    btn.className = 'repo-item' + (r === ghRepo ? ' active' : '');
+    btn.title = r; // Full name remains in title for clarity
+            btn.dataset.index = index;
+
+            let holdTimer;
+                        let isDragReady = false;
+                        let isDragging = false;
+                        let startY = 0, startX = 0;
+                        let clone = null;
+                        let bookmarkArmed = false;
+
+                        const onPointerMove = function(e) {
+              if (!isDragReady && holdTimer) {
+                if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) {
+                   clearTimeout(holdTimer);
+                }
+                return;
+              }
+              if (!isDragReady) return;
+
+              if (!isDragging) {
+                isDragging = true;
+                let rect = btn.getBoundingClientRect();
+        
+                clone = btn.cloneNode(true);
+                clone.classList.add('stray-clone-guard');
+                clone.style.position = 'fixed';
+                clone.style.top = rect.top + 'px';
+                clone.style.left = rect.left + 'px';
+                clone.style.width = rect.width + 'px';
+                clone.style.zIndex = '99999';
+                clone.style.pointerEvents = 'none';
+                clone.style.opacity = '0.9';
+                clone.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
+                clone.style.background = 'rgba(255,255,255,0.15)';
+                clone.style.transform = 'scale(1.05)';
+                document.body.appendChild(clone);
+        
+                btn.style.opacity = '0.3';
+              }
+
+              if (isDragging && clone) {
+                              clone.style.top = (e.clientY - clone.offsetHeight / 2) + 'px';
+                              clone.style.left = (e.clientX - clone.offsetWidth / 2) + 'px';
+                              clone.style.pointerEvents = 'none';
+
+                              const prevVis = clone.style.visibility;
+                              clone.style.visibility = 'hidden';
+                              let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+                              clone.style.visibility = prevVis;
+
+                              const bSidebarEl = document.getElementById('bookmarkSidebar');
+                              let overBookmarkZone = false;
+                              if (bSidebarEl && bSidebarEl.offsetParent !== null) {
+                                overBookmarkZone = !!(elemBelow && elemBelow.closest('#bookmarkSidebar'));
+                                if (!overBookmarkZone) {
+                                  const bRect = bSidebarEl.getBoundingClientRect();
+                                  if (bRect.width > 0 && bRect.height > 0) {
+                                    overBookmarkZone = e.clientX >= bRect.left - 30 && e.clientX <= bRect.right + 30 &&
+                                                        e.clientY >= bRect.top - 30 && e.clientY <= bRect.bottom + 30;
+                                  }
+                                }
+                              }
+                              if (!overBookmarkZone) {
+                                overBookmarkZone = e.clientX > window.innerWidth - 70;
+                              }
+                              bookmarkArmed = overBookmarkZone;
+                              clone.style.background = bookmarkArmed ? 'rgba(227,179,65,0.35)' : 'rgba(255,255,255,0.15)';
+                              clone.style.borderColor = bookmarkArmed ? 'var(--amber)' : '';
+                              clone.style.boxShadow = bookmarkArmed ? '0 0 0 3px var(--amber), 0 10px 20px rgba(0,0,0,0.5)' : '0 10px 20px rgba(0,0,0,0.5)';
+
+                              if (!bookmarkArmed) {
+                                let targetRepo = elemBelow ? elemBelow.closest('.repo-item') : null;
+
+                                if (targetRepo && targetRepo !== btn && targetRepo.parentNode === container) {
+                                  let rect = targetRepo.getBoundingClientRect();
+                                  if (e.clientY < rect.top + rect.height / 2) {
+                                    container.insertBefore(btn, targetRepo);
+                                  } else {
+                                    container.insertBefore(btn, targetRepo.nextSibling);
+                                  }
+                                }
+                              }
+                            }
+                          };
+
+                          const onPointerUp = function(e) {
+                            window.removeEventListener('pointermove', onPointerMove);
+                            window.removeEventListener('pointerup', onPointerUp);
+                            window.removeEventListener('pointercancel', onPointerUp);
+          
+                            let wasDragging = isDragging;
+                            let wasReady = isDragReady;
+      
+                            clearTimeout(holdTimer);
+                            if (!isDragging) btn.classList.remove('ready-to-drag');
+      
+                            if (wasReady) {
+                               isDragReady = true; 
+                               setTimeout(() => { isDragReady = false; }, 200);
+                            } else {
+                               isDragReady = false;
+                            }
+      
+                            if (wasDragging) {
+                              isDragging = false;
+                              if (clone) clone.remove();
+                              btn.style.opacity = '1';
+
+                              if (bookmarkArmed) {
+                                const repoFullName = ghRepos[btn.dataset.index];
+                                if (repoFullName && !ghBookmarkedRepos.includes(repoFullName)) {
+                                  ghBookmarkedRepos.push(repoFullName);
+                                  ghSaveConfig();
+                                  if (window.renderBookmarks) window.renderBookmarks();
+                                  toast('⭐ Bookmarked ' + (repoFullName.split('/')[1] || repoFullName));
+                                }
+                                renderRepoTabs();
+                              } else {
+                                let newRepos = [];
+                                container.querySelectorAll('.repo-item').forEach(el => {
+                                  if (el.dataset.index !== undefined) {
+                                     newRepos.push(ghRepos[el.dataset.index]);
+                                  }
+                                });
+          
+                                if (newRepos.length === ghRepos.length) {
+                                  ghRepos = newRepos;
+                                  ghSaveConfig();
+                                }
+                                renderRepoTabs();
+                              }
+                            }
+          
+                            // Bulletproof failsafe for mid-air artifacts
+                            document.querySelectorAll('.stray-clone-guard').forEach(el => el.remove());
+                          };
+
+            btn.addEventListener('pointerdown', function(e) {
+              if (e.button !== 0 && e.pointerType === 'mouse') return;
+              startX = e.clientX; startY = e.clientY;
+              clearTimeout(holdTimer);
+              isDragReady = false;
+          
+              window.addEventListener('pointermove', onPointerMove, { passive: false });
+              window.addEventListener('pointerup', onPointerUp);
+              window.addEventListener('pointercancel', onPointerUp);
+          
+              holdTimer = setTimeout(() => {
+                isDragReady = true;
+                btn.classList.add('ready-to-drag');
+                if (navigator.vibrate) navigator.vibrate(50);
+              }, 400);
+            });
+
+            // Mobile specific: strictly prevent scrolling while holding/dragging
+            btn.addEventListener('touchmove', function(e) {
+              if (isDragReady || isDragging) {
+                if (e.cancelable) e.preventDefault();
+              }
+            }, { passive: false });
+
+            btn.addEventListener('contextmenu', (e) => { if(isDragReady || isDragging) e.preventDefault(); });
+
+        const nameSpan = document.createElement('span');
+    nameSpan.className = 'repo-name';
+    // Split to show only the repo name, stripping out user/owner
+    nameSpan.textContent = r.split('/')[1] || r;
+    
+    btn.onclick = (e) => {
+              if (isDragReady) return; 
+              const ftc = document.getElementById('fileTreeContainer');
+              const rtc = document.getElementById('repoTabsContainer');
+      
+              if (repoCollapsed) {
+                  if (ghRepo !== r) {
+                      ghRepo = r;
+                      ghSaveConfig();
+                      renderRepoTabs();
+                      updateRepoSidebar();
+                      fetchFileTree(true, true);
+                  } else {
+                      repoCollapsed = false;
+                      localStorage.setItem('repo_collapsed', repoCollapsed);
+                      if (typeof currentTreeFiles === 'undefined' || currentTreeFiles.length === 0) {
+                          fetchFileTree(false);
+                      } else { 
+                          ftc.style.display = 'flex'; 
+                          rtc.classList.remove('expanded');
+                          renderFileTreeUI(); 
+                          updateRepoSidebar();
+                      }
+                  }
+                  return;
+              }
+
+              if (ghRepo === r) {
+                  if (ftc.style.display === 'flex') {
+                      ftc.style.display = 'none';
+                      rtc.classList.add('expanded');
+                  } else {
+                      if (typeof currentTreeFiles === 'undefined' || currentTreeFiles.length === 0) fetchFileTree(false);
+                      else { 
+                          ftc.style.display = 'flex'; 
+                          rtc.classList.remove('expanded');
+                          renderFileTreeUI(); 
+                      }
+                  }
+                  updateRepoSidebar();
+              } else {
+                                ghRepo = r;
+                                ghSaveConfig();
+                                renderRepoTabs();
+                                ftc.style.display = 'flex';
+                                rtc.classList.remove('expanded');
+                                updateRepoSidebar();
+                                fetchFileTree(true, false);
+                            }
+            };
+
+    const actions = document.createElement('div');
+            actions.className = 'repo-actions';
+            const isBookmarked = typeof ghBookmarkedRepos !== 'undefined' && ghBookmarkedRepos.includes(r);
+            const starColor = isBookmarked ? 'color:var(--amber);' : '';
+            actions.innerHTML = `
+              <button class="repo-btn star" style="${starColor}" title="Bookmark Repo" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
+              <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
+              <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
+            `;
+
+            btn.appendChild(nameSpan);
+            btn.appendChild(actions);
+            container.appendChild(btn);
+          });
+          if(window.renderBookmarks) window.renderBookmarks();
+        }
+
+function updateRepoSidebar() {
+  const btn = document.getElementById('repoToggleBtn');
+  const addRepoBtn = document.getElementById('repoAddBtn');
+  const addFileBtn = document.getElementById('fileAddBtn');
+  const uploadBtn = document.getElementById('fileUploadBtn');
+  const container = document.getElementById('sidebarContent');
+  const ftc = document.getElementById('fileTreeContainer');
+  
+  container.style.display = 'flex';
+  
+  if (repoCollapsed) {
+      btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+      container.classList.add('mini');
+      addRepoBtn.style.display = 'none';
+      addFileBtn.style.display = 'none';
+      uploadBtn.style.display = 'none';
+    } else {
+      btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+      container.classList.remove('mini');
+    addRepoBtn.style.display = 'flex';
+    if(ghRepo && ftc.style.display === 'flex') {
+        addFileBtn.style.display = 'flex';
+        uploadBtn.style.display = 'flex';
+    } else {
+        addFileBtn.style.display = 'none';
+        uploadBtn.style.display = 'none';
+    }
+  }
+  if ($appMenu.classList.contains('open')) updateMenuPosition();
+}
+
+document.getElementById('repoToggleBtn').addEventListener('click', () => {
+  repoCollapsed = !repoCollapsed;
+  localStorage.setItem('repo_collapsed', repoCollapsed);
+  
+  if (repoCollapsed) {
+    document.getElementById('fileTreeContainer').style.display = 'none';
+    document.getElementById('repoTabsContainer').classList.add('expanded');
+    updateRepoSidebar();
+  } else {
+    document.getElementById('fileTreeContainer').style.display = 'flex';
+    document.getElementById('repoTabsContainer').classList.remove('expanded');
+    if (typeof currentTreeFiles === 'undefined' || currentTreeFiles.length === 0) {
+        fetchFileTree(false);
+    } else {
+        renderFileTreeUI();
+        updateRepoSidebar();
+    }
+  }
+});
+
+// Feature 1: New Repo Flow UI Toggles & Input Styling
+document.querySelectorAll('input[name="nrSource"]').forEach(radio => {
+  radio.addEventListener('change', (e) => {
+    localStorage.setItem('nrSource_pref', e.target.value);
+    const fileLabel = document.getElementById('nrFileLabel');
+    const pasteInput = document.getElementById('nrPasteInput');
+    const filesLabel = document.getElementById('nrFilesLabel');
+    fileLabel.style.display = 'none';
+    pasteInput.style.display = 'none';
+    filesLabel.style.display = 'none';
+    
+    if (e.target.value === 'upload') {
+      fileLabel.style.display = 'flex';
+    } else if (e.target.value === 'paste') {
+      pasteInput.style.display = 'block';
+    } else if (e.target.value === 'files') {
+      filesLabel.style.display = 'flex';
+    }
+  });
+});
+
+document.getElementById('nrFileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  const name = file ? file.name : 'Click to upload HTML file';
+  document.getElementById('nrFileNameDisplay').textContent = name;
+  document.getElementById('nrFileLabel').style.borderColor = file ? 'var(--green)' : 'rgba(255,255,255,0.3)';
+});
+
+document.getElementById('nrFilesInput').addEventListener('change', function(e) {
+  const files = e.target.files;
+  const label = document.getElementById('nrFilesLabel');
+  const disp = document.getElementById('nrFilesNameDisplay');
+  if (files && files.length > 0) {
+    disp.textContent = files.length === 1 ? files[0].name : files.length + ' files selected';
+    label.style.borderColor = 'var(--green)';
+  } else {
+    disp.textContent = 'Click to select any files (multiple allowed)';
+    label.style.borderColor = 'rgba(255,255,255,0.3)';
+  }
+});
+
+document.getElementById('repoAddBtn').addEventListener('click', () => {
+    if (!ghToken) { toast('❌ Setup GitHub token first', 'warn'); return; }
+    document.getElementById('nrName').value = '';
+    document.getElementById('nrFileInput').value = '';
+    document.getElementById('nrFileNameDisplay').textContent = 'Click to upload HTML file';
+    document.getElementById('nrFileLabel').style.borderColor = 'rgba(255,255,255,0.3)';
+    document.getElementById('nrFilesInput').value = '';
+    document.getElementById('nrFilesNameDisplay').textContent = 'Click to select any files (multiple allowed)';
+    document.getElementById('nrFilesLabel').style.borderColor = 'rgba(255,255,255,0.3)';
+    document.getElementById('nrFilesLabel').style.display = 'none';
+    document.getElementById('nrFileLabel').style.display = 'flex';
+    document.getElementById('nrPasteInput').style.display = 'none';
+    document.getElementById('nrPasteInput').value = '';
+    document.querySelector('input[name="nrSource"][value="upload"]').checked = true;
+    document.getElementById('newRepoModal').classList.add('open');
+    document.getElementById('menu-backdrop').classList.add('open');
+});
+
+document.getElementById('nrCancelBtn').addEventListener('click', () => {
+    document.getElementById('newRepoModal').classList.remove('open');
+    document.getElementById('menu-backdrop').classList.remove('open');
+});
+
+document.getElementById('nrCloseBtn').addEventListener('click', () => {
+    document.getElementById('newRepoModal').classList.remove('open');
+    document.getElementById('menu-backdrop').classList.remove('open');
+});
+
+// Feature 1: New Repo Creation Pipeline
+document.getElementById('nrAddBtn').addEventListener('click', async function() {
+    let name = document.getElementById('nrName').value.trim();
+    if (!name) { 
+        toast('❌ Please enter a repository name', 'err'); 
+        addLog('err', 'Repo creation blocked: missing name');
+        return; 
+    }
+
+    let source = document.querySelector('input[name="nrSource"]:checked').value;
+        let fileInput = document.getElementById('nrFileInput');
+        let pasteInput = document.getElementById('nrPasteInput');
+        let filesInput = document.getElementById('nrFilesInput');
+        let fileContent = '';
+        let multiFiles = null;
+
+        if (source === 'upload') {
+            if (!fileInput.files || !fileInput.files[0]) {
+                toast('❌ Please select an HTML file to upload', 'err'); 
+                addLog('err', 'Repo creation blocked: no file selected');
+                return;
+            }
+            try {
+                fileContent = await new Promise((resolve, reject) => {
+                    let reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.onerror = e => reject(new Error("File read error"));
+                    reader.readAsText(fileInput.files[0]);
+                });
+            } catch (e) {
+                toast('❌ ' + e.message, 'err');
+                addLog('err', e.message);
+                return;
+            }
+        } else if (source === 'files') {
+            if (!filesInput.files || filesInput.files.length === 0) {
+                toast('❌ Please select at least one file to upload', 'err');
+                addLog('err', 'Repo creation blocked: no files selected');
+                return;
+            }
+            multiFiles = Array.from(filesInput.files);
+        } else {
+        if (!pasteInput.value.trim()) {
+            toast('❌ Please paste some HTML code', 'err'); 
+            addLog('err', 'Repo creation blocked: paste area empty');
+            return;
+        }
+        fileContent = fixEncoding(pasteInput.value);
+    }
+
+    document.getElementById('nrAddBtn').disabled = true;
+
+    // Step 2: Create Repo
+    toast('⏳ Creating repository...', 'info');
+    addLog('info', `Creating repo: ${name}`);
+    showProgress(20);
+    let repoData;
+    try {
+        let res = await fetch('https://api.github.com/user/repos', {
+            method: 'POST',
+            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, private: false, auto_init: true })
+        });
+        if(!res.ok) throw new Error(await res.text());
+        repoData = await res.json();
+    } catch (e) {
+        toast('❌ Repo Creation Failed: ' + e.message, 'err');
+        addLog('err', 'Create repo failed: ' + e.message);
+        hideProgress();
+        document.getElementById('nrAddBtn').disabled = false;
+        return;
+    }
+    toast('✅ Repository created.', 'ok', 1500);
+    addLog('ok', `Repo created: ${repoData.full_name}`);
+    showProgress(40);
+
+    let newRepoName = repoData.full_name;
+        let firstUploadedPath = 'index.html';
+
+        if (source === 'files') {
+            // Step 4 & 5: Commit multiple files & handle ZIPs
+            toast('⏳ Processing files...', 'info');
+            let filesToProcess = [];
+            let totalExtracted = 0;
+
+            for (let file of multiFiles) {
+              if (file.name.toLowerCase().endsWith('.zip') || file.type === 'application/zip' || file.type === 'application/x-zip-compressed') {
+                try {
+                  toast(`⏳ Extracting ${file.name}...`, 'info');
+                  const jszip = new JSZip();
+                  const zip = await jszip.loadAsync(file);
+                  zip.forEach((relativePath, zipEntry) => {
+                    if (!zipEntry.dir) {
+                      filesToProcess.push({ isZipEntry: true, entry: zipEntry, name: zipEntry.name });
+                    }
+                  });
+                  totalExtracted++;
+                } catch (err) {
+                  toast(`❌ Failed to read ZIP ${file.name}`, 'err');
+                  addLog('err', 'ZIP parse error: ' + err.message);
+                }
+              } else {
+                const relPath = file.webkitRelativePath && file.webkitRelativePath.length > 0 ? file.webkitRelativePath : file.name;
+                filesToProcess.push({ isZipEntry: false, file: file, name: relPath });
+              }
+            }
+
+            if (filesToProcess.length === 0) {
+                toast('❌ No valid files to commit.', 'err');
+                hideProgress();
+                document.getElementById('nrAddBtn').disabled = false;
+                return;
+            }
+
+            toast(`⏳ Committing ${filesToProcess.length} file(s)...`, 'info');
+            addLog('info', `Preparing to commit ${filesToProcess.length} file(s) to repository`);
+            let uploaded = 0, failed = 0;
+
+            for (let i = 0; i < filesToProcess.length; i++) {
+                const item = filesToProcess[i];
+                showProgress(40 + ((i + 1) / filesToProcess.length) * 20);
+                try {
+                    let base64Content;
+                    let msgPrefix = 'Initial commit:';
+                    if (item.isZipEntry) {
+                      base64Content = await item.entry.async("base64");
+                      msgPrefix = 'Extracted Initial:';
+                    } else {
+                      base64Content = await readFileAsBase64(item.file);
+                    }
+                    await uploadSingleFileToRepo(newRepoName, item.name, base64Content, 'main', msgPrefix);
+                    uploaded++;
+                    if (uploaded === 1) firstUploadedPath = item.name;
+                } catch (e) {
+                    failed++;
+                    addLog('err', `Commit failed for ${item.name}: ` + e.message);
+                }
+            }
+        
+            if (uploaded === 0) {
+                toast('❌ All file commits failed.', 'err');
+                hideProgress();
+                document.getElementById('nrAddBtn').disabled = false;
+                return;
+            }
+            let finalMsg = `✅ ${uploaded}/${filesToProcess.length} file(s) committed.`;
+            if (totalExtracted > 0) finalMsg += ` (${totalExtracted} ZIPs extracted)`;
+            toast(finalMsg, failed > 0 ? 'warn' : 'ok', 2500);
+            addLog('ok', finalMsg);
+        } else {
+        // Step 4 & 5: Commit index.html
+        toast('⏳ Committing index.html...', 'info');
+        addLog('info', 'Preparing to commit index.html to repository');
+        let base64Content = btoa(unescape(encodeURIComponent(fileContent)));
+
+        try {
+            let res = await fetch(`https://api.github.com/repos/${newRepoName}/contents/index.html`, {
+                method: 'PUT',
+                headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: `Initial commit: index.html`, content: base64Content, branch: 'main' })
+            });
+            if(!res.ok) throw new Error(await res.text());
+        } catch (e) {
+            toast('❌ File commit failed: ' + e.message, 'err');
+            addLog('err', 'Commit failed: ' + e.message);
+            hideProgress();
+            document.getElementById('nrAddBtn').disabled = false;
+            return;
+        }
+        toast('✅ File committed.', 'ok', 1500);
+        addLog('ok', 'index.html committed successfully.');
+    }
+    showProgress(60);
+
+    // Step 7: Enable Pages
+    toast('⏳ Enabling GitHub Pages...', 'info');
+    addLog('info', 'Enabling GitHub Pages...');
+    try {
+        let pagesRes = await fetch(`https://api.github.com/repos/${newRepoName}/pages`, {
+            method: 'POST',
+            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ source: { branch: 'main', path: '/' } })
+        });
+        if (!pagesRes.ok) throw new Error(await pagesRes.text());
+        toast('✅ Pages enabled.', 'ok', 1500);
+        addLog('ok', 'GitHub Pages enabled successfully.');
+    } catch (e) {
+        toast('⚠ Pages setup skipped (non-fatal)', 'warn', 1500);
+        addLog('warn', 'Pages enablement skipped/failed: ' + e.message);
+    }
+    showProgress(80);
+
+    // Step 8: Context Switch
+        toast('⏳ Switching context...', 'info');
+        addLog('info', 'Switching IDE context to new repo...');
+        ghRepo = newRepoName;
+        ghFilePath = firstUploadedPath;
+        ghSaveConfig();
+    
+    await ghFetchAllRepos();
+    renderRepoTabs();
+    await fetchFileTree(true);
+
+    toast(`✅ Repo '${name}' created and live!`, 'ok');
+    addLog('ok', `Repo creation pipeline complete for ${newRepoName}`);
+
+    document.getElementById('newRepoModal').classList.remove('open');
+    document.getElementById('menu-backdrop').classList.remove('open');
+    document.getElementById('nrAddBtn').disabled = false;
+    hideProgress();
+});
+
+window.renameRepo = async function(full_name, e) {
+    e.stopPropagation();
+    if (!ghToken) return;
+    let currentName = full_name.split('/')[1];
+    let newName = prompt('Rename repository (Note: this breaks old links):', currentName);
+    if (!newName || newName === currentName) return;
+    showProgress(30);
+    try {
+        let res = await fetch(`https://api.github.com/repos/${full_name}`, {
+            method: 'PATCH',
+            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: newName })
+        });
+        if(!res.ok) throw new Error(await res.text());
+        toast('✅ Repo renamed!');
+        let updated = await res.json();
+        if (ghBookmarkedRepos.includes(full_name)) {
+            ghBookmarkedRepos = ghBookmarkedRepos.map(r => r === full_name ? updated.full_name : r);
+        }
+        if (ghRepo === full_name) { ghRepo = updated.full_name; }
+        ghSaveConfig();
+        ghFetchAllRepos();
+    } catch (err) {
+        toast('❌ Failed: ' + err.message, 'err');
+    }
+    hideProgress();
+};
+
+window.deleteRepo = async function(full_name, e) {
+    e.stopPropagation();
+    if (!ghToken) return;
+    let conf = prompt(`WARNING: Deleting ${full_name}.\nType the repo name to confirm:`);
+    if (conf !== full_name.split('/')[1] && conf !== full_name) {
+        if(conf !== null) toast('❌ Name mismatch, deletion cancelled.', 'warn');
+        return;
+    }
+    showProgress(30);
+    try {
+        let res = await fetch(`https://api.github.com/repos/${full_name}`, {
+            method: 'DELETE',
+            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+        });
+        if(!res.ok) {
+            let errText = await res.text();
+            if(res.status === 403) throw new Error("403 Forbidden - Does your token have 'delete_repo' scope?");
+            throw new Error(errText);
+        }
+        toast('✅ Repo deleted!');
+        if (ghRepo === full_name) { 
+            ghRepo = ''; 
+            ghSaveConfig(); 
+            document.getElementById('fileTreeContainer').style.display='none'; 
+            document.getElementById('repoTabsContainer').classList.add('expanded');
+        }
+        ghFetchAllRepos();
+    } catch (err) {
+        toast('❌ Failed: ' + err.message, 'err');
+    }
+    hideProgress();
+};
+
+window.createNewFile = async function() {
+    if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+    let path = prompt('Enter new file path:');
+    if (!path) return;
+    showProgress(30);
+    try {
+        let content = btoa(' '); 
+        let res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
+            method: 'PUT',
+            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+            body: JSON.stringify({ message: `Create ${path}`, content: content, branch: ghBranch })
+        });
+        if(!res.ok) throw new Error(await res.text());
+        toast('✅ File created!');
+        ghFilePath = path;
+        document.getElementById('ghFilePath').value = path;
+        ghSaveConfig();
+        
+        // Ensure file tree container remains open and visible when file is added
+        const ftc = document.getElementById('fileTreeContainer');
+        const rtc = document.getElementById('repoTabsContainer');
+        ftc.style.display = 'flex';
+        rtc.classList.remove('expanded');
+        
+        await fetchFileTree(false, false);
+        syncCurrentFile();
+    } catch (err) {
+        toast('❌ Failed: ' + err.message, 'err');
+    }
+    hideProgress();
+};
+
+async function handleRepoUpload(e) {
+  var files = Array.from(e.target.files || []);
+  if (!files.length) return;
+  if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+
+  let baseDir = '';
+  if (ghFilePath && ghFilePath.includes('/')) {
+     baseDir = ghFilePath.substring(0, ghFilePath.lastIndexOf('/') + 1);
+  }
+
+  let confirmMsg = files.length === 1
+    ? `Upload "${files[0].name}" to "${baseDir || '/'}"?`
+    : `Upload ${files.length} items to "${baseDir || '/'}"?`;
+  if (!confirm(confirmMsg)) { e.target.value = ''; return; }
+
+  showProgress(10);
+  let uploaded = 0, failed = 0;
+  let totalExtracted = 0;
+  let lastPath = ghFilePath;
+  
+  let filesToProcess = [];
+
+  toast('⏳ Preparing upload...', 'info');
+
+  for (let file of files) {
+    if (file.name.toLowerCase().endsWith('.zip') || file.type === 'application/zip' || file.type === 'application/x-zip-compressed') {
+      try {
+        toast(`⏳ Extracting ${file.name}...`, 'info');
+        const jszip = new JSZip();
+        const zip = await jszip.loadAsync(file);
+        zip.forEach((relativePath, zipEntry) => {
+          if (!zipEntry.dir) {
+            filesToProcess.push({ isZipEntry: true, entry: zipEntry, name: zipEntry.name });
+          }
+        });
+        totalExtracted++;
+      } catch (err) {
+        toast(`❌ Failed to read ZIP ${file.name}: ` + err.message, 'err', 5000);
+        addLog('err', 'ZIP parse error: ' + err.message);
+      }
+    } else {
+      const relPath = file.webkitRelativePath && file.webkitRelativePath.length > 0 ? file.webkitRelativePath : file.name;
+      filesToProcess.push({ isZipEntry: false, file: file, name: relPath });
+    }
+  }
+
+  if (filesToProcess.length === 0) {
+    toast('❌ No valid files to upload.', 'warn');
+    hideProgress();
+    e.target.value = '';
+    return;
+  }
+
+  toast(`⏳ Uploading ${filesToProcess.length} file(s)...`, 'info');
+
+  for (let i = 0; i < filesToProcess.length; i++) {
+    const item = filesToProcess[i];
+    const path = baseDir + item.name;
+    showProgress(10 + ((i + 1) / filesToProcess.length) * 80);
+    try {
+      let base64Content;
+      let msgPrefix = 'Upload';
+      if (item.isZipEntry) {
+        base64Content = await item.entry.async("base64");
+        msgPrefix = 'Extracted from ZIP:';
+      } else {
+        base64Content = await readFileAsBase64(item.file);
+      }
+      await uploadSingleFileToRepo(ghRepo, path, base64Content, ghBranch, msgPrefix);
+      uploaded++;
+      lastPath = path;
+    } catch(err) {
+      failed++;
+      addLog('err', 'Upload failed for ' + item.name + ': ' + err.message);
+    }
+  }
+
+  if (uploaded > 0) {
+    let msg = `✅ Uploaded ${uploaded}/${filesToProcess.length} file(s)`;
+    if (totalExtracted > 0) msg += ` (extracted ${totalExtracted} ZIPs)`;
+    if (failed > 0) msg += `, ${failed} failed`;
+    
+    toast(msg, failed ? 'warn' : 'ok');
+    ghFilePath = lastPath;
+    document.getElementById('ghFilePath').value = ghFilePath;
+    ghSaveConfig();
+
+    const ftc = document.getElementById('fileTreeContainer');
+    const rtc = document.getElementById('repoTabsContainer');
+    ftc.style.display = 'flex';
+    rtc.classList.remove('expanded');
+
+    await fetchFileTree(false, false);
+    syncCurrentFile();
+  } else {
+    toast('❌ All uploads failed. Check the log.', 'err', 5000);
+  }
+  hideProgress();
+  e.target.value = '';
+}
+
+const _repoUp = document.getElementById('repoUploadInput');
+const _repoZipUp = document.getElementById('repoZipUploadInput');
+if (_repoUp) {
+  _repoUp.removeEventListener('change', handleRepoUpload);
+  _repoUp.addEventListener('change', handleRepoUpload);
+}
+if (_repoZipUp) {
+  _repoZipUp.removeEventListener('change', handleRepoUpload);
+  _repoZipUp.addEventListener('change', handleRepoUpload);
+}
+
+window.renameFile = async function(path, e) {
+    e.stopPropagation();
+    if (!ghToken) return;
+    let name = path.split('/').pop();
+    let newName = prompt('Rename file:', name);
+    if (!newName || newName === name) return;
+    
+    let newPath = path.substring(0, path.lastIndexOf(name)) + newName;
+    showProgress(30);
+    try {
+        let getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}` }});
+        if (!getRes.ok) throw new Error('Failed to fetch file for renaming');
+        let fileData = await getRes.json();
+        
+        let putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${newPath}`, {
+            method: 'PUT',
+            headers: { Authorization: `token ${ghToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: `Rename ${path} to ${newPath}`, content: fileData.content, branch: ghBranch })
+        });
+        if (!putRes.ok) throw new Error('Failed to create renamed file');
+        
+        await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
+            method: 'DELETE',
+            headers: { Authorization: `token ${ghToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: `Delete old ${path}`, sha: fileData.sha, branch: ghBranch })
+        });
+        
+        toast('✅ File renamed!');
+        if (ghFilePath === path) {
+            ghFilePath = newPath;
+            document.getElementById('ghFilePath').value = ghFilePath;
+            ghSaveConfig();
+        }
+        fetchFileTree(false, true); 
+    } catch (err) {
+        toast('❌ Rename failed: ' + err.message, 'err');
+    }
+    hideProgress();
+};
+
+window.deleteFile = async function(path, e) {
+    e.stopPropagation();
+    if (!ghToken) return;
+    if (!confirm(`Delete ${path}? This cannot be undone.`)) return;
+    showProgress(30);
+    try {
+        let getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}` }});
+        if (!getRes.ok) throw new Error('Failed to get file info');
+        let fileData = await getRes.json();
+        
+        let delRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
+            method: 'DELETE',
+            headers: { Authorization: `token ${ghToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: `Delete ${path}`, sha: fileData.sha, branch: ghBranch })
+        });
+        if (!delRes.ok) throw new Error('Failed to delete');
+        
+        toast('✅ File deleted!');
+        if (ghFilePath === path) {
+            sourceContent = '';
+            ghFilePath = '';
+            document.getElementById('ghFilePath').value = '';
+            $codeView.value = '';
+            ghSaveConfig();
+            render('', false);
+        }
+        fetchFileTree(false, true);
+    } catch (err) {
+        toast('❌ Delete failed: ' + err.message, 'err');
+    }
+    hideProgress();
+};
+
+async function ghFetchAllRepos() {
+  if (!ghToken) { toast('❌ Token required to fetch repos.', 'warn'); return; }
+  toast('🔄 Fetching repos...', 'info');
+  showMenuLoader('Fetching Repositories...');
+  try {
+    const res = await fetch(`https://api.github.com/user/repos?per_page=100&sort=updated`, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+      cache: 'no-store'
+    });
+    if (!res.ok) throw new Error('Failed to fetch');
+    const data = await res.json();
+    ghRepos = data.map(r => r.full_name);
+
+    if (!ghRepo && ghRepos.length > 0) ghRepo = ghRepos[0];
+    ghSaveConfig();
+    renderRepoTabs();
+    updateRepoSidebar();
+    if(ghRepo) await fetchFileTree(false, true);
+    toast('✅ Repos fetched successfully!');
+  } catch(e) {
+    toast('❌ Error: ' + e.message, 'err');
+  }
+  hideMenuLoader();
+}
+
+window.toggleNesting = function(path, e) {
+    e.stopPropagation();
+    window.nestedExpanded[path] = !window.nestedExpanded[path];
+    renderFileTreeUI();
+};
+
+async function fetchFileTree(autoLoad = false, silent = false) {
+    if (!ghToken || !ghRepo) return;
+    const ftc = document.getElementById('fileTreeContainer');
+    const rtc = document.getElementById('repoTabsContainer');
+    if (!autoLoad && !silent) {
+        ftc.innerHTML = '<div style="color:var(--tm); font-size:10px; padding:4px;">Loading directory map...</div>';
+        ftc.style.display = 'flex';
+        rtc.classList.remove('expanded');
+        updateRepoSidebar();
+    }
+    try {
+        const repoRes = await fetch(`https://api.github.com/repos/${ghRepo}`, { headers: { Authorization: `token ${ghToken}` }});
+        if (repoRes.ok) {
+           const repoInfo = await repoRes.json();
+           if (repoInfo.default_branch) ghBranch = repoInfo.default_branch;
+        }
+
+        const res = await fetch(`https://api.github.com/repos/${ghRepo}/git/trees/${ghBranch}?recursive=1`, {
+            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+        });
+        if (!res.ok) throw new Error('Tree fetch failed');
+        const data = await res.json();
+        
+        currentTreeFiles = data.tree.filter(t => t.type === 'blob' && !t.path.includes('.git/'));
+        
+        if (autoLoad) {
+                    let targetFile = currentTreeFiles.find(f => f.path.toLowerCase() === 'index.html' || f.path.toLowerCase().endsWith('/index.html')) 
+                                  || currentTreeFiles.find(f => f.path.toLowerCase().endsWith('.html')) 
+                                  || currentTreeFiles[0];
+                    if (targetFile) {
+                        ghFilePath = targetFile.path;
+                        document.getElementById('ghFilePath').value = ghFilePath;
+                        ghSaveConfig();
+                        syncCurrentFile();
+                    }
+                }
+        
+                renderFileTreeUI();
+        
+                if (!silent) {
+                    if (repoCollapsed) {
+                        ftc.style.display = 'none';
+                        rtc.classList.add('expanded');
+                    } else {
+                        ftc.style.display = 'flex';
+                        rtc.classList.remove('expanded');
+                    }
+                }
+        
+                updateRepoSidebar();
+    } catch (err) {
+        if (!autoLoad && !silent) {
+            ftc.innerHTML = `<div style="color:var(--red); font-size:10px; padding:4px;">Failed to load tree</div>`;
+            ftc.style.display = 'flex';
+            rtc.classList.remove('expanded');
+            updateRepoSidebar();
+        }
+    }
+}
+
+function renderFileTreeUI() {
+    const ftc = document.getElementById('fileTreeContainer');
+    let htmlFiles = currentTreeFiles.filter(f => f.path.endsWith('.html'));
+    let otherFiles = currentTreeFiles.filter(f => !f.path.endsWith('.html'));
+    
+    let fileNesting = {};
+    let rootFiles = [];
+
+    htmlFiles.forEach(html => {
+        let base = html.path.replace(/\.html$/, '');
+        let children = otherFiles.filter(o => o.path.startsWith(base + '.') || o.path.startsWith(base + '/'));
+        if (children.length > 0) {
+            fileNesting[html.path] = children;
+            otherFiles = otherFiles.filter(o => !children.includes(o));
+        }
+        rootFiles.push(html);
+    });
+    rootFiles = rootFiles.concat(otherFiles);
+
+    function getIcon(path) {
+            let ext = path.split('.').pop().toLowerCase();
+            if(ext === 'html') return {i: 'fa-brands fa-html5', c: 'var(--red)'};
+            if(ext === 'js') return {i: 'fa-brands fa-js', c: 'var(--amber)'};
+            if(ext === 'css') return {i: 'fa-brands fa-css3-alt', c: 'var(--blue)'};
+            if(ext === 'json') return {i: 'fa-solid fa-code', c: 'var(--green)'};
+            if(['png','jpg','jpeg','gif','svg','webp','ico'].includes(ext)) return {i: 'fa-solid fa-image', c: 'var(--purple)'};
+            return {i: 'fa-regular fa-file-code', c: '#ffffff'};
+        }
+
+        function renderItem(f, isChild = false) {
+            const isTarget = f.path === ghFilePath;
+            const name = f.path.split('/').pop();
+            const icon = getIcon(f.path);
+            const hasChildren = !!fileNesting[f.path];
+            const isExpanded = window.nestedExpanded[f.path];
+        
+            let str = `<div class="repo-item file-item ${isTarget ? 'active' : ''}" style="${isChild ? 'margin-left:14px; border-left:1px solid rgba(255, 255, 255, 0.1); border-radius:0;' : ''}" onclick="selectFileFromTree('${f.path}')" ondblclick="if(${hasChildren}) toggleNesting('${f.path}', event)" title="${f.path}">
+                <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
+                    ${hasChildren ? `<i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'}" style="font-size:9px; color:rgba(255,255,255,0.6); margin-right:6px; cursor:pointer;" onclick="toggleNesting('${f.path}', event)"></i>` : (isChild ? '' : `<i class="fa-solid fa-minus" style="font-size:9px; color:transparent; margin-right:6px;"></i>`)}
+                    <i class="${icon.i}" style="margin-right:8px; font-size:14px; color:${isTarget ? 'var(--blue)' : icon.c};"></i>
+                    <span style="font-size:12px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; font-weight: ${isTarget ? '600' : '400'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</span>
+                </div>
+            <div class="repo-actions">
+                <button class="repo-btn" title="Rename File" onclick="renameFile('${f.path}', event)"><i class="fa-solid fa-pen"></i></button>
+                <button class="repo-btn del" title="Delete File" onclick="deleteFile('${f.path}', event)"><i class="fa-solid fa-trash"></i></button>
+            </div>
+        </div>`;
+
+        if (hasChildren && isExpanded) {
+            fileNesting[f.path].forEach(child => {
+                str += renderItem(child, true);
+            });
+        }
+        return str;
+    }
+
+    let htmlStr = '';
+    rootFiles.forEach(f => {
+        htmlStr += renderItem(f, false);
+    });
+
+    ftc.innerHTML = htmlStr;
+}
+
+window.selectFileFromTree = function(path) {
+    if (undoStack.length > 0 && sourceContent) {
+        if(!confirm("You have unsaved changes. Switch file anyway?")) return;
+    }
+    ghFilePath = path;
+    document.getElementById('ghFilePath').value = path;
+    ghSaveConfig();
+    syncCurrentFile(); 
+    renderFileTreeUI(); 
+};
+
+// DOM REFS
+var $pv          = document.getElementById('preview');
+var $codeView    = document.getElementById('codeView');
+var $fring       = document.getElementById('fring');
+var $toast       = document.getElementById('toast');
+var $astPanel    = document.getElementById('astPanel');
+var $astContent  = document.getElementById('astContent');
+var $errOverlay  = document.getElementById('errOverlay');
+var $errText     = document.getElementById('errText');
+var $logPanel    = document.getElementById('logPanel');
+var $logContent  = document.getElementById('logContent');
+var $progress    = document.getElementById('progressBar');
+var $toggleBtn   = document.getElementById('toggleUiBtn');
+var $appMenu     = document.getElementById('app-menu');
+var $backdrop    = document.getElementById('menu-backdrop');
+
+function showProgress(pct) {
+  $progress.style.width = pct + '%';
+  $progress.classList.add('active');
+}
+function hideProgress() {
+  $progress.style.width = '100%';
+  setTimeout(function() { $progress.classList.remove('active'); $progress.style.width = '0%'; }, 150);
+}
+
+function showMenuLoader(msg) {
+  var loader = document.getElementById('app-menu-loader');
+  if (loader) {
+    document.getElementById('app-menu-loader-text').textContent = msg || 'Connecting...';
+    loader.style.display = 'flex';
+  }
+}
+
+function hideMenuLoader() {
+  var loader = document.getElementById('app-menu-loader');
+  if (loader) loader.style.display = 'none';
+}
+
+function showMenuLoader(msg) {
+  var loader = document.getElementById('app-menu-loader');
+  if (loader) {
+    document.getElementById('app-menu-loader-text').textContent = msg || 'Connecting...';
+    loader.style.display = 'flex';
+  }
+}
+
+function hideMenuLoader() {
+  var loader = document.getElementById('app-menu-loader');
+  if (loader) loader.style.display = 'none';
+}
+
+function addLog(type, msg) {
+  var ts = new Date().toLocaleTimeString();
+  patchLog.unshift({ type: type, msg: msg, ts: ts });
+  if (patchLog.length > 100) patchLog.pop();
+  if ($logPanel.style.display === 'block') renderLog();
+}
+function renderLog() {
+  $logContent.innerHTML = patchLog.map(function(e) {
+    return '<div class="log-' + e.type + '">[' + e.ts + '] ' + escHtml(e.msg) + '</div>';
+  }).join('');
+}
+
+var toastTimer;
+function toast(msg, type, duration) {
+  type     = type     || 'ok';
+  duration = duration || 2500;
+  clearTimeout(toastTimer);
+  $toast.textContent = msg;
+  $toast.className   = 'show' + (type === 'warn' ? ' warn' : type === 'err' ? ' err' : type === 'info' ? ' info' : '');
+  toastTimer = setTimeout(function() { $toast.className = ''; }, duration);
+}
+
+var errTimer;
+function showErr(msg) {
+  currentErrText = msg;
+  $errText.textContent = 'Error: ' + msg;
+  $errOverlay.style.display = 'block';
+  clearTimeout(errTimer);
+  errTimer = setTimeout(function() { $errOverlay.style.display = 'none'; }, 10000);
+  addLog('err', msg);
+}
+
+document.getElementById('copyErrBtn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  navigator.clipboard.writeText(currentErrText).then(function() {
+    toast('Error copied to clipboard!');
+  });
+});
+
+document.getElementById('dismissErrText').addEventListener('click', function(e) {
+  e.stopPropagation();
+  $errOverlay.style.display = 'none';
+  clearTimeout(errTimer);
+});
+
+// Global error handlers
+window.addEventListener('error', function(e) {
+  showErr('App Error: ' + e.message + '\nAt: ' + (e.filename || 'unknown') + ':' + e.lineno);
+});
+
+window.addEventListener('unhandledrejection', function(e) {
+  showErr('Unhandled Promise: ' + (e.reason && e.reason.message || e.reason || 'unknown rejection'));
+});
+
+window.addEventListener('message', function(e) {
+  if (!e.data) return;
+  if (e.data.__compilerErr) showErr(e.data.__compilerErr);
+  if (e.data.__compilerWarn) { toast(e.data.__compilerWarn, 'warn', 4000); addLog('warn', e.data.__compilerWarn); }
+});
+
+function updateStatusBar() {
+  var lines = sourceContent ? sourceContent.split('\n').length : 0;
+  var kb    = (sourceContent.length / 1024).toFixed(1);
+  document.getElementById('sb-lines').textContent = lines + ' lines';
+  document.getElementById('sb-size').textContent  = kb + ' KB';
+  document.getElementById('sb-undo').textContent  = 'undo:' + undoStack.length + ' redo:' + redoStack.length;
+  if (sourceContent) {
+    var broken = Object.entries(tokenBalance(sourceContent)).filter(function(e) { return e[1] !== 0; });
+    var sb = document.getElementById('sb-ast');
+    if (broken.length === 0) { sb.textContent = 'AST: ✓'; sb.className = 'sb-item sb-ok'; }
+    else { sb.textContent = 'AST: ⚠'; sb.className = 'sb-item sb-warn'; }
+  }
+}
+
+function flash(color) {
+  var c = color || 'var(--green)';
+  $fring.style.borderColor = c;
+  $fring.classList.add('on');
+  setTimeout(function() { $fring.classList.remove('on'); }, 200);
+}
+
+function updateMenuPosition() {
+  var rect    = $toggleBtn.getBoundingClientRect();
+  var isRight  = (rect.left + rect.width / 2) > (window.innerWidth / 2);
+  var isBottom = (rect.top  + rect.height/ 2) > (window.innerHeight/ 2);
+  $appMenu.style.left   = 'auto'; $appMenu.style.right  = 'auto';
+  $appMenu.style.top    = 'auto'; $appMenu.style.bottom = 'auto';
+  
+  // Dynamic transform-origin so it smoothly scales out of the button
+  $appMenu.style.transformOrigin = (isBottom ? 'bottom' : 'top') + ' ' + (isRight ? 'right' : 'left');
+  
+  // Adjusted offsets to be closer to the button
+  if (isRight) { $appMenu.style.right  = (window.innerWidth - rect.right + 10) + 'px'; }
+  else         { $appMenu.style.left   = (rect.left + 10) + 'px'; }
+  
+  if (isBottom) { $appMenu.style.bottom = (window.innerHeight - rect.top + 10) + 'px'; }
+  else          { $appMenu.style.top    = (rect.bottom - 10) + 'px'; }
+}
+
+$toggleBtn.addEventListener('pointerdown', function(e) {
+  isDragging  = false;
+  dragStartX  = e.clientX; dragStartY  = e.clientY;
+  var rect    = $toggleBtn.getBoundingClientRect();
+  initialBtnX = rect.left; initialBtnY = rect.top;
+  try { if($toggleBtn.setPointerCapture) { $toggleBtn.setPointerCapture(e.pointerId); } } catch(err) {}
+  $toggleBtn.addEventListener('pointermove', onPtrMove);
+  $toggleBtn.addEventListener('pointerup',   onPtrUp);
+  $toggleBtn.addEventListener('pointercancel', onPtrUp);
+});
+function onPtrMove(e) {
+  var dx = e.clientX - dragStartX, dy = e.clientY - dragStartY;
+  if (!isDragging && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) isDragging = true;
+  if (isDragging) {
+    if (!window.dragAnimationFrame) {
+      window.dragAnimationFrame = requestAnimationFrame(() => {
+        var margin = 15;
+        var menuW = $appMenu.classList.contains('open') ? $appMenu.offsetWidth + 10 : 0;
+        var menuH = $appMenu.classList.contains('open') ? $appMenu.offsetHeight + 10 : 0;
+        
+        var minX = margin;
+        var minY = margin;
+        var maxX = window.innerWidth - $toggleBtn.offsetWidth - margin;
+        var maxY = window.innerHeight - $toggleBtn.offsetHeight - margin;
+        
+        if ($appMenu.classList.contains('open')) {
+            var isRight = (initialBtnX + dx + $toggleBtn.offsetWidth / 2) > (window.innerWidth / 2);
+            var isBottom = (initialBtnY + dy + $toggleBtn.offsetHeight / 2) > (window.innerHeight / 2);
+            
+            if (isRight) { minX = Math.max(minX, menuW); }
+            else { maxX = Math.min(maxX, window.innerWidth - menuW - $toggleBtn.offsetWidth); }
+            
+            if (isBottom) { minY = Math.max(minY, menuH); }
+            else { maxY = Math.min(maxY, window.innerHeight - menuH - $toggleBtn.offsetHeight); }
+        }
+
+        var newX = Math.max(minX, Math.min(initialBtnX + dx, maxX));
+        var newY = Math.max(minY, Math.min(initialBtnY + dy, maxY));
+        
+        $toggleBtn.style.left = newX + 'px'; $toggleBtn.style.top  = newY + 'px';
+        $toggleBtn.style.right = 'auto'; $toggleBtn.style.bottom = 'auto';
+        if ($appMenu.classList.contains('open')) updateMenuPosition();
+        window.dragAnimationFrame = null;
+      });
+    }
+  }
+}
+function onPtrUp(e) {
+  $toggleBtn.removeEventListener('pointermove', onPtrMove);
+  $toggleBtn.removeEventListener('pointerup',   onPtrUp);
+  $toggleBtn.removeEventListener('pointercancel', onPtrUp);
+}
+function toggleMenu() {
+  var isOpen = $appMenu.classList.toggle('open');
+  $toggleBtn.classList.toggle('active', isOpen);
+  $backdrop.classList.toggle('open', isOpen);
+  if (isOpen) {
+    // Always reset to mini sidebar when opening
+    repoCollapsed = true;
+    document.getElementById('fileTreeContainer').style.display = 'none';
+    document.getElementById('repoTabsContainer').classList.add('expanded');
+    updateRepoSidebar();
+    
+    // Force a position refresh the moment it opens to account for layout shifts
+    updateMenuPosition();
+  }
+}
+$toggleBtn.addEventListener('click', function(e) { if (isDragging) return; toggleMenu(); });
+$backdrop.addEventListener('click', toggleMenu);
+
+// VIEW MODE TOGGLE
+document.getElementById('viewBtn').addEventListener('click', function() {
+  if (viewMode === 'preview') {
+    viewMode = 'code';
+    $pv.style.display = 'none';
+    $codeView.style.display = 'block';
+    document.getElementById('searchCodeBtn').style.display = 'flex';
+    $codeView.value = sourceContent;
+    this.style.color = 'var(--amber)';
+  } else {
+    viewMode = 'preview';
+    $codeView.style.display = 'none';
+    document.getElementById('searchCodeBtn').style.display = 'none';
+    document.getElementById('fnrPanel').style.display = 'none';
+    $pv.style.display = 'block';
+    
+    syncEditorToSource();
+    toast('Applied manual edits.');
+    this.style.color = '#ffffff';
+  }
+});
+
+// Find & Replace Logic
+let fnrMatches = [];
+let fnrIndex = -1;
+let $fnrFind = document.getElementById('fnrFind');
+let $fnrReplace = document.getElementById('fnrReplace');
+
+document.getElementById('searchCodeBtn').addEventListener('click', () => {
+  document.getElementById('fnrPanel').style.display = 'flex';
+  $fnrFind.focus();
+  if ($codeView.selectionStart !== $codeView.selectionEnd) {
+    $fnrFind.value = $codeView.value.substring($codeView.selectionStart, $codeView.selectionEnd);
+    doCodeSearch();
+  }
+});
+
+document.getElementById('fnrClose').addEventListener('click', () => {
+  document.getElementById('fnrPanel').style.display = 'none';
+  $codeView.focus();
+});
+
+$fnrFind.addEventListener('input', doCodeSearch);
+$codeView.addEventListener('input', doCodeSearch);
+
+function doCodeSearch() {
+  let text = $codeView.value;
+  let q = $fnrFind.value;
+  fnrMatches = [];
+  if (!q) {
+    document.getElementById('fnrCount').textContent = '0/0';
+    return;
+  }
+  let lowerText = text.toLowerCase();
+  let lowerQ = q.toLowerCase();
+  let pos = 0;
+  while ((pos = lowerText.indexOf(lowerQ, pos)) !== -1) {
+    fnrMatches.push(pos);
+    pos += q.length;
+  }
+  if (fnrMatches.length === 0) {
+    fnrIndex = -1;
+  } else {
+    if (fnrIndex >= fnrMatches.length || fnrIndex < 0) fnrIndex = 0;
+  }
+  updateFnrUI();
+}
+
+function updateFnrUI() {
+  let el = document.getElementById('fnrCount');
+  if (fnrMatches.length === 0) el.textContent = '0/0';
+  else el.textContent = (fnrIndex + 1) + '/' + fnrMatches.length;
+}
+
+function highlightFnrCurrent() {
+  if (fnrIndex >= 0 && fnrIndex < fnrMatches.length) {
+    let start = fnrMatches[fnrIndex];
+    let q = $fnrFind.value;
+    $codeView.focus();
+    $codeView.setSelectionRange(start, start + q.length);
+    
+    let linesBefore = $codeView.value.substring(0, start).split('\n').length;
+    $codeView.scrollTop = (linesBefore - 1) * 19 - ($codeView.clientHeight / 2);
+  }
+}
+
+document.getElementById('fnrNext').addEventListener('click', () => {
+  if (fnrMatches.length === 0) return;
+  fnrIndex = (fnrIndex + 1) % fnrMatches.length;
+  updateFnrUI();
+  highlightFnrCurrent();
+});
+
+document.getElementById('fnrPrev').addEventListener('click', () => {
+  if (fnrMatches.length === 0) return;
+  fnrIndex = (fnrIndex - 1 + fnrMatches.length) % fnrMatches.length;
+  updateFnrUI();
+  highlightFnrCurrent();
+});
+
+document.getElementById('fnrRep').addEventListener('click', () => {
+  if (fnrIndex >= 0 && fnrIndex < fnrMatches.length) {
+    pushState();
+    let text = $codeView.value;
+    let q = $fnrFind.value;
+    let rep = $fnrReplace.value;
+    let start = fnrMatches[fnrIndex];
+    
+    $codeView.value = text.substring(0, start) + rep + text.substring(start + q.length);
+    sourceContent = $codeView.value;
+    doCodeSearch();
+    highlightFnrCurrent();
+  }
+});
+
+document.getElementById('fnrRepAll').addEventListener('click', () => {
+  let q = $fnrFind.value;
+  if (!q) return;
+  pushState();
+  let rep = $fnrReplace.value;
+  let regex = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+  $codeView.value = $codeView.value.replace(regex, rep);
+  sourceContent = $codeView.value;
+  doCodeSearch();
+  toast('✅ Replaced all occurrences');
+});
+
+$fnrFind.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (e.shiftKey) document.getElementById('fnrPrev').click();
+    else document.getElementById('fnrNext').click();
+  }
+});
+
+$fnrReplace.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.getElementById('fnrRep').click();
+  }
+});
+
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    if (viewMode === 'code' && document.getElementById('searchCodeBtn').style.display === 'flex') {
+      e.preventDefault();
+      document.getElementById('searchCodeBtn').click();
+    }
+  }
+  if (((e.ctrlKey || e.metaKey) && e.key === 'g') || e.key === 'F3') {
+    if (viewMode === 'code' && document.getElementById('fnrPanel').style.display === 'flex') {
+      e.preventDefault();
+      if (e.shiftKey) document.getElementById('fnrPrev').click();
+      else document.getElementById('fnrNext').click();
+    }
+  }
+});
+
+// Feature 3: Webview (Live Site in New Tab)
+document.getElementById('liveSiteBtn').addEventListener('click', function() {
+  if (!ghToken || !ghRepo || !ghUser) {
+    toast('❌ Select a repo first', 'warn');
+    return;
+  }
+  const repoName = ghRepo.split('/')[1];
+  if (!repoName) return;
+
+  const url = `https://${ghUser}.github.io/${repoName}/?t=${Date.now()}`;
+  window.open(url, '_blank');
+});
+
+
+
+// Wallpaper UI Triggers
+document.getElementById('wallpaperBtn').addEventListener('click', function() {
+  document.getElementById('wpUrlInput').value = settings.wallpaper || '';
+  document.getElementById('wallpaperModal').classList.add('open');
+  $backdrop.classList.add('open');
+});
+
+document.getElementById('wpCancelBtn').addEventListener('click', function() {
+  document.getElementById('wallpaperModal').classList.remove('open');
+  $backdrop.classList.remove('open');
+});
+
+document.getElementById('wpSaveBtn').addEventListener('click', function() {
+  const url = document.getElementById('wpUrlInput').value.trim();
+  settings.wallpaper = url;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  applyWallpaper(url);
+  ghSaveConfig();
+  document.getElementById('wallpaperModal').classList.remove('open');
+  $backdrop.classList.remove('open');
+  toast('✅ Wallpaper applied & synced!');
+});
+
+document.getElementById('wpClearBtn').addEventListener('click', function() {
+  settings.wallpaper = '';
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  applyWallpaper('');
+  ghSaveConfig();
+  document.getElementById('wpUrlInput').value = '';
+  toast('🗑 Wallpaper cleared & synced.');
+});
+
+document.getElementById('wpUploadBtn').addEventListener('click', function() {
+  document.getElementById('wpFileInput').click();
+});
+
+document.getElementById('wpFileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    const dataUrl = ev.target.result;
+    settings.wallpaper = dataUrl;
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    applyWallpaper(dataUrl);
+    ghSaveConfig();
+    document.getElementById('wallpaperModal').classList.remove('open');
+    $backdrop.classList.remove('open');
+    toast('✅ Wallpaper uploaded & synced!');
+  };
+  reader.readAsDataURL(file);
+  e.target.value = '';
+});
+
+var SUPER_PROMPT = 'Give me the results as Combined Find-and-Replace blocks. Put the old code and the new code inside a single code block separated by exactly ===SPLIT=== on its own line so I only have to click \'copy\' once.\n\nThe 20 Surgery Scenarios You Must Handle:\nScenario 1 (The Swap): Just changing one value or line for another.\nScenario 2 (The Excision): Deleting code while keeping the rest of the file clean. The NEW block must be completely empty – no placeholder comment, no blank lines, nothing.\nScenario 3 (The Injection): "Bolting on" brand new features to existing code.\nScenario 4 (The Interceptor): Adding a safety check or a rule inside an existing process.\nScenario 5 (The Migration): Moving a button or a piece of logic from one place to another.\nScenario 6 (The Refactor): Rewriting a complex math formula or a loop to make it faster.\nScenario 7 (The Sweep): Renaming a specific word/variable everywhere it appears.\nScenario 8 (The Database Bump): Updating saved data settings so the app doesn\'t crash on old info.\nScenario 9 (The Link Shift): Changing where the app connects to (APIs, URLs, or Tokens).\nScenario 10 (The Sync): If you change the "Brain" (Web Worker), you must also fix the "Body" (Main Script).\nScenario 11 (The Layer Fix): Fixing UI issues where things are hidden or unclickable.\nScenario 12 (The Attribute Patch): For changes inside an HTML tag\'s attributes (style, class, data-*), include only that specific tag as the OLD block.\nScenario 13 (The Nuke Warning): If the requested change requires replacing more than 60% of the file, state that in plain text before any code block, then ask for confirmation.\nScenario 14 (The Encoding Fix): If pasted code contains garbled unicode, mojibake, or HTML entities used as code (& < etc), restore the correct characters before applying.\nScenario 15 (The Dedup): If a variable or function is defined more than once in the same scope after your edit, remove the duplicate. Never declare the same identifier twice.\nScenario 16 (The Guard Wrap): If adding async/await or Promise chains, always add .catch() or try/catch – never leave a Promise unhandled.\nScenario 17 (The CSS Cascade Fix): When fixing a style, check if the same property is set elsewhere (inline style, other rule) and neutralize the conflict.\nScenario 18 (The Event Leak): If removing or replacing a DOM element that had event listeners, ensure the listeners are removed first to prevent memory leaks.\nScenario 19 (The Scope Escape): If any variable declared inside a function or block with const/let gets re-executed, move it outside or convert to var.\nScenario 20 (The Rollback Hook): If your patch changes critical state logic (localStorage keys, data schema, core calculations), output a second ===BLOCK=== that is the reverse patch so it can be undone cleanly.\n\nStrict Code Rules:\n- Never convert inline <script> to external <script src="">. All JS must stay inline.\n- If the OLD block text appears more than once in the file, expand it to include enough surrounding lines to make it uniquely identifiable.\n- Never reformat or change indentation style. Match the existing tabs/spaces exactly.\n- The string ===SPLIT=== must never appear inside the OLD or NEW code itself.\n- Never leave any bracket } or parenthesis ) unclosed.\n- Never add import/require statements unless the environment already uses modules.\n- Never remove error handling that already exists.\n- Preserve all existing comments unless asked to remove them.\n\nOutput Rules:\n- Response must contain ONLY the code block(s). No warnings, no annotations, no symbols.\n- If you have a concern about the existing code, state it in plain text BEFORE the code block.\n- For multiple independent fixes, separate each OLD===SPLIT===NEW pair with ===BLOCK===.';
+
+document.getElementById('payloadBtn').addEventListener('click', function() {
+  syncEditorToSource();
+  var instruction = document.getElementById('aiInstruction').value.trim();
+  var payload = SUPER_PROMPT + "\n\n";
+  if (instruction) payload += "=== INSTRUCTIONS ===\n" + instruction + "\n\n";
+  payload += "=== CURRENT SOURCE ===\n" + (sourceContent ? sourceContent : "(No source loaded)");
+  navigator.clipboard.writeText(payload).then(function() {
+    toast('🚀 Payload Copied!');
+  }).catch(function() {
+    toast('❌ Failed to copy payload', 'err');
+  });
+});
+
+
+
+document.getElementById('fullScreenBtn').addEventListener('click', function() {
+  try {
+    if (!document.fullscreenElement) {
+      (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen || document.documentElement.mozRequestFullScreen || document.documentElement.msRequestFullscreen).call(document.documentElement)
+        .catch(function(err) { toast('Fullscreen: ' + err.message, 'warn'); });
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen).call(document);
+    }
+  } catch(e) { toast('Fullscreen not supported here.', 'warn'); }
+});
+
+window.addEventListener('DOMContentLoaded', async function() {
+  showMenuLoader('Connecting to Firebase...');
+  try {
+    var s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    Object.assign(settings, s);
+    if (settings.wallpaper) applyWallpaper(settings.wallpaper);
+  } catch(e) {}
+  
+  updateRepoSidebar(); 
+
+  var fbWait = 0;
+  while (!window._fbReady && fbWait < 20) { await new Promise(r => setTimeout(r, 50)); fbWait++; }
+  
+  showMenuLoader('Syncing Configuration...');
+    await ghLoadConfigFromFirebase();
+    renderRepoTabs();
+  
+    if (ghRepo && ghToken) {
+      try {
+        let activeBuild = JSON.parse(localStorage.getItem('active_build_v1'));
+        if (activeBuild && activeBuild.workflowFile && activeBuild.artifactName) {
+          showBuildOverlay(activeBuild.title || 'Resuming Build...');
+          pollOverlayStatus(activeBuild.workflowFile, activeBuild.artifactName);
+        }
+      } catch(e) {}
+    
+      showMenuLoader('Loading Repository...');
+    await syncCurrentFile();
+    await fetchFileTree(false, true);
+  } else if (ghRepos.length === 0 && ghToken) {
+    showMenuLoader('Fetching Repositories...');
+    await ghFetchAllRepos();
+  }
+  hideMenuLoader();
+});
+
+function showControls() {
+  document.getElementById('sb-status').textContent = fileName;
+}
+
+document.getElementById('clearBtn').addEventListener('click', function() {
+  if (confirm('Clear workspace and start fresh?')) {
+    sourceContent = ''; undoStack = []; redoStack = []; patchLog = [];
+    document.getElementById('sb-status').textContent   = 'ready';
+    $codeView.value = '';
+    
+    syncUndoRedo(); render('', false); updateStatusBar();
+    addLog('info', 'Workspace cleared.');
+    toast('Cleared.'); lastClip = '';
+  }
+});
+
+document.getElementById('fileBtn').addEventListener('click', function() {
+  document.getElementById('fileInput').click();
+});
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    if (!confirm('File is ' + (file.size / 1024 / 1024).toFixed(1) + ' MB. Large files may be slow. Continue?')) {
+      e.target.value = ''; return;
+    }
+  }
+
+  fileName = file.name;
+        var ext = fileName.split('.').pop().toLowerCase();
+        var isMedia = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico', 'bmp', 'avif', 'mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'mp4', 'webm', 'mov'].includes(ext);
+
+        var reader = new FileReader();
+        reader.onerror = function() { toast('Failed to read file.', 'err'); addLog('err', 'FileReader error: ' + fileName); };
+        reader.onload = function(ev) {
+          if (isMedia) {
+            var dataUri = ev.target.result;
+            var isImage = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico', 'bmp', 'avif'].includes(ext);
+            var isAudio = ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a'].includes(ext);
+            var isVideo = ['mp4', 'webm', 'ogg', 'mov'].includes(ext);
+          
+            let mediaHtml = '';
+            if (isImage) mediaHtml = `<img src="${dataUri}" style="max-width:100%;max-height:100%;object-fit:contain;background:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22><path d=%22M1 2V0h1v1H0v1z%22 fill-opacity=%22.05%22/></svg>')">`;
+            else if (isAudio) mediaHtml = `<audio controls autoplay src="${dataUri}" style="width:80%;max-width:400px;"></audio>`;
+            else if (isVideo) mediaHtml = `<video controls autoplay src="${dataUri}" style="max-width:100%;max-height:100%;object-fit:contain;background:#000;"></video>`;
+
+            $pv.srcdoc = `<html style="height:100%;display:flex;align-items:center;justify-content:center;background:#000;">${mediaHtml}</html>`;
+            viewMode = 'preview';
+            $pv.style.display = 'block';
+            $codeView.style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            sourceContent = ''; 
+            $codeView.value = '';
+          
+            ghFilePath = fileName;
+            document.getElementById('ghFilePath').value = ghFilePath;
+            ghSaveConfig();
+            document.getElementById('ghPushBtn').disabled = true;
+          
+            undoStack = []; redoStack = []; syncUndoRedo();
+            showControls();
+            toast('Loaded Local Media: ' + fileName, 'ok');
+            addLog('ok', 'Loaded Local Media: ' + fileName);
+            updateStatusBar();
+          } else {
+            var raw = ev.target.result;
+            sourceContent = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            var isHTML = /<!doctype\s+html|<html[\s>]/i.test(sourceContent.slice(0, 500));
+            if (!isHTML) {
+              toast('Loaded raw text/code file.', 'info', 3000);
+              addLog('info', 'Loaded non-HTML text: ' + fileName);
+            }
+          
+            ghFilePath = fileName;
+            document.getElementById('ghFilePath').value = ghFilePath;
+            ghSaveConfig();
+            document.getElementById('ghPushBtn').disabled = !(ghRepo && ghToken);
+          
+            undoStack = []; redoStack = []; syncUndoRedo();
+            showControls();
+            render(sourceContent, false);
+            toast('Loaded Local: ' + fileName, 'ok');
+            addLog('ok', 'Loaded Local: ' + fileName + ' (' + (sourceContent.length / 1024).toFixed(1) + ' KB)');
+            updateStatusBar();
+          }
+        };
+      
+        if (isMedia) {
+          reader.readAsDataURL(file);
+        } else {
+          reader.readAsText(file, 'UTF-8');
+        }
+  e.target.value = '';
+});
+
+document.getElementById('exportBtn').addEventListener('click', function() {
+  syncEditorToSource();
+  if (!sourceContent) { toast('Nothing to export.', 'warn'); return; }
+  try {
+    var blob = new Blob([sourceContent], { type: 'text/html;charset=utf-8' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href = url; a.download = fileName;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    setTimeout(function() { URL.revokeObjectURL(url); }, 3000);
+    toast('Exported: ' + fileName); addLog('ok', 'Exported: ' + fileName);
+  } catch(e) { toast('Export failed: ' + e.message, 'err'); }
+});
+
+function fixEncoding(src) {
+  return src
+    .replace(/&/g, '&')
+    .replace(/</g, '<')
+    .replace(/>/g, '>')
+    .replace(/"/g, '"')
+    .replace(/'/g, "'")
+    .replace(/'/g, "'")
+    .replace(/ /g, ' ')
+    .replace(/'/g, "'")
+    .replace(/"/g, '"')
+    .replace(/â€\x9d/g, '"')
+    .replace(/–/g, '–')
+    .replace(/–/g, '–')
+    .replace(/é/g, 'é')
+    .replace(/à/g, 'à')
+    .replace(/è/g, 'è')
+    .replace(/ê/g, 'ê')
+    .replace(/î/g, 'î')
+    .replace(/ô/g, 'ô')
+    .replace(/û/g, 'û')
+    .replace(/ç/g, 'ç')
+    .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"');
+}
+
+function syncUndoRedo() {
+  document.getElementById('undoBtn').disabled = undoStack.length === 0;
+  document.getElementById('redoBtn').disabled = redoStack.length === 0;
+  updateStatusBar();
+}
+
+function pushState() {
+  if (!sourceContent) return;
+  undoStack.push(sourceContent);
+  if (undoStack.length > MAX_UNDO) undoStack.shift();
+  redoStack = [];
+  syncUndoRedo();
+}
+
+document.getElementById('undoBtn').addEventListener('click', function() {
+  if (!undoStack.length) return;
+  redoStack.push(sourceContent);
+  sourceContent = undoStack.pop();
+  syncUndoRedo(); render(sourceContent, false); updateStatusBar();
+  toast('Undo applied.'); addLog('info', 'Undo.');
+});
+
+document.getElementById('redoBtn').addEventListener('click', function() {
+  if (!redoStack.length) return;
+  undoStack.push(sourceContent);
+  sourceContent = redoStack.pop();
+  syncUndoRedo(); render(sourceContent, false); updateStatusBar();
+  toast('Redo applied.'); addLog('info', 'Redo.');
+});
+
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+    if (undoStack.length) document.getElementById('undoBtn').click();
+    e.preventDefault();
+  }
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+    if (redoStack.length) document.getElementById('redoBtn').click();
+    e.preventDefault();
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'v' && e.shiftKey) {
+    document.getElementById('pasteBtn').click();
+    e.preventDefault();
+  }
+});
+
+var renderTimer;
+function render(src, skipEditorUpdate) {
+  clearTimeout(renderTimer);
+  document.getElementById('sb-status').textContent = 'rendering…';
+  
+  if (!src) {
+        $pv.style.display = 'none';
+        $codeView.style.display = 'none';
+        document.getElementById('emptyState').style.display = 'flex';
+        document.getElementById('searchCodeBtn').style.display = 'none';
+        document.getElementById('fnrPanel').style.display = 'none';
+    } else {
+        document.getElementById('emptyState').style.display = 'none';
+        if (viewMode === 'preview') {
+            $pv.style.display = 'block';
+            $codeView.style.display = 'none';
+            document.getElementById('searchCodeBtn').style.display = 'none';
+            document.getElementById('fnrPanel').style.display = 'none';
+        } else {
+            $pv.style.display = 'none';
+            $codeView.style.display = 'block';
+            document.getElementById('searchCodeBtn').style.display = 'flex';
+        }
+    }
+  
+  if (!skipEditorUpdate && $codeView.value !== src) {
+    $codeView.value = src;
+  }
+  
+  renderTimer = setTimeout(function() {
+    try {
+      var bridge = [
+              '<style>html,body{-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto;}</style>',
+              '<scr' + 'ipt>',
+        'window.onerror = function(m,s,l,c,err){',
+        '  window.parent.postMessage({__compilerErr:"Line "+l+": "+m+(err&&err.stack?" | "+err.stack.split("\\n")[1]:"")}, "*");',
+        '  return true;',
+        '};',
+        'window.addEventListener("unhandledrejection", function(e){',
+        '  window.parent.postMessage({__compilerErr:"Promise rejection: "+(e.reason&&e.reason.message||e.reason||"unknown")}, "*");',
+        '});',
+        'window.console.error = (function(orig){',
+        '  return function(){',
+        '    orig.apply(console, arguments);',
+        '    var msg = Array.prototype.slice.call(arguments).join(" ");',
+        '    window.parent.postMessage({__compilerWarn:"console.error: "+msg}, "*");',
+        '  };',
+        '})(window.console.error);',
+        '</scr' + 'ipt>'
+      ].join('');
+
+      if (/<!doctype|<html/i.test(src)) {
+              $pv.srcdoc = src.replace(/<head([^>]*)>/i, '<head$1>' + bridge) || bridge + src;
+            } else {
+              var safeText = String(src).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+              $pv.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8">' + bridge + '<style>body{background:transparent;color:#eee;font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;margin:0;}</style></head><body>' + safeText + '</body></html>';
+            }
+    } catch(e) {
+      showErr('Render engine error: ' + e.message);
+    }
+    flash();
+    document.getElementById('sb-status').textContent = fileName;
+    if ($astPanel.style.display === 'block') runASTCheck(src);
+    updateStatusBar();
+  }, 500); 
+}
+
+document.getElementById('astBtn').addEventListener('click', function() {
+  syncEditorToSource();
+  $astPanel.style.display = $astPanel.style.display === 'block' ? 'none' : 'block';
+  if ($astPanel.style.display === 'block' && sourceContent) runASTCheck(sourceContent);
+});
+
+function tokenBalance(src) {
+  var jsCode = src;
+  if (/<\/?html|<\/?body/i.test(src)) {
+    jsCode = '';
+    var scriptRegex = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+    var match;
+    while ((match = scriptRegex.exec(src)) !== null) {
+      jsCode += '\n' + match[1];
+    }
+  }
+
+  var bt = String.fromCharCode(96);
+  var sq = String.fromCharCode(39);
+  var dq = String.fromCharCode(34);
+  
+  var s = jsCode
+    .replace(/\/\*[\s\S]*?\*\//g, '') 
+    .replace(/\/\/.*/g, '') 
+    .replace(new RegExp(bt + '(?:\\\\'+bt+'|[^'+bt+'])*' + bt, 'g'), '') 
+    .replace(new RegExp(sq + '(?:\\\\'+sq+'|[^'+sq+'])*' + sq, 'g'), '') 
+    .replace(new RegExp(dq + '(?:\\\\'+dq+'|[^'+dq+'])*' + dq, 'g'), '') 
+    .replace(/\/(?:\\\/|[^/\n])+\/[gimyus]*/g, '');
+  
+  var brackets = { '{': 0, '(': 0, '[': 0 };
+  var closers  = { '}': '{', ')': '(', ']': '[' };
+  for (var i = 0; i < s.length; i++) {
+    var ch = s[i];
+    if (brackets[ch] !== undefined) brackets[ch]++;
+    if (closers[ch]) brackets[closers[ch]]--;
+  }
+  return brackets;
+}
+
+function htmlTagBalance(src) {
+  var tags = ['script','style','div','span','section','header','footer','main','nav','aside','article','form','table','head','body','ul','ol','li','p','a','button','select','textarea','canvas','svg','dialog'];
+  var issues = [];
+  tags.forEach(function(tag) {
+    var opens  = (src.match(new RegExp('<' + tag + '(?=\\s|>|/)', 'gi')) || []).length;
+    var closes = (src.match(new RegExp('</' + tag + '\\s*>', 'gi')) || []).length;
+    if (opens !== closes) issues.push('<' + tag + '> open:' + opens + ' close:' + closes);
+  });
+  return issues;
+}
+
+function checkDuplicateVars(src) {
+  var issues = [];
+  var seen = {};
+  var matches = src.matchAll(/(?:^|\n)[ \t]*(?:var|let|const)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)/g);
+  for (var m of matches) {
+    var name = m[1];
+    seen[name] = (seen[name] || 0) + 1;
+  }
+  Object.keys(seen).forEach(function(k) {
+    if (seen[k] > 1) issues.push(k + ' (' + seen[k] + 'x)');
+  });
+  return issues.slice(0, 5);
+}
+
+function checkUnhandledPromises(src) {
+  var thenCount  = (src.match(/\.then\s*\(/g) || []).length;
+  var catchCount = (src.match(/\.catch\s*\(/g) || []).length;
+  return thenCount > catchCount ? (thenCount - catchCount) : 0;
+}
+
+function checkLocalStorageKeys(src) {
+  var keys = [];
+  var matches = src.matchAll(/localStorage\.(?:setItem|getItem|removeItem)\(\s*['"`]([^'"`]+)['"`]/g);
+  for (var m of matches) { if (!keys.includes(m[1])) keys.push(m[1]); }
+  return keys;
+}
+
+function runASTCheck(src) {
+  var results = [];
+
+  var brackets = tokenBalance(src);
+  var bOpen    = Object.entries(brackets).filter(function(e) { return e[1] !== 0; });
+  results.push(bOpen.length === 0
+    ? '<span class="ast-ok">✓ JS brackets balanced { [ (</span>'
+    : bOpen.map(function(e) {
+        return '<span class="ast-err">✗ Unbalanced \'' + e[0] + '\': ' + (e[1] > 0 ? '+' + e[1] + ' unclosed' : Math.abs(e[1]) + ' extra') + '</span>';
+      }).join('<br>'));
+
+  var htmlIssues = htmlTagBalance(src);
+  results.push(htmlIssues.length === 0
+    ? '<span class="ast-ok">✓ HTML tags balanced</span>'
+    : htmlIssues.map(function(i) { return '<span class="ast-warn">⚠ ' + i + '</span>'; }).join('<br>'));
+
+  var dupes = checkDuplicateVars(src);
+  results.push(dupes.length === 0
+    ? '<span class="ast-ok">✓ No duplicate var declarations</span>'
+    : '<span class="ast-warn">⚠ Possible dupes: ' + dupes.join(', ') + '</span>');
+
+  var unhandled = checkUnhandledPromises(src);
+  results.push(unhandled === 0
+    ? '<span class="ast-ok">✓ Promises appear handled</span>'
+    : '<span class="ast-warn">⚠ ~' + unhandled + ' .then() without matching .catch()</span>');
+
+  var lsKeys = checkLocalStorageKeys(src);
+  results.push(lsKeys.length > 0
+    ? '<span style="color:var(--purple)">🔑 localStorage keys: ' + lsKeys.join(', ') + '</span>'
+    : '<span style="color:var(--tm)">ℹ No localStorage usage detected</span>');
+
+  var hasEntities = /&|<|>/.test(src.replace(/<[^>]+>/g, '').replace(/<script[\s\S]*?<\/script>/gi, ''));
+  results.push(hasEntities
+    ? '<span class="ast-warn">⚠ HTML entities found in code (run Auto-Fix Encoding)</span>'
+    : '<span class="ast-ok">✓ No encoding pollution detected</span>');
+
+  var lines = src.split('\n').length;
+  var kb    = (src.length / 1024).toFixed(1);
+  var scripts = (src.match(/<script/gi) || []).length;
+  var styles  = (src.match(/<style/gi)  || []).length;
+  results.push('<span style="color:#ffffff">' + lines + ' lines | ' + kb + ' KB | <script>:' + scripts + ' <style>:' + styles + ' | undo:' + undoStack.length + ' redo:' + redoStack.length + '</span>');
+
+  $astContent.innerHTML = results.join('<br><br>');
+}
+
+function astGuardAfterApply() {
+  if (!settings.astGuard || !sourceContent) return true;
+  var broken = Object.entries(tokenBalance(sourceContent)).filter(function(e) { return e[1] !== 0; });
+  if (broken.length > 0) {
+    var detail = broken.map(function(e) { return "'" + e[0] + "':" + e[1]; }).join(', ');
+    addLog('warn', 'AST Guard Warning: ' + detail + '. Patch applied without auto-undo.');
+  }
+  return true;
+}
+
+document.getElementById('logBtn').addEventListener('click', function() {
+  $logPanel.style.display = $logPanel.style.display === 'block' ? 'none' : 'block';
+  if ($logPanel.style.display === 'block') renderLog();
+});
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>');
+}
+
+/* --- JS FIX: Using safe hex codes instead of literal backticks to stop markdown corruption --- */
+function stripCodeFences(text) {
+  return text
+    .replace(new RegExp('^[ \\t]*\\x60\\x60\\x60[a-zA-Z0-9\\-_]*[ \\t]*\\r?\\n', 'gm'), '')
+    .replace(new RegExp('^[ \\t]*\\x60\\x60\\x60[ \\t]*(\\r?\\n|$)', 'gm'), '')
+    .replace(/^[ \t]*~~~[a-zA-Z0-9\-_]*[ \t]*\r?\n/gm, '')
+    .replace(/^[ \t]*~~~[ \t]*(\r?\n|$)/gm, '')
+    .replace(/^[ \t]*\/\/\s*(OLD|NEW)\s*(CHUNK|BLOCK|CODE)?[ \t]*\r?\n/gim, '')
+    .replace(/^(here(?:'s| is) (?:the )?(?:patch|code|result|fix|update):?\s*\n)/i, '')
+    .trim();
+}
+
+function normaliseSplitTokens(text) {
+  return text
+    .replace(/={2,4}\s*SPLIT\s*={2,4}/gi, SPLIT_TOKEN)
+    .replace(/={2,4}\s*BLOCK\s*={2,4}/gi, BLOCK_TOKEN)
+    .replace(/^[ \t]*-{2,}\s*SPLIT\s*-{2,}[ \t]*$/gim, SPLIT_TOKEN)
+    .replace(/^[ \t]*-{2,}\s*BLOCK\s*-{2,}[ \t]*$/gim, BLOCK_TOKEN);
+}
+
+function parseAllBlocks(text) {
+  var cleaned = stripCodeFences(text);
+  cleaned = normaliseSplitTokens(cleaned);
+  cleaned = cleaned
+    .replace(/\/\/\s*(OLD|NEW)\s*CHUNK\s*/gi, '')
+    .replace(/#\s*(OLD|NEW)\s*CHUNK\s*/gi, '')
+    .trim();
+
+  if (sourceContent && cleaned.length > sourceContent.length * NUKE_THRESHOLD) {
+    var ratio = ((cleaned.length / sourceContent.length) * 100).toFixed(0);
+    addLog('warn', 'Nuke Warning: patch is ' + ratio + '% of file size.');
+    toast('⚠ Patch is ' + ratio + '% of file size (Scenario 13).\nApplying anyway – use Undo if wrong.', 'warn', 6000);
+  }
+
+  var units = cleaned.split(new RegExp(BLOCK_TOKEN.replace(/=/g, '='), 'i'))
+    .map(function(u) { return u.trim(); })
+    .filter(Boolean);
+
+  var blocks = [];
+  units.forEach(function(u) {
+    if (!u.includes(SPLIT_TOKEN)) return;
+    var idx     = u.indexOf(SPLIT_TOKEN);
+    var oldCode = u.slice(0, idx).trim();
+    var newCode = u.slice(idx + SPLIT_TOKEN.length).trim();
+    if (oldCode || newCode) blocks.push({ oldCode: oldCode, newCode: newCode });
+  });
+
+  return blocks;
+}
+
+function countOccurrences(source, chunk) {
+  if (!chunk) return 0;
+  var count = 0, pos = 0;
+  while ((pos = source.indexOf(chunk, pos)) !== -1) { count++; pos++; }
+  return count;
+}
+
+function buildResult(source, startIdx, matchedText) {
+  var lineStartIdx = source.lastIndexOf('\n', startIdx - 1) + 1;
+  var leadingSpace = source.substring(lineStartIdx, startIdx).match(/^[ \t]*/)[0];
+  return { startIndex: startIdx, endIndex: startIdx + matchedText.length, baseIndent: leadingSpace, matchedText: matchedText };
+}
+
+function findFingerprintedChunk(source, chunk) {
+  if (!chunk || !source) return null;
+  var idx = source.indexOf(chunk);
+  if (idx !== -1) {
+    var total = countOccurrences(source, chunk);
+    if (total > 1 && settings.warnAmbiguous) {
+      toast('⚠ OLD block matched ' + total + '×. Patched first.\nExpand OLD block for precision.', 'warn', 5000);
+      addLog('warn', 'Ambiguous match (' + total + 'x): ' + chunk.slice(0, 60).replace(/\n/g, '↵'));
+    }
+    return buildResult(source, idx, chunk);
+  }
+
+  // Prevent regex freezing on massive chunks
+  if (chunk.length < 1500) {
+    try {
+      var esc = chunk.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+                     .replace(/[ \t]+/g, '[ \\t]+')
+                     .replace(/\n/g, '[ \\t]*\\n[ \\t]*'); 
+      var rx  = new RegExp(esc);
+      var m   = source.match(rx);
+      if (m && m.index !== undefined) {
+        addLog('info', 'Tier-2 fuzzy match (whitespace) applied.');
+        return buildResult(source, m.index, m[0]);
+      }
+    } catch(e) {}
+
+    try {
+      var esc2 = chunk.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+      var allM = Array.from(source.matchAll(new RegExp(esc2, 'g')));
+      if (allM.length > 0) {
+        if (allM.length > 1 && settings.warnAmbiguous) {
+          toast('⚠ Fuzzy match: ' + allM.length + '× matches. Patched first.', 'warn', 5000);
+          addLog('warn', 'Ambiguous fuzzy match (' + allM.length + 'x).');
+        }
+        addLog('info', 'Tier-3 fuzzy match (aggressive whitespace) applied.');
+        return buildResult(source, allM[0].index, allM[0][0]);
+      }
+    } catch(e) {}
+  }
+
+  var chunkLines = chunk.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+  if (chunkLines.length >= 3 && chunk.length < 3000) {
+    var first = chunkLines[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    var last  = chunkLines[chunkLines.length - 1].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    try {
+      var anchorRx = new RegExp(first + '[\\s\\S]{1,3000}?' + last);
+      var aMatch   = source.match(anchorRx);
+      if (aMatch && aMatch.index !== undefined) {
+        addLog('warn', 'Tier-4 anchor match used – verify result.');
+        toast('⚠ Used anchor match (Tier 4). Verify patch.', 'warn', 4000);
+        return buildResult(source, aMatch.index, aMatch[0]);
+      }
+    } catch(e) {}
+  }
+
+  var singleLine = chunk.trim();
+  if (!singleLine.includes('\n')) {
+    var escapedLine = singleLine.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    try {
+      var lineRx = new RegExp('^[ \\t]*' + escapedLine + '[ \\t]*$', 'm');
+      var lm     = source.match(lineRx);
+      if (lm && lm.index !== undefined) {
+        addLog('info', 'Tier-5 single-line match used.');
+        return buildResult(source, lm.index, lm[0]);
+      }
+    } catch(e) {}
+  }
+
+  return null;
+}
+
+function reindent(code, baseIndent) {
+  if (!code || !settings.indentFix) return code;
+  var lines    = code.split('\n');
+  var nonEmpty = lines.filter(function(l) { return l.trim(); });
+  if (nonEmpty.length === 0) return code;
+  var minIndent = Math.min.apply(null, nonEmpty.map(function(l) { return l.match(/^[ \t]*/)[0].length; }));
+  if (minIndent === baseIndent.length) return code;
+  return lines.map(function(l, i) {
+    if (i === 0 || !l.trim()) return l;
+    return baseIndent + l.slice(minIndent);
+  }).join('\n');
+}
+
+function autoLockAndApply(parsed, blockNum) {
+  if (!sourceContent) { addLog('err', 'No source loaded.'); return false; }
+
+  var cleanOld = parsed.oldCode ? parsed.oldCode.replace(/\r\n/g, '\n').replace(/\r/g, '\n') : '';
+
+  if (!cleanOld) {
+    if (parsed.newCode) {
+      pushState();
+      if (/<body[^>]*>/i.test(sourceContent)) {
+        sourceContent = sourceContent.replace(/(<body[^>]*>)/i, '$1\n' + parsed.newCode);
+      } else {
+        sourceContent = parsed.newCode + '\n' + sourceContent;
+      }
+      render(sourceContent, false); updateStatusBar();
+      addLog('ok', 'Block ' + blockNum + ': injected (empty OLD → prepend).');
+      return true;
+    }
+    return false;
+      }
+
+      var loc = findFingerprintedChunk(sourceContent, cleanOld);
+      if (!loc) {
+        var preview = cleanOld.substring(0, 60).replace(/\n/g, '↵');
+    var errMsg  = 'Block ' + blockNum + ': no match found.\n"' + preview + '…"';
+    toast(errMsg, 'err', 7000);
+    addLog('err', 'Block ' + blockNum + ' MISS: "' + preview + '"');
+    return false;
+  }
+
+  pushState();
+  var fixedNew = fixEncoding(parsed.newCode.replace(/\r\n/g, '\n').replace(/\r/g, '\n'));
+  var newT     = reindent(fixedNew, loc.baseIndent);
+  sourceContent = sourceContent.slice(0, loc.startIndex) + newT + sourceContent.slice(loc.endIndex);
+  render(sourceContent, false);
+  updateStatusBar();
+  addLog('ok', 'Block ' + blockNum + ' applied. Δ ' + (loc.matchedText.length - newT.length) + ' chars.');
+  return astGuardAfterApply();
+}
+
+function doPaste(raw) {
+  if (!raw || !raw.trim()) {
+    toast('Clipboard is empty.', 'warn');
+    return;
+  }
+
+  var fixed = fixEncoding(raw);
+  if (fixed !== raw) {
+    addLog('info', 'Encoding fixed in pasted content.');
+    raw = fixed;
+  }
+
+  if (!sourceContent && (/<!doctype\s+html/i.test(raw) || /<html[\s>]/i.test(raw))) {
+      sourceContent = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      showControls();
+      render(sourceContent, false);
+      toast('Initialised from clipboard!');
+      addLog('ok', 'Initialised from full HTML paste (' + (sourceContent.length / 1024).toFixed(1) + ' KB).');
+      updateStatusBar();
+      return;
+    }
+
+    var blocks = parseAllBlocks(raw);
+  
+    if (!sourceContent && blocks.length === 0) {
+      sourceContent = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+      showControls();
+      $codeView.value = sourceContent;
+      if (viewMode === 'preview') {
+         document.getElementById('viewBtn').click();
+      } else {
+         render(sourceContent, false);
+      }
+      toast('Initialised from pasted snippet!');
+      addLog('ok', 'Started new file from clipboard paste.');
+      updateStatusBar();
+      return;
+    }
+
+    if (!sourceContent) {
+      toast('Load a file first, or paste a full HTML page.', 'warn', 4000);
+      return;
+    }
+  if (blocks.length === 0) {
+    if (raw.includes('<') || raw.includes('function') || raw.includes('{')) {
+      toast('No ===SPLIT=== found.\nDid you forget to use the Super Prompt?\nIf pasting full HTML, paste when no file is loaded.', 'err', 7000);
+    } else {
+      toast('No valid ===SPLIT=== blocks found.\nCheck separator or stray fences.', 'err', 5000);
+    }
+    addLog('err', 'Parse failed: no SPLIT blocks in clipboard.');
+    return;
+  }
+
+  showProgress(10);
+  var applied  = 0;
+  var total    = blocks.length;
+
+  for (var bi = blocks.length - 1; bi >= 0; bi--) {
+    showProgress(10 + ((total - bi) / total) * 80);
+    var ok = autoLockAndApply(blocks[bi], bi + 1);
+    if (ok) { applied++; }
+    else if (!ok && applied < total - bi) { break; } 
+  }
+
+  hideProgress();
+
+  if (applied > 0) {
+    toast('✓ Applied ' + applied + '/' + total + ' patch(es)!', applied === total ? 'ok' : 'warn');
+    addLog('ok', 'Applied ' + applied + '/' + total + ' blocks.');
+  } else {
+    toast('✗ No patches applied. Check the log.', 'err', 5000);
+    addLog('err', 'Zero blocks applied from ' + total + ' parsed.');
+  }
+}
+
+document.addEventListener('paste', function(e) {
+  if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.id === 'codeView')) return;
+  var raw = (e.clipboardData || window.clipboardData).getData('text');
+  if (raw) doPaste(raw);
+});
+
+document.getElementById('pasteBtn').addEventListener('click', async function() {
+  showProgress(5);
+  
+  let raw = "";
+  try {
+    if (window.AndroidClipboard && typeof window.AndroidClipboard.read === 'function') {
+      raw = window.AndroidClipboard.read();
+    } else if (navigator.clipboard && navigator.clipboard.readText) {
+      raw = await navigator.clipboard.readText();
+    } else {
+      toast('Clipboard API unavailable – try Ctrl+Shift+V or allow clipboard permission.', 'warn', 5000);
+      hideProgress(); 
+      return;
+    }
+  } catch (err) {
+    hideProgress();
+    var msg = err.name === 'NotAllowedError'
+      ? 'Clipboard permission denied.\nAllow clipboard access in browser settings.'
+      : 'Could not read clipboard: ' + err.message;
+    toast(msg, 'err', 6000);
+    addLog('err', 'Clipboard read failed: ' + err.message);
+    return;
+  }
+  
+  doPaste(raw);
+});
+
+document.getElementById('ghSettingsBtn').addEventListener('click', function() {
+  document.getElementById('ghToken').value = ghToken;
+  document.getElementById('ghUser').value = ghUser;
+  document.getElementById('ghBranch').value = ghBranch;
+  document.getElementById('ghFilePath').value = ghFilePath;
+  document.getElementById('ghConfigPanel').classList.add('open');
+  $backdrop.classList.add('open');
+});
+
+document.getElementById('ghClosePanelBtn').addEventListener('click', function() {
+  document.getElementById('ghConfigPanel').classList.remove('open');
+  $backdrop.classList.remove('open');
+});
+
+document.getElementById('ghSaveBtn').addEventListener('click', function() {
+  ghToken = document.getElementById('ghToken').value.trim();
+  ghUser = document.getElementById('ghUser').value.trim();
+  ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
+  ghFilePath = document.getElementById('ghFilePath').value.trim() || 'index.html';
+  ghSaveConfig();
+  document.getElementById('ghConfigPanel').classList.remove('open');
+  $backdrop.classList.remove('open');
+  toast('💾 GitHub Settings Saved!');
+});
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = error => reject(error);
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadSingleFileToRepo(repo, path, base64Content, branch, messagePrefix = 'Upload') {
+  let sha = null;
+  try {
+    const getRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}?ref=${branch}`, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+      cache: 'no-store'
+    });
+    if (getRes.ok) {
+      const getData = await getRes.json();
+      sha = getData.sha;
+    }
+  } catch (e) {}
+
+  const body = {
+    message: `${messagePrefix} ${path}`,
+    content: base64Content,
+    branch: branch
+  };
+  if (sha) body.sha = sha;
+
+  const putRes = await fetch(`https://api.github.com/repos/${repo}/contents/${path}`, {
+    method: 'PUT',
+    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!putRes.ok) {
+    const errText = await putRes.text();
+    throw new Error(errText);
+  }
+  return await putRes.json();
+}
+
+document.getElementById('ghFetchReposBtn').addEventListener('click', function() {
+  ghToken = document.getElementById('ghToken').value.trim();
+  ghFetchAllRepos();
+});
+
+window.syncCurrentFile = async function() {
+  if (!ghToken || !ghRepo) { toast('❌ Configure GitHub settings and select a repo first.', 'warn'); return; }
+  showProgress(20);
+  try {
+    toast('🔄 Syncing from GitHub...', 'info');
+    
+    const repoRes = await fetch(`https://api.github.com/repos/${ghRepo}`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }});
+    if (repoRes.ok) {
+       const repoInfo = await repoRes.json();
+       if (repoInfo.default_branch && ghBranch !== repoInfo.default_branch) {
+           ghBranch = repoInfo.default_branch;
+           document.getElementById('ghBranch').value = ghBranch;
+           ghSaveConfig();
+       }
+    }
+
+    const url = `https://api.github.com/repos/${ghRepo}/contents/${ghFilePath}?ref=${ghBranch}`;
+    const res = await fetch(url, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+    
+    if (!res.ok) {
+        if (res.status === 404) {
+            toast(`ℹ ${ghFilePath} not found in ${ghBranch}. Ready to create new!`, 'info', 4000);
+            addLog('info', `File ${ghFilePath} does not exist yet. Ready for push.`);
+            document.getElementById('ghPushBtn').disabled = false;
+            hideProgress();
+            return; 
+        }
+        throw new Error(res.statusText);
+    }
+
+    const data = await res.json();
+    
+    // Universal Media Preview Logic Route
+        const ext = ghFilePath.split('.').pop().toLowerCase();
+        const imgExts = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico', 'bmp', 'avif'];
+        const audExts = ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a'];
+        const vidExts = ['mp4', 'webm', 'ogg', 'mov'];
+    
+        const isImage = imgExts.includes(ext);
+        const isAudio = audExts.includes(ext);
+        const isVideo = vidExts.includes(ext);
+        const isMedia = isImage || isAudio || isVideo;
+
+        if (isMedia) {
+                    let mime = 'application/octet-stream';
+                    if (isImage) mime = ext === 'svg' ? 'image/svg+xml' : (ext === 'jpg' ? 'image/jpeg' : `image/${ext}`);
+                    if (isAudio) mime = ext === 'mp3' ? 'audio/mpeg' : (ext === 'm4a' ? 'audio/mp4' : `audio/${ext}`);
+                    if (isVideo) mime = ext === 'mp4' ? 'video/mp4' : (ext === 'mov' ? 'video/quicktime' : `video/${ext}`);
+
+                    let mediaSrc = data.download_url;
+                    if (!mediaSrc && data.content) {
+                        mediaSrc = `data:${mime};base64,${data.content.replace(/\s/g, '')}`;
+                    }
+                    if (!mediaSrc) {
+                        mediaSrc = `https://raw.githubusercontent.com/${ghRepo}/${ghBranch}/${ghFilePath}`;
+                        addLog('warn', `File too large for GitHub Contents API inline data; falling back to raw.githubusercontent.com URL for ${ghFilePath}`);
+                    }
+        
+                            viewMode = 'preview';
+                            $pv.style.display = 'block';
+                            $codeView.style.display = 'none';
+                            document.getElementById('emptyState').style.display = 'none';
+        
+                            let mediaHtml = '';
+                            if (isImage) {
+                                mediaHtml = `<img src="${mediaSrc}" style="max-width:100%;max-height:100%;object-fit:contain;background:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22><path d=%22M1 2V0h1v1H0v1z%22 fill-opacity=%22.05%22/></svg>')">`;
+                            } else if (isAudio) {
+                                mediaHtml = `<audio controls autoplay src="${mediaSrc}" style="width:80%;max-width:400px;" onerror="window.parent.postMessage({__compilerWarn:'Media failed to load: ' + this.src}, '*')"></audio>`;
+                            } else if (isVideo) {
+                                mediaHtml = `<video controls autoplay src="${mediaSrc}" style="max-width:100%;max-height:100%;object-fit:contain;background:#000;" onerror="window.parent.postMessage({__compilerWarn:'Media failed to load: ' + this.src}, '*')"></video>`;
+                            }
+
+                    $pv.srcdoc = `<html style="height:100%;display:flex;align-items:center;justify-content:center;background:#000;">${mediaHtml}</html>`;
+        
+                    sourceContent = ''; 
+                    $codeView.value = '';
+
+                    toast(`✅ Loaded Media: ${ghFilePath.split('/').pop()}`);
+                    addLog('ok', `Synced Media ${ghFilePath}`);
+                    document.getElementById('ghPushBtn').disabled = true; 
+                    hideProgress();
+                    return;
+                }
+
+    /* --- JS FIX: Safe TextDecoder for UTF-8 compatibility (Emojis/Foreign Characters) --- */
+    const binaryString = atob(data.content.replace(/\s/g, ''));
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    sourceContent = new TextDecoder('utf-8').decode(bytes);
+    
+    fileName = ghFilePath.split('/').pop() || 'index.html';
+    
+    viewMode = 'preview'; // Reset to standard preview mode after sync
+    render(sourceContent, false);
+    showControls();
+    document.getElementById('ghPushBtn').disabled = false;
+    toast(`✅ Loaded ${fileName} from ${ghRepo}`);
+    addLog('ok', `Synced ${ghFilePath} from ${ghRepo}`);
+    undoStack = []; redoStack = []; syncUndoRedo(); updateStatusBar();
+  } catch(e) {
+    toast('❌ Sync failed: ' + e.message, 'err');
+    addLog('err', 'GitHub Sync Error: ' + e.message);
+  }
+  hideProgress();
+};
+
+document.getElementById('ghSyncBtn').addEventListener('click', async function() {
+  await syncCurrentFile();
+});
+
+document.getElementById('ghPushBtn').addEventListener('click', function() {
+  syncEditorToSource();
+  if (!sourceContent) { toast('❌ Nothing to push.', 'warn'); return; }
+  if (!ghToken || !ghRepo) { toast('❌ Configure GitHub first.', 'warn'); return; }
+  const ts = new Date().toISOString().replace('T',' ').slice(0,19);
+  document.getElementById('commitMsgInput').value = `Update ${ghFilePath} via AI Compile – ${ts}`;
+  document.getElementById('commitModal').classList.add('open');
+  $backdrop.classList.add('open');
+});
+
+document.getElementById('cmCancelBtn').addEventListener('click', function() {
+  document.getElementById('commitModal').classList.remove('open');
+  $backdrop.classList.remove('open');
+});
+
+document.getElementById('cmConfirmBtn').addEventListener('click', async function() {
+  syncEditorToSource();
+  const msg = document.getElementById('commitMsgInput').value.trim();
+  if (!msg) { toast('❌ Enter a commit message', 'warn'); return; }
+  document.getElementById('commitModal').classList.remove('open');
+  $backdrop.classList.remove('open');
+  
+  const btn = document.getElementById('ghPushBtn');
+  btn.disabled = true;
+  showProgress(30);
+  try {
+    toast('⬆ Pushing to GitHub...', 'info');
+    let sha = null;
+    const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${ghFilePath}?ref=${ghBranch}`;
+    const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+    if (getRes.ok) {
+      const getData = await getRes.json();
+      sha = getData.sha;
+    }
+    
+    const encoded = btoa(unescape(encodeURIComponent(sourceContent)));
+    const body = { message: msg, content: encoded, branch: ghBranch };
+    if (sha) body.sha = sha;
+
+    const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${ghFilePath}`, {
+      method: 'PUT',
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+
+    if (putRes.ok) {
+      toast('✅ Pushed to GitHub!');
+      addLog('ok', `Pushed ${ghFilePath} to ${ghRepo}`);
+    } else {
+      const errData = await putRes.json().catch(()=>({}));
+      throw new Error(errData.message || putRes.statusText);
+    }
+  } catch(e) {
+    toast('❌ Push failed: ' + e.message, 'err');
+    addLog('err', 'GitHub Push Error: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    hideProgress();
+  }
+});
+
+$backdrop.addEventListener('click', function() {
+  document.getElementById('ghConfigPanel').classList.remove('open');
+  document.getElementById('commitModal').classList.remove('open');
+  document.getElementById('newRepoModal').classList.remove('open');
+  document.getElementById('wallpaperModal').classList.remove('open');
+  document.getElementById('buildModal').classList.remove('open');
+});
+
+// === Dual Engine Build Modal Logic ===
+document.getElementById('masterBuildBtn').addEventListener('click', () => {
+  document.getElementById('buildModal').classList.add('open');
+  $backdrop.classList.add('open');
+});
+
+function closeBuildModal() {
+  document.getElementById('buildModal').classList.remove('open');
+  $backdrop.classList.remove('open');
+}
+document.getElementById('bmCloseBtn').addEventListener('click', closeBuildModal);
+document.getElementById('bmCancelBtn').addEventListener('click', closeBuildModal);
+
+let currentOverlayPollTimer = null;
+let currentBuildRunId = null;
+
+function updateStepperUI(pct, stateStr) {
+  const stepperFill = document.getElementById('bpStepperProgress');
+  if(stepperFill) stepperFill.style.height = pct + '%';
+  
+  let currentStep = 1;
+  if (pct >= 25) currentStep = 2;
+  if (pct >= 35) currentStep = 3;
+  if (pct >= 90) currentStep = 4;
+  
+  for(let i=1; i<=4; i++) {
+    let el = document.getElementById('step' + i);
+    if(!el) continue;
+    let circle = el.querySelector('.step-circle');
+    
+    if (i < currentStep || (i === 4 && pct === 100 && stateStr !== 'err')) {
+      el.style.opacity = '1';
+      let c = (i===4 && stateStr==='ok') ? 'var(--green)' : 'var(--blue)';
+      circle.style.borderColor = c;
+      circle.style.background = c;
+      circle.innerHTML = '<i class="fa-solid fa-check" style="font-size:10px; color:#fff;"></i>';
+    } else if (i === currentStep) {
+      el.style.opacity = '1';
+      let c = stateStr === 'err' ? 'var(--red)' : 'var(--blue)';
+      circle.style.borderColor = c;
+      circle.style.background = 'var(--surface)';
+      circle.innerHTML = '<div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:'+c+';"></div>';
+    } else {
+      el.style.opacity = '0.5';
+      circle.style.borderColor = 'rgba(255,255,255,0.2)';
+      circle.style.background = 'var(--surface)';
+      circle.innerHTML = '<div class="step-dot" style="width:8px; height:8px; border-radius:50%; background:transparent;"></div>';
+    }
+  }
+  
+  if (stateStr === 'err') {
+    if(stepperFill) stepperFill.style.background = 'var(--red)';
+  } else if (stateStr === 'ok') {
+    if(stepperFill) stepperFill.style.background = 'var(--green)';
+  } else {
+    if(stepperFill) stepperFill.style.background = 'var(--blue)';
+  }
+}
+
+function showBuildOverlay(title) {
+  const ov = document.getElementById('buildProgressOverlay');
+  ov.classList.remove('minimized');
+  document.getElementById('bpTitle').innerHTML = '<i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>' + title;
+  document.getElementById('bpStatusText').textContent = 'Starting build...';
+  document.getElementById('bpStatusText').style.color = 'var(--blue)';
+  document.getElementById('bpLogs').textContent = 'Initializing GitHub Actions...\n';
+  document.getElementById('bpCloseBtn').style.display = 'none';
+    if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'block';
+    if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'none';
+    updateStepperUI(10, '');
+    ov.style.display = 'flex';
+  }
+
+function updateBuildOverlay(status, pct, stateStr) {
+  document.getElementById('bpStatusText').textContent = status;
+  if (pct) updateStepperUI(pct, stateStr);
+  if (stateStr === 'err') {
+      document.getElementById('bpStatusText').style.color = 'var(--red)';
+      if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'none';
+      document.getElementById('bpCloseBtn').style.display = 'block';
+      if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
+    } else if (stateStr === 'ok') {
+      document.getElementById('bpStatusText').style.color = 'var(--green)';
+      if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'none';
+      document.getElementById('bpCloseBtn').style.display = 'block';
+      if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
+      document.getElementById('bpCloseBtn').textContent = 'Download Ready / Close';
+    }
+  }
+
+function appendBuildLog(log) {
+  const el = document.getElementById('bpLogs');
+  el.textContent += log + '\n';
+  el.scrollTop = el.scrollHeight;
+}
+
+const closeOverlay = () => {
+  document.getElementById('buildProgressOverlay').style.display = 'none';
+  localStorage.removeItem('active_build_v1');
+};
+document.getElementById('bpCloseBtn').addEventListener('click', closeOverlay);
+if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').addEventListener('click', closeOverlay);
+
+if(document.getElementById('bpCancelBtn')) {
+  document.getElementById('bpCancelBtn').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    clearTimeout(currentOverlayPollTimer);
+    localStorage.removeItem('active_build_v1');
+    document.getElementById('buildProgressOverlay').style.display = 'none';
+    
+    if (currentBuildRunId && ghRepo && ghToken) {
+          toast('⏳ Cancelling build workflow...', 'info');
+          try {
+            await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs/${currentBuildRunId}/cancel`, {
+              method: 'POST',
+              headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+            });
+            toast('✅ Build cancelled successfully');
+          } catch(err) {
+            toast('❌ Failed to cancel API build', 'err');
+          }
+        } else {
+          toast('Build tracking stopped.', 'info');
+        }
+        currentBuildRunId = null;
+  });
+}
+
+if(document.getElementById('bpMinBtnIcon')) {
+  document.getElementById('bpMinBtnIcon').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('buildProgressOverlay').classList.add('minimized');
+  });
+}
+
+document.getElementById('buildProgressOverlay').addEventListener('click', function(e) {
+  if (this.classList.contains('minimized')) {
+    this.classList.remove('minimized');
+  }
+});
+
+document.getElementById('bmCompileBtn').addEventListener('click', async () => {
+  closeBuildModal();
+  const target = document.getElementById('bmWrapperTarget').value;
+  const appName = document.getElementById('bmAppName').value.trim() || 'My App';
+  const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
+  
+  if (!ghToken || !ghRepo) {
+    toast('❌ Select a GitHub repo first', 'warn');
+    return;
+  }
+
+  const isApk = target === 'apk';
+  const workflowPath = isApk ? '.github/workflows/build-apk.yml' : '.github/workflows/build-exe.yml';
+  const artifactName = isApk ? 'Android-APK' : 'Windows-EXE';
+  const title = isApk ? 'Building Android APK' : 'Building Windows EXE';
+  
+  showBuildOverlay(title);
+  
+  try {
+    let workflowContent = '';
+    
+    if (isApk) {
+      const safeName = appName.replace(/"/g, '\\"');
+      workflowContent = [
+        "name: Build Android APK",
+        "on: [workflow_dispatch]",
+        "jobs:",
+        "  build:",
+        "    runs-on: ubuntu-latest",
+        "    steps:",
+        "      - name: Checkout Source",
+                "        uses: actions/checkout@v4",
+                "      - name: Setup Java",
+                "        uses: actions/setup-java@v4",
+                "        with:",
+                "          distribution: 'temurin'",
+                "          java-version: '17'",
+                "      - name: Setup Node.js",
+                "        uses: actions/setup-node@v4",
+                "        with:",
+                "          node-version: '24'",
+                "      - name: Install Cordova",
+                "        run: npm install -g cordova",
+                "      - name: Build APK",
+                "        run: |",
+                "          export CI=true",
+                "          export CORDOVA_NO_TELEMETRY=1",
+                "          export CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https\\://services.gradle.org/distributions/gradle-8.7-all.zip",
+                "          cd /tmp",
+        "          cordova create app com.aicompile.app \"" + safeName + "\" --no-telemetry",
+        "          rm -rf app/www/*",
+        "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
+        "          cd app",
+        "          sed -i 's/version=\"1.0.0\"/version=\"" + appVersion + "\"/g' config.xml",
+        "          sed -i 's/<\\/widget>/\\n    <allow-navigation href=\"*\" \\/>\\n    <allow-intent href=\"*\" \\/>\\n<\\/widget>/g' config.xml",
+        "          cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true",
+        "          cordova platform add android@13.0.0 --no-telemetry",
+        "          cordova build android --no-telemetry",
+        "      - name: Upload APK",
+        "        uses: actions/upload-artifact@v4",
+        "        with:",
+        "          name: Android-APK",
+        "          path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk"
+      ].join('\n');
+    } else {
+      const safeName = appName.replace(/"/g, '\\"');
+      workflowContent = [
+        "name: Build Windows EXE",
+        "on: [workflow_dispatch]",
+        "jobs:",
+        "  build:",
+        "    runs-on: windows-latest",
+        "    steps:",
+        "      - name: Checkout Source",
+                "        uses: actions/checkout@v4",
+                "      - name: Setup Node.js",
+                "        uses: actions/setup-node@v4",
+                "        with:",
+                "          node-version: '24'",
+                "      - name: Build App",
+        "        shell: bash",
+        "        run: |",
+        "          mkdir build_app",
+        "          cp -R $GITHUB_WORKSPACE/* build_app/ || true",
+        "          cd build_app",
+        "          npm init -y",
+        "          npm install electron electron-builder --save-dev",
+        "          cat << 'EOF' > main.js",
+                "const { app, BrowserWindow } = require('electron');",
+                "const path = require('path');",
+                "const fs = require('fs');",
+                "app.whenReady().then(() => {",
+                "  let win = new BrowserWindow({ autoHideMenuBar: true, width: 1280, height: 720, webPreferences: { nodeIntegration: false, contextIsolation: true, webSecurity: false } });",
+                "  let mainFile = 'index.html';",
+                "  if (!fs.existsSync(path.join(__dirname, mainFile))) {",
+                "    let files = fs.readdirSync(__dirname).filter(f => f.endsWith('.html'));",
+                "    if (files.length > 0) mainFile = files[0];",
+                "  }",
+                "  win.loadFile(path.join(__dirname, mainFile)).catch((err) => console.error('Failed to load:', err));",
+                "});",
+                "app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });",
+                "EOF",
+        "          npm pkg set main=\"main.js\"",
+        "          npm pkg set scripts.build=\"electron-builder --win portable --x64\"",
+        "          npm pkg set build.appId=\"com.aicompile." + safeName.replace(/[^a-zA-Z0-9]/g, "") + "\"",
+        "          npm pkg set build.productName=\"" + safeName + "\"",
+        "          npm pkg set version=\"" + appVersion + "\"",
+        "          npm run build",
+        "      - name: Upload EXE",
+        "        uses: actions/upload-artifact@v4",
+        "        with:",
+        "          name: Windows-EXE",
+        "          path: build_app/dist/*.exe"
+      ].join('\n');
+    }
+
+    appendBuildLog('Updating workflow file in repository...');
+    let sha = null;
+    const getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+    if (getRes.ok) sha = (await getRes.json()).sha;
+
+    const encodedWf = btoa(unescape(encodeURIComponent(workflowContent)));
+    const body = { message: "Setup App Builder Action", content: encodedWf, branch: ghBranch };
+    if (sha) body.sha = sha;
+
+    const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
+      method: 'PUT',
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    
+    if (!putRes.ok) throw new Error(await putRes.text());
+    
+    appendBuildLog('Workflow synced. Triggering build dispatch...');
+    updateBuildOverlay('Triggering GitHub Actions...', 25);
+    await new Promise(r => setTimeout(r, 4000));
+    
+    let dispatchSuccess = false;
+    for(let retry=1; retry<=5; retry++){
+      const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowPath.split('/').pop()}/dispatches`, {
+        method: 'POST',
+        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref: ghBranch })
+      });
+      if (dispatchRes.ok) { dispatchSuccess = true; break; }
+      appendBuildLog(`Dispatch retry ${retry}...`);
+      await new Promise(r => setTimeout(r, 4000));
+    }
+    
+    if(!dispatchSuccess) throw new Error('Failed to trigger workflow dispatch.');
+    
+    updateBuildOverlay('Build running. Polling GitHub...', 35);
+        clearTimeout(currentOverlayPollTimer);
+    
+        localStorage.setItem('active_build_v1', JSON.stringify({ title, workflowFile: workflowPath.split('/').pop(), artifactName, startTime: Date.now() }));
+        pollOverlayStatus(workflowPath.split('/').pop(), artifactName);
+    
+  } catch (err) {
+    updateBuildOverlay('Build Initialization Failed', 100, 'err');
+    appendBuildLog('ERROR: ' + err.message);
+  }
+});
+
+async function pollOverlayStatus(workflowFile, artifactName) {
+  try {
+    const runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowFile}/runs?per_page=1`, {
+          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+          cache: 'no-store'
+        });
+    if (!runsRes.ok) throw new Error('Failed to fetch runs');
+    const runsData = await runsRes.json();
+    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) {
+      currentOverlayPollTimer = setTimeout(() => pollOverlayStatus(workflowFile, artifactName), 5000);
+      return;
+    }
+    
+    const run = runsData.workflow_runs[0];
+        currentBuildRunId = run.id;
+        try { 
+          let ab = JSON.parse(localStorage.getItem('active_build_v1')); 
+          if (ab && ab.startTime && new Date(run.created_at).getTime() < ab.startTime - 15000) {
+            appendBuildLog('Waiting for GitHub to queue new run...');
+            currentOverlayPollTimer = setTimeout(() => pollOverlayStatus(workflowFile, artifactName), 5000);
+            return;
+          }
+        } catch(e) {}
+    
+        if (run.status !== 'completed') {
+          updateBuildOverlay(`Building: ${run.status}...`, 60);
+          appendBuildLog(`[${new Date().toLocaleTimeString()}] Status: ${run.status}`);
+          currentOverlayPollTimer = setTimeout(() => pollOverlayStatus(workflowFile, artifactName), 10000);
+        } else {
+          localStorage.removeItem('active_build_v1');
+          if (run.conclusion === 'success') {
+        updateBuildOverlay(`Build Success! Fetching Artifact...`, 90);
+        appendBuildLog(`[${new Date().toLocaleTimeString()}] Conclusion: SUCCESS`);
+        
+        let artRes = await fetch(run.artifacts_url, { headers: { Authorization: `token ${ghToken}` }});
+        let artData = await artRes.json();
+        let artifact = artData.artifacts.find(a => a.name === artifactName);
+        if (!artifact) throw new Error('Artifact not found in success run.');
+        
+        appendBuildLog(`Triggering artifact download...`);
+        let finalUrl = null;
+        try {
+          const abortCtrl = new AbortController();
+          let zipRes = await fetch(artifact.archive_download_url, { headers: { Authorization: `token ${ghToken}` }, signal: abortCtrl.signal });
+          if (!zipRes.ok) throw new Error('Response not ok');
+          finalUrl = zipRes.url;
+          abortCtrl.abort();
+        } catch(err) {
+          finalUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
+        }
+        window.location.href = finalUrl;
+        updateBuildOverlay('Build Complete. Check Downloads.', 100, 'ok');
+      } else {
+        updateBuildOverlay(`Build Failed (${run.conclusion})`, 100, 'err');
+        appendBuildLog(`\n[${new Date().toLocaleTimeString()}] CONCLUSION: ${run.conclusion.toUpperCase()}\nFetching detailed error logs from GitHub...`);
+        
+        try {
+          const jobsRes = await fetch(run.jobs_url, { headers: { Authorization: `token ${ghToken}` }});
+          const jobsData = await jobsRes.json();
+          const failedJob = jobsData.jobs.find(j => j.conclusion === 'failure') || jobsData.jobs[0];
+          if(failedJob) {
+            const logRes = await fetch(failedJob.url + '/logs', { headers: { Authorization: `token ${ghToken}` }});
+            const fullLog = await logRes.text();
+            const lines = fullLog.split('\n');
+            const tail = lines.slice(-40).join('\n'); // Show last 40 lines of error
+            appendBuildLog(`\n=== ERROR TRACE ===\n${tail}`);
+          }
+        } catch(logErr) {
+          appendBuildLog(`Failed to pull direct logs. View on GitHub: https://github.com/${ghRepo}/actions/runs/${run.id}`);
+        }
+      }
+    }
+  } catch(err) {
+    appendBuildLog('Polling error: ' + err.message);
+    currentOverlayPollTimer = setTimeout(() => pollOverlayStatus(workflowFile, artifactName), 10000);
+  }
+}
+
+document.addEventListener('dragover', function(e) { e.preventDefault(); });
+document.addEventListener('drop', function(e) {
+  e.preventDefault();
+  // Safe-guard to ignore simple text selection drops that were causing your refresh loop
+  if (!e.dataTransfer || !e.dataTransfer.types.includes('Files')) return;
+  if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
+  
+  var file = e.dataTransfer.files[0];
+  if (!file) return;
+  
+  var ext = file.name.split('.').pop().toLowerCase();
+    var isMedia = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico', 'bmp', 'avif', 'mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a', 'mp4', 'webm', 'mov'].includes(ext);
+
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      fileName = file.name;
+      if (isMedia) {
+          var dataUri = ev.target.result;
+          var isImage = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico', 'bmp', 'avif'].includes(ext);
+          var isAudio = ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a'].includes(ext);
+          var isVideo = ['mp4', 'webm', 'ogg', 'mov'].includes(ext);
+        
+          let mediaHtml = '';
+          if (isImage) mediaHtml = `<img src="${dataUri}" style="max-width:100%;max-height:100%;object-fit:contain;background:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22><path d=%22M1 2V0h1v1H0v1z%22 fill-opacity=%22.05%22/></svg>')">`;
+          else if (isAudio) mediaHtml = `<audio controls autoplay src="${dataUri}" style="width:80%;max-width:400px;"></audio>`;
+          else if (isVideo) mediaHtml = `<video controls autoplay src="${dataUri}" style="max-width:100%;max-height:100%;object-fit:contain;background:#000;"></video>`;
+
+          $pv.srcdoc = `<html style="height:100%;display:flex;align-items:center;justify-content:center;background:#000;">${mediaHtml}</html>`;
+          viewMode = 'preview';
+          $pv.style.display = 'block';
+          $codeView.style.display = 'none';
+          document.getElementById('emptyState').style.display = 'none';
+          sourceContent = ''; 
+          $codeView.value = '';
+        
+          ghFilePath = fileName;
+          document.getElementById('ghFilePath').value = ghFilePath;
+          ghSaveConfig();
+          document.getElementById('ghPushBtn').disabled = true;
+        
+          undoStack = []; redoStack = []; syncUndoRedo();
+          showControls();
+          toast('Dropped Local Media: ' + fileName, 'ok'); addLog('ok', 'Drag-drop loaded media: ' + fileName);
+          updateStatusBar();
+      } else {
+          sourceContent = ev.target.result.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+          showControls();
+        
+          ghFilePath = fileName;
+          document.getElementById('ghFilePath').value = ghFilePath;
+          ghSaveConfig();
+          document.getElementById('ghPushBtn').disabled = !(ghRepo && ghToken);
+
+          undoStack = []; redoStack = []; syncUndoRedo();
+          render(sourceContent, false); updateStatusBar();
+          toast('Dropped Local: ' + fileName, 'ok'); addLog('ok', 'Drag-drop loaded: ' + fileName);
+      }
+    };
+  
+    if (isMedia) {
+      reader.readAsDataURL(file);
+    } else {
+      reader.readAsText(file, 'UTF-8');
+    }
+});
+
+window.addEventListener('resize', function() {
+  if ($appMenu.classList.contains('open')) updateMenuPosition();
+});
+
+window.addEventListener('beforeunload', function(e) {
+  if (undoStack.length > 0) {
+    e.preventDefault();
+    e.returnValue = 'You have unsaved patches. Export before leaving?';
+  }
+});
+
+updateMenuPosition();
+sourceContent = '';
+render('', false); 
+addLog('info', 'AI Compile PRO Sovereign IDE ready.');
+</script>
+</body>
+</html>
