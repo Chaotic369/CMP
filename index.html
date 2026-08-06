@@ -1370,15 +1370,16 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
                     let base64Content;
                     let msgPrefix = 'Initial commit:';
                     if (item.isZipEntry) {
-                      base64Content = await item.entry.async("base64");
-                      msgPrefix = 'Extracted Initial:';
-                    } else {
-                      base64Content = await readFileAsBase64(item.file);
-                    }
-                    await uploadSingleFileToRepo(newRepoName, item.name, base64Content, 'main', msgPrefix);
-                    uploaded++;
-                    if (uploaded === 1) firstUploadedPath = item.name;
-                } catch (e) {
+                                          base64Content = await item.entry.async("base64");
+                                          msgPrefix = 'Extracted Initial:';
+                                        } else {
+                                          base64Content = await readFileAsBase64(item.file);
+                                        }
+                                        await uploadSingleFileToRepo(newRepoName, item.name, base64Content, 'main', msgPrefix);
+                                        uploaded++;
+                                        if (uploaded === 1) firstUploadedPath = item.name;
+                                        await new Promise(r => setTimeout(r, 600));
+                                    } catch (e) {
                     failed++;
                     addLog('err', `Commit failed for ${item.name}: ` + e.message);
                 }
@@ -1613,15 +1614,16 @@ async function handleRepoUpload(e) {
       let base64Content;
       let msgPrefix = 'Upload';
       if (item.isZipEntry) {
-        base64Content = await item.entry.async("base64");
-        msgPrefix = 'Extracted from ZIP:';
-      } else {
-        base64Content = await readFileAsBase64(item.file);
-      }
-      await uploadSingleFileToRepo(ghRepo, path, base64Content, ghBranch, msgPrefix);
-      uploaded++;
-      lastPath = path;
-    } catch(err) {
+              base64Content = await item.entry.async("base64");
+              msgPrefix = 'Extracted from ZIP:';
+            } else {
+              base64Content = await readFileAsBase64(item.file);
+            }
+            await uploadSingleFileToRepo(ghRepo, path, base64Content, ghBranch, msgPrefix);
+            uploaded++;
+            lastPath = path;
+            await new Promise(r => setTimeout(r, 600));
+          } catch(err) {
       failed++;
       addLog('err', 'Upload failed for ' + item.name + ': ' + err.message);
     }
