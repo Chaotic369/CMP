@@ -18,26 +18,26 @@ jobs:
           cd build_app
           npm init -y
           npm install electron electron-builder --save-dev
-          if [ -f "index.html" ]; then
-            MAIN_FILE="index.html"
-          else
-            MAIN_FILE=$(find . -maxdepth 1 -name "*.html" | head -n 1 | sed 's|^\./||')
-          fi
-          if [ -z "$MAIN_FILE" ]; then MAIN_FILE="index.html"; fi
-          cat << EOF > main.js
-          const { app, BrowserWindow } = require('electron');
-          const path = require('path');
-          app.whenReady().then(() => {
-            let win = new BrowserWindow({ autoHideMenuBar: true, width: 1280, height: 720, webPreferences: { nodeIntegration: false, contextIsolation: true, webSecurity: false } });
-            win.loadFile(path.join(__dirname, '$MAIN_FILE')).catch((err) => console.error('Failed to load:', err));
-          });
-          app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-          EOF
+          cat << 'EOF' > main.js
+const { app, BrowserWindow } = require('electron');
+const path = require('path');
+const fs = require('fs');
+app.whenReady().then(() => {
+  let win = new BrowserWindow({ autoHideMenuBar: true, width: 1280, height: 720, webPreferences: { nodeIntegration: false, contextIsolation: true, webSecurity: false } });
+  let mainFile = 'index.html';
+  if (!fs.existsSync(path.join(__dirname, mainFile))) {
+    let files = fs.readdirSync(__dirname).filter(f => f.endsWith('.html'));
+    if (files.length > 0) mainFile = files[0];
+  }
+  win.loadFile(path.join(__dirname, mainFile)).catch((err) => console.error('Failed to load:', err));
+});
+app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+EOF
           npm pkg set main="main.js"
           npm pkg set scripts.build="electron-builder --win portable --x64"
-          npm pkg set build.appId="com.aicompile.CMP"
-          npm pkg set build.productName="CMP"
-          npm pkg set version="1.0.3"
+          npm pkg set build.appId="com.aicompile.COMPILER"
+          npm pkg set build.productName="COMPILER"
+          npm pkg set version="1.0.5"
           npm run build
       - name: Upload EXE
         uses: actions/upload-artifact@v4
