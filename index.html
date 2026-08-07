@@ -634,6 +634,7 @@ var ghFilePath = 'index.html';
 var ghRepos = [];
 var ghBookmarkedRepos = [];
 var repoCollapsed = localStorage.getItem('repo_collapsed') === 'false' ? false : true;
+var ghConfigLoaded = false;
 
 let dragSrcEl = null;
 window.nestedExpanded = window.nestedExpanded || {};
@@ -925,11 +926,14 @@ async function ghLoadConfigFromFirebase() {
                             document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
                             if (window.renderBookmarks) window.renderBookmarks();
       }
+      ghConfigLoaded = true;
     } else {
       console.log('[bookmarks] window._fbLoadConfig not available');
+      ghConfigLoaded = true;
     }
   } catch(e) {
     console.log('[bookmarks] load error:', e);
+    ghConfigLoaded = true;
   }
 }
 
@@ -946,6 +950,11 @@ function ghSaveConfig() {
     wallpaper: settings.wallpaper || '',
     toggleBtnPos: settings.toggleBtnPos || null
   };
+  if (!ghConfigLoaded) {
+    console.warn('[ghSaveConfig] Blocked save — config has not finished loading from Firebase yet.');
+    document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
+    return;
+  }
   if (window._fbSaveConfig) window._fbSaveConfig(cfg).catch(function(e){ console.error(e); });
   document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
 }
@@ -2138,7 +2147,7 @@ function syncSidebarHeightToControls() {
   }
 }
 
-function updateMenuPosition() {
+function updateMenuPosition(checkOverlap) {
   var rect    = $toggleBtn.getBoundingClientRect();
   var isRight  = (rect.left + rect.width / 2) > (window.innerWidth / 2);
   var isBottom = (rect.top  + rect.height/ 2) > (window.innerHeight/ 2);
@@ -2154,6 +2163,41 @@ function updateMenuPosition() {
   
   if (isBottom) { $appMenu.style.bottom = (window.innerHeight - rect.top + 10) + 'px'; }
   else          { $appMenu.style.top    = (rect.bottom - 10) + 'px'; }
+
+  if (checkOverlap && $appMenu.classList.contains('open')) {
+    requestAnimationFrame(function() {
+      var menuRect = $appMenu.getBoundingClientRect();
+      var btnRect  = $toggleBtn.getBoundingClientRect();
+      var overlapsX = btnRect.right > menuRect.left && btnRect.left < menuRect.right;
+      var overlapsY = btnRect.bottom > menuRect.top && btnRect.top < menuRect.bottom;
+      if (overlapsX && overlapsY) {
+        var margin = 15;
+        var pushUp    = btnRect.bottom - menuRect.top;
+        var pushDown  = menuRect.bottom - btnRect.top;
+        var pushLeft  = btnRect.right - menuRect.left;
+        var pushRight = menuRect.right - btnRect.left;
+        var minPush = Math.min(pushUp, pushDown, pushLeft, pushRight);
+
+        if (minPush === pushLeft) {
+          var newLeft = Math.max(margin, btnRect.left - pushLeft - 10);
+          $toggleBtn.style.left = newLeft + 'px';
+          $toggleBtn.style.right = 'auto';
+        } else if (minPush === pushRight) {
+          var newLeft2 = Math.min(window.innerWidth - btnRect.width - margin, btnRect.left + pushRight + 10);
+          $toggleBtn.style.left = newLeft2 + 'px';
+          $toggleBtn.style.right = 'auto';
+        } else if (minPush === pushUp) {
+          var newTop = Math.max(margin, btnRect.top - pushUp - 10);
+          $toggleBtn.style.top = newTop + 'px';
+          $toggleBtn.style.bottom = 'auto';
+        } else {
+          var newTop2 = Math.min(window.innerHeight - btnRect.height - margin, btnRect.top + pushDown + 10);
+          $toggleBtn.style.top = newTop2 + 'px';
+          $toggleBtn.style.bottom = 'auto';
+        }
+      }
+    });
+  }
 
   syncSidebarHeightToControls();
 }
@@ -2520,11 +2564,11 @@ window.addEventListener('DOMContentLoaded', async function() {
   
   try {
     showMenuLoader('Syncing Configuration...');
-    await Promise.race([
-      ghLoadConfigFromFirebase(),
-      new Promise(r => setTimeout(r, 6000))
-    ]);
-    renderRepoTabs();
+        await Promise.race([
+          ghLoadConfigFromFirebase(),
+          new Promise(r => setTimeout(r, 15000)).then(() => { ghConfigLoaded = true; })
+        ]);
+        renderRepoTabs();
   
     if (ghRepo && ghToken) {
       try {
