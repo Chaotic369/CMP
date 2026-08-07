@@ -3823,14 +3823,24 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
     }
 
   const isApk = target === 'apk';
-  const workflowPath = isApk ? '.github/workflows/build-apk.yml' : '.github/workflows/build-exe.yml';
-  const artifactName = isApk ? 'Android-APK' : 'Windows-EXE';
-  const title = isApk ? 'Building Android APK' : 'Building Windows EXE';
+    const workflowPath = isApk ? '.github/workflows/build-apk.yml' : '.github/workflows/build-exe.yml';
+    const artifactName = isApk ? 'Android-APK' : 'Windows-EXE';
+    const title = isApk ? 'Building Android APK' : 'Building Windows EXE';
   
-  showBuildOverlay(title);
+    showBuildOverlay(title);
   
-  try {
-    let workflowContent = '';
+    try {
+      if (iconBase64) {
+        appendBuildLog('Uploading app icon to repository...');
+        updateBuildOverlay('Uploading app icon...', 15);
+        try {
+          await uploadSingleFileToRepo(ghRepo, 'build-assets/icon.png', iconBase64, ghBranch, 'Upload app icon');
+        } catch (err) {
+          appendBuildLog('Warning: Failed to upload icon: ' + err.message);
+        }
+      }
+
+      let workflowContent = '';
     
     if (isApk) {
       const safeName = appName.replace(/"/g, '\\"');
@@ -3862,11 +3872,11 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
                                         "          cd /tmp",
                                         "          cordova create app " + appId + " \"" + safeName + "\" --no-telemetry",
                         "          rm -rf app/www/*",
-                        "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
-                        "          cd app",
-                        "          mkdir -p res",
-                        iconBase64 ? `          echo "${iconBase64}" | base64 -d > res/icon.png || true` : "",
-                        "          sed -i 's/version=\"1.0.0\"/version=\"" + appVersion + "\"/g' config.xml",
+                                                "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
+                                                "          cd app",
+                                                "          mkdir -p res",
+                                                iconBase64 ? "          cp $GITHUB_WORKSPACE/build-assets/icon.png res/icon.png || true" : "",
+                                                "          sed -i 's/version=\"1.0.0\"/version=\"" + appVersion + "\"/g' config.xml",
                         iconBase64 ? "          sed -i 's/<\\/widget>/\\n    <icon src=\"res\\/icon.png\" \\/>\\n    <allow-navigation href=\"*\" \\/>\\n    <allow-intent href=\"*\" \\/>\\n<\\/widget>/g' config.xml" : "          sed -i 's/<\\/widget>/\\n    <allow-navigation href=\"*\" \\/>\\n    <allow-intent href=\"*\" \\/>\\n<\\/widget>/g' config.xml",
                         "          cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true",
                         "          cordova platform add android --no-telemetry",
@@ -3897,13 +3907,13 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
                 "      - name: Build App",
         "        shell: bash",
         "        run: |",
-        "          mkdir build_app",
-        "          cp -R $GITHUB_WORKSPACE/* build_app/ || true",
-        "          cd build_app",
-        "          npm init -y",
-        "          npm install electron electron-builder --save-dev",
-        iconBase64 ? `          echo "${iconBase64}" | base64 -d > icon.png || true` : "",
-        iconBase64 ? "          npm pkg set build.icon=\"icon.png\"" : "",
+                "          mkdir build_app",
+                "          cp -R $GITHUB_WORKSPACE/* build_app/ || true",
+                "          cd build_app",
+                "          npm init -y",
+                "          npm install electron electron-builder --save-dev",
+                iconBase64 ? "          cp $GITHUB_WORKSPACE/build-assets/icon.png icon.png || true" : "",
+                iconBase64 ? "          npm pkg set build.icon=\"icon.png\"" : "",
         "          cat << 'EOF' > main.js",
                 "const { app, BrowserWindow } = require('electron');",
                 "const path = require('path');",
