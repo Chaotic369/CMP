@@ -905,12 +905,25 @@ async function ghLoadConfigFromFirebase() {
                     ghBookmarkedRepos = cfg.bookmarkedRepos || [];
                     console.log('[bookmarks] ghBookmarkedRepos set to:', ghBookmarkedRepos);
                     if (cfg.wallpaper !== undefined) {
-          settings.wallpaper = cfg.wallpaper;
-          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-          applyWallpaper(cfg.wallpaper);
-        }
-        document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
-        if (window.renderBookmarks) window.renderBookmarks();
+                              settings.wallpaper = cfg.wallpaper;
+                              localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                              applyWallpaper(cfg.wallpaper);
+                            }
+                            if (cfg.toggleBtnPos && cfg.toggleBtnPos.left !== undefined && cfg.toggleBtnPos.top !== undefined) {
+                              settings.toggleBtnPos = cfg.toggleBtnPos;
+                              localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                              var margin = 15;
+                              var maxX = window.innerWidth - $toggleBtn.offsetWidth - margin;
+                              var maxY = window.innerHeight - $toggleBtn.offsetHeight - margin;
+                              var safeX = Math.max(margin, Math.min(cfg.toggleBtnPos.left, maxX));
+                              var safeY = Math.max(margin, Math.min(cfg.toggleBtnPos.top, maxY));
+                              $toggleBtn.style.left = safeX + 'px';
+                              $toggleBtn.style.top = safeY + 'px';
+                              $toggleBtn.style.right = 'auto';
+                              $toggleBtn.style.bottom = 'auto';
+                            }
+                            document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
+                            if (window.renderBookmarks) window.renderBookmarks();
       }
     } else {
       console.log('[bookmarks] window._fbLoadConfig not available');
@@ -930,7 +943,8 @@ function ghSaveConfig() {
     filePath: ghFilePath || 'index.html', 
     repos: ghRepos || [], 
     bookmarkedRepos: ghBookmarkedRepos || [], 
-    wallpaper: settings.wallpaper || '' 
+    wallpaper: settings.wallpaper || '',
+    toggleBtnPos: settings.toggleBtnPos || null
   };
   if (window._fbSaveConfig) window._fbSaveConfig(cfg).catch(function(e){ console.error(e); });
   document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
@@ -2195,6 +2209,12 @@ function onPtrUp(e) {
   $toggleBtn.removeEventListener('pointermove', onPtrMove);
   $toggleBtn.removeEventListener('pointerup',   onPtrUp);
   $toggleBtn.removeEventListener('pointercancel', onPtrUp);
+  if (isDragging) {
+    var rect = $toggleBtn.getBoundingClientRect();
+    settings.toggleBtnPos = { left: rect.left, top: rect.top };
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    ghSaveConfig();
+  }
 }
 function toggleMenu() {
   var isOpen = $appMenu.classList.toggle('open');
