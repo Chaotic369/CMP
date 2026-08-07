@@ -2155,22 +2155,6 @@ function updateMenuPosition() {
   if (isBottom) { $appMenu.style.bottom = (window.innerHeight - rect.top + 10) + 'px'; }
   else          { $appMenu.style.top    = (rect.bottom - 10) + 'px'; }
 
-  if ($appMenu.classList.contains('open')) {
-    requestAnimationFrame(function() {
-      var menuRect = $appMenu.getBoundingClientRect();
-      var btnRect  = $toggleBtn.getBoundingClientRect();
-      var overlapsX = btnRect.right > menuRect.left && btnRect.left < menuRect.right;
-      var overlapsY = btnRect.bottom > menuRect.top && btnRect.top < menuRect.bottom;
-      if (overlapsX && overlapsY) {
-        var margin = 15;
-        var shiftedTop = isBottom ? (menuRect.top - btnRect.height - 10) : (menuRect.bottom + 10);
-        shiftedTop = Math.max(margin, Math.min(shiftedTop, window.innerHeight - btnRect.height - margin));
-        $toggleBtn.style.top = shiftedTop + 'px';
-        $toggleBtn.style.bottom = 'auto';
-      }
-    });
-  }
-
   syncSidebarHeightToControls();
 }
 
