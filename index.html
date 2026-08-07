@@ -2134,7 +2134,7 @@ function syncSidebarHeightToControls() {
   }
 }
 
-function updateMenuPosition(checkOverlap) {
+function updateMenuPosition() {
   var rect    = $toggleBtn.getBoundingClientRect();
   var isRight  = (rect.left + rect.width / 2) > (window.innerWidth / 2);
   var isBottom = (rect.top  + rect.height/ 2) > (window.innerHeight/ 2);
@@ -2149,9 +2149,9 @@ function updateMenuPosition(checkOverlap) {
   else         { $appMenu.style.left   = (rect.left + 10) + 'px'; }
   
   if (isBottom) { $appMenu.style.bottom = (window.innerHeight - rect.top + 10) + 'px'; }
-        else          { $appMenu.style.top    = (rect.bottom - 10) + 'px'; }
+  else          { $appMenu.style.top    = (rect.bottom - 10) + 'px'; }
 
-        syncSidebarHeightToControls();
+  syncSidebarHeightToControls();
 }
 
 $toggleBtn.addEventListener('pointerdown', function(e) {
@@ -2205,12 +2205,6 @@ function onPtrUp(e) {
   $toggleBtn.removeEventListener('pointermove', onPtrMove);
   $toggleBtn.removeEventListener('pointerup',   onPtrUp);
   $toggleBtn.removeEventListener('pointercancel', onPtrUp);
-  if (isDragging) {
-    var rect = $toggleBtn.getBoundingClientRect();
-    settings.toggleBtnPos = { left: rect.left, top: rect.top };
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    ghSaveConfig();
-  }
 }
 function toggleMenu() {
   var isOpen = $appMenu.classList.toggle('open');
@@ -2228,11 +2222,11 @@ function toggleMenu() {
       updateRepoSidebar();
     
     // Force a position refresh the moment it opens to account for layout shifts
-        updateMenuPosition(true);
-        requestAnimationFrame(function() {
-          updateMenuPosition(true);
-          requestAnimationFrame(syncSidebarHeightToControls);
-        });
+    updateMenuPosition();
+    requestAnimationFrame(function() {
+      updateMenuPosition();
+      requestAnimationFrame(syncSidebarHeightToControls);
+    });
   }
 }
 $toggleBtn.addEventListener('click', function(e) { if (isDragging) return; toggleMenu(); });
