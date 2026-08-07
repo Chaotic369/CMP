@@ -2041,19 +2041,6 @@ function hideMenuLoader() {
   if (loader) loader.style.display = 'none';
 }
 
-function showMenuLoader(msg) {
-  var loader = document.getElementById('app-menu-loader');
-  if (loader) {
-    document.getElementById('app-menu-loader-text').textContent = msg || 'Connecting...';
-    loader.style.display = 'flex';
-  }
-}
-
-function hideMenuLoader() {
-  var loader = document.getElementById('app-menu-loader');
-  if (loader) loader.style.display = 'none';
-}
-
 function addLog(type, msg) {
   var ts = new Date().toLocaleTimeString();
   patchLog.unshift({ type: type, msg: msg, ts: ts });
@@ -2845,26 +2832,13 @@ document.getElementById('exportBtn').addEventListener('click', function() {
 
 function fixEncoding(src) {
   return src
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-    .replace(/"/g, '"')
-    .replace(/'/g, "'")
-    .replace(/'/g, "'")
-    .replace(/ /g, ' ')
-    .replace(/'/g, "'")
-    .replace(/"/g, '"')
-    .replace(/â€\x9d/g, '"')
-    .replace(/–/g, '–')
-    .replace(/–/g, '–')
-    .replace(/é/g, 'é')
-    .replace(/à/g, 'à')
-    .replace(/è/g, 'è')
-    .replace(/ê/g, 'ê')
-    .replace(/î/g, 'î')
-    .replace(/ô/g, 'ô')
-    .replace(/û/g, 'û')
-    .replace(/ç/g, 'ç')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&nbsp;/g, ' ')
     .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"');
