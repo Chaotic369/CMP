@@ -3803,6 +3803,9 @@ document.getElementById('buildProgressOverlay').addEventListener('click', functi
 
 document.getElementById('bmCompileBtn').addEventListener('click', async () => {
   closeBuildModal();
+  clearTimeout(currentOverlayPollTimer);
+  localStorage.removeItem('active_build_v1');
+  currentBuildRunId = null;
   const target = document.getElementById('bmWrapperTarget').value;
   const appName = document.getElementById('bmAppName').value.trim() || 'My App';
     const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
