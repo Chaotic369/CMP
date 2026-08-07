@@ -2276,11 +2276,11 @@ function toggleMenu() {
       updateRepoSidebar();
     
     // Force a position refresh the moment it opens to account for layout shifts
-    updateMenuPosition();
-    requestAnimationFrame(function() {
-      updateMenuPosition();
-      requestAnimationFrame(syncSidebarHeightToControls);
-    });
+        updateMenuPosition(true);
+        requestAnimationFrame(function() {
+          updateMenuPosition(true);
+          requestAnimationFrame(syncSidebarHeightToControls);
+        });
   }
 }
 $toggleBtn.addEventListener('click', function(e) { if (isDragging) return; toggleMenu(); });
