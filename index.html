@@ -910,19 +910,19 @@ async function ghLoadConfigFromFirebase() {
                               localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
                               applyWallpaper(cfg.wallpaper);
                             }
-                            if (cfg.toggleBtnPos && cfg.toggleBtnPos.left !== undefined && cfg.toggleBtnPos.top !== undefined) {
-                              settings.toggleBtnPos = cfg.toggleBtnPos;
-                              localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-                              var margin = 15;
-                              var maxX = window.innerWidth - $toggleBtn.offsetWidth - margin;
-                              var maxY = window.innerHeight - $toggleBtn.offsetHeight - margin;
-                              var safeX = Math.max(margin, Math.min(cfg.toggleBtnPos.left, maxX));
-                              var safeY = Math.max(margin, Math.min(cfg.toggleBtnPos.top, maxY));
-                              $toggleBtn.style.left = safeX + 'px';
-                              $toggleBtn.style.top = safeY + 'px';
-                              $toggleBtn.style.right = 'auto';
-                              $toggleBtn.style.bottom = 'auto';
-                            }
+                            if (window.self === window.top && cfg.toggleBtnPos && cfg.toggleBtnPos.left !== undefined && cfg.toggleBtnPos.top !== undefined) {
+                                                          settings.toggleBtnPos = cfg.toggleBtnPos;
+                                                          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                                                          var margin = 15;
+                                                          var maxX = window.innerWidth - $toggleBtn.offsetWidth - margin;
+                                                          var maxY = window.innerHeight - $toggleBtn.offsetHeight - margin;
+                                                          var safeX = Math.max(margin, Math.min(cfg.toggleBtnPos.left, maxX));
+                                                          var safeY = Math.max(margin, Math.min(cfg.toggleBtnPos.top, maxY));
+                                                          $toggleBtn.style.left = safeX + 'px';
+                                                          $toggleBtn.style.top = safeY + 'px';
+                                                          $toggleBtn.style.right = 'auto';
+                                                          $toggleBtn.style.bottom = 'auto';
+                                                        }
                             document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
                             if (window.renderBookmarks) window.renderBookmarks();
       }
@@ -2205,6 +2205,12 @@ function onPtrUp(e) {
   $toggleBtn.removeEventListener('pointermove', onPtrMove);
   $toggleBtn.removeEventListener('pointerup',   onPtrUp);
   $toggleBtn.removeEventListener('pointercancel', onPtrUp);
+  if (isDragging && window.self === window.top) {
+    var rect = $toggleBtn.getBoundingClientRect();
+    settings.toggleBtnPos = { left: rect.left, top: rect.top };
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    ghSaveConfig();
+  }
 }
 function toggleMenu() {
   var isOpen = $appMenu.classList.toggle('open');
