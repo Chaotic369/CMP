@@ -4058,15 +4058,34 @@ async function pollOverlayStatus(workflowFile, artifactName) {
                 }
                 updateBuildOverlay('Build Complete. Check Downloads.', 100, 'ok');
       } else {
-        updateBuildOverlay(`Build Failed (${run.conclusion})`, 100, 'err');
-        appendBuildLog(`\n[${new Date().toLocaleTimeString()}] CONCLUSION: ${run.conclusion.toUpperCase()}\nFetching detailed error logs from GitHub...`);
+              updateBuildOverlay(`Build Failed (${run.conclusion})`, 100, 'err');
+              appendBuildLog(`\n[${new Date().toLocaleTimeString()}] CONCLUSION: ${run.conclusion.toUpperCase()}\nFetching detailed error logs...`);
         
-        try {
-                  appendBuildLog(`\nView detailed logs directly on GitHub:\n${run.html_url}`);
-                } catch(logErr) {
-                  appendBuildLog(`Failed to pull direct logs. View on GitHub: https://github.com/${ghRepo}/actions/runs/${run.id}`);
+              try {
+                const jobsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs/${run.id}/jobs`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }});
+                if (!jobsRes.ok) throw new Error('Failed to fetch jobs list');
+                const jobsData = await jobsRes.json();
+                if (!jobsData.jobs || jobsData.jobs.length === 0) throw new Error('No jobs found in run.');
+
+                for (const job of jobsData.jobs) {
+                  appendBuildLog(`\n${'='.repeat(40)}\nJOB: ${job.name} (${job.conclusion || job.status})\n${'='.repeat(40)}`);
+                  try {
+                    const logRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/jobs/${job.id}/logs`, { headers: { Authorization: `token ${ghToken}` }});
+                    if (!logRes.ok) {
+                      appendBuildLog(`[Could not fetch log for this job: ${logRes.status}]`);
+                      continue;
+                    }
+                    const text = await logRes.text();
+                    appendBuildLog(text);
+                  } catch (jobErr) {
+                    appendBuildLog(`[Error fetching job log: ${jobErr.message}]`);
+                  }
                 }
-      }
+                appendBuildLog(`\nFull run: ${run.html_url}`);
+              } catch(logErr) {
+                appendBuildLog(`Failed to pull direct logs: ${logErr.message}\nView on GitHub: https://github.com/${ghRepo}/actions/runs/${run.id}`);
+              }
+            }
     }
   } catch(err) {
     appendBuildLog('Polling error: ' + err.message);
