@@ -1967,14 +1967,32 @@ async function fetchFileTree(autoLoad = false, silent = false) {
 
 function renderFileTreeUI() {
     const ftc = document.getElementById('fileTreeContainer');
+    updateDirectoryNav();
     
     let displayFiles = currentTreeFiles;
+    let directoriesInView = new Set();
+    
     if (currentDirectory) {
-      displayFiles = currentTreeFiles.filter(f => f.path.startsWith(currentDirectory + '/'));
+      displayFiles = currentTreeFiles.filter(f => f.path.startsWith(currentDirectory + '/') && f.path !== currentDirectory);
     }
     
-    let htmlFiles = displayFiles.filter(f => f.path.endsWith('.html'));
-    let otherFiles = displayFiles.filter(f => !f.path.endsWith('.html'));
+    // Extract unique directories at current level
+    displayFiles.forEach(f => {
+      let relativePath = currentDirectory ? f.path.slice(currentDirectory.length + 1) : f.path;
+      let parts = relativePath.split('/');
+      if (parts.length > 1) {
+        directoriesInView.add(currentDirectory ? currentDirectory + '/' + parts[0] : parts[0]);
+      }
+    });
+    
+    let htmlFiles = displayFiles.filter(f => {
+      let relativePath = currentDirectory ? f.path.slice(currentDirectory.length + 1) : f.path;
+      return relativePath.endsWith('.html') && !relativePath.includes('/');
+    });
+    let otherFiles = displayFiles.filter(f => {
+      let relativePath = currentDirectory ? f.path.slice(currentDirectory.length + 1) : f.path;
+      return !relativePath.endsWith('.html') && !relativePath.includes('/');
+    });
     
     let fileNesting = {};
     let rootFiles = [];
@@ -2001,13 +2019,14 @@ function renderFileTreeUI() {
         }
 
         function renderItem(f, isChild = false) {
-            const isTarget = f.path === ghFilePath;
-            const name = f.path.split('/').pop();
-            const icon = getIcon(f.path);
-            const hasChildren = !!fileNesting[f.path];
-            const isExpanded = window.nestedExpanded[f.path];
+                    const isTarget = f.path === ghFilePath;
+                    const relativeName = currentDirectory ? f.path.slice(currentDirectory.length + 1).split('/')[0] : f.path.split('/')[0];
+                    const name = f.path.split('/').pop();
+                    const icon = getIcon(f.path);
+                    const hasChildren = !!fileNesting[f.path];
+                    const isExpanded = window.nestedExpanded[f.path];
         
-            let str = `<div class="repo-item file-item ${isTarget ? 'active' : ''}" style="${isChild ? 'margin-left:10px; border-left:1px solid rgba(255, 255, 255, 0.1); border-radius:0;' : ''}" onclick="selectFileFromTree('${f.path}')" ondblclick="if(${hasChildren}) toggleNesting('${f.path}', event)" title="${f.path}">
+                    let str = `<div class="repo-item file-item ${isTarget ? 'active' : ''}" style="${isChild ? 'margin-left:10px; border-left:1px solid rgba(255, 255, 255, 0.1); border-radius:0;' : ''}" onclick="selectFileFromTree('${f.path}')" ondblclick="if(${hasChildren}) toggleNesting('${f.path}', event)" title="${f.path}">
                             <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
                                 ${hasChildren ? `<i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'}" style="font-size:8px; color:rgba(255,255,255,0.6); margin-right:4px; cursor:pointer;" onclick="toggleNesting('${f.path}', event)"></i>` : (isChild ? '' : `<i class="fa-solid fa-minus" style="font-size:8px; color:transparent; margin-right:4px;"></i>`)}
                                 <i class="${icon.i}" style="margin-right:6px; font-size:11px; color:${isTarget ? 'var(--blue)' : icon.c};"></i>
@@ -2028,13 +2047,35 @@ function renderFileTreeUI() {
     }
 
     let htmlStr = '';
-    rootFiles.forEach(f => {
-        htmlStr += renderItem(f, false);
-    });
+    
+        // Render directories first
+        directoriesInView.forEach(dir => {
+          const dirName = dir.split('/').pop();
+          const str = `<div class="repo-item file-item" onclick="window.openDirectory('${dir}')" title="${dir}" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
+              <i class="fa-solid fa-folder" style="margin-right:6px; font-size:11px; color:var(--amber);"></i>
+              <span style="font-size:8px; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dirName}</span>
+            </div>
+          </div>`;
+          htmlStr += str;
+        });
+    
+        // Render files
+        rootFiles.forEach(f => {
+          let relativePath = currentDirectory ? f.path.slice(currentDirectory.length + 1) : f.path;
+          if (!relativePath.includes('/')) {
+            htmlStr += renderItem(f, false);
+          }
+        });
 
-    ftc.innerHTML = htmlStr;
+        ftc.innerHTML = htmlStr;
         updateDirectoryNav();
     }
+
+    window.openDirectory = function(dir) {
+      currentDirectory = dir;
+      renderFileTreeUI();
+    };
 
 let currentDirectory = '';
 
