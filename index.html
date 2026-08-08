@@ -349,10 +349,34 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <body>
 
 <div id="emptyState">
-  <div id="homeTime" style="font-size: 42px; font-weight: 300; margin-top: 15vh; letter-spacing: 2px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">--:--</div>
-  <div id="homeDate" style="font-size: 14px; color: rgba(255,255,255,0.8); margin-bottom: 6vh; text-shadow: 0 1px 5px rgba(0,0,0,0.5);">---</div>
+  <div style="margin-top: 10vh; margin-bottom: 6vh; background:rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border-radius:32px; padding:30px 50px; box-shadow:0 12px 36px rgba(0,0,0,0.4); display:flex; flex-direction:column; align-items:center; z-index: 2;">
+    <div id="homeTime" style="font-size: 56px; font-weight: 200; letter-spacing: 2px; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); line-height: 1;">--:--</div>
+    <div id="homeDate" style="font-size: 14px; color: rgba(255,255,255,0.7); margin-top: 8px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px;">---</div>
+  </div>
   <div id="homeAppGrid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px 16px; width: 100%; max-width: 320px; padding: 0 20px; place-items: start center; z-index: 2;"></div>
-  <div id="homeDock" style="position: absolute; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); display: flex; gap: 12px; background: rgba(22,22,22,0.65); padding: 12px; border-radius: 24px; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); z-index: 2; width: max-content; max-width: 90vw; overflow-x: auto;"></div>
+  <div id="homeDock" style="display:none;"></div>
+  
+  <div id="homeReposModal" style="display:none; position:absolute; inset:0; z-index:50; background:rgba(10,10,10,0.95); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); flex-direction:column; padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 20px 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+       <h2 style="color:#fff; font-size:18px; margin:0;"><i class="fa-solid fa-book-bookmark" style="color:var(--amber); margin-right:10px;"></i>Repositories</h2>
+       <button class="btn" style="width:36px; height:36px; border-radius:50%; font-size:14px; background:rgba(255,255,255,0.1);" onclick="document.getElementById('homeReposModal').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="homeReposList" style="flex:1; overflow-y:auto; padding-bottom: 80px;"></div>
+  </div>
+
+  <div id="homeFilesModal" style="display:none; position:absolute; inset:0; z-index:50; background:rgba(10,10,10,0.95); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); flex-direction:column; padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 20px 20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+       <h2 style="color:#fff; font-size:18px; margin:0;"><i class="fa-solid fa-folder-open" style="color:var(--blue); margin-right:10px;"></i>File Manager</h2>
+       <button class="btn" style="width:36px; height:36px; border-radius:50%; font-size:14px; background:rgba(255,255,255,0.1);" onclick="document.getElementById('homeFilesModal').style.display='none'"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div style="display:flex; gap:10px; margin-bottom:15px;">
+       <select id="homeFileRepoSelect" style="flex:1; background:rgba(255,255,255,0.1); color:#fff; padding:10px; border-radius:12px; border:none; outline:none;" onchange="ghRepo = this.value; ghSaveConfig(); fetchFileTree(false, true).then(()=>renderHomeFilesUI())"></select>
+       <button class="btn" style="width:36px; height:36px; background:rgba(255,255,255,0.1); border-radius:12px;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
+       <button class="btn" style="width:36px; height:36px; background:rgba(255,255,255,0.1); border-radius:12px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
+    </div>
+    <div id="homeFilesNav" style="display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:12px; color:rgba(255,255,255,0.7); background:rgba(255,255,255,0.05); padding:10px; border-radius:12px;"></div>
+    <div id="homeFilesList" style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding-bottom: 80px;"></div>
+  </div>
 </div>
 
 <div id="progressBar"></div>
@@ -700,13 +724,11 @@ window.renderHomeUI = function() {
   if(grid && grid.innerHTML === '') {
     const apps = [
       { id: 'newRepoApp', icon: 'fa-folder-plus', color: 'var(--green)', label: 'New Repo', action: () => document.getElementById('repoAddBtn').click() },
-      { id: 'syncApp', icon: 'fa-arrows-rotate', color: 'var(--teal)', label: 'Sync', action: () => document.getElementById('ghSyncBtn').click() },
+      { id: 'reposApp', icon: 'fa-book-bookmark', color: 'var(--amber)', label: 'Repositories', action: () => openHomeRepos() },
+      { id: 'filesApp', icon: 'fa-folder-open', color: 'var(--blue)', label: 'Files', action: () => openHomeFiles() },
       { id: 'settingsApp', icon: 'fa-gear', color: '#ffffff', label: 'Settings', action: () => document.getElementById('ghSettingsBtn').click() },
       { id: 'buildApp', icon: 'fa-hammer', color: 'var(--blue)', label: 'Build', action: () => document.getElementById('masterBuildBtn').click() },
-      { id: 'wpApp', icon: 'fa-image', color: 'var(--purple)', label: 'Wallpaper', action: () => document.getElementById('wallpaperBtn').click() },
-      { id: 'logApp', icon: 'fa-file-lines', color: '#ffffff', label: 'Logs', action: () => document.getElementById('logBtn').click() },
-      { id: 'astApp', icon: 'fa-brain', color: 'var(--amber)', label: 'AST Guard', action: () => document.getElementById('astBtn').click() },
-      { id: 'findApp', icon: 'fa-magnifying-glass', color: '#ffffff', label: 'Search', action: () => { document.getElementById('searchCodeBtn').style.display='flex'; document.getElementById('searchCodeBtn').click(); } }
+      { id: 'wpApp', icon: 'fa-image', color: 'var(--purple)', label: 'Wallpaper', action: () => document.getElementById('wallpaperBtn').click() }
     ];
 
     apps.forEach(app => {
@@ -728,36 +750,123 @@ window.renderHomeUI = function() {
 
   if(dock) {
     dock.innerHTML = '';
-    let reposToShow = ghBookmarkedRepos.length > 0 ? ghBookmarkedRepos : ghRepos.slice(0, 4);
-    
-    reposToShow.forEach(r => {
-      let name = r.split('/')[1] || r;
-      let initials = name.substring(0, 2).toUpperCase();
-      let wrap = document.createElement('div');
-      wrap.style.cssText = 'position:relative; width:48px; height:48px; border-radius:14px; background:linear-gradient(135deg, var(--blue), var(--purple)); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.3);';
-      wrap.innerHTML = `<span style="color:#fff; font-weight:bold; font-size:16px;">${initials}</span>`;
-      wrap.title = name;
-      
-      let holdTimer;
-      wrap.onpointerdown = (e) => {
-         holdTimer = setTimeout(() => {
-            let action = prompt(`Options for ${name}:\n1. Rename\n2. Delete\n3. Unpin\nEnter number:`);
-            if(action === '1') window.renameRepo(r, e);
-            if(action === '2') window.deleteRepo(r, e);
-            if(action === '3') window.toggleBookmarkRepo(r, e);
-         }, 600);
-      };
-      wrap.onpointerup = () => clearTimeout(holdTimer);
-      wrap.onpointerleave = () => clearTimeout(holdTimer);
-
-      wrap.onclick = () => { switchRepo(r); };
-      dock.appendChild(wrap);
-    });
-
-    if (reposToShow.length === 0) {
-       dock.innerHTML = '<div style="color:rgba(255,255,255,0.5); font-size:10px; padding:10px;">Pin repositories here</div>';
-    }
+    dock.style.display = 'none';
   }
+};
+
+window.openHomeRepos = function() {
+   const modal = document.getElementById('homeReposModal');
+   if(!modal) return;
+   modal.style.display = 'flex';
+   const list = document.getElementById('homeReposList');
+   list.innerHTML = '';
+   ghRepos.forEach(r => {
+     let name = r.split('/')[1] || r;
+     let item = document.createElement('div');
+     item.className = 'gh-row';
+     item.style.cssText = 'padding:16px; background:rgba(255,255,255,0.05); border-radius:16px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between; box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+     item.innerHTML = `
+       <div style="flex:1; color:#fff; font-size:16px; font-weight:600; cursor:pointer;" onclick="switchRepo('${r}'); document.getElementById('homeReposModal').style.display='none';">
+         <i class="fa-solid fa-book" style="margin-right:12px; color:var(--amber);"></i>${name}
+       </div>
+       <div style="display:flex; gap:10px;">
+         <button class="btn" style="background:rgba(255,255,255,0.1); width:40px; height:40px; font-size:14px; border-radius:12px;" onclick="renameRepo('${r}', event); setTimeout(()=>openHomeRepos(), 1500);"><i class="fa-solid fa-pen"></i></button>
+         <button class="btn" style="background:rgba(248,81,73,0.15); color:var(--red); width:40px; height:40px; font-size:14px; border-radius:12px;" onclick="deleteRepo('${r}', event); setTimeout(()=>openHomeRepos(), 1500);"><i class="fa-solid fa-trash"></i></button>
+       </div>
+     `;
+     list.appendChild(item);
+   });
+};
+
+window.openHomeFiles = function() {
+   const modal = document.getElementById('homeFilesModal');
+   if(!modal) return;
+   modal.style.display = 'flex';
+   
+   const sel = document.getElementById('homeFileRepoSelect');
+   sel.innerHTML = '';
+   ghRepos.forEach(r => {
+     let opt = document.createElement('option');
+     opt.value = r;
+     opt.textContent = r.split('/')[1] || r;
+     if (r === ghRepo) opt.selected = true;
+     sel.appendChild(opt);
+   });
+   
+   if (!ghRepo && ghRepos.length > 0) {
+       ghRepo = ghRepos[0];
+       ghSaveConfig();
+       sel.value = ghRepo;
+       fetchFileTree(false, true).then(()=>renderHomeFilesUI());
+   } else {
+       if(ghRepo) sel.value = ghRepo;
+       renderHomeFilesUI();
+   }
+};
+
+window.renderHomeFilesUI = function() {
+   const list = document.getElementById('homeFilesList');
+   const nav = document.getElementById('homeFilesNav');
+   if(!list || !nav) return;
+   
+   if(currentDirectory) {
+     nav.style.display = 'flex';
+     nav.innerHTML = `
+       <button class="btn" style="background:transparent; width:auto; height:auto; padding:4px;" onclick="const parts=currentDirectory.split('/'); parts.pop(); currentDirectory=parts.join('/'); renderHomeFilesUI();"><i class="fa-solid fa-chevron-left" style="font-size:14px;"></i></button>
+       <span style="font-size:14px; font-family:monospace;">${currentDirectory}</span>
+     `;
+   } else {
+     nav.style.display = 'none';
+   }
+
+   list.innerHTML = '';
+   let displayFiles = currentTreeFiles || [];
+   let directoriesInView = new Set();
+   
+   if (currentDirectory) {
+     displayFiles = (currentTreeFiles||[]).filter(f => f.path.startsWith(currentDirectory + '/') && f.path !== currentDirectory);
+   }
+   
+   displayFiles.forEach(f => {
+     let relativePath = currentDirectory ? f.path.slice(currentDirectory.length + 1) : f.path;
+     let parts = relativePath.split('/');
+     if (parts.length > 1) directoriesInView.add(currentDirectory ? currentDirectory + '/' + parts[0] : parts[0]);
+   });
+   
+   let rootFiles = displayFiles.filter(f => {
+     let relativePath = currentDirectory ? f.path.slice(currentDirectory.length + 1) : f.path;
+     return !relativePath.includes('/');
+   });
+
+   directoriesInView.forEach(dir => {
+     const dirName = dir.split('/').pop();
+     const item = document.createElement('div');
+     item.style.cssText = 'padding:16px; background:rgba(255,255,255,0.05); border-radius:12px; display:flex; align-items:center; cursor:pointer; margin-bottom:8px;';
+     item.innerHTML = `<i class="fa-solid fa-folder" style="margin-right:12px; font-size:16px; color:var(--amber);"></i><span style="color:#fff; font-size:14px;">${dirName}</span>`;
+     item.onclick = () => { currentDirectory = dir; renderHomeFilesUI(); };
+     list.appendChild(item);
+   });
+
+   rootFiles.forEach(f => {
+     const name = f.path.split('/').pop();
+     const item = document.createElement('div');
+     item.style.cssText = 'padding:12px 16px; background:rgba(255,255,255,0.03); border-radius:12px; display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;';
+     item.innerHTML = `
+       <div style="display:flex; align-items:center; flex:1; cursor:pointer; overflow:hidden;" onclick="document.getElementById('homeFilesModal').style.display='none'; switchRepo(ghRepo); setTimeout(()=>selectFileFromTree('${f.path}'), 100);">
+         <i class="fa-solid fa-file-code" style="margin-right:12px; font-size:16px; color:var(--blue);"></i>
+         <span style="color:#fff; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</span>
+       </div>
+       <div style="display:flex; gap:8px;">
+         <button class="btn" style="background:rgba(255,255,255,0.1); width:32px; height:32px; border-radius:8px;" onclick="renameFile('${f.path}', event); setTimeout(()=>renderHomeFilesUI(), 1500);"><i class="fa-solid fa-pen"></i></button>
+         <button class="btn" style="background:rgba(248,81,73,0.15); color:var(--red); width:32px; height:32px; border-radius:8px;" onclick="deleteFile('${f.path}', event); setTimeout(()=>renderHomeFilesUI(), 1500);"><i class="fa-solid fa-trash"></i></button>
+       </div>
+     `;
+     list.appendChild(item);
+   });
+
+   if (directoriesInView.size === 0 && rootFiles.length === 0) {
+     list.innerHTML = '<div style="color:rgba(255,255,255,0.5); text-align:center; padding:20px; font-size:14px;">Empty Folder</div>';
+   }
 };
 
 setInterval(() => {
