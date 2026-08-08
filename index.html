@@ -2009,14 +2009,26 @@ function renderFileTreeUI() {
     rootFiles = rootFiles.concat(otherFiles);
 
     function getIcon(path) {
-            let ext = path.split('.').pop().toLowerCase();
-            if(ext === 'html') return {i: 'fa-brands fa-html5', c: 'var(--red)'};
-            if(ext === 'js') return {i: 'fa-brands fa-js', c: 'var(--amber)'};
-            if(ext === 'css') return {i: 'fa-brands fa-css3-alt', c: 'var(--blue)'};
-            if(ext === 'json') return {i: 'fa-solid fa-code', c: 'var(--green)'};
-            if(['png','jpg','jpeg','gif','svg','webp','ico'].includes(ext)) return {i: 'fa-solid fa-image', c: 'var(--purple)'};
-            return {i: 'fa-regular fa-file-code', c: '#ffffff'};
-        }
+                let ext = path.split('.').pop().toLowerCase();
+                if(ext === 'html' || ext === 'htm') return {i: 'fa-brands fa-html5', c: 'var(--red)'};
+                if(ext === 'js' || ext === 'jsx') return {i: 'fa-brands fa-js', c: 'var(--amber)'};
+                if(ext === 'ts' || ext === 'tsx') return {i: 'fa-solid fa-code', c: 'var(--blue)'};
+                if(ext === 'css' || ext === 'scss') return {i: 'fa-brands fa-css3-alt', c: 'var(--blue)'};
+                if(ext === 'json') return {i: 'fa-solid fa-braces', c: 'var(--green)'};
+                if(ext === 'xml' || ext === 'svg') return {i: 'fa-solid fa-code', c: 'var(--teal)'};
+                if(['png','jpg','jpeg','gif','webp','ico','bmp','avif'].includes(ext)) return {i: 'fa-solid fa-image', c: 'var(--purple)'};
+                if(['mp3','wav','ogg','aac','flac','m4a'].includes(ext)) return {i: 'fa-solid fa-music', c: 'var(--purple)'};
+                if(['mp4','webm','mov','avi','mkv'].includes(ext)) return {i: 'fa-solid fa-video', c: 'var(--purple)'};
+                if(['txt','md','markdown'].includes(ext)) return {i: 'fa-regular fa-file-lines', c: '#ffffff'};
+                if(['zip','rar','7z','tar','gz'].includes(ext)) return {i: 'fa-solid fa-file-zipper', c: 'var(--amber)'};
+                if(['pdf'].includes(ext)) return {i: 'fa-solid fa-file-pdf', c: 'var(--red)'};
+                if(['doc','docx'].includes(ext)) return {i: 'fa-solid fa-file-word', c: 'var(--blue)'};
+                if(['xls','xlsx'].includes(ext)) return {i: 'fa-solid fa-file-excel', c: 'var(--green)'};
+                if(['ppt','pptx'].includes(ext)) return {i: 'fa-solid fa-file-powerpoint', c: 'var(--amber)'};
+                if(ext === 'php' || ext === 'py' || ext === 'rb' || ext === 'go' || ext === 'rs') return {i: 'fa-solid fa-code', c: '#ffffff'};
+                if(['git','gitignore'].includes(ext)) return {i: 'fa-brands fa-git', c: 'var(--red)'};
+                return {i: 'fa-regular fa-file', c: '#ffffff'};
+            }
 
         function renderItem(f, isChild = false) {
                     const isTarget = f.path === ghFilePath;
