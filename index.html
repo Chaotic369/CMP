@@ -916,14 +916,16 @@ function applyWallpaper(url) {
   const emptyContent = document.getElementById('emptyStateContent');
   if (url) {
     stateObj.style.backgroundImage = 'url("' + url + '")';
-    stateObj.style.backgroundSize = 'contain';
+    stateObj.style.backgroundSize = 'cover';
     stateObj.style.backgroundPosition = 'center';
     stateObj.style.backgroundRepeat = 'no-repeat';
     stateObj.style.backgroundColor = 'var(--surface)';
+    stateObj.style.backgroundAttachment = 'fixed';
     if(emptyContent) emptyContent.style.display = 'none';
   } else {
     stateObj.style.backgroundImage = 'none';
     stateObj.style.backgroundColor = 'var(--surface)';
+    stateObj.style.backgroundAttachment = 'scroll';
     if(emptyContent) emptyContent.style.display = 'flex';
   }
 }
