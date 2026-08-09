@@ -1127,6 +1127,16 @@ window.switchRepo = function(r) {
     document.getElementById('repoTabsContainer').classList.remove('expanded');
     updateRepoSidebar();
     fetchFileTree(true, false);
+    
+    // Switch to popup layout mode and close home modals
+    const modalRepo = document.getElementById('homeReposModal');
+    const modalFiles = document.getElementById('homeFilesModal');
+    if (modalRepo) modalRepo.style.display = 'none';
+    if (modalFiles) modalFiles.style.display = 'none';
+    
+    if (window.innerWidth < 768 && !document.getElementById('app-menu').classList.contains('open')) {
+        toggleMenu();
+    }
 };
 
 window.renderBookmarks = function() {
