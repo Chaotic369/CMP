@@ -1,5 +1,11 @@
 name: Build Windows EXE
-on: [workflow_dispatch]
+on:
+  push:
+    paths:
+      - '.github/workflows/build-exe.yml'
+  workflow_dispatch:
+env:
+  BUILD_TIMESTAMP: '1786336094376'
 jobs:
   build:
     runs-on: windows-latest
@@ -44,3 +50,4 @@ EOF
         with:
           name: Windows-EXE
           path: build_app/dist/*.exe
+          overwrite: true
