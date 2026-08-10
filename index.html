@@ -597,10 +597,15 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 document.getElementById('installBtn').addEventListener('click', async () => {
   if (deferredPrompt) {
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') document.getElementById('installBtn').style.display = 'none';
-    deferredPrompt = null;
+    try {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') document.getElementById('installBtn').style.display = 'none';
+      deferredPrompt = null;
+    } catch (err) {
+      console.error('Install prompt error:', err);
+      deferredPrompt = null;
+    }
   }
 });
 
@@ -2117,6 +2122,8 @@ document.getElementById('copyErrBtn').addEventListener('click', function(e) {
   e.stopPropagation();
   navigator.clipboard.writeText(currentErrText).then(function() {
     toast('Error copied to clipboard!');
+  }).catch(function(err) {
+    toast('Failed to copy: ' + err.message, 'err');
   });
 });
 
