@@ -3964,15 +3964,21 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
         }
       }
 
-      let workflowContent = '';
+      const buildTimestamp = Date.now();
+            let workflowContent = '';
     
-    if (isApk) {
-          const safeName = appName.replace(/"/g, '\\"');
-          workflowContent = [
-            "name: Build Android APK",
-            "on:",
-            "  workflow_dispatch:",
-            "jobs:",
+          if (isApk) {
+            const safeName = appName.replace(/"/g, '\\"');
+            workflowContent = [
+              "name: Build Android APK",
+              "on:",
+              "  push:",
+              "    paths:",
+              "      - '.github/workflows/build-apk.yml'",
+              "  workflow_dispatch:",
+              "env:",
+              "  BUILD_TIMESTAMP: '" + buildTimestamp + "'",
+              "jobs:",
         "  build:",
         "    runs-on: ubuntu-latest",
         "    steps:",
@@ -4019,7 +4025,12 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
           workflowContent = [
             "name: Build Windows EXE",
             "on:",
+            "  push:",
+            "    paths:",
+            "      - '.github/workflows/build-exe.yml'",
             "  workflow_dispatch:",
+            "env:",
+            "  BUILD_TIMESTAMP: '" + buildTimestamp + "'",
             "jobs:",
         "  build:",
         "    runs-on: windows-latest",
@@ -4087,27 +4098,11 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
     
     if (!putRes.ok) throw new Error(await putRes.text());
     
-    appendBuildLog('Workflow synced. Triggering build dispatch...');
-        updateBuildOverlay('Triggering GitHub Actions...', 25);
-        await new Promise(r => setTimeout(r, 6000));
+        appendBuildLog('Workflow synced. Build automatically triggered by push...');
+            updateBuildOverlay('Triggering GitHub Actions...', 25);
+            await new Promise(r => setTimeout(r, 3000));
     
-        let dispatchSuccess = false;
-        let lastDispatchErr = '';
-        for(let retry=1; retry<=8; retry++){
-          const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowPath.split('/').pop()}/dispatches`, {
-            method: 'POST',
-            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ref: ghBranch })
-          });
-          if (dispatchRes.ok) { dispatchSuccess = true; break; }
-          lastDispatchErr = await dispatchRes.text().catch(() => dispatchRes.statusText);
-          appendBuildLog(`Dispatch retry ${retry}: ${lastDispatchErr}`);
-          await new Promise(r => setTimeout(r, 3000 * retry));
-        }
-    
-        if(!dispatchSuccess) throw new Error('Failed to trigger workflow dispatch: ' + lastDispatchErr);
-    
-    updateBuildOverlay('Build running. Polling GitHub...', 35);
+        updateBuildOverlay('Build running. Polling GitHub...', 35);
         clearTimeout(currentOverlayPollTimer);
     
         localStorage.setItem('active_build_v1', JSON.stringify({ title, workflowFile: workflowPath.split('/').pop(), artifactName, startTime: Date.now() }));
