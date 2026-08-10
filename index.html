@@ -1003,25 +1003,7 @@ function renderRepoTabs() {
   const container = document.getElementById('repoTabsContainer');
   container.innerHTML = '';
   
-  const homeBtn = document.createElement('div');
-      homeBtn.className = 'repo-item' + (!ghRepo ? ' active' : '');
-      homeBtn.innerHTML = '<span class="repo-name" style="display:flex; align-items:center; justify-content:center; width:100%; opacity:1;"><i class="fa-solid fa-house" style="color:#ffffff;"></i></span>';
-      homeBtn.onclick = (e) => {
-        ghRepo = '';
-        ghFilePath = '';
-        sourceContent = '';
-        $codeView.value = '';
-        document.getElementById('fileTreeContainer').style.display = 'none';
-        render('', false);
-        ghSaveConfig();
-        renderRepoTabs();
-        updateRepoSidebar();
-        var toggleBtn = document.getElementById('toggleUiBtn');
-        if (toggleBtn && window.innerWidth < 768 && document.getElementById('app-menu').classList.contains('open')) {
-           toggleMenu();
-        }
-    };
-    container.appendChild(homeBtn);
+  
   
   ghRepos.forEach((r, index) => {
     const btn = document.createElement('div');
