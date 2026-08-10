@@ -3824,7 +3824,7 @@ document.getElementById('btnFetchGhErrors').addEventListener('click', async () =
   btn.innerHTML = prevText;
 });
 
-document.getElementById('bcmStartBtn').addEventListener('click', () => {
+document.getElementById('bcmStartBtn').addEventListener('click', async () => {
   let appName = document.getElementById('buildAppName').value.trim() || 'My_App';
   let appLogo = document.getElementById('buildAppLogo').value.trim();
   document.getElementById('buildConfigModal').classList.remove('open');
@@ -3839,29 +3839,91 @@ document.getElementById('bcmStartBtn').addEventListener('click', () => {
     let time = new Date().toLocaleTimeString();
     logArea.innerHTML += `[${time}] ${msg}\n`;
     logArea.scrollTop = logArea.scrollHeight;
-    if (pct !== undefined) progBar.style.width = pct + '%';
+    if (pct !== undefined) progBar.style.width = Math.min(pct, 100) + '%';
   };
   
-  logStep(`Initializing ${currentBuildType} build for "${appName}"...`, 5);
-  if (appLogo) logStep(`Fetching and validating app logo...`, 10);
-  
-  let steps = [
-    {m: "Resolving manifest and configuration dependencies...", p: 20, t: 1000},
-    {m: "Compiling source codebase...", p: 40, t: 2500},
-    {m: "Generating optimized assets and linking...", p: 60, t: 4000},
-    {m: "Signing application package...", p: 80, t: 5500},
-    {m: `Build process completed successfully! ${appName}.${currentBuildType.toLowerCase()} generated.`, p: 100, t: 7000}
-  ];
-  
-  steps.forEach(s => {
-    setTimeout(() => {
-      logStep(s.m, s.p);
-      if (s.p === 100) {
-        logArea.innerHTML += `\n<button onclick="toast('Downloading ${appName}.${currentBuildType.toLowerCase()}...')" style="margin-top:10px; padding:6px 12px; background:var(--green); color:#000; font-weight:bold; border:none; border-radius:6px; cursor:pointer;"><i class="fa-solid fa-download"></i> Download ${currentBuildType}</button>`;
-        logArea.scrollTop = logArea.scrollHeight;
+  if (!ghToken || !ghRepo) {
+    logStep("❌ GitHub Token or Repository not configured. Cannot trigger build.", 0);
+    return;
+  }
+
+  let eventType = currentBuildType === 'APK' ? 'build_apk' : 'build_exe';
+  logStep(`🚀 Triggering GitHub Action (${eventType}) for "${appName}"...`, 10);
+
+  try {
+    let dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/dispatches`, {
+      method: 'POST',
+      headers: {
+        Authorization: `token ${ghToken}`,
+        Accept: 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        event_type: eventType,
+        client_payload: { app_name: appName, app_logo: appLogo }
+      })
+    });
+
+    if (!dispatchRes.ok) throw new Error(await dispatchRes.text());
+
+    logStep(`✅ Build dispatched successfully to GitHub Actions.`, 20);
+    logStep(`ℹ️ Ensure your repo has a workflow listening for repository_dispatch: types: [${eventType}]`, 20);
+    logStep(`⏳ Waiting for workflow run to appear...`, 30);
+
+    let runId = null;
+    let pollCount = 0;
+    
+    let checkRun = setInterval(async () => {
+      pollCount++;
+      if (pollCount > 60) {
+        clearInterval(checkRun);
+        logStep(`⏳ Timeout waiting for workflow to report back. Check GitHub manually.`, 100);
+        return;
       }
-    }, s.t);
-  });
+
+      try {
+        if (!runId) {
+          let runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs?event=repository_dispatch&per_page=5`, {
+            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+          });
+          if (!runsRes.ok) return;
+          let runsData = await runsRes.json();
+          let latestRun = runsData.workflow_runs && runsData.workflow_runs.length > 0 ? runsData.workflow_runs[0] : null;
+
+          if (latestRun && (new Date() - new Date(latestRun.created_at)) < 120000) {
+            runId = latestRun.id;
+            logStep(`🔍 Found Workflow Run #${runId} - Status: ${latestRun.status}...`, 40);
+          }
+        } else {
+          let runRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs/${runId}`, {
+            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+          });
+          if (!runRes.ok) return;
+          let runData = await runRes.json();
+
+          let pct = runData.status === 'in_progress' ? 60 : 40;
+          logStep(`🔄 Run #${runId} status: ${runData.status}...`, pct);
+
+          if (runData.status === 'completed') {
+            clearInterval(checkRun);
+            if (runData.conclusion === 'success') {
+              logStep(`🎉 Build completed successfully!`, 100);
+              logArea.innerHTML += `\n<button onclick="window.open('${runData.html_url}')" style="margin-top:10px; padding:6px 12px; background:var(--blue); color:#fff; font-weight:bold; border:none; border-radius:6px; cursor:pointer;"><i class="fa-brands fa-github"></i> View Artifacts on GitHub</button>`;
+            } else {
+              logStep(`❌ Build failed with conclusion: ${runData.conclusion}`, 100);
+              logStep(`Check errors using the "Fetch Last Build Errors" button.`, 100);
+            }
+            logArea.scrollTop = logArea.scrollHeight;
+          }
+        }
+      } catch(err) {
+        // Silently ignore temporary network errors during polling
+      }
+    }, 4000);
+
+  } catch (err) {
+    logStep(`❌ Failed to trigger build: ${err.message}`, 100);
+  }
 });
 
 sourceContent = '';
