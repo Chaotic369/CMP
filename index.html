@@ -2014,13 +2014,13 @@ function renderFileTreeUI() {
     rootFiles = rootFiles.concat(otherFiles);
 
     function getIcon(path) {
-                let ext = path.split('.').pop().toLowerCase();
-                if(ext === 'html' || ext === 'htm') return {i: 'fa-brands fa-html5', c: 'var(--red)'};
-                if(ext === 'js' || ext === 'jsx') return {i: 'fa-brands fa-js', c: 'var(--amber)'};
-                if(ext === 'ts' || ext === 'tsx') return {i: 'fa-solid fa-code', c: 'var(--blue)'};
-                if(ext === 'css' || ext === 'scss') return {i: 'fa-brands fa-css3-alt', c: 'var(--blue)'};
-                if(ext === 'json') return {i: 'fa-solid fa-braces', c: 'var(--green)'};
-                if(ext === 'xml' || ext === 'svg') return {i: 'fa-solid fa-code', c: 'var(--teal)'};
+                        let ext = path.split('.').pop().toLowerCase();
+                        if(ext === 'html' || ext === 'htm') return {i: 'fa-brands fa-html5', c: 'var(--red)'};
+                        if(ext === 'js' || ext === 'jsx') return {i: 'fa-brands fa-js', c: 'var(--amber)'};
+                        if(ext === 'ts' || ext === 'tsx') return {i: 'fa-solid fa-code', c: 'var(--blue)'};
+                        if(ext === 'css' || ext === 'scss') return {i: 'fa-brands fa-css3-alt', c: 'var(--blue)'};
+                        if(ext === 'json') return {i: 'fa-solid fa-file-code', c: 'var(--green)'};
+                        if(ext === 'xml' || ext === 'svg') return {i: 'fa-solid fa-code', c: 'var(--teal)'};
                 if(['png','jpg','jpeg','gif','webp','ico','bmp','avif'].includes(ext)) return {i: 'fa-solid fa-image', c: 'var(--purple)'};
                 if(['mp3','wav','ogg','aac','flac','m4a'].includes(ext)) return {i: 'fa-solid fa-music', c: 'var(--purple)'};
                 if(['mp4','webm','mov','avi','mkv'].includes(ext)) return {i: 'fa-solid fa-video', c: 'var(--purple)'};
