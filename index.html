@@ -3968,111 +3968,120 @@ document.getElementById('bmCompileBtn').addEventListener('click', async () => {
             let workflowContent = '';
     
             if (isApk) {
-              const safeName = appName.replace(/"/g, '\\"');
-              const widgetSed = iconBase64 
-                ? `sed -i 's/<\\/widget>/\\n    <icon src="res\\/icon.png" \\/>\\n    <allow-navigation href="*" \\/>\\n    <allow-intent href="*" \\/>\\n<\\/widget>/g' config.xml`
-                : `sed -i 's/<\\/widget>/\\n    <allow-navigation href="*" \\/>\\n    <allow-intent href="*" \\/>\\n<\\/widget>/g' config.xml`;
+                          const safeName = appName.replace(/"/g, '\\"');
+                          const widgetSed = iconBase64 
+                            ? `sed -i 's/<\\/widget>/\\n    <icon src="res\\/icon.png" \\/>\\n    <allow-navigation href="*" \\/>\\n    <allow-intent href="*" \\/>\\n<\\/widget>/g' config.xml`
+                            : `sed -i 's/<\\/widget>/\\n    <allow-navigation href="*" \\/>\\n    <allow-intent href="*" \\/>\\n<\\/widget>/g' config.xml`;
 
-              workflowContent = `name: Build Android APK
-              on: [push, workflow_dispatch]
-              env:
-                BUILD_TIMESTAMP: '${buildTimestamp}'
-              jobs:
-                build:
-                  runs-on: ubuntu-latest
-                  steps:
-                    - name: Checkout Source
-                      uses: actions/checkout@v4
-                    - name: Setup Java
-                      uses: actions/setup-java@v4
-                      with:
-                        distribution: 'temurin'
-                        java-version: '17'
-                    - name: Setup Node.js
-                      uses: actions/setup-node@v4
-                      with:
-                        node-version: '20'
-                    - name: Install Cordova
-                      run: npm install -g cordova
-                    - name: Build APK
-                      run: |
-                        export CI=true
-                        export CORDOVA_NO_TELEMETRY=1
-                        export CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https://services.gradle.org/distributions/gradle-8.13-all.zip
-                        cd /tmp
-                        cordova create app ${appId} "${safeName}" --no-telemetry
-                        rm -rf app/www/*
-                        cp -R $GITHUB_WORKSPACE/* app/www/ || true
-                        cd app
-                        mkdir -p res
-                        ${iconBase64 ? 'cp $GITHUB_WORKSPACE/build-assets/icon.png res/icon.png || true' : 'echo "No icon provided"'}
-                        sed -i 's/version="1.0.0"/version="${appVersion}"/g' config.xml
-                        ${widgetSed}
-                        cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true
-                        cordova platform add android --no-telemetry
-                        cordova build android --no-telemetry
-                        test -f /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk || (echo '::error::APK not produced - build failed silently' && exit 1)
-                    - name: Upload APK
-                      uses: actions/upload-artifact@v4
-                      with:
-                        name: Android-APK
-                        path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
-                        overwrite: true`;
-            } else {
-              const safeName = appName.replace(/"/g, '\\"');
-              const iconCopy = iconBase64 ? `cp $GITHUB_WORKSPACE/build-assets/icon.png icon.png || true\n          npm pkg set build.icon="icon.png"` : `echo "No icon provided"`;
-        
-              workflowContent = `name: Build Windows EXE
-              on: [push, workflow_dispatch]
-              env:
-                BUILD_TIMESTAMP: '${buildTimestamp}'
-              jobs:
-                build:
-                  runs-on: windows-latest
-                  steps:
-                    - name: Checkout Source
-                      uses: actions/checkout@v4
-                    - name: Setup Node.js
-                      uses: actions/setup-node@v4
-                      with:
-                        node-version: '20'
-                    - name: Build App
-                      shell: bash
-                      run: |
-                        mkdir build_app
-                        cp -R $GITHUB_WORKSPACE/* build_app/ || true
-                        cd build_app
-                        npm init -y
-                        npm install electron electron-builder --save-dev
-                        ${iconCopy}
-                        cat << '          EOF' > main.js
-                        const { app, BrowserWindow } = require('electron');
-                        const path = require('path');
-                        const fs = require('fs');
-                        app.whenReady().then(() => {
-                          let win = new BrowserWindow({ autoHideMenuBar: true, width: 1280, height: 720, webPreferences: { nodeIntegration: false, contextIsolation: true, webSecurity: false } });
-                          let mainFile = 'index.html';
-                          if (!fs.existsSync(path.join(__dirname, mainFile))) {
-                            let files = fs.readdirSync(__dirname).filter(f => f.endsWith('.html'));
-                            if (files.length > 0) mainFile = files[0];
-                          }
-                          win.loadFile(path.join(__dirname, mainFile)).catch((err) => console.error('Failed to load:', err));
-                        });
-                        app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
-                        EOF
-                        npm pkg set main="main.js"
-                        npm pkg set scripts.build="electron-builder --win portable --x64"
-                        npm pkg set build.appId="com.aicompile.${safeName.replace(/[^a-zA-Z0-9]/g, "")}"
-                        npm pkg set build.productName="${safeName}"
-                        npm pkg set version="${appVersion}"
-                        npm run build
-                    - name: Upload EXE
-                      uses: actions/upload-artifact@v4
-                      with:
-                        name: Windows-EXE
-                        path: build_app/dist/*.exe
-                        overwrite: true`;
-            }
+                          workflowContent = [
+                            "name: Build Android APK",
+                            "on: [push, workflow_dispatch]",
+                            "permissions:",
+                            "  contents: write",
+                            "  actions: write",
+                            "env:",
+                            "  BUILD_TIMESTAMP: '" + buildTimestamp + "'",
+                            "jobs:",
+                            "  build:",
+                            "    runs-on: ubuntu-latest",
+                            "    steps:",
+                            "      - name: Checkout Source",
+                            "        uses: actions/checkout@v4",
+                            "      - name: Setup Java",
+                            "        uses: actions/setup-java@v4",
+                            "        with:",
+                            "          distribution: 'temurin'",
+                            "          java-version: '17'",
+                            "      - name: Setup Node.js",
+                            "        uses: actions/setup-node@v4",
+                            "        with:",
+                            "          node-version: '20'",
+                            "      - name: Install Cordova",
+                            "        run: npm install -g cordova",
+                            "      - name: Build APK",
+                            "        run: |",
+                            "          export CI=true",
+                            "          export CORDOVA_NO_TELEMETRY=1",
+                            "          export CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https://services.gradle.org/distributions/gradle-8.13-all.zip",
+                            "          cd /tmp",
+                            "          cordova create app " + appId + " \"" + safeName + "\" --no-telemetry",
+                            "          rm -rf app/www/*",
+                            "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
+                            "          cd app",
+                            "          mkdir -p res",
+                            iconBase64 ? "          cp $GITHUB_WORKSPACE/build-assets/icon.png res/icon.png || true" : "          echo 'No icon provided'",
+                            "          sed -i 's/version=\"1.0.0\"/version=\"" + appVersion + "\"/g' config.xml",
+                            "          " + widgetSed,
+                            "          cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true",
+                            "          cordova platform add android --no-telemetry",
+                            "          cordova build android --no-telemetry",
+                            "          test -f /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk || (echo '::error::APK not produced - build failed silently' && exit 1)",
+                            "      - name: Upload APK",
+                            "        uses: actions/upload-artifact@v4",
+                            "        with:",
+                            "          name: Android-APK",
+                            "          path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk",
+                            "          overwrite: true"
+                          ].join('\n');
+                        } else {
+                          const safeName = appName.replace(/"/g, '\\"');
+                          workflowContent = [
+                            "name: Build Windows EXE",
+                            "on: [push, workflow_dispatch]",
+                            "permissions:",
+                            "  contents: write",
+                            "  actions: write",
+                            "env:",
+                            "  BUILD_TIMESTAMP: '" + buildTimestamp + "'",
+                            "jobs:",
+                            "  build:",
+                            "    runs-on: windows-latest",
+                            "    steps:",
+                            "      - name: Checkout Source",
+                            "        uses: actions/checkout@v4",
+                            "      - name: Setup Node.js",
+                            "        uses: actions/setup-node@v4",
+                            "        with:",
+                            "          node-version: '20'",
+                            "      - name: Build App",
+                            "        shell: bash",
+                            "        run: |",
+                            "          mkdir build_app",
+                            "          cp -R $GITHUB_WORKSPACE/* build_app/ || true",
+                            "          cd build_app",
+                            "          npm init -y",
+                            "          npm install electron electron-builder --save-dev",
+                            iconBase64 ? "          cp $GITHUB_WORKSPACE/build-assets/icon.png icon.png || true" : "          echo 'No icon provided'",
+                            iconBase64 ? "          npm pkg set build.icon=\"icon.png\"" : "          echo 'No icon to set'",
+                            "          cat << 'EOF' > main.js",
+                            "const { app, BrowserWindow } = require('electron');",
+                            "const path = require('path');",
+                            "const fs = require('fs');",
+                            "app.whenReady().then(() => {",
+                            "  let win = new BrowserWindow({ autoHideMenuBar: true, width: 1280, height: 720, webPreferences: { nodeIntegration: false, contextIsolation: true, webSecurity: false } });",
+                            "  let mainFile = 'index.html';",
+                            "  if (!fs.existsSync(path.join(__dirname, mainFile))) {",
+                            "    let files = fs.readdirSync(__dirname).filter(f => f.endsWith('.html'));",
+                            "    if (files.length > 0) mainFile = files[0];",
+                            "  }",
+                            "  win.loadFile(path.join(__dirname, mainFile)).catch((err) => console.error('Failed to load:', err));",
+                            "});",
+                            "app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });",
+                            "EOF",
+                            "          npm pkg set main=\"main.js\"",
+                            "          npm pkg set scripts.build=\"electron-builder --win portable --x64\"",
+                            "          npm pkg set build.appId=\"com.aicompile." + safeName.replace(/[^a-zA-Z0-9]/g, "") + "\"",
+                            "          npm pkg set build.productName=\"" + safeName + "\"",
+                            "          npm pkg set version=\"" + appVersion + "\"",
+                            "          npm run build",
+                            "      - name: Upload EXE",
+                            "        uses: actions/upload-artifact@v4",
+                            "        with:",
+                            "          name: Windows-EXE",
+                            "          path: build_app/dist/*.exe",
+                            "          overwrite: true"
+                          ].join('\n');
+                        }
 
     appendBuildLog('Updating workflow file in repository...');
     let sha = null;
