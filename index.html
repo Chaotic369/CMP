@@ -4296,26 +4296,28 @@ window.fetchLatestFailedLog = async function(workflowFile) {
     const jobsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs/${run.id}/jobs`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }});
     if (!jobsRes.ok) throw new Error('Failed to fetch jobs list');
     const jobsData = await jobsRes.json();
-    if (!jobsData.jobs || jobsData.jobs.length === 0) throw new Error('No jobs found in run.');
-
-    showProgress(60);
-
     let fullLog = `Run #${run.run_number} — ${run.status} / ${run.conclusion || 'pending'}\n${run.html_url}\n\n`;
 
-    for (const job of jobsData.jobs) {
-      fullLog += `\n${'='.repeat(50)}\nJOB: ${job.name} (${job.conclusion || job.status})\n${'='.repeat(50)}\n`;
-      try {
-        const logRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/jobs/${job.id}/logs`, { headers: { Authorization: `token ${ghToken}` }});
-        if (!logRes.ok) {
-          fullLog += `[Could not fetch log for this job: ${logRes.status}]\n`;
-          continue;
+        if (!jobsData.jobs || jobsData.jobs.length === 0) {
+          fullLog += '\n[No jobs found. This means the YAML workflow has a syntax error or Actions are restricted. Please check your repository settings.]\n';
+        } else {
+          for (const job of jobsData.jobs) {
+            fullLog += `\n${'='.repeat(50)}\nJOB: ${job.name} (${job.conclusion || job.status})\n${'='.repeat(50)}\n`;
+            try {
+              const logRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/jobs/${job.id}/logs`, { headers: { Authorization: `token ${ghToken}` }});
+              if (!logRes.ok) {
+                fullLog += `[Could not fetch log for this job: ${logRes.status}]\n`;
+                continue;
+              }
+              const text = await logRes.text();
+              fullLog += text;
+            } catch (jobErr) {
+              fullLog += `[Error fetching job log: ${jobErr.message}]\n`;
+            }
+          }
         }
-        const text = await logRes.text();
-        fullLog += text;
-      } catch (jobErr) {
-        fullLog += `[Error fetching job log: ${jobErr.message}]\n`;
-      }
-    }
+
+        showProgress(60);
 
     showProgress(90);
 
