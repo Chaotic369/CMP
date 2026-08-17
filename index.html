@@ -448,25 +448,25 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 <div id="newRepoModal">
   <h4><i class="fa-solid fa-folder-plus"></i> New Repository <span class="panel-close" id="nrCloseBtn">✕</span></h4>
   <div class="gh-row"><label>Name</label><input type="text" id="nrName" placeholder=""></div>
-  <div style="display:flex; gap:10px; margin: 10px 0; font-size: 6px; flex-wrap: wrap;">
-          <label style="cursor:pointer;"><input type="radio" name="nrSource" value="upload" checked> <i class="fa-solid fa-upload"></i> Upload HTML</label>
-          <label style="cursor:pointer;"><input type="radio" name="nrSource" value="paste"> <i class="fa-solid fa-code"></i> Paste HTML</label>
-          <label style="cursor:pointer;"><input type="radio" name="nrSource" value="files"> <i class="fa-solid fa-file-zipper"></i> Upload Files (ZIPs auto-extract)</label>
-        </div>
+  <div style="display:flex; gap:10px; margin: 10px 0; font-size: 11px; flex-wrap: wrap;">
+            <label style="cursor:pointer;"><input type="radio" name="nrSource" value="upload" checked> <i class="fa-solid fa-upload"></i> Upload HTML</label>
+            <label style="cursor:pointer;"><input type="radio" name="nrSource" value="paste"> <i class="fa-solid fa-code"></i> Paste HTML</label>
+            <label style="cursor:pointer;"><input type="radio" name="nrSource" value="files"> <i class="fa-solid fa-file-zipper"></i> Upload Files (ZIPs auto-extract)</label>
+          </div>
   
       <label id="nrFileLabel" for="nrFileInput" style="display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
-        <i class="fa-solid fa-cloud-arrow-up" style="font-size:6px; color:var(--blue);"></i>
-        <span id="nrFileNameDisplay" style="font-size:6px; font-weight:500;">Click to upload HTML file</span>
-      </label>
-      <input type="file" id="nrFileInput" accept=".html,.htm" style="display:none;">
+              <i class="fa-solid fa-cloud-arrow-up" style="font-size:16px; color:var(--blue);"></i>
+              <span id="nrFileNameDisplay" style="font-size:11px; font-weight:500;">Click to upload HTML file</span>
+            </label>
+            <input type="file" id="nrFileInput" accept=".html,.htm" style="display:none;">
 
-      <label id="nrFilesLabel" for="nrFilesInput" style="display:none; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
-        <i class="fa-solid fa-file-zipper" style="font-size:6px; color:var(--purple);"></i>
-        <span id="nrFilesNameDisplay" style="font-size:6px; font-weight:500;">Click to select any files (multiple allowed)</span>
-      </label>
-      <input type="file" id="nrFilesInput" multiple style="display:none;">
+            <label id="nrFilesLabel" for="nrFilesInput" style="display:none; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
+              <i class="fa-solid fa-file-zipper" style="font-size:16px; color:var(--purple);"></i>
+              <span id="nrFilesNameDisplay" style="font-size:11px; font-weight:500;">Click to select any files (multiple allowed)</span>
+            </label>
+            <input type="file" id="nrFilesInput" multiple style="display:none;">
 
-      <textarea id="nrPasteInput" placeholder="" style="display:none; width:100%; height:120px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:4px; margin-bottom:10px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:6px;"></textarea>
+            <textarea id="nrPasteInput" placeholder="" style="display:none; width:100%; height:120px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:4px; margin-bottom:10px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:11px;"></textarea>
   <div class="gh-actions">
     <button id="nrCancelBtn">✕ Cancel</button>
     <button id="nrAddBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);">Add</button>
