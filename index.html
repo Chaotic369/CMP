@@ -372,9 +372,8 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 </button>
 
 <div id="app-menu">
-      <div id="menu-scale-controls" style="position: absolute; bottom: -12px; left: -12px; display: flex; flex-direction: column; gap: 4px; z-index: 10001; pointer-events: auto;">
-        <button class="btn" id="menuScaleUpBtn" style="width: 24px; height: 24px; font-size: 8px; background: rgba(22, 22, 22, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" title="Increase Menu Size"><i class="fa-solid fa-plus"></i></button>
-        <button class="btn" id="menuScaleDownBtn" style="width: 24px; height: 24px; font-size: 8px; background: rgba(22, 22, 22, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" title="Decrease Menu Size"><i class="fa-solid fa-minus"></i></button>
+      <div id="menu-resize-handle" style="position: absolute; bottom: -4px; left: -4px; width: 34px; height: 34px; cursor: sw-resize; z-index: 10001; pointer-events: auto; touch-action: none;" title="Drag to Resize">
+        <div style="position: absolute; bottom: 10px; left: 10px; width: 14px; height: 14px; border-bottom: 3px solid rgba(255,255,255,0.9); border-left: 3px solid rgba(255,255,255,0.9); border-bottom-left-radius: 5px; box-shadow: -2px 2px 4px rgba(0,0,0,0.4);"></div>
       </div>
       <div id="app-menu-loader" style="display: none; position: absolute; inset: 0; z-index: 10000; background: rgba(22, 22, 22, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px; align-items: center; justify-content: center; flex-direction: column; gap: 10px;">
     <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 6px; color: var(--blue);"></i>
@@ -2282,8 +2281,49 @@ function toggleMenu() {
 $toggleBtn.addEventListener('click', function(e) { if (isDragging) return; toggleMenu(); });
 $backdrop.addEventListener('click', toggleMenu);
 
-document.getElementById('menuScaleUpBtn').addEventListener('click', function(e) { e.stopPropagation(); setMenuScale((settings.menuScale || 1) + 0.1); });
-document.getElementById('menuScaleDownBtn').addEventListener('click', function(e) { e.stopPropagation(); setMenuScale((settings.menuScale || 1) - 0.1); });
+(function initMenuResize() {
+  var handle = document.getElementById('menu-resize-handle');
+  if(!handle) return;
+  var isResizing = false;
+  var startX, startY, startScale;
+  
+  handle.addEventListener('pointerdown', function(e) {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    e.stopPropagation();
+    isResizing = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startScale = settings.menuScale || 1;
+    try { handle.setPointerCapture(e.pointerId); } catch(err) {}
+  });
+  
+  handle.addEventListener('pointermove', function(e) {
+    if(!isResizing) return;
+    e.stopPropagation();
+    if(e.cancelable) e.preventDefault();
+    var dx = e.clientX - startX;
+    var dy = e.clientY - startY;
+    // Moving left (-dx) or down (+dy) increases size
+    var delta = (dy - dx) * 0.003; 
+    var newScale = Math.max(0.5, Math.min(startScale + delta, 2.5));
+    document.getElementById('app-menu').style.setProperty('--user-scale', newScale);
+  });
+  
+  function endResize(e) {
+    if(!isResizing) return;
+    isResizing = false;
+    e.stopPropagation();
+    var dx = e.clientX - startX;
+    var dy = e.clientY - startY;
+    var delta = (dy - dx) * 0.003;
+    var newScale = Math.max(0.5, Math.min(startScale + delta, 2.5));
+    
+    setMenuScale(newScale);
+  }
+  
+  handle.addEventListener('pointerup', endResize);
+  handle.addEventListener('pointercancel', endResize);
+})();
 
 // VIEW MODE TOGGLE
 document.getElementById('viewBtn').addEventListener('click', function() {
