@@ -119,7 +119,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 }
 
 #app-menu {
-      position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 6px;
+      position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 6px;
       background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 6px; border: none !important; outline: none !important; border-radius: 14px;
       box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); width: fit-content; height: fit-content;
       max-width: min(calc(100vw - 12px), calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 12px));
@@ -158,20 +158,21 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 #repoSidebar { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; height: fit-content; }
 #sidebarContent { display: flex; flex-direction: column; width: 140px; height: auto; max-height: 260px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 4px; overflow-x: hidden; overflow-y: auto; }
-#sidebarContent.mini { height: 108px; max-height: 108px !important; width: 34px; padding-right: 2px; align-items: center; overflow-y: auto; overflow-x: hidden; }
-#sidebarContent.mini .repo-name { font-size: 6px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
+#sidebarContent.mini { height: 108px; max-height: 108px !important; width: 34px; padding-right: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
+#sidebarContent.mini .repo-name { font-size: 6px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; margin-top: 2px; }
 #sidebarContent.mini .repo-actions { display: none !important; }
-#sidebarContent.mini .repo-item { padding: 4px 2px; justify-content: center; text-align: center; flex-direction: column; }
-#sidebarContent.mini #repoTabsContainer { max-height: 108px !important; overflow-y: auto; }
+#sidebarContent.mini .repo-item { padding: 4px 2px; justify-content: flex-start; text-align: center; flex-direction: column; }
+#sidebarContent.mini #repoTabsContainer { max-height: none !important; height: auto; overflow-y: visible; justify-content: flex-start; margin: 0; flex-shrink: 0; }
 
 #bookmarkContent { display: flex; flex-direction: column; width: 140px; height: fit-content; max-height: 45vh; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 4px; overflow-x: hidden; }
 #bookmarkContent .repo-item { background: transparent; border-radius: 8px; margin-bottom: 2px; }
 #bookmarkContent .repo-item:active { background: rgba(255,255,255,0.15); }
 #bookmarkContent .repo-item.active { background: rgba(255,255,255,0.15); }
-#bookmarkContent.mini { height: 108px; max-height: 108px !important; width: 34px; padding-left: 2px; align-items: center; overflow-y: auto; overflow-x: hidden; }
-#bookmarkContent.mini .repo-name { font-size: 6px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; }
+#bookmarkContent.mini { height: 108px; max-height: 108px !important; width: 34px; padding-left: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
+#bookmarkContent.mini .repo-name { font-size: 6px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; margin-top: 2px; }
 #bookmarkContent.mini .repo-actions { display: none !important; }
-#bookmarkContent.mini .repo-item { padding: 4px 2px; justify-content: center; text-align: center; flex-direction: column; }
+#bookmarkContent.mini .repo-item { padding: 4px 2px; justify-content: flex-start; text-align: center; flex-direction: column; }
+#bookmarkContent.mini #bookmarkRightList { max-height: none !important; height: auto; overflow-y: visible; justify-content: flex-start; margin: 0; flex-shrink: 0; }
 
 #repoTabsContainer { display: flex; flex-direction: column; gap: 0px; max-height: 108px; overflow-y: auto; flex-shrink: 0; width: 100%; }
 #repoTabsContainer.expanded { max-height: 108px; overflow-y: auto; flex-shrink: 0; }
@@ -2170,11 +2171,19 @@ function syncSidebarHeightToControls() {
   if (!mc || !sc) return;
   var h = mc.getBoundingClientRect().height;
   if (h > 0 && sc.classList.contains('mini')) {
+    sc.style.height = h + 'px';
     sc.style.maxHeight = h + 'px';
-    if (bc && bc.classList.contains('mini')) bc.style.maxHeight = h + 'px';
+    if (bc && bc.classList.contains('mini')) {
+      bc.style.height = h + 'px';
+      bc.style.maxHeight = h + 'px';
+    }
   } else {
+    sc.style.height = '';
     sc.style.maxHeight = '';
-    if (bc) bc.style.maxHeight = '';
+    if (bc) {
+      bc.style.height = '';
+      bc.style.maxHeight = '';
+    }
   }
 }
 
