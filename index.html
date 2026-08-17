@@ -120,14 +120,16 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 }
 
 #app-menu {
-  position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 6px;
-  background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 6px; border: none !important; outline: none !important; border-radius: 14px;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); width: fit-content; height: fit-content;
-  max-width: min(calc(100vw - 12px), calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 12px));
-  max-height: fit-content;
-  overflow: visible;
-  display: none; pointer-events: none;
-}
+      position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 6px;
+      background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 6px; border: none !important; outline: none !important; border-radius: 14px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); width: fit-content; height: fit-content;
+      max-width: min(calc(100vw - 12px), calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 12px));
+      max-height: fit-content;
+      overflow: visible;
+      display: none; pointer-events: none;
+      transform: scale(var(--user-scale, 1));
+      transition: transform 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+    }
 #app-menu.open { 
   display: flex; pointer-events: auto;
 }
@@ -284,7 +286,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 :fullscreen #statusBar, :-webkit-full-screen #statusBar { display: none !important; }
 :fullscreen #codeView, :-webkit-full-screen #codeView { height: 100vh !important; }
 :fullscreen #toggleUiBtn, :-webkit-full-screen #toggleUiBtn, :fullscreen #searchCodeBtn, :-webkit-full-screen #searchCodeBtn { transform: scale(0.85); }
-:fullscreen #app-menu, :-webkit-full-screen #app-menu { transform: scale(0.85); }
+:fullscreen #app-menu, :-webkit-full-screen #app-menu { transform: scale(calc(var(--user-scale, 1) * 0.85)); }
 :fullscreen #fnrPanel, :-webkit-full-screen #fnrPanel { transform: scale(0.85); transform-origin: top center; }
 
 .panel-close { float: right; cursor: pointer; color: #ffffff; font-size: 6px; line-height: 1; margin-top: -2px; padding: 2px 4px; transition: color 0.2s; }
@@ -370,7 +372,11 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 </button>
 
 <div id="app-menu">
-  <div id="app-menu-loader" style="display: none; position: absolute; inset: 0; z-index: 10000; background: rgba(22, 22, 22, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px; align-items: center; justify-content: center; flex-direction: column; gap: 10px;">
+      <div id="menu-scale-controls" style="position: absolute; bottom: -12px; left: -12px; display: flex; flex-direction: column; gap: 4px; z-index: 10001; pointer-events: auto;">
+        <button class="btn" id="menuScaleUpBtn" style="width: 24px; height: 24px; font-size: 8px; background: rgba(22, 22, 22, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" title="Increase Menu Size"><i class="fa-solid fa-plus"></i></button>
+        <button class="btn" id="menuScaleDownBtn" style="width: 24px; height: 24px; font-size: 8px; background: rgba(22, 22, 22, 0.85); border: 1px solid rgba(255,255,255,0.1); border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.5);" title="Decrease Menu Size"><i class="fa-solid fa-minus"></i></button>
+      </div>
+      <div id="app-menu-loader" style="display: none; position: absolute; inset: 0; z-index: 10000; background: rgba(22, 22, 22, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px; align-items: center; justify-content: center; flex-direction: column; gap: 10px;">
     <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 6px; color: var(--blue);"></i>
         <span id="app-menu-loader-text" style="font-size: 6px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">Connecting...</span>
   </div>
@@ -545,7 +551,18 @@ var dragStartX, dragStartY, initialBtnX, initialBtnY;
 var currentErrText = '';
 
 // AST Guard disabled by default to prevent apply rejections
-var settings = { astGuard: false, indentFix: true, warnAmbiguous: true };
+var settings = { astGuard: false, indentFix: true, warnAmbiguous: true, menuScale: 1 };
+
+function setMenuScale(scale) {
+  scale = Math.max(0.5, Math.min(scale, 2));
+  settings.menuScale = scale;
+  document.getElementById('app-menu').style.setProperty('--user-scale', scale);
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  ghSaveConfig();
+  if (document.getElementById('app-menu').classList.contains('open')) {
+      updateMenuPosition();
+  }
+}
 
 // GitHub Vars
 var ghToken = '';
@@ -841,11 +858,16 @@ async function ghLoadConfigFromFirebase() {
                     ghBookmarkedRepos = cfg.bookmarkedRepos || [];
                     console.log('[bookmarks] ghBookmarkedRepos set to:', ghBookmarkedRepos);
                     if (cfg.wallpaper !== undefined) {
-                              settings.wallpaper = cfg.wallpaper;
-                              localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-                              applyWallpaper(cfg.wallpaper);
-                            }
-                            if (window.self === window.top && cfg.toggleBtnPos && cfg.toggleBtnPos.left !== undefined && cfg.toggleBtnPos.top !== undefined) {
+                                                  settings.wallpaper = cfg.wallpaper;
+                                                  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                                                  applyWallpaper(cfg.wallpaper);
+                                                }
+                                                if (cfg.menuScale !== undefined) {
+                                                  settings.menuScale = cfg.menuScale;
+                                                  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                                                  document.getElementById('app-menu').style.setProperty('--user-scale', settings.menuScale);
+                                                }
+                                                if (window.self === window.top && cfg.toggleBtnPos && cfg.toggleBtnPos.left !== undefined && cfg.toggleBtnPos.top !== undefined) {
                                                           settings.toggleBtnPos = cfg.toggleBtnPos;
                                                           localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
                                                           var margin = 15;
@@ -875,16 +897,17 @@ async function ghLoadConfigFromFirebase() {
 function ghSaveConfig() {
   if (ghUser) localStorage.setItem('gh_active_user', ghUser);
   const cfg = { 
-    token: ghToken || '', 
-    user: ghUser || '', 
-    repo: ghRepo || '', 
-    branch: ghBranch || 'main', 
-    filePath: ghFilePath || 'index.html', 
-    repos: ghRepos || [], 
-    bookmarkedRepos: ghBookmarkedRepos || [], 
-    wallpaper: settings.wallpaper || '',
-    toggleBtnPos: settings.toggleBtnPos || null
-  };
+      token: ghToken || '', 
+      user: ghUser || '', 
+      repo: ghRepo || '', 
+      branch: ghBranch || 'main', 
+      filePath: ghFilePath || 'index.html', 
+      repos: ghRepos || [], 
+      bookmarkedRepos: ghBookmarkedRepos || [], 
+      wallpaper: settings.wallpaper || '',
+      toggleBtnPos: settings.toggleBtnPos || null,
+      menuScale: settings.menuScale || 1
+    };
   if (!ghConfigLoaded) {
     console.warn('[ghSaveConfig] Blocked save — config has not finished loading from Firebase yet.');
     document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
@@ -2259,6 +2282,9 @@ function toggleMenu() {
 $toggleBtn.addEventListener('click', function(e) { if (isDragging) return; toggleMenu(); });
 $backdrop.addEventListener('click', toggleMenu);
 
+document.getElementById('menuScaleUpBtn').addEventListener('click', function(e) { e.stopPropagation(); setMenuScale((settings.menuScale || 1) + 0.1); });
+document.getElementById('menuScaleDownBtn').addEventListener('click', function(e) { e.stopPropagation(); setMenuScale((settings.menuScale || 1) - 0.1); });
+
 // VIEW MODE TOGGLE
 document.getElementById('viewBtn').addEventListener('click', function() {
   if (viewMode === 'preview') {
@@ -2528,6 +2554,7 @@ window.addEventListener('DOMContentLoaded', async function() {
     var s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
     Object.assign(settings, s);
     if (settings.wallpaper) applyWallpaper(settings.wallpaper);
+    if (settings.menuScale) document.getElementById('app-menu').style.setProperty('--user-scale', settings.menuScale);
   } catch(e) {}
   
   updateRepoSidebar(); 
