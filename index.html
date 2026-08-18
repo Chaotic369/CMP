@@ -615,6 +615,7 @@ window.toggleBookmarkRepo = function(r, e) {
 window.switchRepo = function(r) {
     if (ghRepo === r) return;
     ghRepo = r;
+    currentDirectory = '';
     ghSaveConfig();
     renderRepoTabs();
     document.getElementById('fileTreeContainer').style.display = 'flex';
@@ -1120,28 +1121,29 @@ function renderRepoTabs() {
               }
 
               if (ghRepo === r) {
-                  if (ftc.style.display === 'flex') {
-                      ftc.style.display = 'none';
-                      rtc.classList.add('expanded');
-                  } else {
-                      if (typeof currentTreeFiles === 'undefined' || currentTreeFiles.length === 0) fetchFileTree(false);
-                      else { 
-                          ftc.style.display = 'flex'; 
-                          rtc.classList.remove('expanded');
-                          renderFileTreeUI(); 
-                      }
-                  }
-                  updateRepoSidebar();
-              } else {
-                                ghRepo = r;
-                                ghSaveConfig();
-                                renderRepoTabs();
-                                ftc.style.display = 'flex';
-                                rtc.classList.remove('expanded');
+                                if (ftc.style.display === 'flex') {
+                                    ftc.style.display = 'none';
+                                    rtc.classList.add('expanded');
+                                } else {
+                                    if (typeof currentTreeFiles === 'undefined' || currentTreeFiles.length === 0) fetchFileTree(false);
+                                    else { 
+                                        ftc.style.display = 'flex'; 
+                                        rtc.classList.remove('expanded');
+                                        renderFileTreeUI(); 
+                                    }
+                                }
                                 updateRepoSidebar();
-                                fetchFileTree(true, false);
-                            }
-            };
+                            } else {
+                                              ghRepo = r;
+                                              currentDirectory = '';
+                                              ghSaveConfig();
+                                              renderRepoTabs();
+                                              ftc.style.display = 'flex';
+                                              rtc.classList.remove('expanded');
+                                              updateRepoSidebar();
+                                              fetchFileTree(true, false);
+                                          }
+                          };
 
     const actions = document.createElement('div');
             actions.className = 'repo-actions';
@@ -1468,11 +1470,12 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
     showProgress(80);
 
     // Step 8: Context Switch
-                toast('⏳ Switching context...', 'info');
-                addLog('info', 'Switching IDE context to new repo...');
-                ghRepo = newRepoName;
-                ghFilePath = firstUploadedPath;
-                if (!ghRepos.includes(newRepoName)) ghRepos.unshift(newRepoName);
+                    toast('⏳ Switching context...', 'info');
+                    addLog('info', 'Switching IDE context to new repo...');
+                    ghRepo = newRepoName;
+                    currentDirectory = '';
+                    ghFilePath = firstUploadedPath;
+                    if (!ghRepos.includes(newRepoName)) ghRepos.unshift(newRepoName);
                 ghSaveConfig();
     
             repoCollapsed = false;
@@ -1537,18 +1540,19 @@ window.deleteRepo = async function(full_name, e) {
             headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
         });
         if(!res.ok) {
-            let errText = await res.text();
-            if(res.status === 403) throw new Error("403 Forbidden - Does your token have 'delete_repo' scope?");
-            throw new Error(errText);
-        }
-        toast('✅ Repo deleted!');
-        if (ghRepo === full_name) { 
-            ghRepo = ''; 
-            ghSaveConfig(); 
-            document.getElementById('fileTreeContainer').style.display='none'; 
-            document.getElementById('repoTabsContainer').classList.add('expanded');
-        }
-        ghFetchAllRepos();
+                    let errText = await res.text();
+                    if(res.status === 403) throw new Error("403 Forbidden - Does your token have 'delete_repo' scope?");
+                    throw new Error(errText);
+                }
+                toast('✅ Repo deleted!');
+                if (ghRepo === full_name) { 
+                    ghRepo = ''; 
+                    currentDirectory = '';
+                    ghSaveConfig(); 
+                    document.getElementById('fileTreeContainer').style.display='none'; 
+                    document.getElementById('repoTabsContainer').classList.add('expanded');
+                }
+                ghFetchAllRepos();
     } catch (err) {
         toast('❌ Failed: ' + err.message, 'err');
     }
@@ -1804,11 +1808,14 @@ async function ghFetchAllRepos() {
         });
     if (!res.ok) throw new Error('Failed to fetch');
     const data = await res.json();
-    ghRepos = data.map(r => r.full_name);
+        ghRepos = data.map(r => r.full_name);
 
-    if (!ghRepo && ghRepos.length > 0) ghRepo = ghRepos[0];
-    ghSaveConfig();
-    renderRepoTabs();
+        if (!ghRepo && ghRepos.length > 0) {
+          ghRepo = ghRepos[0];
+          currentDirectory = '';
+        }
+        ghSaveConfig();
+        renderRepoTabs();
     updateRepoSidebar();
     if(ghRepo) await fetchFileTree(false, true);
     toast('✅ Repos fetched successfully!');
@@ -3472,6 +3479,7 @@ document.getElementById('ghSaveBtn').addEventListener('click', function() {
     ghRepos = [];
     ghBookmarkedRepos = [];
     ghRepo = '';
+    currentDirectory = '';
     const ftc = document.getElementById('fileTreeContainer');
     const rtc = document.getElementById('repoTabsContainer');
     if(ftc) ftc.innerHTML = '';
