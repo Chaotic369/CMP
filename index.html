@@ -1800,9 +1800,8 @@ async function ghFetchAllRepos() {
   showMenuLoader('Fetching Repositories...');
   try {
     const res = await fetch(`https://api.github.com/user/repos?per_page=100&sort=updated`, {
-      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
-      cache: 'no-store'
-    });
+          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+        });
     if (!res.ok) throw new Error('Failed to fetch');
     const data = await res.json();
     ghRepos = data.map(r => r.full_name);
@@ -1842,10 +1841,9 @@ async function fetchFileTree(autoLoad = false, silent = false) {
            if (repoInfo.default_branch) ghBranch = repoInfo.default_branch;
         }
 
-        const res = await fetch(`https://api.github.com/repos/${ghRepo}/git/trees/${ghBranch}?recursive=1&t=${Date.now()}`, {
-                    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
-                    cache: 'no-store'
-                });
+        const res = await fetch(`https://api.github.com/repos/${ghRepo}/git/trees/${ghBranch}?recursive=1`, {
+                            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+                        });
         if (!res.ok) throw new Error('Tree fetch failed');
         const data = await res.json();
         
