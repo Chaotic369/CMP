@@ -2017,13 +2017,13 @@ function renderFileTreeUI() {
     }
 
     window.openDirectory = function(dir) {
-      currentDirectory = dir;
-      renderFileTreeUI();
-    };
+          currentDirectory = dir;
+          renderFileTreeUI();
+        };
 
-let currentDirectory = '';
+    var currentDirectory = '';
 
-function updateDirectoryNav() {
+    function updateDirectoryNav() {
   const nav = document.getElementById('directoryNav');
   const pathEl = document.getElementById('dirPath');
   const backBtn = document.getElementById('dirBackBtn');
@@ -3554,6 +3554,7 @@ document.getElementById('ghFetchReposBtn').addEventListener('click', function() 
     ghRepos = [];
     ghBookmarkedRepos = [];
     ghRepo = '';
+    currentDirectory = '';
     const ftc = document.getElementById('fileTreeContainer');
     const rtc = document.getElementById('repoTabsContainer');
     if(ftc) ftc.innerHTML = '';
