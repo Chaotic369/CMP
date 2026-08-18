@@ -1835,15 +1835,21 @@ async function fetchFileTree(autoLoad = false, silent = false) {
         updateRepoSidebar();
     }
     try {
-        const repoRes = await fetch(`https://api.github.com/repos/${ghRepo}`, { headers: { Authorization: `token ${ghToken}` }});
-        if (repoRes.ok) {
-           const repoInfo = await repoRes.json();
-           if (repoInfo.default_branch) ghBranch = repoInfo.default_branch;
-        }
+            window._branchCache = window._branchCache || {};
+            if (!window._branchCache[ghRepo]) {
+                const repoRes = await fetch(`https://api.github.com/repos/${ghRepo}`, { headers: { Authorization: `token ${ghToken}` }});
+                if (repoRes.ok) {
+                   const repoInfo = await repoRes.json();
+                   window._branchCache[ghRepo] = repoInfo.default_branch || 'main';
+                }
+            }
+            if (window._branchCache[ghRepo] && ghBranch !== window._branchCache[ghRepo]) {
+               ghBranch = window._branchCache[ghRepo];
+            }
 
-        const res = await fetch(`https://api.github.com/repos/${ghRepo}/git/trees/${ghBranch}?recursive=1`, {
-                            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-                        });
+            const res = await fetch(`https://api.github.com/repos/${ghRepo}/git/trees/${ghBranch}?recursive=1`, {
+                                headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+                            });
         if (!res.ok) throw new Error('Tree fetch failed');
         const data = await res.json();
         
@@ -3557,20 +3563,24 @@ window.syncCurrentFile = async function() {
   if (!ghToken || !ghRepo) { toast('❌ Configure GitHub settings and select a repo first.', 'warn'); return; }
   showProgress(20);
   try {
-    toast('🔄 Syncing from GitHub...', 'info');
+      toast('🔄 Syncing from GitHub...', 'info');
     
-    const repoRes = await fetch(`https://api.github.com/repos/${ghRepo}`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }});
-    if (repoRes.ok) {
-       const repoInfo = await repoRes.json();
-       if (repoInfo.default_branch && ghBranch !== repoInfo.default_branch) {
-           ghBranch = repoInfo.default_branch;
-           document.getElementById('ghBranch').value = ghBranch;
-           ghSaveConfig();
-       }
-    }
+      window._branchCache = window._branchCache || {};
+      if (!window._branchCache[ghRepo]) {
+          const repoRes = await fetch(`https://api.github.com/repos/${ghRepo}`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }});
+          if (repoRes.ok) {
+             const repoInfo = await repoRes.json();
+             window._branchCache[ghRepo] = repoInfo.default_branch || 'main';
+          }
+      }
+      if (window._branchCache[ghRepo] && ghBranch !== window._branchCache[ghRepo]) {
+          ghBranch = window._branchCache[ghRepo];
+          document.getElementById('ghBranch').value = ghBranch;
+          ghSaveConfig();
+      }
 
-    const url = `https://api.github.com/repos/${ghRepo}/contents/${ghFilePath}?ref=${ghBranch}`;
-    const res = await fetch(url, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+      const url = `https://api.github.com/repos/${ghRepo}/contents/${ghFilePath}?ref=${ghBranch}`;
+      const res = await fetch(url, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' } });
     
     if (!res.ok) {
         if (res.status === 404) {
