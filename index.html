@@ -3910,21 +3910,13 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
           if (!artData.artifacts || artData.artifacts.length === 0) throw new Error("No artifacts found.");
         
           const artifact = artData.artifacts[0];
-          toast(`📥 Downloading ${artifact.name}...`, 'info');
+                  toast(`📥 Opening download link for ${artifact.name}...`, 'info');
         
-          const dlRes = await fetch(artifact.archive_download_url, { headers: { Authorization: `token ${ghToken}` } });
-          if (!dlRes.ok) throw new Error("Failed to download artifact zip.");
+                  // Bypassing CORS by handing the URL off to the browser's native download manager
+                  const webUrl = `https://github.com/${ghRepo}/actions/runs/${runId}/artifacts/${artifact.id}`;
+                  window.open(webUrl, '_blank');
         
-          const blob = await dlRes.blob();
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.style.display = 'none';
-          a.href = url;
-          a.download = artifact.name + ".zip";
-          document.body.appendChild(a);
-          a.click();
-          window.URL.revokeObjectURL(url);
-          toast('✅ Download started!');
+                  toast('✅ Download opened in browser!');
         } catch(e) {
           toast('❌ Download failed: ' + e.message, 'err');
         }
