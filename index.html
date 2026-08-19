@@ -1843,11 +1843,56 @@ window.deleteFile = async function(path, e) {
             render('', false);
         }
         fetchFileTree(false, true);
-    } catch (err) {
-        toast('❌ Delete failed: ' + err.message, 'err');
-    }
-    hideProgress();
-};
+            } catch (err) {
+                toast('❌ Delete failed: ' + err.message, 'err');
+            }
+            hideProgress();
+        };
+
+        window.deleteDirectory = async function(dirPath, e) {
+            e.stopPropagation();
+            if (!ghToken) return;
+            let filesToDelete = currentTreeFiles.filter(f => f.path.startsWith(dirPath + '/'));
+            if (!confirm(`Delete folder '${dirPath}' and its ${filesToDelete.length} file(s)? This cannot be undone.`)) return;
+    
+            showProgress(10);
+            let deleted = 0;
+            let failed = 0;
+    
+            for (let i = 0; i < filesToDelete.length; i++) {
+                let file = filesToDelete[i];
+                showProgress(10 + ((i + 1) / filesToDelete.length) * 80);
+                try {
+                    let getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${file.path}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}` }});
+                    if (!getRes.ok) throw new Error('Failed to get info');
+                    let fileData = await getRes.json();
+            
+                    let delRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${file.path}`, {
+                        method: 'DELETE',
+                        headers: { Authorization: `token ${ghToken}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: `Delete ${file.path}`, sha: fileData.sha, branch: ghBranch })
+                    });
+                    if (!delRes.ok) throw new Error('Failed to delete');
+            
+                    deleted++;
+                    if (ghFilePath === file.path) {
+                        sourceContent = '';
+                        ghFilePath = '';
+                        document.getElementById('ghFilePath').value = '';
+                        $codeView.value = '';
+                        ghSaveConfig();
+                        render('', false);
+                    }
+                } catch (err) {
+                    failed++;
+                    addLog('err', `Delete failed for ${file.path}: ` + err.message);
+                }
+            }
+    
+            toast(`✅ Deleted ${deleted} files` + (failed ? ` (${failed} failed)` : ''));
+            fetchFileTree(false, true);
+            hideProgress();
+        };
 
 async function ghFetchAllRepos() {
   if (!ghToken) { toast('❌ Token required to fetch repos.', 'warn'); return; }
@@ -2044,16 +2089,19 @@ function renderFileTreeUI() {
     let htmlStr = '';
     
         // Render directories first
-        directoriesInView.forEach(dir => {
-          const dirName = dir.split('/').pop();
-          const str = `<div class="repo-item file-item" onclick="window.openDirectory('${dir}')" title="${dir}" style="cursor:pointer;">
-            <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
-              <i class="fa-solid fa-folder" style="margin-right:6px; font-size:11px; color:var(--amber);"></i>
-              <span style="font-size:8px; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dirName}</span>
-            </div>
-          </div>`;
-          htmlStr += str;
-        });
+                directoriesInView.forEach(dir => {
+                  const dirName = dir.split('/').pop();
+                  const str = `<div class="repo-item file-item" onclick="window.openDirectory('${dir}')" title="${dir}" style="cursor:pointer;">
+                    <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
+                      <i class="fa-solid fa-folder" style="margin-right:6px; font-size:11px; color:var(--amber);"></i>
+                      <span style="font-size:8px; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dirName}</span>
+                    </div>
+                    <div style="display:flex; align-items:center;">
+                        <button class="repo-btn del" style="display:flex;" title="Delete Folder" onclick="deleteDirectory('${dir}', event)"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                  </div>`;
+                  htmlStr += str;
+                });
     
         // Render files
         rootFiles.forEach(f => {
