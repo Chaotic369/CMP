@@ -156,6 +156,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #fileAddBtn { width: 18px; font-size: 6px; color: var(--amber); }
 #fileUploadBtn { width: 18px; font-size: 6px; color: var(--blue); }
 #dirFileAddBtn { width: 18px; font-size: 6px; color: var(--teal); }
+#bulkFileAddBtn { width: 18px; font-size: 6px; color: var(--purple); }
 
 #repoSidebar { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; height: fit-content; }
 #sidebarContent { display: flex; flex-direction: column; width: 140px; height: auto; max-height: 260px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 4px; overflow-x: hidden; overflow-y: auto; }
@@ -386,7 +387,8 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
                           <button id="fileAddBtn" class="btn" title="Create New File" style="display:flex; width:18px; height:18px;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
                                       <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:flex; width:18px; height:18px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
                                                                             <button id="dirFileAddBtn" class="btn" title="Create File in Current Directory" style="display:flex; width:18px; height:18px;" onclick="createNewFileInDir()"><i class="fa-solid fa-file-circle-plus"></i></button>
-                                                                          <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
+                                                                                                                  <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; width:18px; height:18px;" onclick="openBulkModal()"><i class="fa-solid fa-cubes"></i></button>
+                                                                                                                <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
                               <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                             </div>
     <div id="sidebarContent">
@@ -472,6 +474,21 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
   <div class="gh-actions">
     <button id="nrCancelBtn">✕ Cancel</button>
     <button id="nrAddBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);">Add</button>
+  </div>
+</div>
+
+<style>
+#bulkModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; z-index: 30000; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px; padding: 24px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); max-height: calc(100vh - 40px); overflow-y: auto; }
+#bulkModal.open { display: flex; }
+#bulkModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
+</style>
+<div id="bulkModal">
+  <h4><i class="fa-solid fa-cubes"></i> Bulk Create Files</h4>
+  <p style="font-size:11px; margin-bottom:8px; color:#a0a0a0;">Paste file paths (one per line). Folders are auto-created.</p>
+  <textarea id="bulkPathsInput" placeholder="app/build.gradle&#10;app/src/main/AndroidManifest.xml&#10;.github/workflows/build.yml" style="width:100%; height:150px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:12px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:11px;"></textarea>
+  <div class="gh-actions">
+    <button id="bulkCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+    <button id="bulkConfirmBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-check"></i> Create</button>
   </div>
 </div>
 
@@ -1170,6 +1187,7 @@ function updateRepoSidebar() {
   const addFileBtn = document.getElementById('fileAddBtn');
   const uploadBtn = document.getElementById('fileUploadBtn');
   const dirAddBtn = document.getElementById('dirFileAddBtn');
+  const bulkAddBtn = document.getElementById('bulkFileAddBtn');
   const container = document.getElementById('sidebarContent');
   const bContainer = document.getElementById('bookmarkContent');
   const rtc = document.getElementById('repoTabsContainer');
@@ -1181,6 +1199,7 @@ function updateRepoSidebar() {
     addFileBtn.style.display = 'flex';
     uploadBtn.style.display = 'flex';
     if(dirAddBtn) dirAddBtn.style.display = 'flex';
+    if(bulkAddBtn) bulkAddBtn.style.display = 'flex';
 
     if (repoCollapsed) {
       btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
@@ -3846,6 +3865,96 @@ $backdrop.addEventListener('click', function() {
   document.getElementById('commitModal').classList.remove('open');
   document.getElementById('newRepoModal').classList.remove('open');
   document.getElementById('wallpaperModal').classList.remove('open');
+  var bModal = document.getElementById('bulkModal');
+  if (bModal) bModal.classList.remove('open');
+});
+
+window.openBulkModal = function() {
+    if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+    document.getElementById('bulkPathsInput').value = '';
+    document.getElementById('bulkModal').classList.add('open');
+    document.getElementById('menu-backdrop').classList.add('open');
+};
+
+document.getElementById('bulkCancelBtn').addEventListener('click', () => {
+    document.getElementById('bulkModal').classList.remove('open');
+    document.getElementById('menu-backdrop').classList.remove('open');
+});
+
+document.getElementById('bulkConfirmBtn').addEventListener('click', async () => {
+    const input = document.getElementById('bulkPathsInput').value;
+    const paths = input.split('\n').map(p => p.trim()).filter(p => p.length > 0);
+    
+    if (paths.length === 0) {
+        toast('❌ Please enter at least one path', 'warn');
+        return;
+    }
+
+    document.getElementById('bulkModal').classList.remove('open');
+    document.getElementById('menu-backdrop').classList.remove('open');
+    
+    showProgress(10);
+    let created = 0;
+    let failed = 0;
+
+    toast(`⏳ Creating ${paths.length} file(s)...`, 'info');
+
+    for (let i = 0; i < paths.length; i++) {
+        let path = paths[i];
+        if (path.endsWith('/')) path += '.gitkeep';
+        path = path.replace(/\/\/+/g, '/');
+        
+        showProgress(10 + ((i + 1) / paths.length) * 80);
+        try {
+            let content = btoa(' '); 
+            let res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
+                method: 'PUT',
+                headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+                body: JSON.stringify({ message: `Bulk create ${path}`, content: content, branch: ghBranch })
+            });
+            
+            if (!res.ok) {
+                let errText = await res.text();
+                // If it already exists, GitHub API returns an error demanding the old SHA. We can safely ignore this and count it as a skip.
+                if(!errText.includes('"sha"')) {
+                     throw new Error(errText);
+                }
+            }
+            
+            if (!currentTreeFiles.find(f => f.path === path)) {
+                currentTreeFiles.push({ path: path, type: 'blob' });
+            }
+            created++;
+        } catch (err) {
+            failed++;
+            addLog('err', `Bulk create failed for ${path}: ` + err.message);
+        }
+    }
+    
+    currentTreeFiles.sort((a,b) => a.path.localeCompare(b.path));
+    
+    if (created > 0 && paths.length > 0) {
+        let lastPath = paths[paths.length - 1];
+        if (lastPath.endsWith('.gitkeep')) lastPath = lastPath.replace('.gitkeep', '');
+        ghFilePath = lastPath;
+        document.getElementById('ghFilePath').value = ghFilePath;
+        ghSaveConfig();
+        
+        repoCollapsed = false;
+        localStorage.setItem('repo_collapsed', repoCollapsed);
+        updateRepoSidebar();
+        
+        const ftc = document.getElementById('fileTreeContainer');
+        const rtc = document.getElementById('repoTabsContainer');
+        if (ftc) ftc.style.display = 'flex';
+        if (rtc) rtc.classList.remove('expanded');
+        
+        renderFileTreeUI();
+        syncCurrentFile();
+    }
+
+    toast(`✅ Processed ${created} files` + (failed ? ` (${failed} failed)` : ''));
+    hideProgress();
 });
 
 document.addEventListener('dragover', function(e) { e.preventDefault(); });
