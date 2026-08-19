@@ -155,6 +155,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #repoAddBtn { width: 18px; font-size: 6px; color: var(--green); }
 #fileAddBtn { width: 18px; font-size: 6px; color: var(--amber); }
 #fileUploadBtn { width: 18px; font-size: 6px; color: var(--blue); }
+#dirFileAddBtn { width: 18px; font-size: 6px; color: var(--teal); }
 
 #repoSidebar { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; height: fit-content; }
 #sidebarContent { display: flex; flex-direction: column; width: 140px; height: auto; max-height: 260px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 4px; overflow-x: hidden; overflow-y: auto; }
@@ -384,7 +385,8 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
               <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:flex; width:18px; height:18px;"><i class="fa-solid fa-folder-plus"></i></button>
                           <button id="fileAddBtn" class="btn" title="Create New File" style="display:flex; width:18px; height:18px;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
                                       <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:flex; width:18px; height:18px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
-                                    <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
+                                                                            <button id="dirFileAddBtn" class="btn" title="Create File in Current Directory" style="display:flex; width:18px; height:18px;" onclick="createNewFileInDir()"><i class="fa-solid fa-file-circle-plus"></i></button>
+                                                                          <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
                               <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                             </div>
     <div id="sidebarContent">
@@ -1167,6 +1169,7 @@ function updateRepoSidebar() {
   const addRepoBtn = document.getElementById('repoAddBtn');
   const addFileBtn = document.getElementById('fileAddBtn');
   const uploadBtn = document.getElementById('fileUploadBtn');
+  const dirAddBtn = document.getElementById('dirFileAddBtn');
   const container = document.getElementById('sidebarContent');
   const bContainer = document.getElementById('bookmarkContent');
   const rtc = document.getElementById('repoTabsContainer');
@@ -1175,10 +1178,11 @@ function updateRepoSidebar() {
   if (bContainer) bContainer.classList.add('mini');
   
   addRepoBtn.style.display = 'flex';
-  addFileBtn.style.display = 'flex';
-  uploadBtn.style.display = 'flex';
+    addFileBtn.style.display = 'flex';
+    uploadBtn.style.display = 'flex';
+    if(dirAddBtn) dirAddBtn.style.display = 'flex';
 
-  if (repoCollapsed) {
+    if (repoCollapsed) {
       btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
       container.classList.add('mini');
     } else {
@@ -1593,12 +1597,54 @@ window.createNewFile = async function() {
                         rtc.classList.remove('expanded');
         
                         renderFileTreeUI();
-                        syncCurrentFile();
-            } catch (err) {
-        toast('❌ Failed: ' + err.message, 'err');
-    }
-    hideProgress();
-};
+                                                syncCurrentFile();
+                                    } catch (err) {
+                                toast('❌ Failed: ' + err.message, 'err');
+                            }
+                            hideProgress();
+                        };
+
+                        window.createNewFileInDir = async function() {
+                            if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+                            let fileName = prompt('Enter new file name' + (currentDirectory ? ` (in ${currentDirectory}/):` : ':'));
+                            if (!fileName) return;
+    
+                            let path = currentDirectory ? currentDirectory + '/' + fileName : fileName;
+                            showProgress(30);
+                            try {
+                                let content = btoa(' '); 
+                                let res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
+                                    method: 'PUT',
+                                    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+                                    body: JSON.stringify({ message: `Create ${path}`, content: content, branch: ghBranch })
+                                });
+                                if(!res.ok) throw new Error(await res.text());
+                                toast('✅ File created!');
+                                ghFilePath = path;
+                                document.getElementById('ghFilePath').value = path;
+                                ghSaveConfig();
+        
+                                if (!currentTreeFiles.find(f => f.path === path)) {
+                                    currentTreeFiles.push({ path: path, type: 'blob' });
+                                    currentTreeFiles.sort((a,b) => a.path.localeCompare(b.path));
+                                }
+
+                                repoCollapsed = false;
+                                localStorage.setItem('repo_collapsed', repoCollapsed);
+                                updateRepoSidebar();
+
+                                const ftc = document.getElementById('fileTreeContainer');
+                                const rtc = document.getElementById('repoTabsContainer');
+                                ftc.style.display = 'flex';
+                                rtc.classList.remove('expanded');
+        
+                                renderFileTreeUI();
+                                syncCurrentFile();
+                            } catch (err) {
+                                toast('❌ Failed: ' + err.message, 'err');
+                            }
+                            hideProgress();
+                        };
 
 async function handleRepoUpload(e) {
   var files = Array.from(e.target.files || []);
