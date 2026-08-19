@@ -1565,8 +1565,10 @@ window.deleteRepo = async function(full_name, e) {
 
 window.createNewFile = async function() {
     if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
-    let path = prompt('Enter new file path:');
+    let path = prompt('Enter new file path (append / to create a folder):');
     if (!path) return;
+    path = path.trim();
+    if (path.endsWith('/')) path += '.gitkeep';
     showProgress(30);
     try {
         let content = btoa(' '); 
@@ -1606,10 +1608,13 @@ window.createNewFile = async function() {
 
                         window.createNewFileInDir = async function() {
                             if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
-                            let fileName = prompt('Enter new file name' + (currentDirectory ? ` (in ${currentDirectory}/):` : ':'));
+                            let fileName = prompt('Enter file name (append / to create a folder)' + (currentDirectory ? ` in ${currentDirectory}/ :` : ':'));
                             if (!fileName) return;
+                            fileName = fileName.trim();
+                            if (fileName.endsWith('/')) fileName += '.gitkeep';
     
                             let path = currentDirectory ? currentDirectory + '/' + fileName : fileName;
+                            path = path.replace(/\/\/+/g, '/');
                             showProgress(30);
                             try {
                                 let content = btoa(' '); 
