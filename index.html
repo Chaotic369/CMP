@@ -548,7 +548,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
               </select>
      </div>
      <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
-     <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
+          <div class="gh-row" style="margin-top:10px;"><label>App ID</label><input type="text" id="bmAppId" placeholder="com.my.app" value="com.my.app"></div>
+          <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
   </div>
 
   <div class="gh-actions">
@@ -4117,10 +4118,11 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       });
 
       document.getElementById('bmCompileBtn').addEventListener('click', async () => {
-        closeBuildModal();
-        const target = document.getElementById('bmWrapperTarget').value;
-        const appName = document.getElementById('bmAppName').value.trim() || 'My App';
-        const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
+              closeBuildModal();
+              const target = document.getElementById('bmWrapperTarget').value;
+              const appName = document.getElementById('bmAppName').value.trim() || 'My App';
+              const appId = document.getElementById('bmAppId').value.trim().replace(/[^a-zA-Z0-9\.]/g, '') || 'com.my.app';
+              const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
   
         if (!ghToken || !ghRepo) {
           toast('❌ Select a GitHub repo first', 'warn');
@@ -4165,12 +4167,14 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                       "          distribution: 'zulu'",
                       "          java-version: '17'",
                       "      - name: Setup Gradle",
-                      "        uses: gradle/actions/setup-gradle@v3",
-                      "        with:",
-                      "          gradle-version: '8.2'",
-                      "      - name: Build Debug APK",
-                      "        run: gradle assembleDebug",
-                      "      - name: Upload APK",
+                                    "        uses: gradle/actions/setup-gradle@v3",
+                                    "        with:",
+                                    "          gradle-version: '8.2'",
+                                    "      - name: Set Custom App ID",
+                                    "        run: sed -i 's/applicationId .*/applicationId \\\"" + appId + "\\\"/g' app/build.gradle || true",
+                                    "      - name: Build Debug APK",
+                                    "        run: gradle assembleDebug",
+                                    "      - name: Upload APK",
                       "        uses: actions/upload-artifact@v4",
                       "        with:",
                       "          name: WebWallpaper-APK",
@@ -4203,9 +4207,9 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                       "          export CI=true",
                       "          export CORDOVA_NO_TELEMETRY=1",
                       "          export CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https\\://services.gradle.org/distributions/gradle-8.7-all.zip",
-                      "          cd /tmp",
-              "          cordova create app com.aicompile.app \"" + safeName + "\" --no-telemetry",
-              "          rm -rf app/www/*",
+                                          "          cd /tmp",
+                                          "          cordova create app " + appId + " \"" + safeName + "\" --no-telemetry",
+                                          "          rm -rf app/www/*",
               "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
               "          cd app",
               "          sed -i 's/version=\"1.0.0\"/version=\"" + appVersion + "\"/g' config.xml",
@@ -4258,9 +4262,9 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                       "app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });",
                       "EOF",
               "          npm pkg set main=\"main.js\"",
-              "          npm pkg set scripts.build=\"electron-builder --win portable --x64\"",
-              "          npm pkg set build.appId=\"com.aicompile." + safeName.replace(/[^a-zA-Z0-9]/g, "") + "\"",
-              "          npm pkg set build.productName=\"" + safeName + "\"",
+                            "          npm pkg set scripts.build=\"electron-builder --win portable --x64\"",
+                            "          npm pkg set build.appId=\"" + appId + "\"",
+                            "          npm pkg set build.productName=\"" + safeName + "\"",
               "          npm pkg set version=\"" + appVersion + "\"",
               "          npm run build",
               "      - name: Upload EXE",
