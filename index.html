@@ -550,7 +550,15 @@ select.bm-select option { background: var(--elevated); color: #fff; }
      <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
           <div class="gh-row" style="margin-top:10px;"><label>App ID</label><input type="text" id="bmAppId" placeholder="com.my.app" value="com.my.app"></div>
           <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
-  </div>
+               <div class="gh-row" style="margin-top:10px;">
+                 <label>App Icon</label>
+                 <div style="flex:1; display:flex; align-items:center; gap:8px;">
+                   <input type="file" id="bmAppIcon" accept="image/*" style="display:none;" onchange="document.getElementById('bmAppIconLabel').textContent = this.files[0] ? this.files[0].name : 'Optional (auto-scales)';">
+                   <button id="bmAppIconBtn" class="btn" style="width:auto; padding:8px 14px; font-size:11px; background:rgba(255,255,255,0.1); border-radius:12px;" onclick="document.getElementById('bmAppIcon').click()">Choose Image</button>
+                   <span id="bmAppIconLabel" style="font-size:10px; color:rgba(255,255,255,0.6);">Optional (auto-scales)</span>
+                 </div>
+               </div>
+            </div>
 
   <div class="gh-actions">
     <button id="bmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
@@ -4122,7 +4130,31 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
               const target = document.getElementById('bmWrapperTarget').value;
               const appName = document.getElementById('bmAppName').value.trim() || 'My App';
               const appId = document.getElementById('bmAppId').value.trim().replace(/[^a-zA-Z0-9\.]/g, '') || 'com.my.app';
-              const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
+                      const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
+        
+                      let iconBase64 = '';
+                      const iconFile = document.getElementById('bmAppIcon').files[0];
+                      if (iconFile) {
+                          try {
+                              iconBase64 = await new Promise((res, rej) => {
+                                  const reader = new FileReader();
+                                  reader.onload = (e) => {
+                                      const img = new Image();
+                                      img.onload = () => {
+                                          const cvs = document.createElement('canvas');
+                                          cvs.width = 256; cvs.height = 256; // Standardize to square
+                                          const ctx = cvs.getContext('2d');
+                                          ctx.drawImage(img, 0, 0, 256, 256);
+                                          res(cvs.toDataURL('image/png').split(',')[1]);
+                                      };
+                                      img.onerror = rej;
+                                      img.src = e.target.result;
+                                  };
+                                  reader.onerror = rej;
+                                  reader.readAsDataURL(iconFile);
+                              });
+                          } catch(err) { console.error('Icon parse error', err); }
+                      }
   
         if (!ghToken || !ghRepo) {
           toast('❌ Select a GitHub repo first', 'warn');
@@ -4171,8 +4203,11 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                     "        with:",
                                     "          gradle-version: '8.2'",
                                     "      - name: Set Custom App ID",
-                                    "        run: sed -i 's/applicationId .*/applicationId \\\"" + appId + "\\\"/g' app/build.gradle || true",
-                                    "      - name: Build Debug APK",
+                                                  "        run: sed -i 's/applicationId .*/applicationId \\\"" + appId + "\\\"/g' app/build.gradle || true",
+                                                  "      - name: Inject Custom Icon",
+                                                  "        run: |",
+                                                  iconBase64 ? "          mkdir -p app/src/main/res/drawable\n          echo \"" + iconBase64 + "\" | base64 -d > app/src/main/res/drawable/ic_launcher.png\n          sed -i 's/<application/<application android:icon=\"@drawable\\/ic_launcher\"/g' app/src/main/AndroidManifest.xml || true" : "          echo 'No custom icon'",
+                                                  "      - name: Build Debug APK",
                                     "        run: gradle assembleDebug",
                                     "      - name: Upload APK",
                       "        uses: actions/upload-artifact@v4",
@@ -4214,7 +4249,8 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
               "          cd app",
               "          sed -i 's/version=\"1.0.0\"/version=\"" + appVersion + "\"/g' config.xml",
               "          sed -i 's/<\\/widget>/\\n    <allow-navigation href=\"*\" \\/>\\n    <allow-intent href=\"*\" \\/>\\n<\\/widget>/g' config.xml",
-              "          cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true",
+                            iconBase64 ? "          echo \"" + iconBase64 + "\" | base64 -d > icon.png\n          sed -i 's/<\\/widget>/\\n    <icon src=\"icon.png\" \\/>\\n<\\/widget>/g' config.xml" : "",
+                            "          cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true",
               "          cordova platform add android@13.0.0 --no-telemetry",
               "          cordova build android --no-telemetry",
               "      - name: Upload APK",
@@ -4264,9 +4300,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
               "          npm pkg set main=\"main.js\"",
                             "          npm pkg set scripts.build=\"electron-builder --win portable --x64\"",
                             "          npm pkg set build.appId=\"" + appId + "\"",
-                            "          npm pkg set build.productName=\"" + safeName + "\"",
-              "          npm pkg set version=\"" + appVersion + "\"",
-              "          npm run build",
+                                          "          npm pkg set build.productName=\"" + safeName + "\"",
+                                          "          npm pkg set version=\"" + appVersion + "\"",
+                                          iconBase64 ? "          mkdir -p build\n          echo \"" + iconBase64 + "\" | base64 -d > build/icon.png" : "",
+                                          "          npm run build",
               "      - name: Upload EXE",
               "        uses: actions/upload-artifact@v4",
               "        with:",
