@@ -426,10 +426,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <button id="ghSettingsBtn" class="btn" title="GitHub Settings"><i class="fa-solid fa-gear"></i></button>
             <button id="ghSyncBtn" class="btn" title="Sync & Fetch Repos" style="color:var(--teal);"><i class="fa-solid fa-arrows-rotate"></i></button>
             <button id="ghPushBtn" class="btn" title="Push to GitHub" disabled style="color:var(--blue);"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
-                        <button id="ghBuildApkBtn" class="btn" title="Trigger APK Build" style="color:var(--green);"><i class="fa-solid fa-hammer"></i></button>
-                        <button id="ghDownloadApkBtn" class="btn" title="Download Last APK" style="color:var(--teal);"><i class="fa-brands fa-android"></i></button>
-                        <button id="ghErrorLogsBtn" class="btn" title="Fetch Build Errors" style="color:var(--red);"><i class="fa-solid fa-bug"></i></button>
-                    <button id="exportBtn" class="btn" title="Export File" style="color:var(--purple);"><i class="fa-solid fa-floppy-disk"></i></button>
+                                <button id="exportBtn" class="btn" title="Export File" style="color:var(--purple);"><i class="fa-solid fa-floppy-disk"></i></button>
   
                                                                 <button id="astBtn" class="btn" title="AST Guard Logs" style="color:var(--amber);"><i class="fa-solid fa-brain"></i></button>
                         <button id="liveSiteBtn" class="btn" title="View Live Site in Browser" style="color:var(--blue);"><i class="fa-solid fa-globe"></i></button>
@@ -3963,106 +3960,11 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
     addLog('err', 'GitHub Push Error: ' + e.message);
   } finally {
           btn.disabled = false;
-          hideProgress();
-        }
-      });
+                    hideProgress();
+                  }
+                });
 
-      document.getElementById('ghBuildApkBtn').addEventListener('click', async function() {
-        if (!ghToken || !ghRepo) { toast('❌ Configure GitHub first.', 'warn'); return; }
-        showProgress(30);
-        toast('🚀 Triggering Build Workflow...', 'info');
-        try {
-          const wfRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows`, {
-            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-          });
-          const wfData = await wfRes.json();
-          if (!wfData.workflows || wfData.workflows.length === 0) throw new Error("No workflows found.");
-          const wfId = wfData.workflows[0].id;
-          const res = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${wfId}/dispatches`, {
-            method: 'POST',
-            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-            body: JSON.stringify({ ref: ghBranch })
-          });
-          if (res.ok) {
-            toast('✅ Build started! Check Actions tab.');
-            addLog('ok', `Triggered build workflow on ${ghRepo}`);
-          } else {
-            throw new Error(await res.text());
-          }
-        } catch(e) {
-          toast('❌ Build start failed: ' + e.message, 'err');
-        }
-        hideProgress();
-      });
-
-      document.getElementById('ghDownloadApkBtn').addEventListener('click', async function() {
-        if (!ghToken || !ghRepo) { toast('❌ Configure GitHub first.', 'warn'); return; }
-        showProgress(30);
-        toast('🔍 Searching for artifacts...', 'info');
-        try {
-          const runRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs?branch=${ghBranch}&status=success`, {
-            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-          });
-          const runData = await runRes.json();
-          if (!runData.workflow_runs || runData.workflow_runs.length === 0) throw new Error("No successful builds found.");
-          const runId = runData.workflow_runs[0].id;
-        
-          const artRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs/${runId}/artifacts`, {
-            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-          });
-          const artData = await artRes.json();
-          if (!artData.artifacts || artData.artifacts.length === 0) throw new Error("No artifacts found.");
-        
-          const artifact = artData.artifacts[0];
-                  toast(`📥 Opening download link for ${artifact.name}...`, 'info');
-        
-                  // Bypassing CORS by handing the URL off to the browser's native download manager
-                  const webUrl = `https://github.com/${ghRepo}/actions/runs/${runId}/artifacts/${artifact.id}`;
-                  window.open(webUrl, '_blank');
-        
-                  toast('✅ Download opened in browser!');
-        } catch(e) {
-          toast('❌ Download failed: ' + e.message, 'err');
-        }
-        hideProgress();
-      });
-
-      document.getElementById('ghErrorLogsBtn').addEventListener('click', async function() {
-        if (!ghToken || !ghRepo) { toast('❌ Configure GitHub first.', 'warn'); return; }
-        showProgress(30);
-        toast('🔍 Fetching latest build errors...', 'info');
-        try {
-          const runRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs?branch=${ghBranch}&status=failure`, {
-            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-          });
-          const runData = await runRes.json();
-          if (!runData.workflow_runs || runData.workflow_runs.length === 0) throw new Error("No failed builds found.");
-          const runId = runData.workflow_runs[0].id;
-        
-          const jobsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs/${runId}/jobs`, {
-            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-          });
-          const jobsData = await jobsRes.json();
-          const failedJob = jobsData.jobs.find(j => j.conclusion === 'failure');
-          if (!failedJob) throw new Error("No failed jobs found in the run.");
-        
-          const logRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/jobs/${failedJob.id}/logs`, {
-            headers: { Authorization: `token ${ghToken}` }
-          });
-          if (!logRes.ok) throw new Error("Could not fetch logs.");
-        
-          const logText = await logRes.text();
-          const lines = logText.split('\n');
-          const lastLines = lines.slice(Math.max(lines.length - 80, 0)).join('\n');
-          showErr("GitHub Actions Build Failed (Last 80 lines):\n\n" + lastLines);
-          toast('✅ Error logs loaded.', 'warn');
-        } catch(e) {
-          toast('❌ Log fetch failed: ' + e.message, 'err');
-        }
-        hideProgress();
-      });
-
-      $backdrop.addEventListener('click', function() {
+                $backdrop.addEventListener('click', function() {
         document.getElementById('ghConfigPanel').classList.remove('open');
         document.getElementById('commitModal').classList.remove('open');
         document.getElementById('newRepoModal').classList.remove('open');
