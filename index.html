@@ -437,9 +437,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                             <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i></button>
                             <button id="buildApkBtn" class="btn" style="display:none;"></button>
                             <button id="buildExeBtn" class="btn" style="display:none;"></button>
-                            <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);"><i class="fa-solid fa-file-zipper"></i></button>
-                                <button id="pullApkLogBtn" class="btn" title="Pull Last APK Build Log" style="color:var(--red);" onclick="fetchLatestFailedLog('build-native-apk.yml')"><i class="fa-solid fa-file-waveform"></i></button>
-                            <button id="downloadExeBtn" class="btn" title="Check & Download Latest EXE Zip" style="color:var(--teal);"><i class="fa-solid fa-file-archive"></i></button>
+                            <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);" onclick="window.checkAndDownloadLatest('build-native-apk.yml')"><i class="fa-solid fa-file-zipper"></i></button>
+                                                            <button id="pullApkLogBtn" class="btn" title="Pull Last APK Build Log" style="color:var(--red);" onclick="fetchLatestFailedLog('build-native-apk.yml')"><i class="fa-solid fa-file-waveform"></i></button>
+                                                        <button id="downloadExeBtn" class="btn" title="Check & Download Latest EXE Zip" style="color:var(--teal);" onclick="window.checkAndDownloadLatest('build-exe.yml')"><i class="fa-solid fa-file-archive"></i></button>
                                                                                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                                     <div style="grid-column: 1 / -1; grid-row: 3; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05);">
                                                                                                           <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
@@ -2016,6 +2016,41 @@ window.deleteFile = async function(path, e) {
             fetchFileTree(false, true);
             hideProgress();
         };
+
+window.checkAndDownloadLatest = async function(workflowFile) {
+  if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+  showProgress(20);
+  try {
+    toast('🔄 Checking latest run...', 'info');
+    const runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowFile}/runs?per_page=1`, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+      cache: 'no-store'
+    });
+    if (!runsRes.ok) throw new Error('Failed to fetch runs');
+    const runsData = await runsRes.json();
+    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) {
+      toast('❌ No runs found for this workflow.', 'warn');
+      hideProgress();
+      return;
+    }
+    const run = runsData.workflow_runs[0];
+    if (run.status !== 'completed') {
+      toast(`⏳ Latest run is still ${run.status}.`, 'info');
+      hideProgress();
+      return;
+    }
+    if (run.conclusion !== 'success') {
+      toast(`❌ Latest run ${run.conclusion}. Check logs.`, 'err');
+      hideProgress();
+      return;
+    }
+    window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
+    toast('✅ Opened latest successful run.', 'ok');
+  } catch(e) {
+    toast('❌ Error: ' + e.message, 'err');
+  }
+  hideProgress();
+};
 
 async function ghFetchAllRepos() {
   if (!ghToken) { toast('❌ Token required to fetch repos.', 'warn'); return; }
@@ -4415,19 +4450,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
               let artifact = artData.artifacts.find(a => a.name === artifactName);
               if (!artifact) throw new Error('Artifact not found in success run.');
         
-              appendBuildLog(`Triggering artifact download...`);
-              let finalUrl = null;
-              try {
-                const abortCtrl = new AbortController();
-                let zipRes = await fetch(artifact.archive_download_url, { headers: { Authorization: `token ${ghToken}` }, signal: abortCtrl.signal });
-                if (!zipRes.ok) throw new Error('Response not ok');
-                finalUrl = zipRes.url;
-                abortCtrl.abort();
-              } catch(err) {
-                finalUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
-              }
-              window.location.href = finalUrl;
-              updateBuildOverlay('Build Complete. Check Downloads.', 100, 'ok');
+              appendBuildLog(`Opening Actions run page for download...`);
+                            const runPageUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
+                            window.open(runPageUrl, '_blank');
+                            updateBuildOverlay('Build Complete. Tap the artifact link on GitHub to download.', 100, 'ok');
             } else {
               updateBuildOverlay(`Build Failed (${run.conclusion})`, 100, 'err');
               appendBuildLog(`\n[${new Date().toLocaleTimeString()}] CONCLUSION: ${run.conclusion.toUpperCase()}\nFetching detailed error logs from GitHub...`);
