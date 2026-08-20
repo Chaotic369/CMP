@@ -4202,6 +4202,7 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                     "        uses: gradle/actions/setup-gradle@v3",
                                     "        with:",
                                     "          gradle-version: '8.2'",
+                                    "          cache-disabled: true",
                                     "      - name: Set Custom App ID",
                                                   "        run: sed -i 's/applicationId .*/applicationId \\\"" + appId + "\\\"/g' app/build.gradle || true",
                                                   "      - name: Apply Custom Icon",
@@ -4432,9 +4433,9 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                 if(failedJob) {
                   const logRes = await fetch(failedJob.url + '/logs', { headers: { Authorization: `token ${ghToken}` }});
                   const fullLog = await logRes.text();
-                  const lines = fullLog.split('\n');
-                  const tail = lines.slice(-40).join('\n'); // Show last 40 lines of error
-                  appendBuildLog(`\n=== ERROR TRACE ===\n${tail}`);
+                                    const lines = fullLog.split('\n');
+                                    const tail = lines.slice(-250).join('\n'); // Show last 250 lines of error
+                                    appendBuildLog(`\n=== ERROR TRACE ===\n${tail}`);
                 }
               } catch(logErr) {
                 appendBuildLog(`Failed to pull direct logs. View on GitHub: https://github.com/${ghRepo}/actions/runs/${run.id}`);
