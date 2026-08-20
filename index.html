@@ -4208,6 +4208,7 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                                                     "      - name: Sanitize and Apply Custom Icon",
                                                                                     "        run: |",
                                                                                     "          sed -i '1!{/^[[:space:]]*$/d}' app/src/main/AndroidManifest.xml || true",
+                                                                                    "          sed -i '1s/^[[:space:]]*//' app/src/main/AndroidManifest.xml || true",
                                                                                     "          sed -i 's/android:icon=\"[^\"]*\"//g' app/src/main/AndroidManifest.xml || true",
                                                                                     iconBase64 ? "          sed -i 's/<application/<application android:icon=\"@drawable\\/ic_launcher\"/g' app/src/main/AndroidManifest.xml || true" : "          echo 'No custom icon'",
                                                                                                                                                                         "      - name: Debug - Print Manifest",
