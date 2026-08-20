@@ -4204,9 +4204,8 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                     "          gradle-version: '8.2'",
                                     "      - name: Set Custom App ID",
                                                   "        run: sed -i 's/applicationId .*/applicationId \\\"" + appId + "\\\"/g' app/build.gradle || true",
-                                                  "      - name: Inject Custom Icon",
-                                                  "        run: |",
-                                                  iconBase64 ? "          mkdir -p app/src/main/res/drawable\n          echo \"" + iconBase64 + "\" | base64 -d > app/src/main/res/drawable/ic_launcher.png\n          sed -i 's/<application/<application android:icon=\"@drawable\\/ic_launcher\"/g' app/src/main/AndroidManifest.xml || true" : "          echo 'No custom icon'",
+                                                  "      - name: Apply Custom Icon",
+                                                  "        run: " + (iconBase64 ? "sed -i 's/<application/<application android:icon=\"@drawable\\/ic_launcher\"/g' app/src/main/AndroidManifest.xml || true" : "echo 'No custom icon'"),
                                                   "      - name: Build Debug APK",
                                     "        run: gradle assembleDebug",
                                     "      - name: Upload APK",
@@ -4249,7 +4248,7 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
               "          cd app",
               "          sed -i 's/version=\"1.0.0\"/version=\"" + appVersion + "\"/g' config.xml",
               "          sed -i 's/<\\/widget>/\\n    <allow-navigation href=\"*\" \\/>\\n    <allow-intent href=\"*\" \\/>\\n<\\/widget>/g' config.xml",
-                            iconBase64 ? "          echo \"" + iconBase64 + "\" | base64 -d > icon.png\n          sed -i 's/<\\/widget>/\\n    <icon src=\"icon.png\" \\/>\\n<\\/widget>/g' config.xml" : "",
+                            iconBase64 ? "          sed -i 's/<\\/widget>/\\n    <icon src=\"icon.png\" \\/>\\n<\\/widget>/g' config.xml" : "",
                             "          cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true",
               "          cordova platform add android@13.0.0 --no-telemetry",
               "          cordova build android --no-telemetry",
@@ -4301,9 +4300,9 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                             "          npm pkg set scripts.build=\"electron-builder --win portable --x64\"",
                             "          npm pkg set build.appId=\"" + appId + "\"",
                                           "          npm pkg set build.productName=\"" + safeName + "\"",
-                                          "          npm pkg set version=\"" + appVersion + "\"",
-                                          iconBase64 ? "          mkdir -p build\n          echo \"" + iconBase64 + "\" | base64 -d > build/icon.png" : "",
-                                          "          npm run build",
+                                                        "          npm pkg set version=\"" + appVersion + "\"",
+                                                        iconBase64 ? "          mkdir -p build\n          cp icon.png build/icon.png || true" : "",
+                                                        "          npm run build",
               "      - name: Upload EXE",
               "        uses: actions/upload-artifact@v4",
               "        with:",
@@ -4312,8 +4311,19 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
             ].join('\n');
           }
 
-          appendBuildLog('Updating workflow file in repository...');
-          let sha = null;
+          if (iconBase64) {
+                      appendBuildLog('Uploading custom icon to repository...');
+                      const iconPath = isWallpaper ? 'app/src/main/res/drawable/ic_launcher.png' : 'icon.png';
+                      try {
+                        await uploadSingleFileToRepo(ghRepo, iconPath, iconBase64, ghBranch, 'Upload custom app icon');
+                        appendBuildLog('Icon uploaded successfully.');
+                      } catch(e) {
+                        appendBuildLog('Warning: Failed to upload icon: ' + e.message);
+                      }
+                    }
+
+                    appendBuildLog('Updating workflow file in repository...');
+                    let sha = null;
           const getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
           if (getRes.ok) sha = (await getRes.json()).sha;
 
