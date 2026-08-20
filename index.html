@@ -548,7 +548,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
               </select>
      </div>
      <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
-          <div class="gh-row" style="margin-top:10px;"><label>App ID</label><input type="text" id="bmAppId" placeholder="com.my.app" value="com.my.app"></div>
           <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
                <div class="gh-row" style="margin-top:10px;">
                  <label>App Icon</label>
@@ -4129,7 +4128,8 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
               closeBuildModal();
               const target = document.getElementById('bmWrapperTarget').value;
               const appName = document.getElementById('bmAppName').value.trim() || 'My App';
-              const appId = document.getElementById('bmAppId').value.trim().replace(/[^a-zA-Z0-9\.]/g, '') || 'com.my.app';
+                      const autoAppId = 'com.custom.webwallpaper' + Date.now().toString().slice(-6);
+                      const appId = autoAppId;
                       const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
         
                       let iconBase64 = '';
