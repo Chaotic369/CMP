@@ -545,9 +545,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
      <div class="bm-step" style="margin-top:10px;">
        <label>Target Platform</label>
        <select id="bmWrapperTarget" class="bm-select">
-         <option value="apk">Android APK (Cordova)</option>
-         <option value="exe">Windows EXE (Electron)</option>
-       </select>
+                <option value="apk">Android APK (Cordova Standard App)</option>
+                <option value="wallpaper">Android APK (Native Live Wallpaper)</option>
+                <option value="exe">Windows EXE (Electron)</option>
+              </select>
      </div>
      <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
      <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
@@ -4225,17 +4226,56 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
         }
 
         const isApk = target === 'apk';
-        const workflowPath = isApk ? '.github/workflows/build-apk.yml' : '.github/workflows/build-exe.yml';
-        const artifactName = isApk ? 'Android-APK' : 'Windows-EXE';
-        const title = isApk ? 'Building Android APK' : 'Building Windows EXE';
+                const isWallpaper = target === 'wallpaper';
+        
+                let workflowPath = '.github/workflows/build-exe.yml';
+                let artifactName = 'Windows-EXE';
+                let title = 'Building Windows EXE';
+        
+                if (isApk) {
+                    workflowPath = '.github/workflows/build-apk.yml';
+                    artifactName = 'Android-APK';
+                    title = 'Building Android APK (Cordova)';
+                } else if (isWallpaper) {
+                    workflowPath = '.github/workflows/build.yml';
+                    artifactName = 'WebWallpaper-APK';
+                    title = 'Building Native Live Wallpaper';
+                }
   
-        showBuildOverlay(title);
+                showBuildOverlay(title);
   
-        try {
-          let workflowContent = '';
+                try {
+                  let workflowContent = '';
     
-          if (isApk) {
-            const safeName = appName.replace(/"/g, '\\"');
+                  if (isWallpaper) {
+                    workflowContent = [
+                      "name: Build APK",
+                      "on: [workflow_dispatch]",
+                      "jobs:",
+                      "  build:",
+                      "    runs-on: ubuntu-latest",
+                      "    steps:",
+                      "      - name: Checkout Code",
+                      "        uses: actions/checkout@v4",
+                      "      - name: Set up Java 17",
+                      "        uses: actions/setup-java@v4",
+                      "        with:",
+                      "          distribution: 'zulu'",
+                      "          java-version: '17'",
+                      "      - name: Setup Gradle",
+                      "        uses: gradle/actions/setup-gradle@v3",
+                      "        with:",
+                      "          gradle-version: '8.2'",
+                      "      - name: Build Debug APK",
+                      "        run: gradle assembleDebug",
+                      "      - name: Upload APK",
+                      "        uses: actions/upload-artifact@v4",
+                      "        with:",
+                      "          name: WebWallpaper-APK",
+                      "          path: app/build/outputs/apk/debug/app-debug.apk"
+                    ].join('\n');
+                  } else if (isApk) {
+                    const safeName = appName.replace(/"/g, '\\"');
             workflowContent = [
               "name: Build Android APK",
               "on: [workflow_dispatch]",
