@@ -542,10 +542,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
      <div class="bm-step" style="margin-top:10px;">
        <label>Target Platform</label>
        <select id="bmWrapperTarget" class="bm-select">
-                <option value="apk">Android APK (Cordova Standard App)</option>
-                <option value="wallpaper">Android APK (Native Live Wallpaper)</option>
-                <option value="exe">Windows EXE (Electron)</option>
-              </select>
+                       <option value="wallpaper" selected>Android APK (Native Live Wallpaper)</option>
+                       <option value="apk">Android APK (Cordova Standard App)</option>
+                       <option value="exe">Windows EXE (Electron)</option>
+                     </select>
      </div>
      <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
           <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
@@ -4238,18 +4238,25 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                     "        with:",
                                     "          gradle-version: '8.2'",
                                     "          cache-disabled: true",
-                                    "      - name: Set Custom App ID",
-                                                                                    "        run: sed -i 's/applicationId .*/applicationId \\\"" + appId + "\\\"/g' app/build.gradle || true",
-                                                                                    "      - name: Sanitize and Apply Custom Icon",
-                                                                                    "        run: |",
-                                                                                    "          sed -i '1!{/^[[:space:]]*$/d}' app/src/main/AndroidManifest.xml || true",
-                                                                                    "          sed -i '1s/^[[:space:]]*//' app/src/main/AndroidManifest.xml || true",
-                                                                                    "          sed -i 's/android:icon=\"[^\"]*\"//g' app/src/main/AndroidManifest.xml || true",
-                                                                                    iconBase64 ? "          sed -i 's/<application/<application android:icon=\"@drawable\\/ic_launcher\"/g' app/src/main/AndroidManifest.xml || true" : "          echo 'No custom icon'",
-                                                                                                                                                                        "      - name: Debug - Print Manifest",
-                                                                                                                                                                        "        run: cat app/src/main/AndroidManifest.xml",
-                                                                                                                                                                        "      - name: Build Debug APK",
-                                    "        run: gradle assembleDebug",
+                                    "      - name: Set Custom App ID, Namespace, and Name",
+                                                                                                                        "        run: |",
+                                                                                                                        "          sed -i 's/applicationId.*/applicationId = \\\"" + appId + "\\\"/g' app/build.gradle.kts || true",
+                                                                                                                        "          sed -i 's/applicationId .*/applicationId \\\"" + appId + "\\\"/g' app/build.gradle || true",
+                                                                                                                        "          sed -i 's/namespace.*/namespace = \\\"" + appId + "\\\"/g' app/build.gradle.kts || true",
+                                                                                                                        "          sed -i 's/namespace .*/namespace \\\"" + appId + "\\\"/g' app/build.gradle || true",
+                                                                                                                        "          sed -i 's/<string name=\"app_name\">.*<\\/string>/<string name=\"app_name\">" + appName.replace(/"/g, '\\"') + "<\\/string>/g' app/src/main/res/values/strings.xml || true",
+                                                                                                                        "      - name: Sanitize and Apply Custom Icon",
+                                                                                                                        "        run: |",
+                                                                                                                        "          sed -i '1!{/^[[:space:]]*$/d}' app/src/main/AndroidManifest.xml || true",
+                                                                                                                        "          sed -i '1s/^[[:space:]]*//' app/src/main/AndroidManifest.xml || true",
+                                                                                                                        "          sed -i 's/android:icon=\"[^\"]*\"//g' app/src/main/AndroidManifest.xml || true",
+                                                                                                                        iconBase64 ? "          sed -i 's/<application/<application android:icon=\"@drawable\\/ic_launcher\"/g' app/src/main/AndroidManifest.xml || true" : "          echo 'No custom icon'",
+                                                                                                                                                                                                            "      - name: Debug - Print Manifest",
+                                                                                                                                                                                                            "        run: cat app/src/main/AndroidManifest.xml",
+                                                                                                                                                                                                            "      - name: Build Debug APK",
+                                                                        "        run: |",
+                                                                        "          chmod +x gradlew || true",
+                                                                        "          ./gradlew assembleDebug --stacktrace || gradle assembleDebug --stacktrace",
                                     "      - name: Upload APK",
                       "        uses: actions/upload-artifact@v4",
                       "        with:",
