@@ -1518,41 +1518,47 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
                 return;
             }
 
-            toast(`⏳ Committing ${filesToProcess.length} file(s)...`, 'info');
-            addLog('info', `Preparing to commit ${filesToProcess.length} file(s) to repository`);
-            let uploaded = 0, failed = 0;
+            toast(`⏳ Preparing ${filesToProcess.length} file(s)...`, 'info');
+                        addLog('info', `Preparing to commit ${filesToProcess.length} file(s) to repository`);
+                        let readyFiles = [];
+                        let readFailed = 0;
 
-            for (let i = 0; i < filesToProcess.length; i++) {
-                const item = filesToProcess[i];
-                showProgress(40 + ((i + 1) / filesToProcess.length) * 20);
-                try {
-                    let base64Content;
-                    let msgPrefix = 'Initial commit:';
-                    if (item.isZipEntry) {
-                      base64Content = await item.entry.async("base64");
-                      msgPrefix = 'Extracted Initial:';
-                    } else {
-                      base64Content = await readFileAsBase64(item.file);
-                    }
-                    await uploadSingleFileToRepo(newRepoName, item.name, base64Content, 'main', msgPrefix);
-                    uploaded++;
-                    if (uploaded === 1) firstUploadedPath = item.name;
-                } catch (e) {
-                    failed++;
-                    addLog('err', `Commit failed for ${item.name}: ` + e.message);
-                }
-            }
+                        for (let i = 0; i < filesToProcess.length; i++) {
+                            const item = filesToProcess[i];
+                            showProgress(40 + ((i + 1) / filesToProcess.length) * 10);
+                            try {
+                                let base64Content = item.isZipEntry ? await item.entry.async("base64") : await readFileAsBase64(item.file);
+                                readyFiles.push({ path: item.name, base64Content: base64Content });
+                            } catch (e) {
+                                readFailed++;
+                                addLog('err', `Read failed for ${item.name}: ` + e.message);
+                            }
+                        }
+
+                        let uploaded = 0, failed = readFailed;
+                        if (readyFiles.length > 0) {
+                            toast(`⏳ Committing ${readyFiles.length} file(s) in one commit...`, 'info');
+                            try {
+                                let batchResult = await uploadFilesAsSingleCommit(newRepoName, 'main', readyFiles, `Initial commit: ${readyFiles.length} file(s)`);
+                                uploaded = batchResult.uploaded;
+                                failed += batchResult.failed.length;
+                                batchResult.failed.forEach(f => addLog('err', `Commit failed for ${f.path}: ` + f.error));
+                                if (uploaded > 0) firstUploadedPath = readyFiles[0].path;
+                            } catch (e) {
+                                addLog('err', 'Batch commit failed: ' + e.message);
+                            }
+                        }
         
-            if (uploaded === 0) {
-                toast('❌ All file commits failed.', 'err');
-                hideProgress();
-                document.getElementById('nrAddBtn').disabled = false;
-                return;
-            }
-            let finalMsg = `✅ ${uploaded}/${filesToProcess.length} file(s) committed.`;
-            if (totalExtracted > 0) finalMsg += ` (${totalExtracted} ZIPs extracted)`;
-            toast(finalMsg, failed > 0 ? 'warn' : 'ok', 2500);
-            addLog('ok', finalMsg);
+                        if (uploaded === 0) {
+                            toast('❌ All file commits failed.', 'err');
+                            hideProgress();
+                            document.getElementById('nrAddBtn').disabled = false;
+                            return;
+                        }
+                        let finalMsg = `✅ ${uploaded}/${filesToProcess.length} file(s) committed in 1 commit.`;
+                        if (totalExtracted > 0) finalMsg += ` (${totalExtracted} ZIPs extracted)`;
+                        toast(finalMsg, failed > 0 ? 'warn' : 'ok', 2500);
+                        addLog('ok', finalMsg);
         } else {
         // Step 4 & 5: Commit index.html
         toast('⏳ Committing index.html...', 'info');
@@ -1829,27 +1835,31 @@ async function handleRepoUpload(e) {
 
   toast(`⏳ Uploading ${filesToProcess.length} file(s)...`, 'info');
 
-  for (let i = 0; i < filesToProcess.length; i++) {
-    const item = filesToProcess[i];
-    const path = baseDir + item.name;
-    showProgress(10 + ((i + 1) / filesToProcess.length) * 80);
-    try {
-      let base64Content;
-      let msgPrefix = 'Upload';
-      if (item.isZipEntry) {
-        base64Content = await item.entry.async("base64");
-        msgPrefix = 'Extracted from ZIP:';
-      } else {
-        base64Content = await readFileAsBase64(item.file);
+  let readyUploadFiles = [];
+    for (let i = 0; i < filesToProcess.length; i++) {
+      const item = filesToProcess[i];
+      const path = baseDir + item.name;
+      showProgress(10 + ((i + 1) / filesToProcess.length) * 40);
+      try {
+        let base64Content = item.isZipEntry ? await item.entry.async("base64") : await readFileAsBase64(item.file);
+        readyUploadFiles.push({ path: path, base64Content: base64Content });
+      } catch(err) {
+        failed++;
+        addLog('err', 'Read failed for ' + item.name + ': ' + err.message);
       }
-      await uploadSingleFileToRepo(ghRepo, path, base64Content, ghBranch, msgPrefix);
-      uploaded++;
-      lastPath = path;
-    } catch(err) {
-      failed++;
-      addLog('err', 'Upload failed for ' + item.name + ': ' + err.message);
     }
-  }
+
+    if (readyUploadFiles.length > 0) {
+      toast(`⏳ Committing ${readyUploadFiles.length} file(s) in one commit...`, 'info');
+      try {
+        let batchResult = await uploadFilesAsSingleCommit(ghRepo, ghBranch, readyUploadFiles, `Upload ${readyUploadFiles.length} file(s) via AI Compile`);
+        uploaded = batchResult.uploaded;
+        lastPath = readyUploadFiles[readyUploadFiles.length - 1].path;
+        batchResult.failed.forEach(f => { failed++; addLog('err', 'Commit failed for ' + f.path + ': ' + f.error); });
+      } catch(err) {
+        addLog('err', 'Batch commit failed: ' + err.message);
+      }
+    }
 
   if (uploaded > 0) {
         let msg = `✅ Uploaded ${uploaded}/${filesToProcess.length} file(s)`;
@@ -3776,6 +3786,69 @@ function readFileAsBase64(file) {
     reader.onerror = error => reject(error);
     reader.readAsDataURL(file);
   });
+}
+
+async function uploadFilesAsSingleCommit(repo, branch, files, commitMessage) {
+  var refRes = await fetch(`https://api.github.com/repos/${repo}/git/ref/heads/${branch}`, {
+    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+  });
+  if (!refRes.ok) throw new Error('Failed to get branch ref: ' + await refRes.text());
+  var refData = await refRes.json();
+  var latestCommitSha = refData.object.sha;
+
+  var commitRes = await fetch(`https://api.github.com/repos/${repo}/git/commits/${latestCommitSha}`, {
+    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+  });
+  if (!commitRes.ok) throw new Error('Failed to get base commit: ' + await commitRes.text());
+  var commitData = await commitRes.json();
+  var baseTreeSha = commitData.tree.sha;
+
+  var blobResults = [];
+  var failedFiles = [];
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    try {
+      var blobRes = await fetch(`https://api.github.com/repos/${repo}/git/blobs`, {
+        method: 'POST',
+        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: f.base64Content, encoding: 'base64' })
+      });
+      if (!blobRes.ok) throw new Error(await blobRes.text());
+      var blobData = await blobRes.json();
+      blobResults.push({ path: f.path, mode: '100644', type: 'blob', sha: blobData.sha });
+    } catch (e) {
+      failedFiles.push({ path: f.path, error: e.message });
+    }
+  }
+
+  if (blobResults.length === 0) {
+    throw new Error('All blob uploads failed.');
+  }
+
+  var treeRes = await fetch(`https://api.github.com/repos/${repo}/git/trees`, {
+    method: 'POST',
+    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ base_tree: baseTreeSha, tree: blobResults })
+  });
+  if (!treeRes.ok) throw new Error('Failed to create tree: ' + await treeRes.text());
+  var treeData = await treeRes.json();
+
+  var newCommitRes = await fetch(`https://api.github.com/repos/${repo}/git/commits`, {
+    method: 'POST',
+    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: commitMessage, tree: treeData.sha, parents: [latestCommitSha] })
+  });
+  if (!newCommitRes.ok) throw new Error('Failed to create commit: ' + await newCommitRes.text());
+  var newCommitData = await newCommitRes.json();
+
+  var updateRefRes = await fetch(`https://api.github.com/repos/${repo}/git/refs/heads/${branch}`, {
+    method: 'PATCH',
+    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sha: newCommitData.sha })
+  });
+  if (!updateRefRes.ok) throw new Error('Failed to update ref: ' + await updateRefRes.text());
+
+  return { uploaded: blobResults.length, failed: failedFiles };
 }
 
 async function uploadSingleFileToRepo(repo, path, base64Content, branch, messagePrefix = 'Upload') {
