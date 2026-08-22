@@ -286,7 +286,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 /* Fullscreen UI Adjustments */
 :fullscreen #statusBar, :-webkit-full-screen #statusBar { display: none !important; }
 :fullscreen #codeView, :-webkit-full-screen #codeView { height: 100vh !important; }
-:fullscreen #toggleUiBtn, :-webkit-full-screen #toggleUiBtn, :fullscreen #searchCodeBtn, :-webkit-full-screen #searchCodeBtn { transform: scale(0.85); }
+:fullscreen #toggleUiBtn, :-webkit-full-screen #toggleUiBtn, :fullscreen #codeEditorActions, :-webkit-full-screen #codeEditorActions { transform: scale(0.85); transform-origin: bottom right; }
 :fullscreen #app-menu, :-webkit-full-screen #app-menu { transform: scale(calc(var(--user-scale, 1) * 0.85)); }
 :fullscreen #fnrPanel, :-webkit-full-screen #fnrPanel { transform: scale(0.85); transform-origin: top center; }
 
@@ -309,15 +309,19 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 }
 #commitMsgInput:focus { background: rgba(255, 255, 255, 0.15); }
 
-/* Find and Replace Panel */
-#searchCodeBtn {
-  position: fixed; bottom: calc(85px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 10000; width: 42px; height: 42px; border-radius: 14px;
-  background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
-  display: none; align-items: center; justify-content: center;
-  cursor: pointer; color: #ffffff; font-size: 6px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+/* Find and Replace Panel & Code Actions */
+#codeEditorActions {
+  position: fixed; bottom: calc(85px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 10000;
+  display: none; align-items: center; justify-content: center; gap: 8px; flex-direction: row;
 }
-#searchCodeBtn:hover { background: rgba(33, 33, 33, 0.75); color: var(--blue); }
+.ce-action-btn {
+  width: 42px; height: 42px; border-radius: 14px;
+  background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: #ffffff; font-size: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3); transition: background 0.2s, color 0.2s;
+}
+.ce-action-btn:hover { background: rgba(33, 33, 33, 0.75); color: var(--blue); }
 
 #fnrPanel {
   position: fixed; top: env(safe-area-inset-top, 0px); left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px); z-index: 10001;
@@ -356,9 +360,13 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <div id="progressBar"></div>
 
 <iframe id="preview" sandbox="allow-scripts allow-same-origin allow-modals allow-forms allow-popups"></iframe>
-<textarea id="codeView" spellcheck="false" placeholder="Code will appear here..."></textarea>
+<textarea id="codeView" spellcheck="false" placeholder="Code will appear here..." readonly></textarea>
 
-<button id="searchCodeBtn" title="Find & Replace"><i class="fa-solid fa-magnifying-glass"></i></button>
+<div id="codeEditorActions">
+  <button class="ce-action-btn" id="copyCodeBtn" title="Copy Whole Code"><i class="fa-regular fa-copy"></i></button>
+  <button class="ce-action-btn" id="lockCodeBtn" title="Unlock Editor" style="color:var(--amber);"><i class="fa-solid fa-lock"></i></button>
+  <button class="ce-action-btn" id="searchCodeBtn" title="Find & Replace"><i class="fa-solid fa-magnifying-glass"></i></button>
+</div>
 <div id="fnrPanel">
   <div class="fnr-row">
     <input type="text" id="fnrFind" placeholder="Find (case-insensitive)...">
@@ -2621,13 +2629,13 @@ document.getElementById('viewBtn').addEventListener('click', function() {
     viewMode = 'code';
     $pv.style.display = 'none';
     $codeView.style.display = 'block';
-    document.getElementById('searchCodeBtn').style.display = 'flex';
+    document.getElementById('codeEditorActions').style.display = 'flex';
     $codeView.value = sourceContent;
     this.style.color = 'var(--amber)';
   } else {
     viewMode = 'preview';
     $codeView.style.display = 'none';
-    document.getElementById('searchCodeBtn').style.display = 'none';
+    document.getElementById('codeEditorActions').style.display = 'none';
     document.getElementById('fnrPanel').style.display = 'none';
     $pv.style.display = 'block';
     
@@ -2650,6 +2658,26 @@ document.getElementById('searchCodeBtn').addEventListener('click', () => {
     $fnrFind.value = $codeView.value.substring($codeView.selectionStart, $codeView.selectionEnd);
     doCodeSearch();
   }
+});
+
+let isCodeLocked = true;
+document.getElementById('lockCodeBtn').addEventListener('click', function() {
+  isCodeLocked = !isCodeLocked;
+  $codeView.readOnly = isCodeLocked;
+  this.innerHTML = isCodeLocked ? '<i class="fa-solid fa-lock"></i>' : '<i class="fa-solid fa-lock-open"></i>';
+  this.style.color = isCodeLocked ? 'var(--amber)' : '#ffffff';
+  this.title = isCodeLocked ? 'Unlock Editor' : 'Lock Editor';
+  toast(isCodeLocked ? '🔒 Editor Locked (Read-Only)' : '🔓 Editor Unlocked (Editable)');
+});
+
+document.getElementById('copyCodeBtn').addEventListener('click', function() {
+  const code = $codeView.value;
+  if (!code) { toast('⚠️ Nothing to copy', 'warn'); return; }
+  navigator.clipboard.writeText(code).then(() => {
+    toast('📋 Whole code copied to clipboard!');
+  }).catch(err => {
+    toast('❌ Copy failed: ' + err.message, 'err');
+  });
 });
 
 document.getElementById('fnrClose').addEventListener('click', () => {
@@ -2759,7 +2787,7 @@ $fnrReplace.addEventListener('keydown', (e) => {
 
 document.addEventListener('keydown', function(e) {
   if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-    if (viewMode === 'code' && document.getElementById('searchCodeBtn').style.display === 'flex') {
+    if (viewMode === 'code' && document.getElementById('codeEditorActions').style.display === 'flex') {
       e.preventDefault();
       document.getElementById('searchCodeBtn').click();
     }
@@ -3247,24 +3275,24 @@ function render(src, skipEditorUpdate) {
   document.getElementById('sb-status').textContent = 'rendering…';
   
   if (!src) {
-        $pv.style.display = 'none';
-        $codeView.style.display = 'none';
-        document.getElementById('emptyState').style.display = 'flex';
-        document.getElementById('searchCodeBtn').style.display = 'none';
-        document.getElementById('fnrPanel').style.display = 'none';
-    } else {
-        document.getElementById('emptyState').style.display = 'none';
-        if (viewMode === 'preview') {
-            $pv.style.display = 'block';
-            $codeView.style.display = 'none';
-            document.getElementById('searchCodeBtn').style.display = 'none';
-            document.getElementById('fnrPanel').style.display = 'none';
-        } else {
-            $pv.style.display = 'none';
-            $codeView.style.display = 'block';
-            document.getElementById('searchCodeBtn').style.display = 'flex';
-        }
-    }
+          $pv.style.display = 'none';
+          $codeView.style.display = 'none';
+          document.getElementById('emptyState').style.display = 'flex';
+          document.getElementById('codeEditorActions').style.display = 'none';
+          document.getElementById('fnrPanel').style.display = 'none';
+      } else {
+          document.getElementById('emptyState').style.display = 'none';
+          if (viewMode === 'preview') {
+              $pv.style.display = 'block';
+              $codeView.style.display = 'none';
+              document.getElementById('codeEditorActions').style.display = 'none';
+              document.getElementById('fnrPanel').style.display = 'none';
+          } else {
+              $pv.style.display = 'none';
+              $codeView.style.display = 'block';
+              document.getElementById('codeEditorActions').style.display = 'flex';
+          }
+      }
   
   if (!skipEditorUpdate && $codeView.value !== src) {
     $codeView.value = src;
