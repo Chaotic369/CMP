@@ -2712,6 +2712,20 @@ document.getElementById('lockCodeBtn').addEventListener('click', function() {
   toast(isCodeLocked ? '🔒 Editor Locked (Read-Only)' : '🔓 Editor Unlocked (Editable)');
 });
 
+let lastLockToast = 0;
+function showLockWarning() {
+  if (isCodeLocked && Date.now() - lastLockToast > 3000) {
+    toast('🔒 Editor is locked. Tap the lock icon above to unlock.', 'warn');
+    lastLockToast = Date.now();
+  }
+}
+$codeView.addEventListener('click', showLockWarning);
+$codeView.addEventListener('keydown', function(e) {
+  if (!e.ctrlKey && !e.metaKey && e.key.length === 1) {
+    showLockWarning();
+  }
+});
+
 document.getElementById('copyCodeBtn').addEventListener('click', function() {
   const code = $codeView.value;
   if (!code) { toast('⚠️ Nothing to copy', 'warn'); return; }
