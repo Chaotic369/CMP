@@ -2993,8 +2993,13 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
           
             undoStack = []; redoStack = []; syncUndoRedo();
                         showControls();
-                        viewMode = 'code';
-                        document.getElementById('viewBtn').style.color = 'var(--amber)';
+                        if (fileName.toLowerCase().endsWith('.html') || fileName.toLowerCase().endsWith('.htm')) {
+                            viewMode = 'preview';
+                            document.getElementById('viewBtn').style.color = '#ffffff';
+                        } else {
+                            viewMode = 'code';
+                            document.getElementById('viewBtn').style.color = 'var(--amber)';
+                        }
                         render(sourceContent, false);
                         toast('Loaded Local: ' + fileName, 'ok');
             addLog('ok', 'Loaded Local: ' + fileName + ' (' + (sourceContent.length / 1024).toFixed(1) + ' KB)');
@@ -4009,8 +4014,13 @@ window.syncCurrentFile = async function() {
     
         fileName = ghFilePath.split('/').pop() || 'index.html';
     
-        viewMode = 'code'; // Switch to code mode directly for text files
-        document.getElementById('viewBtn').style.color = 'var(--amber)';
+        if (fileName.toLowerCase().endsWith('.html') || fileName.toLowerCase().endsWith('.htm')) {
+            viewMode = 'preview';
+            document.getElementById('viewBtn').style.color = '#ffffff';
+        } else {
+            viewMode = 'code';
+            document.getElementById('viewBtn').style.color = 'var(--amber)';
+        }
         render(sourceContent, false);
         showControls();
         document.getElementById('ghPushBtn').disabled = false;
@@ -4708,8 +4718,13 @@ document.addEventListener('drop', function(e) {
           document.getElementById('ghPushBtn').disabled = !(ghRepo && ghToken);
 
           undoStack = []; redoStack = []; syncUndoRedo();
-                    viewMode = 'code';
-                    document.getElementById('viewBtn').style.color = 'var(--amber)';
+                    if (fileName.toLowerCase().endsWith('.html') || fileName.toLowerCase().endsWith('.htm')) {
+                        viewMode = 'preview';
+                        document.getElementById('viewBtn').style.color = '#ffffff';
+                    } else {
+                        viewMode = 'code';
+                        document.getElementById('viewBtn').style.color = 'var(--amber)';
+                    }
                     render(sourceContent, false); updateStatusBar();
                     toast('Dropped Local: ' + fileName, 'ok'); addLog('ok', 'Drag-drop loaded: ' + fileName);
       }
