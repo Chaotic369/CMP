@@ -4715,10 +4715,11 @@ document.addEventListener('drop', function(e) {
                     toast('Dropped Local Media: ' + fileName, 'ok'); addLog('ok', 'Drag-drop loaded media: ' + fileName);
           updateStatusBar();
       } else {
-          sourceContent = ev.target.result.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-          showControls();
+                sourceContent = ev.target.result.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                lastSavedContent = sourceContent;
+                showControls();
         
-          ghFilePath = fileName;
+                ghFilePath = fileName;
           document.getElementById('ghFilePath').value = ghFilePath;
           ghSaveConfig();
           document.getElementById('ghPushBtn').disabled = !(ghRepo && ghToken);
