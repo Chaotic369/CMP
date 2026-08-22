@@ -2672,13 +2672,14 @@ document.getElementById('viewBtn').addEventListener('click', function() {
     $codeView.value = sourceContent;
     this.style.color = 'var(--amber)';
   } else {
-    viewMode = 'preview';
-    $codeView.style.display = 'none';
-    document.getElementById('codeEditorActions').style.display = 'none';
-    document.getElementById('fnrPanel').style.display = 'none';
-    $pv.style.display = 'block';
+      viewMode = 'preview';
+      $codeView.style.display = 'none';
+      document.getElementById('codeEditorActions').style.display = 'none';
+      document.getElementById('fnrPanel').style.display = 'none';
+      $codeView.style.paddingTop = '20px';
+      $pv.style.display = 'block';
     
-    syncEditorToSource();
+      syncEditorToSource();
     toast('Applied manual edits.');
     this.style.color = '#ffffff';
   }
@@ -2692,6 +2693,7 @@ let $fnrReplace = document.getElementById('fnrReplace');
 
 document.getElementById('searchCodeBtn').addEventListener('click', () => {
   document.getElementById('fnrPanel').style.display = 'flex';
+  $codeView.style.paddingTop = '170px';
   $fnrFind.focus();
   if ($codeView.selectionStart !== $codeView.selectionEnd) {
     $fnrFind.value = $codeView.value.substring($codeView.selectionStart, $codeView.selectionEnd);
@@ -2721,6 +2723,7 @@ document.getElementById('copyCodeBtn').addEventListener('click', function() {
 
 document.getElementById('fnrClose').addEventListener('click', () => {
   document.getElementById('fnrPanel').style.display = 'none';
+  $codeView.style.paddingTop = '20px';
   $codeView.focus();
 });
 
@@ -2767,7 +2770,8 @@ function highlightFnrCurrent() {
     $codeView.setSelectionRange(start, start + q.length);
     
     let linesBefore = $codeView.value.substring(0, start).split('\n').length;
-    $codeView.scrollTop = (linesBefore - 1) * 19 - ($codeView.clientHeight / 2);
+    let offset = document.getElementById('fnrPanel').style.display === 'flex' ? 85 : 0;
+    $codeView.scrollTop = (linesBefore - 1) * 19 - ($codeView.clientHeight / 2) + offset;
   }
 }
 
@@ -3317,20 +3321,22 @@ function render(src, skipEditorUpdate) {
   document.getElementById('sb-status').textContent = 'rendering…';
   
   if (!src) {
-          $pv.style.display = 'none';
-          $codeView.style.display = 'none';
-          document.getElementById('emptyState').style.display = 'flex';
-          document.getElementById('codeEditorActions').style.display = 'none';
-          document.getElementById('fnrPanel').style.display = 'none';
-      } else {
-          document.getElementById('emptyState').style.display = 'none';
-          if (viewMode === 'preview') {
-              $pv.style.display = 'block';
-              $codeView.style.display = 'none';
-              document.getElementById('codeEditorActions').style.display = 'none';
-              document.getElementById('fnrPanel').style.display = 'none';
-          } else {
-              $pv.style.display = 'none';
+            $pv.style.display = 'none';
+            $codeView.style.display = 'none';
+            document.getElementById('emptyState').style.display = 'flex';
+            document.getElementById('codeEditorActions').style.display = 'none';
+            document.getElementById('fnrPanel').style.display = 'none';
+            $codeView.style.paddingTop = '20px';
+        } else {
+            document.getElementById('emptyState').style.display = 'none';
+            if (viewMode === 'preview') {
+                $pv.style.display = 'block';
+                $codeView.style.display = 'none';
+                document.getElementById('codeEditorActions').style.display = 'none';
+                document.getElementById('fnrPanel').style.display = 'none';
+                $codeView.style.paddingTop = '20px';
+            } else {
+                $pv.style.display = 'none';
               $codeView.style.display = 'block';
               document.getElementById('codeEditorActions').style.display = 'flex';
           }
