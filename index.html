@@ -2980,9 +2980,10 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
             addLog('ok', 'Loaded Local Media: ' + fileName);
             updateStatusBar();
           } else {
-            var raw = ev.target.result;
-            sourceContent = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-            var isHTML = /<!doctype\s+html|<html[\s>]/i.test(sourceContent.slice(0, 500));
+                      var raw = ev.target.result;
+                      sourceContent = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+                      lastSavedContent = sourceContent;
+                      var isHTML = /<!doctype\s+html|<html[\s>]/i.test(sourceContent.slice(0, 500));
             if (!isHTML) {
               toast('Loaded raw text/code file.', 'info', 3000);
               addLog('info', 'Loaded non-HTML text: ' + fileName);
