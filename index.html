@@ -168,7 +168,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #repoToggleBtn { font-weight: bold; width: 18px; font-size: 6px; }
 #repoAddBtn { width: 18px; font-size: 6px; color: var(--green); }
 #fileAddBtn { width: 18px; font-size: 6px; color: var(--amber); }
-#dirFileAddBtn { width: 18px; font-size: 6px; color: var(--teal); }
+#fileUploadBtn { width: 18px; font-size: 6px; color: var(--blue); }
 #bulkFileAddBtn { width: 18px; font-size: 6px; color: var(--purple); }
 
 #repoSidebar { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; height: fit-content; }
@@ -425,8 +425,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
               <button id="repoToggleBtn" class="btn" title="Toggle Sidebar" style="width:24px; height:24px;">&lt;</button>
               <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:flex; width:18px; height:18px;"><i class="fa-solid fa-folder-plus"></i></button>
                           <button id="fileAddBtn" class="btn" title="Create New File" style="display:flex; width:18px; height:18px;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
-                                                                                                      <button id="dirFileAddBtn" class="btn" title="Create File in Current Directory" style="display:flex; width:18px; height:18px;" onclick="createNewFileInDir()"><i class="fa-solid fa-file-circle-plus"></i></button>
-                                                                                                                  <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; width:18px; height:18px;" onclick="openBulkModal()"><i class="fa-solid fa-cubes"></i></button>
+                                                                <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:flex; width:18px; height:18px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
+                                                                                                                                            <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; width:18px; height:18px;" onclick="openBulkModal()"><i class="fa-solid fa-cubes"></i></button>
                                                                                                                 <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
                               <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                             </div>
@@ -1314,7 +1314,7 @@ function updateRepoSidebar() {
   const btn = document.getElementById('repoToggleBtn');
   const addRepoBtn = document.getElementById('repoAddBtn');
   const addFileBtn = document.getElementById('fileAddBtn');
-  const dirAddBtn = document.getElementById('dirFileAddBtn');
+  const uploadBtn = document.getElementById('fileUploadBtn');
   const bulkAddBtn = document.getElementById('bulkFileAddBtn');
   const container = document.getElementById('sidebarContent');
   const bContainer = document.getElementById('bookmarkContent');
@@ -1325,7 +1325,7 @@ function updateRepoSidebar() {
   
   addRepoBtn.style.display = 'flex';
     addFileBtn.style.display = 'flex';
-    if(dirAddBtn) dirAddBtn.style.display = 'flex';
+    uploadBtn.style.display = 'flex';
     if(bulkAddBtn) bulkAddBtn.style.display = 'flex';
 
     if (repoCollapsed) {
