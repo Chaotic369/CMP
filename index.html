@@ -1726,10 +1726,10 @@ window.createNewFile = async function() {
     path = path.trim();
     if (path.endsWith('/')) path += '.gitkeep';
     showProgress(30);
-    try {
-        let content = btoa(' '); 
-        let res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
-            method: 'PUT',
+            try {
+                let content = btoa(''); 
+                let res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
+                    method: 'PUT',
             headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
             body: JSON.stringify({ message: `Create ${path}`, content: content, branch: ghBranch })
         });
@@ -1771,11 +1771,11 @@ window.createNewFile = async function() {
     
                             let path = currentDirectory ? currentDirectory + '/' + fileName : fileName;
                             path = path.replace(/\/\/+/g, '/');
-                            showProgress(30);
-                            try {
-                                let content = btoa(' '); 
-                                let res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
-                                    method: 'PUT',
+                                                        showProgress(30);
+                                                        try {
+                                                            let content = btoa(''); 
+                                                            let res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
+                                                                method: 'PUT',
                                     headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
                                     body: JSON.stringify({ message: `Create ${path}`, content: content, branch: ghBranch })
                                 });
@@ -4708,12 +4708,12 @@ document.getElementById('bulkConfirmBtn').addEventListener('click', async () => 
         let path = paths[i];
         if (path.endsWith('/')) path += '.gitkeep';
         path = path.replace(/\/\/+/g, '/');
-        
-        showProgress(10 + ((i + 1) / paths.length) * 80);
-        try {
-            let content = btoa(' '); 
-            let res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
-                method: 'PUT',
+            
+                    showProgress(10 + ((i + 1) / paths.length) * 80);
+                    try {
+                        let content = btoa(''); 
+                        let res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
+                            method: 'PUT',
                 headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
                 body: JSON.stringify({ message: `Bulk create ${path}`, content: content, branch: ghBranch })
             });
