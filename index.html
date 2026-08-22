@@ -2960,17 +2960,16 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
             else if (isAudio) mediaHtml = `<audio controls autoplay src="${dataUri}" style="width:80%;max-width:400px;"></audio>`;
             else if (isVideo) mediaHtml = `<video controls autoplay src="${dataUri}" style="max-width:100%;max-height:100%;object-fit:contain;background:#000;"></video>`;
 
-            $pv.srcdoc = `<html style="height:100%;display:flex;align-items:center;justify-content:center;background:#000;">${mediaHtml}</html>`;
-                      viewMode = 'preview';
-                      document.getElementById('viewBtn').style.color = '#ffffff';
-                      $pv.style.display = 'block';
-                      $codeView.style.display = 'none';
-                      document.getElementById('emptyState').style.display = 'none';
-                      sourceContent = ''; 
-                      lastSavedContent = '';
-                      $codeView.value = '';
-        
-                      ghFilePath = fileName;
+            $ = `<html style="height:100%;display:flex;align-items:center;justify-content:center;background:#000;">${mediaHtml}</html>`;
+                        viewMode = 'preview';
+                        document.getElementById('viewBtn').style.color = '#ffffff';
+                        $pv.style.display = 'block';
+                        $codeView.style.display = 'none';
+                        document.getElementById('emptyState').style.display = 'none';
+                        sourceContent = ''; 
+                        $codeView.value = '';
+          
+                        ghFilePath = fileName;
                         document.getElementById('ghFilePath').value = ghFilePath;
                         ghSaveConfig();
                         document.getElementById('ghPushBtn').disabled = true;
@@ -3294,7 +3293,7 @@ function render(src, skipEditorUpdate) {
       ].join('');
 
       if (/<!doctype|<html/i.test(src)) {
-              $pv.srcdoc = src.replace(/<head([^>]*)>/i, '<head$1>' + bridge) || bridge + src;
+              $ = src.replace(/<head([^>]*)>/i, '<head$1>' + bridge) || bridge + src;
             } else {
               var safeText = String(src).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
               $pv.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8">' + bridge + '<style>body{background:transparent;color:#eee;font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;margin:0;}</style></head><body>' + safeText + '</body></html>';
@@ -4696,18 +4695,18 @@ document.addEventListener('drop', function(e) {
           if (isImage) mediaHtml = `<img src="${dataUri}" style="max-width:100%;max-height:100%;object-fit:contain;background:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22><path d=%22M1 2V0h1v1H0v1z%22 fill-opacity=%22.05%22/></svg>')">`;
           else if (isAudio) mediaHtml = `<audio controls autoplay src="${dataUri}" style="width:80%;max-width:400px;"></audio>`;
           else if (isVideo) mediaHtml = `<video controls autoplay src="${dataUri}" style="max-width:100%;max-height:100%;object-fit:contain;background:#000;"></video>`;
-
-          $pv.srcdoc = `<html style="height:100%;display:flex;align-items:center;justify-content:center;background:#000;">${mediaHtml}</html>`;
-                    viewMode = 'preview';
-                    document.getElementById('viewBtn').style.color = '#ffffff';
-                    $pv.style.display = 'block';
-                    $codeView.style.display = 'none';
-                    document.getElementById('emptyState').style.display = 'none';
-                    sourceContent = ''; 
-                    $codeView.value = '';
-        
-                    ghFilePath = fileName;
-                    document.getElementById('ghFilePath').value = ghFilePath;
+           $pv.srcdoc = `<html style="height:100%;display:flex;align-items:center;justify-content:center;background:#000;">${mediaHtml}</html>`;
+            viewMode = 'preview';
+            document.getElementById('viewBtn').style.color = '#ffffff';
+            $pv.style.display = 'block';
+            $codeView.style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            sourceContent = ''; 
+            lastSavedContent = '';
+            $codeView.value = '';
+          
+            ghFilePath = fileName;
+          document.getElementById('ghFilePath').value = ghFilePath;
                     ghSaveConfig();
                     document.getElementById('ghPushBtn').disabled = true;
         
