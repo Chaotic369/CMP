@@ -2959,21 +2959,22 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
             else if (isVideo) mediaHtml = `<video controls autoplay src="${dataUri}" style="max-width:100%;max-height:100%;object-fit:contain;background:#000;"></video>`;
 
             $pv.srcdoc = `<html style="height:100%;display:flex;align-items:center;justify-content:center;background:#000;">${mediaHtml}</html>`;
-            viewMode = 'preview';
-            $pv.style.display = 'block';
-            $codeView.style.display = 'none';
-            document.getElementById('emptyState').style.display = 'none';
-            sourceContent = ''; 
-            $codeView.value = '';
+                        viewMode = 'preview';
+                        document.getElementById('viewBtn').style.color = '#ffffff';
+                        $pv.style.display = 'block';
+                        $codeView.style.display = 'none';
+                        document.getElementById('emptyState').style.display = 'none';
+                        sourceContent = ''; 
+                        $codeView.value = '';
           
-            ghFilePath = fileName;
-            document.getElementById('ghFilePath').value = ghFilePath;
-            ghSaveConfig();
-            document.getElementById('ghPushBtn').disabled = true;
+                        ghFilePath = fileName;
+                        document.getElementById('ghFilePath').value = ghFilePath;
+                        ghSaveConfig();
+                        document.getElementById('ghPushBtn').disabled = true;
           
-            undoStack = []; redoStack = []; syncUndoRedo();
-            showControls();
-            toast('Loaded Local Media: ' + fileName, 'ok');
+                        undoStack = []; redoStack = []; syncUndoRedo();
+                        showControls();
+                        toast('Loaded Local Media: ' + fileName, 'ok');
             addLog('ok', 'Loaded Local Media: ' + fileName);
             updateStatusBar();
           } else {
@@ -2991,9 +2992,11 @@ document.getElementById('fileInput').addEventListener('change', function(e) {
             document.getElementById('ghPushBtn').disabled = !(ghRepo && ghToken);
           
             undoStack = []; redoStack = []; syncUndoRedo();
-            showControls();
-            render(sourceContent, false);
-            toast('Loaded Local: ' + fileName, 'ok');
+                        showControls();
+                        viewMode = 'code';
+                        document.getElementById('viewBtn').style.color = 'var(--amber)';
+                        render(sourceContent, false);
+                        toast('Loaded Local: ' + fileName, 'ok');
             addLog('ok', 'Loaded Local: ' + fileName + ' (' + (sourceContent.length / 1024).toFixed(1) + ' KB)');
             updateStatusBar();
           }
@@ -3969,11 +3972,12 @@ window.syncCurrentFile = async function() {
                     }
         
                             viewMode = 'preview';
-                            $pv.style.display = 'block';
-                            $codeView.style.display = 'none';
-                            document.getElementById('emptyState').style.display = 'none';
+                                                        document.getElementById('viewBtn').style.color = '#ffffff';
+                                                        $pv.style.display = 'block';
+                                                        $codeView.style.display = 'none';
+                                                        document.getElementById('emptyState').style.display = 'none';
         
-                            let mediaHtml = '';
+                                                        let mediaHtml = '';
                             if (isImage) {
                                 mediaHtml = `<img src="${mediaSrc}" style="max-width:100%;max-height:100%;object-fit:contain;background:url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22><path d=%22M1 2V0h1v1H0v1z%22 fill-opacity=%22.05%22/></svg>')">`;
                             } else if (isAudio) {
@@ -4003,13 +4007,14 @@ window.syncCurrentFile = async function() {
     }
     sourceContent = new TextDecoder('utf-8').decode(bytes);
     
-    fileName = ghFilePath.split('/').pop() || 'index.html';
+        fileName = ghFilePath.split('/').pop() || 'index.html';
     
-    viewMode = 'preview'; // Reset to standard preview mode after sync
-    render(sourceContent, false);
-    showControls();
-    document.getElementById('ghPushBtn').disabled = false;
-    toast(`✅ Loaded ${fileName} from ${ghRepo}`);
+        viewMode = 'code'; // Switch to code mode directly for text files
+        document.getElementById('viewBtn').style.color = 'var(--amber)';
+        render(sourceContent, false);
+        showControls();
+        document.getElementById('ghPushBtn').disabled = false;
+        toast(`✅ Loaded ${fileName} from ${ghRepo}`);
     addLog('ok', `Synced ${ghFilePath} from ${ghRepo}`);
     undoStack = []; redoStack = []; syncUndoRedo(); updateStatusBar();
   } catch(e) {
@@ -4676,21 +4681,22 @@ document.addEventListener('drop', function(e) {
           else if (isVideo) mediaHtml = `<video controls autoplay src="${dataUri}" style="max-width:100%;max-height:100%;object-fit:contain;background:#000;"></video>`;
 
           $pv.srcdoc = `<html style="height:100%;display:flex;align-items:center;justify-content:center;background:#000;">${mediaHtml}</html>`;
-          viewMode = 'preview';
-          $pv.style.display = 'block';
-          $codeView.style.display = 'none';
-          document.getElementById('emptyState').style.display = 'none';
-          sourceContent = ''; 
-          $codeView.value = '';
+                    viewMode = 'preview';
+                    document.getElementById('viewBtn').style.color = '#ffffff';
+                    $pv.style.display = 'block';
+                    $codeView.style.display = 'none';
+                    document.getElementById('emptyState').style.display = 'none';
+                    sourceContent = ''; 
+                    $codeView.value = '';
         
-          ghFilePath = fileName;
-          document.getElementById('ghFilePath').value = ghFilePath;
-          ghSaveConfig();
-          document.getElementById('ghPushBtn').disabled = true;
+                    ghFilePath = fileName;
+                    document.getElementById('ghFilePath').value = ghFilePath;
+                    ghSaveConfig();
+                    document.getElementById('ghPushBtn').disabled = true;
         
-          undoStack = []; redoStack = []; syncUndoRedo();
-          showControls();
-          toast('Dropped Local Media: ' + fileName, 'ok'); addLog('ok', 'Drag-drop loaded media: ' + fileName);
+                    undoStack = []; redoStack = []; syncUndoRedo();
+                    showControls();
+                    toast('Dropped Local Media: ' + fileName, 'ok'); addLog('ok', 'Drag-drop loaded media: ' + fileName);
           updateStatusBar();
       } else {
           sourceContent = ev.target.result.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -4702,8 +4708,10 @@ document.addEventListener('drop', function(e) {
           document.getElementById('ghPushBtn').disabled = !(ghRepo && ghToken);
 
           undoStack = []; redoStack = []; syncUndoRedo();
-          render(sourceContent, false); updateStatusBar();
-          toast('Dropped Local: ' + fileName, 'ok'); addLog('ok', 'Drag-drop loaded: ' + fileName);
+                    viewMode = 'code';
+                    document.getElementById('viewBtn').style.color = 'var(--amber)';
+                    render(sourceContent, false); updateStatusBar();
+                    toast('Dropped Local: ' + fileName, 'ok'); addLog('ok', 'Drag-drop loaded: ' + fileName);
       }
     };
   
