@@ -118,6 +118,20 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
   transform: rotate(45deg);
 }
 
+#floatingPushBtn {
+  position: fixed; z-index: 10000; width: 24px; height: 24px; border-radius: 6px;
+  background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
+  align-items: center; justify-content: center;
+  cursor: pointer; user-select: none; touch-action: none;
+  color: var(--blue); font-size: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s, opacity 0.2s;
+}
+#floatingPushBtn:hover {
+  background: rgba(33, 33, 33, 0.75);
+}
+
 #app-menu {
       position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 6px;
       background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 6px; border: none !important; outline: none !important; border-radius: 14px;
@@ -286,7 +300,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 /* Fullscreen UI Adjustments */
 :fullscreen #statusBar, :-webkit-full-screen #statusBar { display: none !important; }
 :fullscreen #codeView, :-webkit-full-screen #codeView { height: 100vh !important; }
-:fullscreen #toggleUiBtn, :-webkit-full-screen #toggleUiBtn, :fullscreen #codeEditorActions, :-webkit-full-screen #codeEditorActions { transform: scale(0.85); transform-origin: bottom right; }
+:fullscreen #toggleUiBtn, :-webkit-full-screen #toggleUiBtn, :fullscreen #floatingPushBtn, :-webkit-full-screen #floatingPushBtn, :fullscreen #codeEditorActions, :-webkit-full-screen #codeEditorActions { transform: scale(0.85); transform-origin: bottom right; }
 :fullscreen #app-menu, :-webkit-full-screen #app-menu { transform: scale(calc(var(--user-scale, 1) * 0.85)); }
 :fullscreen #fnrPanel, :-webkit-full-screen #fnrPanel { transform: scale(0.85); transform-origin: top center; }
 
@@ -393,6 +407,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <button id="toggleUiBtn" title="Toggle Menu">
   <i class="fa-solid fa-plus"></i>
+</button>
+<button id="floatingPushBtn" title="Push Changes to GitHub" style="display:none;" onclick="document.getElementById('ghPushBtn').click()">
+  <i class="fa-solid fa-arrow-up-from-bracket"></i>
 </button>
 
 <div id="app-menu">
@@ -2417,6 +2434,25 @@ document.getElementById('dismissErrText').addEventListener('click', function(e) 
 });
 
 // Global error handlers
+window.updateFloatingPushPosition = function() {
+  var fpb = document.getElementById('floatingPushBtn');
+  if (!fpb) return;
+  var currentContent = (viewMode === 'code') ? $codeView.value : sourceContent;
+  var needsPush = currentContent !== lastSavedContent && ghRepo && ghToken;
+  if (!needsPush) {
+    fpb.style.display = 'none';
+    return;
+  }
+  fpb.style.display = 'flex';
+  var rect = $toggleBtn.getBoundingClientRect();
+  if (rect.right + 30 > window.innerWidth) {
+    fpb.style.left = (rect.left - 30) + 'px';
+  } else {
+    fpb.style.left = (rect.right + 6) + 'px';
+  }
+  fpb.style.top = rect.top + 'px';
+};
+
 window.addEventListener('error', function(e) {
   showErr('App Error: ' + e.message + '\nAt: ' + (e.filename || 'unknown') + ':' + e.lineno);
 });
@@ -2438,12 +2474,13 @@ function updateStatusBar() {
   document.getElementById('sb-size').textContent  = kb + ' KB';
   document.getElementById('sb-undo').textContent  = 'undo:' + undoStack.length + ' redo:' + redoStack.length;
   if (sourceContent) {
-    var broken = Object.entries(tokenBalance(sourceContent)).filter(function(e) { return e[1] !== 0; });
-    var sb = document.getElementById('sb-ast');
-    if (broken.length === 0) { sb.textContent = 'AST: ✓'; sb.className = 'sb-item sb-ok'; }
-    else { sb.textContent = 'AST: ⚠'; sb.className = 'sb-item sb-warn'; }
+      var broken = Object.entries(tokenBalance(sourceContent)).filter(function(e) { return e[1] !== 0; });
+      var sb = document.getElementById('sb-ast');
+      if (broken.length === 0) { sb.textContent = 'AST: ✓'; sb.className = 'sb-item sb-ok'; }
+      else { sb.textContent = 'AST: ⚠'; sb.className = 'sb-item sb-warn'; }
+    }
+    if (window.updateFloatingPushPosition) window.updateFloatingPushPosition();
   }
-}
 
 function flash(color) {
   var c = color || 'var(--green)';
@@ -2490,10 +2527,11 @@ function updateMenuPosition() {
   else         { $appMenu.style.left   = (rect.left + 10) + 'px'; }
   
   if (isBottom) { $appMenu.style.bottom = (window.innerHeight - rect.top + 10) + 'px'; }
-  else          { $appMenu.style.top    = (rect.bottom - 10) + 'px'; }
+    else          { $appMenu.style.top    = (rect.bottom - 10) + 'px'; }
 
-  syncSidebarHeightToControls();
-}
+    syncSidebarHeightToControls();
+    if (window.updateFloatingPushPosition) window.updateFloatingPushPosition();
+  }
 
 $toggleBtn.addEventListener('pointerdown', function(e) {
   isDragging  = false;
@@ -2535,11 +2573,12 @@ function onPtrMove(e) {
         var newY = Math.max(minY, Math.min(initialBtnY + dy, maxY));
         
         $toggleBtn.style.left = newX + 'px'; $toggleBtn.style.top  = newY + 'px';
-        $toggleBtn.style.right = 'auto'; $toggleBtn.style.bottom = 'auto';
-        if ($appMenu.classList.contains('open')) updateMenuPosition();
-        window.dragAnimationFrame = null;
-      });
-    }
+                $toggleBtn.style.right = 'auto'; $toggleBtn.style.bottom = 'auto';
+                if ($appMenu.classList.contains('open')) updateMenuPosition();
+                if (window.updateFloatingPushPosition) window.updateFloatingPushPosition();
+                window.dragAnimationFrame = null;
+              });
+            }
   }
 }
 function onPtrUp(e) {
@@ -2687,6 +2726,9 @@ document.getElementById('fnrClose').addEventListener('click', () => {
 
 $fnrFind.addEventListener('input', doCodeSearch);
 $codeView.addEventListener('input', doCodeSearch);
+$codeView.addEventListener('input', function() {
+  if (window.updateFloatingPushPosition) window.updateFloatingPushPosition();
+});
 
 function doCodeSearch() {
   let text = $codeView.value;
@@ -4114,10 +4156,11 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
     });
 
     if (putRes.ok) {
-          toast('✅ Pushed to GitHub!');
-          addLog('ok', `Pushed ${ghFilePath} to ${ghRepo}`);
-          lastSavedContent = sourceContent;
-        } else {
+              toast('✅ Pushed to GitHub!');
+              addLog('ok', `Pushed ${ghFilePath} to ${ghRepo}`);
+              lastSavedContent = sourceContent;
+              updateStatusBar();
+            } else {
       const errData = await putRes.json().catch(()=>({}));
       throw new Error(errData.message || putRes.statusText);
     }
@@ -4775,6 +4818,7 @@ document.addEventListener('drop', function(e) {
 
 window.addEventListener('resize', function() {
   if ($appMenu.classList.contains('open')) updateMenuPosition();
+  if (window.updateFloatingPushPosition) window.updateFloatingPushPosition();
 });
 
 window.addEventListener('beforeunload', function(e) {
