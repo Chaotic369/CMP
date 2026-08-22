@@ -662,6 +662,7 @@ var NUKE_THRESHOLD = 0.60;
 
 var lastClip       = '';
 var sourceContent  = '';
+var lastSavedContent = '';
 var undoStack      = [];
 var redoStack      = [];
 var fileName       = 'index.html';
@@ -2311,7 +2312,8 @@ function renderFileTreeUI() {
 }
 
 window.selectFileFromTree = function(path) {
-    if (undoStack.length > 0 && sourceContent) {
+    syncEditorToSource();
+    if (sourceContent !== lastSavedContent) {
         if(!confirm("You have unsaved changes. Switch file anyway?")) return;
     }
     ghFilePath = path;
@@ -3993,10 +3995,11 @@ window.syncCurrentFile = async function() {
 
                     $pv.srcdoc = `<html style="height:100%;display:flex;align-items:center;justify-content:center;background:#000;">${mediaHtml}</html>`;
         
-                    sourceContent = ''; 
-                    $codeView.value = '';
+                                        sourceContent = ''; 
+                                        lastSavedContent = '';
+                                        $codeView.value = '';
 
-                    toast(`✅ Loaded Media: ${ghFilePath.split('/').pop()}`);
+                                        toast(`✅ Loaded Media: ${ghFilePath.split('/').pop()}`);
                     addLog('ok', `Synced Media ${ghFilePath}`);
                     document.getElementById('ghPushBtn').disabled = true; 
                     hideProgress();
@@ -4005,12 +4008,13 @@ window.syncCurrentFile = async function() {
 
     /* --- JS FIX: Safe TextDecoder for UTF-8 compatibility (Emojis/Foreign Characters) --- */
     const binaryString = atob(data.content.replace(/\s/g, ''));
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-    }
-    sourceContent = new TextDecoder('utf-8').decode(bytes);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        sourceContent = new TextDecoder('utf-8').decode(bytes);
+        lastSavedContent = sourceContent;
     
         fileName = ghFilePath.split('/').pop() || 'index.html';
     
@@ -4080,9 +4084,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
     });
 
     if (putRes.ok) {
-      toast('✅ Pushed to GitHub!');
-      addLog('ok', `Pushed ${ghFilePath} to ${ghRepo}`);
-    } else {
+          toast('✅ Pushed to GitHub!');
+          addLog('ok', `Pushed ${ghFilePath} to ${ghRepo}`);
+          lastSavedContent = sourceContent;
+        } else {
       const errData = await putRes.json().catch(()=>({}));
       throw new Error(errData.message || putRes.statusText);
     }
