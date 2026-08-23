@@ -173,7 +173,8 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 #repoSidebar { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; height: fit-content; }
 #sidebarContent { display: flex; flex-direction: column; width: 140px; height: auto; max-height: 260px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 4px; overflow-x: hidden; overflow-y: auto; }
-#sidebarContent.mini { height: 108px; max-height: 108px !important; width: 34px; padding-right: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
+#sidebarContent.mini { height: 108px; max-height: 108px !important; width: 34px !important; padding-right: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
+#sidebarContent.full-tree-active:not(.mini) { max-height: 85vh !important; height: 85vh !important; width: 280px !important; }
 #sidebarContent.mini .repo-name { font-size: 6px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; margin-top: 2px; }
 #sidebarContent.mini .repo-actions { display: none !important; }
 #sidebarContent.mini .repo-item { padding: 4px 2px; justify-content: flex-start; text-align: center; flex-direction: column; }
@@ -752,8 +753,30 @@ window.toggleFullTree = function() {
     window.isFullTreeMode = !window.isFullTreeMode;
     let btn = document.getElementById('fullTreeBtn');
     if (btn) btn.style.color = window.isFullTreeMode ? 'var(--green)' : 'var(--teal)';
+    
+    let sc = document.getElementById('sidebarContent');
+    if (sc) {
+        if (window.isFullTreeMode) {
+            sc.classList.add('full-tree-active');
+            // Auto-expand all nested folders so you see everything at a glance
+            if (currentTreeFiles) {
+                currentTreeFiles.forEach(f => {
+                    const parts = f.path.split('/');
+                    let currentPath = '';
+                    for (let i = 0; i < parts.length - 1; i++) {
+                        currentPath = currentPath ? currentPath + '/' + parts[i] : parts[i];
+                        window.nestedExpanded['dir_' + currentPath] = true;
+                    }
+                });
+            }
+        } else {
+            sc.classList.remove('full-tree-active');
+        }
+    }
+    
     if (window.isFullTreeMode) currentDirectory = '';
     renderFileTreeUI();
+    if (document.getElementById('app-menu').classList.contains('open')) updateMenuPosition();
 };
 
 window.toggleBookmarkRepo = function(r, e) {
