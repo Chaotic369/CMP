@@ -426,8 +426,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
               <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:flex; width:18px; height:18px;"><i class="fa-solid fa-folder-plus"></i></button>
                           <button id="fileAddBtn" class="btn" title="Create New File" style="display:flex; width:18px; height:18px;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
                                                                 <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:flex; width:18px; height:18px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
-                                                                                                                                            <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; width:18px; height:18px;" onclick="openBulkModal()"><i class="fa-solid fa-cubes"></i></button>
-                                                                                                                <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
+                                                                                                                                                                                                            <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; width:18px; height:18px;" onclick="openBulkModal()"><i class="fa-solid fa-cubes"></i></button>
+                                                                                                                                                                                                            <button id="fullTreeBtn" class="btn" title="Show Full Tree" style="display:flex; width:18px; height:18px; color:var(--teal);" onclick="window.toggleFullTree()"><i class="fa-solid fa-sitemap"></i></button>
+                                                                                                                                                                                <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
                               <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                             </div>
     <div id="sidebarContent">
@@ -746,7 +747,14 @@ document.getElementById('installBtn').addEventListener('click', async () => {
   }
 });
 
-
+window.isFullTreeMode = false;
+window.toggleFullTree = function() {
+    window.isFullTreeMode = !window.isFullTreeMode;
+    let btn = document.getElementById('fullTreeBtn');
+    if (btn) btn.style.color = window.isFullTreeMode ? 'var(--green)' : 'var(--teal)';
+    if (window.isFullTreeMode) currentDirectory = '';
+    renderFileTreeUI();
+};
 
 window.toggleBookmarkRepo = function(r, e) {
     if(e) e.stopPropagation();
@@ -1324,11 +1332,13 @@ function updateRepoSidebar() {
   if (bContainer) bContainer.classList.add('mini');
   
   addRepoBtn.style.display = 'flex';
-    addFileBtn.style.display = 'flex';
-    uploadBtn.style.display = 'flex';
-    if(bulkAddBtn) bulkAddBtn.style.display = 'flex';
+      addFileBtn.style.display = 'flex';
+      uploadBtn.style.display = 'flex';
+      if(bulkAddBtn) bulkAddBtn.style.display = 'flex';
+      const fullTreeBtn = document.getElementById('fullTreeBtn');
+      if(fullTreeBtn) fullTreeBtn.style.display = 'flex';
 
-    if (repoCollapsed) {
+      if (repoCollapsed) {
       btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
       container.classList.add('mini');
     } else {
@@ -2189,29 +2199,31 @@ function renderFileTreeUI() {
     updateDirectoryNav();
     
     let displayFiles = currentTreeFiles;
-    let directoriesInView = new Set();
+        let directoriesInView = new Set();
     
-    if (currentDirectory) {
-      displayFiles = currentTreeFiles.filter(f => f.path.startsWith(currentDirectory + '/') && f.path !== currentDirectory);
-    }
+        if (window.isFullTreeMode) {
+          displayFiles = currentTreeFiles;
+        } else if (currentDirectory) {
+          displayFiles = currentTreeFiles.filter(f => f.path.startsWith(currentDirectory + '/') && f.path !== currentDirectory);
+        }
     
-    // Extract unique directories at current level
-    displayFiles.forEach(f => {
-      let relativePath = currentDirectory ? f.path.slice(currentDirectory.length + 1) : f.path;
-      let parts = relativePath.split('/');
-      if (parts.length > 1) {
-        directoriesInView.add(currentDirectory ? currentDirectory + '/' + parts[0] : parts[0]);
-      }
-    });
+        // Extract unique directories at current level
+        displayFiles.forEach(f => {
+          let relativePath = currentDirectory ? f.path.slice(currentDirectory.length + 1) : f.path;
+          let parts = relativePath.split('/');
+          if (!window.isFullTreeMode && parts.length > 1) {
+            directoriesInView.add(currentDirectory ? currentDirectory + '/' + parts[0] : parts[0]);
+          }
+        });
     
-    let htmlFiles = displayFiles.filter(f => {
-      let relativePath = currentDirectory ? f.path.slice(currentDirectory.length + 1) : f.path;
-      return relativePath.endsWith('.html') && !relativePath.includes('/');
-    });
-    let otherFiles = displayFiles.filter(f => {
-      let relativePath = currentDirectory ? f.path.slice(currentDirectory.length + 1) : f.path;
-      return !relativePath.endsWith('.html') && !relativePath.includes('/');
-    });
+        let htmlFiles = displayFiles.filter(f => {
+          let relativePath = currentDirectory ? f.path.slice(currentDirectory.length + 1) : f.path;
+          return window.isFullTreeMode ? f.path.endsWith('.html') : (relativePath.endsWith('.html') && !relativePath.includes('/'));
+        });
+        let otherFiles = displayFiles.filter(f => {
+          let relativePath = currentDirectory ? f.path.slice(currentDirectory.length + 1) : f.path;
+          return window.isFullTreeMode ? !f.path.endsWith('.html') : (!relativePath.endsWith('.html') && !relativePath.includes('/'));
+        });
     
     let fileNesting = {};
     let rootFiles = [];
@@ -2250,10 +2262,10 @@ function renderFileTreeUI() {
             }
 
         function renderItem(f, isChild = false) {
-                    const isTarget = f.path === ghFilePath;
-                    const relativeName = currentDirectory ? f.path.slice(currentDirectory.length + 1).split('/')[0] : f.path.split('/')[0];
-                    const name = f.path.split('/').pop();
-                    const icon = getIcon(f.path);
+                            const isTarget = f.path === ghFilePath;
+                            const relativeName = currentDirectory ? f.path.slice(currentDirectory.length + 1).split('/')[0] : f.path.split('/')[0];
+                            const name = window.isFullTreeMode ? f.path : f.path.split('/').pop();
+                            const icon = getIcon(f.path);
                     const hasChildren = !!fileNesting[f.path];
                     const isExpanded = window.nestedExpanded[f.path];
         
