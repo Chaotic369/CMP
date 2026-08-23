@@ -428,7 +428,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                           <button id="fileAddBtn" class="btn" title="Create New File" style="display:flex; width:18px; height:18px;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
                                                                 <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:flex; width:18px; height:18px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
                                                                                                                                                                                                             <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; width:18px; height:18px;" onclick="openBulkModal()"><i class="fa-solid fa-cubes"></i></button>
-                                                                                                                                                                                                            <button id="fullTreeBtn" class="btn" title="Show Full Tree" style="display:flex; width:18px; height:18px; color:var(--teal);" onclick="window.toggleFullTree()"><i class="fa-solid fa-sitemap"></i></button>
+                                                                                                                                                                                                            <button id="fullTreeBtn" class="btn" title="Show Full Tree Popup" style="display:flex; width:18px; height:18px; color:var(--teal);" onclick="window.openFullTreeModal()"><i class="fa-solid fa-sitemap"></i></button>
                                                                                                                                                                                 <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
                               <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                             </div>
@@ -537,6 +537,22 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <button id="bulkCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
     <button id="bulkConfirmBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-check"></i> Create</button>
   </div>
+</div>
+
+<style>
+#fullTreeModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 95vw; max-width: 650px; height: 85vh; display: none; flex-direction: column; gap: 12px; z-index: 30000; background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); outline: none !important; border-radius: 20px; padding: 20px; color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6); }
+#fullTreeModal.open { display: flex; }
+#fullTreeModal h4 { color: #ffffff; margin-bottom: 8px; font-size: 15px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; flex-shrink:0; display:flex; justify-content:space-between; align-items:center; }
+#fullTreeContent { flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 4px; display: flex; flex-direction: column; gap: 4px; }
+#fullTreeContent .repo-item { padding: 10px 14px; border-radius: 10px; transition: background 0.1s; }
+#fullTreeContent .repo-item:hover { background: rgba(255, 255, 255, 0.08); }
+#fullTreeContent .repo-item.active { background: rgba(255, 255, 255, 0.15); }
+#fullTreeContent .repo-actions { display: none; align-items: center; gap: 10px; }
+#fullTreeContent .repo-item:hover .repo-actions, #fullTreeContent .repo-item.active .repo-actions { display: flex; }
+</style>
+<div id="fullTreeModal">
+  <h4><span><i class="fa-solid fa-sitemap" style="color:var(--teal); margin-right:8px;"></i> Repository Tree</span> <span class="panel-close" onclick="window.closeFullTreeModal()">✕</span></h4>
+  <div id="fullTreeContent"></div>
 </div>
 
 <div id="ghConfigPanel">
@@ -4290,15 +4306,17 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                 });
 
                 $backdrop.addEventListener('click', function() {
-        document.getElementById('ghConfigPanel').classList.remove('open');
-        document.getElementById('commitModal').classList.remove('open');
-        document.getElementById('newRepoModal').classList.remove('open');
-        document.getElementById('wallpaperModal').classList.remove('open');
-        var bModal = document.getElementById('bulkModal');
-        if (bModal) bModal.classList.remove('open');
-        var bdModal = document.getElementById('buildModal');
-        if (bdModal) bdModal.classList.remove('open');
-      });
+                        document.getElementById('ghConfigPanel').classList.remove('open');
+                        document.getElementById('commitModal').classList.remove('open');
+                        document.getElementById('newRepoModal').classList.remove('open');
+                        document.getElementById('wallpaperModal').classList.remove('open');
+                        var ftModal = document.getElementById('fullTreeModal');
+                        if (ftModal) ftModal.classList.remove('open');
+                        var bModal = document.getElementById('bulkModal');
+                        if (bModal) bModal.classList.remove('open');
+                        var bdModal = document.getElementById('buildModal');
+                        if (bdModal) bdModal.classList.remove('open');
+                      });
 
       // === Dual Engine Build Modal Logic ===
       document.getElementById('masterBuildBtn').addEventListener('click', () => {
@@ -4769,12 +4787,141 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
         }
       }
 
+      window.modalTreeExpanded = {};
+
+      window.openFullTreeModal = function() {
+          if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+    
+          if (currentTreeFiles) {
+              currentTreeFiles.forEach(f => {
+                  const parts = f.path.split('/');
+                  if (parts.length > 1) {
+                      window.modalTreeExpanded[parts[0]] = true; // Auto-expand root folders
+                  }
+              });
+          }
+    
+          document.getElementById('fullTreeModal').classList.add('open');
+          document.getElementById('menu-backdrop').classList.add('open');
+          window.renderFullTreeModal();
+      };
+
+      window.closeFullTreeModal = function() {
+          document.getElementById('fullTreeModal').classList.remove('open');
+          document.getElementById('menu-backdrop').classList.remove('open');
+      };
+
+      window.toggleModalNesting = function(path, e) {
+          e.stopPropagation();
+          window.modalTreeExpanded[path] = !window.modalTreeExpanded[path];
+          window.renderFullTreeModal();
+      };
+
+      window.selectFileFromModal = function(path) {
+          window.closeFullTreeModal();
+          selectFileFromTree(path);
+      };
+
+      window.renderFullTreeModal = function() {
+          if (!currentTreeFiles || currentTreeFiles.length === 0) {
+              document.getElementById('fullTreeContent').innerHTML = '<div style="color:#aaa; font-size:12px; text-align:center; padding:20px;">No files found.</div>';
+              return;
+          }
+
+          const root = { children: {} };
+          currentTreeFiles.forEach(f => {
+              const parts = f.path.split('/');
+              let current = root;
+              for (let i = 0; i < parts.length - 1; i++) {
+                  const part = parts[i];
+                  if (!current.children[part]) {
+                      current.children[part] = { name: part, type: 'folder', children: {}, path: parts.slice(0, i + 1).join('/') };
+                  }
+                  current = current.children[part];
+              }
+              const fileName = parts[parts.length - 1];
+              current.children[fileName] = { name: fileName, type: 'file', data: f, path: f.path };
+          });
+
+          function getIconLocal(path) {
+              let ext = path.split('.').pop().toLowerCase();
+              if(ext === 'html' || ext === 'htm') return {i: 'fa-brands fa-html5', c: 'var(--red)'};
+              if(ext === 'js' || ext === 'jsx') return {i: 'fa-brands fa-js', c: 'var(--amber)'};
+              if(ext === 'ts' || ext === 'tsx') return {i: 'fa-solid fa-code', c: 'var(--blue)'};
+              if(ext === 'css' || ext === 'scss') return {i: 'fa-brands fa-css3-alt', c: 'var(--blue)'};
+              if(ext === 'json') return {i: 'fa-solid fa-file-code', c: 'var(--green)'};
+              if(ext === 'xml' || ext === 'svg') return {i: 'fa-solid fa-code', c: 'var(--teal)'};
+              if(['png','jpg','jpeg','gif','webp','ico','bmp','avif'].includes(ext)) return {i: 'fa-solid fa-image', c: 'var(--purple)'};
+              if(['mp3','wav','ogg','aac','flac','m4a'].includes(ext)) return {i: 'fa-solid fa-music', c: 'var(--purple)'};
+              if(['mp4','webm','mov','avi','mkv'].includes(ext)) return {i: 'fa-solid fa-video', c: 'var(--purple)'};
+              if(['txt','md','markdown'].includes(ext)) return {i: 'fa-regular fa-file-lines', c: '#ffffff'};
+              if(['zip','rar','7z','tar','gz'].includes(ext)) return {i: 'fa-solid fa-file-zipper', c: 'var(--amber)'};
+              if(['pdf'].includes(ext)) return {i: 'fa-solid fa-file-pdf', c: 'var(--red)'};
+              if(['doc','docx'].includes(ext)) return {i: 'fa-solid fa-file-word', c: 'var(--blue)'};
+              if(['xls','xlsx'].includes(ext)) return {i: 'fa-solid fa-file-excel', c: 'var(--green)'};
+              if(['ppt','pptx'].includes(ext)) return {i: 'fa-solid fa-file-powerpoint', c: 'var(--amber)'};
+              if(ext === 'php' || ext === 'py' || ext === 'rb' || ext === 'go' || ext === 'rs') return {i: 'fa-solid fa-code', c: '#ffffff'};
+              if(['git','gitignore'].includes(ext)) return {i: 'fa-brands fa-git', c: 'var(--red)'};
+              return {i: 'fa-regular fa-file', c: '#ffffff'};
+          }
+
+          function renderNode(node, depth) {
+              let html = '';
+              const keys = Object.keys(node.children).sort((a, b) => {
+                  const aNode = node.children[a];
+                  const bNode = node.children[b];
+                  if (aNode.type === 'folder' && bNode.type === 'file') return -1;
+                  if (aNode.type === 'file' && bNode.type === 'folder') return 1;
+                  return a.localeCompare(b);
+              });
+
+              keys.forEach(k => {
+                  const child = node.children[k];
+                  const indent = depth * 20; 
+                  if (child.type === 'folder') {
+                      const isExpanded = !!window.modalTreeExpanded[child.path];
+                      html += `<div class="repo-item file-item" onclick="window.toggleModalNesting('${child.path}', event)" title="${child.path}" style="cursor:pointer; padding-left: ${indent + 12}px;">
+                          <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
+                            <i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'}" style="font-size:10px; color:rgba(255,255,255,0.6); margin-right:12px; width:12px; text-align:center;"></i>
+                            <i class="fa-solid fa-folder" style="margin-right:10px; font-size:14px; color:var(--amber);"></i>
+                            <span style="font-size:13px; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${child.name}</span>
+                          </div>
+                          <div style="display:flex; align-items:center;" class="repo-actions">
+                              <button class="repo-btn del" style="display:flex; font-size:10px; color:var(--red);" title="Delete Folder" onclick="deleteDirectory('${child.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
+                          </div>
+                        </div>`;
+                      if (isExpanded) {
+                          html += renderNode(child, depth + 1);
+                      }
+                  } else {
+                      const f = child.data;
+                      const isTarget = f.path === ghFilePath;
+                      const icon = getIconLocal(f.path);
+                      html += `<div class="repo-item file-item ${isTarget ? 'active' : ''}" style="padding-left: ${indent + 12}px;" onclick="window.selectFileFromModal('${f.path}')" title="${f.path}">
+                              <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
+                                  <i class="fa-solid fa-minus" style="font-size:10px; color:transparent; margin-right:12px; width:12px; text-align:center;"></i>
+                                  <i class="${icon.i}" style="margin-right:10px; font-size:14px; color:${isTarget ? 'var(--blue)' : icon.c};"></i>
+                                  <span style="font-size:13px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; font-weight: ${isTarget ? '600' : '400'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${child.name}</span>
+                              </div>
+                              <div class="repo-actions">
+                                  <button class="repo-btn" style="font-size:10px;" title="Rename File" onclick="renameFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-pen"></i></button>
+                                  <button class="repo-btn del" style="font-size:10px; color:var(--red);" title="Delete File" onclick="deleteFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
+                              </div>
+                          </div>`;
+                  }
+              });
+              return html;
+          }
+
+          document.getElementById('fullTreeContent').innerHTML = renderNode(root, 0);
+      };
+
       window.openBulkModal = function() {
-    if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
-    document.getElementById('bulkPathsInput').value = '';
-    document.getElementById('bulkModal').classList.add('open');
-    document.getElementById('menu-backdrop').classList.add('open');
-};
+          if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+          document.getElementById('bulkPathsInput').value = '';
+          document.getElementById('bulkModal').classList.add('open');
+          document.getElementById('menu-backdrop').classList.add('open');
+      };
 
 document.getElementById('bulkCancelBtn').addEventListener('click', () => {
     document.getElementById('bulkModal').classList.remove('open');
