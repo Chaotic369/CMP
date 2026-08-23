@@ -4795,8 +4795,11 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
           if (currentTreeFiles) {
               currentTreeFiles.forEach(f => {
                   const parts = f.path.split('/');
-                  if (parts.length > 1) {
-                      window.modalTreeExpanded[parts[0]] = true; // Auto-expand root folders
+                  let currentPath = '';
+                  // Auto-expand all nested folders
+                  for (let i = 0; i < parts.length - 1; i++) {
+                      currentPath = currentPath ? currentPath + '/' + parts[i] : parts[i];
+                      window.modalTreeExpanded[currentPath] = true;
                   }
               });
           }
