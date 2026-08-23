@@ -5029,20 +5029,20 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       };
 
       window.renderFullTreeModal = function() {
-          let bulkBtn = document.getElementById('modalBulkDeleteBtn');
-          let bulkCount = document.getElementById('modalBulkCount');
-          let wsBtn = document.getElementById('modalWorkspaceBtn');
-          let wsCount = document.getElementById('modalWorkspaceCount');
-          if (window.modalSelectedPaths.size > 0) {
-              bulkBtn.style.display = 'block';
-              bulkCount.textContent = window.modalSelectedPaths.size;
-              if(wsBtn) { wsBtn.style.display = 'block'; wsCount.textContent = window.modalSelectedPaths.size; }
-          } else {
-              bulkBtn.style.display = 'none';
-              if(wsBtn) wsBtn.style.display = 'none';
-          }
+                let bulkBtn = document.getElementById('modalBulkDeleteBtn');
+                let bulkCount = document.getElementById('modalBulkCount');
+                let wsBtn = document.getElementById('modalWorkspaceBtn');
+                let wsCount = document.getElementById('modalWorkspaceCount');
+                if (window.modalSelectedPaths.size > 0) {
+                    bulkBtn.style.display = 'block';
+                    bulkCount.textContent = window.modalSelectedPaths.size;
+                    if(wsBtn) { wsBtn.style.display = 'block'; wsCount.textContent = window.modalSelectedPaths.size; }
+                } else {
+                    bulkBtn.style.display = 'none';
+                    if(wsBtn) wsBtn.style.display = 'none';
+                }
 
-          const root = { children: {} };
+                const root = { children: {} };
           currentTreeFiles.forEach(f => {
               const parts = f.path.split('/');
               let current = root;
