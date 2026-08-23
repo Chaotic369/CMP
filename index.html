@@ -468,9 +468,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                                         <button id="downloadExeBtn" class="btn" title="Check & Download Latest EXE Zip" style="color:var(--teal);" onclick="window.checkAndDownloadLatest('build-exe.yml')"><i class="fa-solid fa-file-archive"></i></button>
                                                                                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                                     <div style="grid-column: 1 / -1; grid-row: 3; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05);">
-                                                                                                          <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
-                                                                                                                                                                                                                    <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
-                                                                                                        </div>
+                                                                                                                                              <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
+                                                                                                                                                                                                                                                        <button id="clearWsBtn" class="btn" title="Clear Workspace" style="color: var(--amber); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;" onclick="window.clearWorkspace()"><i class="fa-solid fa-broom" style="font-size: 6px;"></i></button>
+                                                                                                                                                                                                                                                        <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
+                                                                                                                                            </div>
                                                                                     </div>
   
                                                         <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0; position: relative; max-height: 100%;">
@@ -554,6 +555,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   <h4>
     <span><i class="fa-solid fa-sitemap" style="color:var(--teal); margin-right:8px;"></i> Repository Tree</span>
     <div style="display:flex; align-items:center; gap:10px;">
+      <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.2); color:var(--blue); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
       <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
       <span class="panel-close" onclick="window.closeFullTreeModal()">✕</span>
     </div>
@@ -1014,14 +1016,79 @@ window.renderBookmarks = function() {
         }
     };
 
+    window.workspaceFiles = window.workspaceFiles || {};
+
+    window.clearWorkspace = function() {
+        window.workspaceFiles = {};
+        if (ghFilePath && sourceContent) {
+            window.workspaceFiles[ghFilePath] = { content: sourceContent, modified: sourceContent !== lastSavedContent };
+        }
+        toast('🧹 Workspace cleared!', 'ok');
+        updateStatusBar();
+    };
+
+    window.loadModalSelectedToWorkspace = async function() {
+        if (window.modalSelectedPaths.size === 0) return;
+        window.closeFullTreeModal();
+        showProgress(10);
+    
+        let pathsToLoad = [];
+        window.modalSelectedPaths.forEach(path => {
+            let isFile = currentTreeFiles.some(f => f.path === path);
+            if (isFile) {
+                pathsToLoad.push(path);
+            } else {
+                currentTreeFiles.filter(f => f.path.startsWith(path + '/')).forEach(f => pathsToLoad.push(f.path));
+            }
+        });
+
+        toast(`⏳ Loading ${pathsToLoad.length} file(s) to Workspace...`, 'info');
+        let loaded = 0, failed = 0;
+    
+        for (let i = 0; i < pathsToLoad.length; i++) {
+            showProgress(10 + ((i+1)/pathsToLoad.length)*80);
+            let path = pathsToLoad[i];
+        
+            if (window.workspaceFiles[path] && !window.workspaceFiles[path].modified) continue;
+
+            try {
+                let getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }});
+                if (!getRes.ok) throw new Error('Fetch failed');
+                let fileData = await getRes.json();
+            
+                const binaryString = atob(fileData.content.replace(/\s/g, ''));
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let j = 0; j < len; j++) bytes[j] = binaryString.charCodeAt(j);
+                let textContent = new TextDecoder('utf-8').decode(bytes);
+            
+                if (!window.workspaceFiles[path]) {
+                    window.workspaceFiles[path] = { content: textContent, modified: false };
+                } else if (!window.workspaceFiles[path].modified) {
+                    window.workspaceFiles[path].content = textContent;
+                }
+                loaded++;
+            } catch(err) { failed++; }
+        }
+    
+        toast(`✅ Loaded ${loaded} files to Workspace` + (failed ? ` (${failed} failed)` : ''), 'ok', 4000);
+        window.modalSelectedPaths.clear();
+        hideProgress();
+        updateStatusBar();
+    };
+
     // Lock in any Code View edits before pushing, exporting, or checking AST
-function syncEditorToSource() {
-  if (viewMode === 'code' && $codeView.value !== sourceContent) {
-    pushState();
-    sourceContent = $codeView.value;
-    render(sourceContent, true);
-  }
-}
+    function syncEditorToSource() {
+      if (viewMode === 'code' && $codeView.value !== sourceContent) {
+        pushState();
+        sourceContent = $codeView.value;
+        if (window.workspaceFiles && window.workspaceFiles[ghFilePath]) {
+            window.workspaceFiles[ghFilePath].content = sourceContent;
+            window.workspaceFiles[ghFilePath].modified = true;
+        }
+        render(sourceContent, true);
+      }
+    }
 
 // Wallpaper Logic
 function applyWallpaper(url) {
@@ -2555,8 +2622,17 @@ document.getElementById('dismissErrText').addEventListener('click', function(e) 
 window.updateFloatingPushPosition = function() {
   var fpb = document.getElementById('floatingPushBtn');
   if (!fpb) return;
+  
+  var needsPush = false;
   var currentContent = (viewMode === 'code') ? $codeView.value : sourceContent;
-  var needsPush = currentContent !== lastSavedContent && ghRepo && ghToken;
+  if (currentContent !== lastSavedContent && ghRepo && ghToken) needsPush = true;
+  
+  if (window.workspaceFiles) {
+      for (let k in window.workspaceFiles) {
+          if (window.workspaceFiles[k].modified) needsPush = true;
+      }
+  }
+  
   if (!needsPush) {
     fpb.style.display = 'none';
     return;
@@ -2590,7 +2666,12 @@ function updateStatusBar() {
   var kb    = (sourceContent.length / 1024).toFixed(1);
   document.getElementById('sb-lines').textContent = lines + ' lines';
   document.getElementById('sb-size').textContent  = kb + ' KB';
-  document.getElementById('sb-undo').textContent  = 'undo:' + undoStack.length + ' redo:' + redoStack.length;
+  
+  let wsKeys = Object.keys(window.workspaceFiles || {});
+  let wsMod = wsKeys.filter(k => window.workspaceFiles[k].modified).length;
+  let wsText = wsKeys.length > 0 ? ` | WS: ${wsKeys.length} files (${wsMod} mod)` : '';
+  
+  document.getElementById('sb-undo').textContent  = 'undo:' + undoStack.length + ' redo:' + redoStack.length + wsText;
   if (sourceContent) {
       var broken = Object.entries(tokenBalance(sourceContent)).filter(function(e) { return e[1] !== 0; });
       var sb = document.getElementById('sb-ast');
@@ -4218,15 +4299,24 @@ window.syncCurrentFile = async function() {
 
     /* --- JS FIX: Safe TextDecoder for UTF-8 compatibility (Emojis/Foreign Characters) --- */
     const binaryString = atob(data.content.replace(/\s/g, ''));
-        const len = binaryString.length;
-        const bytes = new Uint8Array(len);
-        for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-        }
-        sourceContent = new TextDecoder('utf-8').decode(bytes);
-        lastSavedContent = sourceContent;
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            sourceContent = new TextDecoder('utf-8').decode(bytes);
+        
+            window.workspaceFiles = window.workspaceFiles || {};
+            if (window.workspaceFiles[ghFilePath] && window.workspaceFiles[ghFilePath].modified) {
+                sourceContent = window.workspaceFiles[ghFilePath].content;
+                lastSavedContent = ""; 
+                toast(`⚠ Merged ${ghFilePath.split('/').pop()} with unsaved workspace changes!`);
+            } else {
+                lastSavedContent = sourceContent;
+                window.workspaceFiles[ghFilePath] = { content: sourceContent, modified: false };
+            }
     
-        fileName = ghFilePath.split('/').pop() || 'index.html';
+            fileName = ghFilePath.split('/').pop() || 'index.html';
     
         if (fileName.toLowerCase().endsWith('.html') || fileName.toLowerCase().endsWith('.htm')) {
             viewMode = 'preview';
@@ -4273,43 +4363,82 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
   const btn = document.getElementById('ghPushBtn');
   btn.disabled = true;
   showProgress(30);
+
+  let filesToCommit = [];
+  if (window.workspaceFiles) {
+      for (let path in window.workspaceFiles) {
+          if (window.workspaceFiles[path].modified) {
+              filesToCommit.push({ path: path, content: window.workspaceFiles[path].content });
+          }
+      }
+  }
+  
+  if (sourceContent !== lastSavedContent && !filesToCommit.some(f => f.path === ghFilePath)) {
+      filesToCommit.push({ path: ghFilePath, content: sourceContent });
+  }
+
+  if (filesToCommit.length === 0) {
+      toast('❌ Nothing to push.', 'warn');
+      btn.disabled = false;
+      hideProgress();
+      return;
+  }
+
   try {
-    toast('⬆ Pushing to GitHub...', 'info');
-    let sha = null;
-    const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${ghFilePath}?ref=${ghBranch}`;
-    const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
-    if (getRes.ok) {
-      const getData = await getRes.json();
-      sha = getData.sha;
-    }
-    
-    const encoded = btoa(unescape(encodeURIComponent(sourceContent)));
-    const body = { message: msg, content: encoded, branch: ghBranch };
-    if (sha) body.sha = sha;
+    if (filesToCommit.length === 1) {
+        toast('⬆ Pushing to GitHub...', 'info');
+        let f = filesToCommit[0];
+        let sha = null;
+        const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${f.path}?ref=${ghBranch}`;
+        const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+        if (getRes.ok) sha = (await getRes.json()).sha;
+        
+        const encoded = btoa(unescape(encodeURIComponent(f.content)));
+        const body = { message: msg, content: encoded, branch: ghBranch };
+        if (sha) body.sha = sha;
 
-    const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${ghFilePath}`, {
-      method: 'PUT',
-      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
+        const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${f.path}`, {
+          method: 'PUT',
+          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
 
-    if (putRes.ok) {
-              toast('✅ Pushed to GitHub!');
-              addLog('ok', `Pushed ${ghFilePath} to ${ghRepo}`);
-              lastSavedContent = sourceContent;
-              updateStatusBar();
-            } else {
-      const errData = await putRes.json().catch(()=>({}));
-      throw new Error(errData.message || putRes.statusText);
+        if (putRes.ok) {
+          toast('✅ Pushed to GitHub!');
+          addLog('ok', `Pushed ${f.path} to ${ghRepo}`);
+          if (f.path === ghFilePath) lastSavedContent = f.content;
+          if (window.workspaceFiles && window.workspaceFiles[f.path]) window.workspaceFiles[f.path].modified = false;
+          updateStatusBar();
+        } else {
+          const errData = await putRes.json().catch(()=>({}));
+          throw new Error(errData.message || putRes.statusText);
+        }
+    } else {
+        toast(`⬆ Pushing ${filesToCommit.length} files to GitHub...`, 'info');
+        let uploadArray = filesToCommit.map(f => ({
+            path: f.path,
+            base64Content: btoa(unescape(encodeURIComponent(f.content)))
+        }));
+        let batchResult = await uploadFilesAsSingleCommit(ghRepo, ghBranch, uploadArray, msg);
+        
+        toast(`✅ Pushed ${batchResult.uploaded} files to GitHub!`);
+        addLog('ok', `Pushed ${batchResult.uploaded} files to ${ghRepo} in one commit.`);
+        
+        filesToCommit.forEach(f => {
+            if (f.path === ghFilePath) lastSavedContent = f.content;
+            if (window.workspaceFiles && window.workspaceFiles[f.path]) window.workspaceFiles[f.path].modified = false;
+        });
+        updateStatusBar();
     }
   } catch(e) {
     toast('❌ Push failed: ' + e.message, 'err');
     addLog('err', 'GitHub Push Error: ' + e.message);
   } finally {
-          btn.disabled = false;
-                    hideProgress();
-                  }
-                });
+    btn.disabled = false;
+    hideProgress();
+    if (window.updateFloatingPushPosition) window.updateFloatingPushPosition();
+  }
+});
 
                 $backdrop.addEventListener('click', function() {
                         document.getElementById('ghConfigPanel').classList.remove('open');
@@ -4832,9 +4961,17 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       };
 
       window.renderFullTreeModal = function() {
-          if (!currentTreeFiles || currentTreeFiles.length === 0) {
-              document.getElementById('fullTreeContent').innerHTML = '<div style="color:#aaa; font-size:12px; text-align:center; padding:20px;">No files found.</div>';
-              return;
+          let bulkBtn = document.getElementById('modalBulkDeleteBtn');
+          let bulkCount = document.getElementById('modalBulkCount');
+          let wsBtn = document.getElementById('modalWorkspaceBtn');
+          let wsCount = document.getElementById('modalWorkspaceCount');
+          if (window.modalSelectedPaths.size > 0) {
+              bulkBtn.style.display = 'block';
+              bulkCount.textContent = window.modalSelectedPaths.size;
+              if(wsBtn) { wsBtn.style.display = 'block'; wsCount.textContent = window.modalSelectedPaths.size; }
+          } else {
+              bulkBtn.style.display = 'none';
+              if(wsBtn) wsBtn.style.display = 'none';
           }
 
           const root = { children: {} };
