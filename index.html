@@ -469,8 +469,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                                                                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                                     <div style="grid-column: 1 / -1; grid-row: 3; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05);">
                                                                                                                                               <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
-                                                                                                                                                                                                                                                        <button id="clearWsBtn" class="btn" title="Clear Workspace" style="color: var(--amber); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;" onclick="window.clearWorkspace()"><i class="fa-solid fa-broom" style="font-size: 6px;"></i></button>
-                                                                                                                                                                                                                                                        <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
+                                                                                                                                                                                                                                                                                                                                                                                                      <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
                                                                                                                                             </div>
                                                                                     </div>
   
@@ -1018,16 +1017,7 @@ window.renderBookmarks = function() {
 
     window.workspaceFiles = window.workspaceFiles || {};
 
-    window.clearWorkspace = function() {
-        window.workspaceFiles = {};
-        if (ghFilePath && sourceContent) {
-            window.workspaceFiles[ghFilePath] = { content: sourceContent, modified: sourceContent !== lastSavedContent };
-        }
-        toast('🧹 Workspace cleared!', 'ok');
-        updateStatusBar();
-    };
-
-    window.bulkDeleteModalSelected = async function() {
+        window.bulkDeleteModalSelected = async function() {
             if (!window.modalSelectedPaths || window.modalSelectedPaths.size === 0) return;
             if (!confirm(`Delete ${window.modalSelectedPaths.size} selected item(s)?`)) return;
             window.closeFullTreeModal();
@@ -3968,74 +3958,12 @@ function doPaste(raw) {
   }
 
   var fixed = fixEncoding(raw);
-  if (fixed !== raw) {
-    addLog('info', 'Encoding fixed in pasted content.');
-    raw = fixed;
-  }
+    if (fixed !== raw) {
+      addLog('info', 'Encoding fixed in pasted content.');
+      raw = fixed;
+    }
 
-  var fileSections = raw.split(/^[ \t]*===[ \t]*FILE:[ \t]*(.+?)[ \t]*===[ \t]*$/gm);
-  if (fileSections.length > 1) {
-      showProgress(10);
-      let totalApplied = 0, totalParsed = 0;
-      window.workspaceFiles = window.workspaceFiles || {};
-      
-      if (ghFilePath && sourceContent) {
-          if (!window.workspaceFiles[ghFilePath]) {
-              window.workspaceFiles[ghFilePath] = { content: sourceContent, modified: sourceContent !== lastSavedContent };
-          } else if (!window.workspaceFiles[ghFilePath].modified && window.workspaceFiles[ghFilePath].content !== sourceContent) {
-              window.workspaceFiles[ghFilePath].content = sourceContent;
-          }
-      }
-
-      for (let i = 1; i < fileSections.length; i += 2) {
-          let path = fileSections[i].trim();
-          let sectionContent = fileSections[i+1];
-          let blocks = parseAllBlocks(sectionContent);
-          totalParsed += blocks.length;
-          
-          if (!window.workspaceFiles[path]) {
-              addLog('warn', `Pasted patch for ${path}, but file is not in workspace. Skipping.`);
-              toast(`⚠ Skipped patches for ${path} (not in workspace).`, 'warn', 4000);
-              continue;
-          }
-          
-          let fileText = window.workspaceFiles[path].content;
-          let appliedForFile = 0;
-          
-          for (let bi = blocks.length - 1; bi >= 0; bi--) {
-              let result = applyBlockToContent(blocks[bi], bi+1, fileText);
-              if (result.success) {
-                  fileText = result.newContent;
-                  appliedForFile++;
-                  totalApplied++;
-              }
-          }
-          
-          if (appliedForFile > 0) {
-              window.workspaceFiles[path].content = fileText;
-              window.workspaceFiles[path].modified = true;
-              if (path === ghFilePath) {
-                  pushState();
-                  sourceContent = fileText;
-                  $codeView.value = sourceContent;
-                  render(sourceContent, false);
-              }
-          }
-      }
-      hideProgress();
-      
-      if (totalApplied > 0) {
-          toast(`✓ Workspace patched: ${totalApplied}/${totalParsed} blocks applied!`, 'ok');
-          addLog('ok', `Multi-file patch: applied ${totalApplied} blocks across workspace.`);
-          updateStatusBar();
-          if (window.updateFloatingPushPosition) window.updateFloatingPushPosition();
-      } else {
-          toast('✗ No patches applied to workspace.', 'err', 5000);
-      }
-      return;
-  }
-
-  if (!sourceContent && (/<!doctype\s+html/i.test(raw) || /<html[\s>]/i.test(raw))) {
+    if (!sourceContent && (/<!doctype\s+html/i.test(raw) || /<html[\s>]/i.test(raw))) {
       sourceContent = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
       showControls();
       render(sourceContent, false);
