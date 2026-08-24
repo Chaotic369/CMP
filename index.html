@@ -2214,15 +2214,22 @@ window.checkAndDownloadLatest = async function(workflowFile) {
       return;
     }
     if (run.conclusion !== 'success') {
-      toast(`❌ Latest run ${run.conclusion}. Check logs.`, 'err');
-      hideProgress();
-      return;
-    }
-    window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
-    toast('✅ Opened latest successful run.', 'ok');
-  } catch(e) {
-    toast('❌ Error: ' + e.message, 'err');
-  }
+          toast(`❌ Latest run ${run.conclusion}. Check logs.`, 'err');
+          hideProgress();
+          return;
+        }
+        const artRes = await fetch(run.artifacts_url, { headers: { Authorization: `token ${ghToken}` }});
+        const artData = await artRes.json();
+        if (artData.artifacts && artData.artifacts.length > 0) {
+          window.location.href = `https://github.com/${ghRepo}/actions/runs/${run.id}/artifacts/${artData.artifacts[0].id}`;
+          toast('✅ Auto-downloading latest build...', 'ok');
+        } else {
+          window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
+          toast('✅ Opened latest run (no artifacts found).', 'ok');
+        }
+      } catch(e) {
+        toast('❌ Error: ' + e.message, 'err');
+      }
   hideProgress();
 };
 
@@ -4918,26 +4925,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
               let artifact = artData.artifacts.find(a => a.name === artifactName);
               if (!artifact) throw new Error('Artifact not found in success run.');
         
-              appendBuildLog(`Attempting automatic download...`);
-                                          try {
-                                              let dlRes = await fetch(artifact.archive_download_url, { headers: { Authorization: `token ${ghToken}` } });
-                                              if (!dlRes.ok) throw new Error('Download request failed');
-                                              let blob = await dlRes.blob();
-                                              let url = window.URL.createObjectURL(blob);
-                                              let a = document.createElement('a');
-                                              a.href = url;
-                                              a.download = artifactName + '.zip';
-                                              document.body.appendChild(a);
-                                              a.click();
-                                              a.remove();
-                                              setTimeout(() => window.URL.revokeObjectURL(url), 10000);
-                                              updateBuildOverlay('Build Complete. Auto-download started!', 100, 'ok');
-                                          } catch (e) {
-                                              appendBuildLog(`Auto-download blocked by GitHub CORS. Opening Actions page...`);
-                                              const runPageUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
-                                              window.open(runPageUrl, '_blank');
-                                              updateBuildOverlay('Build Complete. Tap the artifact link on GitHub to download.', 100, 'ok');
-                                          }
+              appendBuildLog(`Triggering automatic native download...`);
+                                                        const directDownloadUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}/artifacts/${artifact.id}`;
+                                                        window.location.href = directDownloadUrl;
+                                                        updateBuildOverlay('Build Complete! Download should start automatically.', 100, 'ok');
             } else {
               updateBuildOverlay(`Build Failed (${run.conclusion})`, 100, 'err');
               appendBuildLog(`\n[${new Date().toLocaleTimeString()}] CONCLUSION: ${run.conclusion.toUpperCase()}\nFetching detailed error logs from GitHub...`);
