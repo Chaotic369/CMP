@@ -23,9 +23,10 @@ jobs:
           export CORDOVA_NO_TELEMETRY=1
           export CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https\://services.gradle.org/distributions/gradle-8.7-all.zip
           cd /tmp
-          cordova create app com.custom.webwallpaper044514 "Compiler" --no-telemetry
+          cordova create app com.custom.webwallpaper621996 "Compiler" --no-telemetry
           rm -rf app/www/*
           cp -R $GITHUB_WORKSPACE/* app/www/ || true
+          cp $GITHUB_WORKSPACE/icon.png app/icon.png || true
           cd app
           sed -i 's/version="1.0.0"/version="1.0.0"/g' config.xml
           sed -i 's/<\/widget>/\n    <allow-navigation href="*" \/>\n    <allow-intent href="*" \/>\n<\/widget>/g' config.xml
