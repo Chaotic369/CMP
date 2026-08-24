@@ -1027,10 +1027,40 @@ window.renderBookmarks = function() {
         updateStatusBar();
     };
 
-    window.loadModalSelectedToWorkspace = async function() {
-        if (window.modalSelectedPaths.size === 0) return;
-        window.closeFullTreeModal();
-        showProgress(10);
+    window.bulkDeleteModalSelected = async function() {
+            if (!window.modalSelectedPaths || window.modalSelectedPaths.size === 0) return;
+            if (!confirm(`Delete ${window.modalSelectedPaths.size} selected item(s)?`)) return;
+            window.closeFullTreeModal();
+            showProgress(10);
+            let pathsToDelete = Array.from(window.modalSelectedPaths);
+            let deleted = 0, failed = 0;
+            for (let path of pathsToDelete) {
+                let isFile = currentTreeFiles.some(f => f.path === path);
+                if (isFile) {
+                    try {
+                        let getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}` }});
+                        if (getRes.ok) {
+                            let fileData = await getRes.json();
+                            await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
+                                method: 'DELETE',
+                                headers: { Authorization: `token ${ghToken}`, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ message: `Delete ${path}`, sha: fileData.sha, branch: ghBranch })
+                            });
+                            deleted++;
+                        }
+                    } catch(e) { failed++; }
+                }
+            }
+            toast(`✅ Deleted ${deleted} item(s)` + (failed ? ` (${failed} failed)` : ''));
+            window.modalSelectedPaths.clear();
+            fetchFileTree(false, true);
+            hideProgress();
+        };
+
+        window.loadModalSelectedToWorkspace = async function() {
+            if (!window.modalSelectedPaths || window.modalSelectedPaths.size === 0) return;
+            window.closeFullTreeModal();
+            showProgress(10);
     
         let pathsToLoad = [];
         window.modalSelectedPaths.forEach(path => {
@@ -2379,16 +2409,16 @@ function renderFileTreeUI() {
                     const hasChildren = !!fileNesting[f.path];
                     const isExpanded = window.nestedExpanded[f.path];
         
-                    let str = `<div class="repo-item file-item ${isTarget ? 'active' : ''}" style="${isChild ? 'margin-left:10px; border-left:1px solid rgba(255, 255, 255, 0.1); border-radius:0;' : ''}" onclick="selectFileFromTree('${f.path}')" ondblclick="if(${hasChildren}) toggleNesting('${f.path}', event)" title="${f.path}">
-                            <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
-                                ${hasChildren ? `<i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'}" style="font-size:8px; color:rgba(255,255,255,0.6); margin-right:4px; cursor:pointer;" onclick="toggleNesting('${f.path}', event)"></i>` : (isChild ? '' : `<i class="fa-solid fa-minus" style="font-size:8px; color:transparent; margin-right:4px;"></i>`)}
+                    let str = `<div class="repo-item file-item ${isTarget ? 'active' : ''}" style="${isChild ? 'margin-left:10px; border-left:1px solid rgba(255, 255, 255, 0.1); border-radius:0;' : ''}" onclick="window.selectFileFromTree('${f.path}')" ondblclick="if(${hasChildren}) window.toggleNesting('${f.path}', event)" title="${f.path}">
+                                    <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
+                                        ${hasChildren ? `<i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'}" style="font-size:8px; color:rgba(255,255,255,0.6); margin-right:4px; cursor:pointer;" onclick="window.toggleNesting('${f.path}', event)"></i>` : (isChild ? '' : `<i class="fa-solid fa-minus" style="font-size:8px; color:transparent; margin-right:4px;"></i>`)}
                                 <i class="${icon.i}" style="margin-right:6px; font-size:11px; color:${isTarget ? 'var(--blue)' : icon.c};"></i>
                                 <span style="font-size:8px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; font-weight: ${isTarget ? '600' : '400'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</span>
                             </div>
                         <div class="repo-actions">
-                <button class="repo-btn" title="Rename File" onclick="renameFile('${f.path}', event)"><i class="fa-solid fa-pen"></i></button>
-                <button class="repo-btn del" title="Delete File" onclick="deleteFile('${f.path}', event)"><i class="fa-solid fa-trash"></i></button>
-            </div>
+                                        <button class="repo-btn" title="Rename File" onclick="window.renameFile('${f.path}', event)"><i class="fa-solid fa-pen"></i></button>
+                                        <button class="repo-btn del" title="Delete File" onclick="window.deleteFile('${f.path}', event)"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
         </div>`;
 
         if (hasChildren && isExpanded) {
@@ -2475,8 +2505,8 @@ function renderFileTreeUI() {
                       <span style="font-size:8px; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dirName}</span>
                     </div>
                     <div style="display:flex; align-items:center;">
-                        <button class="repo-btn del" style="display:flex;" title="Delete Folder" onclick="deleteDirectory('${dir}', event)"><i class="fa-solid fa-trash"></i></button>
-                    </div>
+                                    <button class="repo-btn del" style="display:flex;" title="Delete Folder" onclick="window.deleteDirectory('${dir}', event)"><i class="fa-solid fa-trash"></i></button>
+                                </div>
                   </div>`;
                   htmlStr += str;
                 });
@@ -4991,8 +5021,9 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       }
 
       window.modalTreeExpanded = {};
+            window.modalSelectedPaths = new Set();
 
-      window.openFullTreeModal = function() {
+            window.openFullTreeModal = function() {
           if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
     
           if (currentTreeFiles) {
@@ -5024,23 +5055,33 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       };
 
       window.selectFileFromModal = function(path) {
-          window.closeFullTreeModal();
-          selectFileFromTree(path);
-      };
+                window.closeFullTreeModal();
+                window.selectFileFromTree(path);
+            };
 
-      window.renderFullTreeModal = function() {
+            window.toggleModalSelection = function(path, e) {
+                e.stopPropagation();
+                if (window.modalSelectedPaths.has(path)) {
+                    window.modalSelectedPaths.delete(path);
+                } else {
+                    window.modalSelectedPaths.add(path);
+                }
+                window.renderFullTreeModal();
+            };
+
+            window.renderFullTreeModal = function() {
                 let bulkBtn = document.getElementById('modalBulkDeleteBtn');
                 let bulkCount = document.getElementById('modalBulkCount');
                 let wsBtn = document.getElementById('modalWorkspaceBtn');
                 let wsCount = document.getElementById('modalWorkspaceCount');
-                if (window.modalSelectedPaths.size > 0) {
-                    bulkBtn.style.display = 'block';
-                    bulkCount.textContent = window.modalSelectedPaths.size;
-                    if(wsBtn) { wsBtn.style.display = 'block'; wsCount.textContent = window.modalSelectedPaths.size; }
-                } else {
-                    bulkBtn.style.display = 'none';
-                    if(wsBtn) wsBtn.style.display = 'none';
-                }
+                if (window.modalSelectedPaths && window.modalSelectedPaths.size > 0) {
+                                    bulkBtn.style.display = 'block';
+                                    bulkCount.textContent = window.modalSelectedPaths.size;
+                                    if(wsBtn) { wsBtn.style.display = 'block'; wsCount.textContent = window.modalSelectedPaths.size; }
+                                } else {
+                                    bulkBtn.style.display = 'none';
+                                    if(wsBtn) wsBtn.style.display = 'none';
+                                }
 
                 const root = { children: {} };
           currentTreeFiles.forEach(f => {
@@ -5101,8 +5142,9 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                             <span style="font-size:13px; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${child.name}</span>
                           </div>
                           <div style="display:flex; align-items:center;" class="repo-actions">
-                              <button class="repo-btn del" style="display:flex; font-size:10px; color:var(--red);" title="Delete Folder" onclick="deleteDirectory('${child.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
-                          </div>
+                                                        <button class="repo-btn" style="display:flex; font-size:10px; color:var(--amber);" title="Select/Deselect Folder" onclick="window.toggleModalSelection('${child.path}', event)"><i class="fa-solid fa-check-to-slot"></i></button>
+                                                        <button class="repo-btn del" style="display:flex; font-size:10px; color:var(--red);" title="Delete Folder" onclick="window.deleteDirectory('${child.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
+                                                    </div>
                         </div>`;
                       if (isExpanded) {
                           html += renderNode(child, depth + 1);
@@ -5118,9 +5160,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                   <span style="font-size:13px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; font-weight: ${isTarget ? '600' : '400'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${child.name}</span>
                               </div>
                               <div class="repo-actions">
-                                  <button class="repo-btn" style="font-size:10px;" title="Rename File" onclick="renameFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-pen"></i></button>
-                                  <button class="repo-btn del" style="font-size:10px; color:var(--red);" title="Delete File" onclick="deleteFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
-                              </div>
+                                                                <button class="repo-btn" style="font-size:10px; color:var(--amber);" title="Select/Deselect" onclick="window.toggleModalSelection('${f.path}', event)"><i class="fa-solid fa-check-to-slot"></i></button>
+                                                                <button class="repo-btn" style="font-size:10px;" title="Rename File" onclick="window.renameFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-pen"></i></button>
+                                                                <button class="repo-btn del" style="font-size:10px; color:var(--red);" title="Delete File" onclick="window.deleteFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
+                                                            </div>
                           </div>`;
                   }
               });
