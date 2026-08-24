@@ -173,22 +173,22 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 #repoSidebar { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; height: fit-content; }
 #sidebarContent { display: flex; flex-direction: column; width: 140px; height: auto; max-height: 260px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 4px; overflow-x: hidden; overflow-y: auto; }
-#sidebarContent.mini { height: 108px; max-height: 108px !important; width: 100px !important; padding-right: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
+#sidebarContent.mini { height: 108px; max-height: 108px !important; width: 75px !important; padding-right: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
 #sidebarContent.full-tree-active:not(.mini) { max-height: 85vh !important; height: 85vh !important; width: 280px !important; }
 #sidebarContent.mini .repo-name { font-size: 8px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 1; color: #ffffff; margin-top: 0; }
 #sidebarContent.mini .repo-actions { display: none !important; }
-#sidebarContent.mini .repo-item { padding: 2px 6px; justify-content: flex-start; text-align: left; flex-direction: row; min-height: 16px; line-height: 16px; }
+#sidebarContent.mini .repo-item { padding: 0px 4px; margin-bottom: 0px; justify-content: flex-start; text-align: left; flex-direction: row; min-height: 14px; line-height: 14px; }
 #sidebarContent.mini #repoTabsContainer { display: flex !important; flex-direction: column; gap: 0px; max-height: none !important; height: auto; overflow-y: visible; justify-content: flex-start; margin: 0; flex-shrink: 0; }
 
 #bookmarkContent { display: flex; flex-direction: column; width: 140px; height: fit-content; max-height: 45vh; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 4px; overflow-x: hidden; }
 #bookmarkContent .repo-item { background: transparent; border-radius: 8px; margin-bottom: 2px; }
 #bookmarkContent .repo-item:active { background: rgba(255,255,255,0.15); }
 #bookmarkContent .repo-item.active { background: rgba(255,255,255,0.15); }
-#bookmarkContent.mini { height: auto; max-height: 55vh !important; width: 68px; padding-left: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
-#bookmarkContent.mini .repo-name { font-size: 6px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; margin-top: 2px; }
+#bookmarkContent.mini { height: auto; max-height: 55vh !important; width: 45px; padding-left: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
+#bookmarkContent.mini .repo-name { font-size: 6px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; margin-top: 0px; line-height: 1.1; }
 #bookmarkContent.mini .repo-actions { display: none !important; }
-#bookmarkContent.mini .repo-item { padding: 4px 2px; justify-content: flex-start; text-align: center; flex-direction: column; }
-#bookmarkContent.mini #bookmarkRightList { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 2px; max-height: none !important; height: auto; overflow-y: visible; margin: 0; flex-shrink: 0; }
+#bookmarkContent.mini .repo-item { padding: 2px 2px; margin-bottom: 0px; justify-content: flex-start; text-align: center; flex-direction: column; min-height: 12px; }
+#bookmarkContent.mini #bookmarkRightList { display: flex !important; flex-direction: column; gap: 0px; max-height: none !important; height: auto; overflow-y: visible; margin: 0; flex-shrink: 0; }
 
 #repoTabsContainer { display: flex; flex-direction: column; gap: 0px; max-height: 108px; overflow-y: auto; flex-shrink: 0; width: 100%; }
 #repoTabsContainer.expanded { max-height: 108px; overflow-y: auto; flex-shrink: 0; }
