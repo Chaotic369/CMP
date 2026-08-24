@@ -184,11 +184,11 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #bookmarkContent .repo-item { background: transparent; border-radius: 8px; margin-bottom: 2px; }
 #bookmarkContent .repo-item:active { background: rgba(255,255,255,0.15); }
 #bookmarkContent .repo-item.active { background: rgba(255,255,255,0.15); }
-#bookmarkContent.mini { height: auto; max-height: 55vh !important; width: 34px; padding-left: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
+#bookmarkContent.mini { height: auto; max-height: 55vh !important; width: 68px; padding-left: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
 #bookmarkContent.mini .repo-name { font-size: 6px; text-align: center; white-space: normal; overflow: visible; word-break: break-all; opacity: 1; color: #ffffff; margin-top: 2px; }
 #bookmarkContent.mini .repo-actions { display: none !important; }
 #bookmarkContent.mini .repo-item { padding: 4px 2px; justify-content: flex-start; text-align: center; flex-direction: column; }
-#bookmarkContent.mini #bookmarkRightList { max-height: none !important; height: auto; overflow-y: visible; justify-content: flex-start; margin: 0; flex-shrink: 0; }
+#bookmarkContent.mini #bookmarkRightList { display: grid !important; grid-template-columns: repeat(2, 1fr); gap: 2px; max-height: none !important; height: auto; overflow-y: visible; margin: 0; flex-shrink: 0; }
 
 #repoTabsContainer { display: flex; flex-direction: column; gap: 0px; max-height: 108px; overflow-y: auto; flex-shrink: 0; width: 100%; }
 #repoTabsContainer.expanded { max-height: 108px; overflow-y: auto; flex-shrink: 0; }
