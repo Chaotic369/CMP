@@ -4918,10 +4918,26 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
               let artifact = artData.artifacts.find(a => a.name === artifactName);
               if (!artifact) throw new Error('Artifact not found in success run.');
         
-              appendBuildLog(`Opening Actions run page for download...`);
-                            const runPageUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
-                            window.open(runPageUrl, '_blank');
-                            updateBuildOverlay('Build Complete. Tap the artifact link on GitHub to download.', 100, 'ok');
+              appendBuildLog(`Attempting automatic download...`);
+                                          try {
+                                              let dlRes = await fetch(artifact.archive_download_url, { headers: { Authorization: `token ${ghToken}` } });
+                                              if (!dlRes.ok) throw new Error('Download request failed');
+                                              let blob = await dlRes.blob();
+                                              let url = window.URL.createObjectURL(blob);
+                                              let a = document.createElement('a');
+                                              a.href = url;
+                                              a.download = artifactName + '.zip';
+                                              document.body.appendChild(a);
+                                              a.click();
+                                              a.remove();
+                                              setTimeout(() => window.URL.revokeObjectURL(url), 10000);
+                                              updateBuildOverlay('Build Complete. Auto-download started!', 100, 'ok');
+                                          } catch (e) {
+                                              appendBuildLog(`Auto-download blocked by GitHub CORS. Opening Actions page...`);
+                                              const runPageUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}`;
+                                              window.open(runPageUrl, '_blank');
+                                              updateBuildOverlay('Build Complete. Tap the artifact link on GitHub to download.', 100, 'ok');
+                                          }
             } else {
               updateBuildOverlay(`Build Failed (${run.conclusion})`, 100, 'err');
               appendBuildLog(`\n[${new Date().toLocaleTimeString()}] CONCLUSION: ${run.conclusion.toUpperCase()}\nFetching detailed error logs from GitHub...`);
