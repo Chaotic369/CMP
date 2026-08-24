@@ -5062,38 +5062,44 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                   const child = node.children[k];
                   const indent = depth * 20; 
                   if (child.type === 'folder') {
-                      const isExpanded = !!window.modalTreeExpanded[child.path];
-                      html += `<div class="repo-item file-item" onclick="window.toggleModalNesting('${child.path}', event)" title="${child.path}" style="cursor:pointer; padding-left: ${indent + 12}px;">
-                          <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
-                            <i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'}" style="font-size:10px; color:rgba(255,255,255,0.6); margin-right:12px; width:12px; text-align:center;"></i>
-                            <i class="fa-solid fa-folder" style="margin-right:10px; font-size:14px; color:var(--amber);"></i>
-                            <span style="font-size:13px; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${child.name}</span>
-                          </div>
-                          <div style="display:flex; align-items:center;" class="repo-actions">
-                                                        <button class="repo-btn" style="display:flex; font-size:10px; color:var(--amber);" title="Select/Deselect Folder" onclick="window.toggleModalSelection('${child.path}', event)"><i class="fa-solid fa-check-to-slot"></i></button>
-                                                        <button class="repo-btn del" style="display:flex; font-size:10px; color:var(--red);" title="Delete Folder" onclick="window.deleteDirectory('${child.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
-                                                    </div>
-                        </div>`;
-                      if (isExpanded) {
-                          html += renderNode(child, depth + 1);
-                      }
-                  } else {
-                      const f = child.data;
-                      const isTarget = f.path === ghFilePath;
-                      const icon = getIconLocal(f.path);
-                      html += `<div class="repo-item file-item ${isTarget ? 'active' : ''}" style="padding-left: ${indent + 12}px;" onclick="window.selectFileFromModal('${f.path}')" title="${f.path}">
-                              <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
-                                  <i class="fa-solid fa-minus" style="font-size:10px; color:transparent; margin-right:12px; width:12px; text-align:center;"></i>
-                                  <i class="${icon.i}" style="margin-right:10px; font-size:14px; color:${isTarget ? 'var(--blue)' : icon.c};"></i>
-                                  <span style="font-size:13px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; font-weight: ${isTarget ? '600' : '400'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${child.name}</span>
-                              </div>
-                              <div class="repo-actions">
-                                                                <button class="repo-btn" style="font-size:10px; color:var(--amber);" title="Select/Deselect" onclick="window.toggleModalSelection('${f.path}', event)"><i class="fa-solid fa-check-to-slot"></i></button>
-                                                                <button class="repo-btn" style="font-size:10px;" title="Rename File" onclick="window.renameFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-pen"></i></button>
-                                                                <button class="repo-btn del" style="font-size:10px; color:var(--red);" title="Delete File" onclick="window.deleteFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
-                                                            </div>
-                          </div>`;
-                  }
+                                        const isExpanded = !!window.modalTreeExpanded[child.path];
+                                        const isSelected = window.modalSelectedPaths.has(child.path);
+                                        const selIcon = isSelected ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle';
+                                        const selColor = isSelected ? 'var(--green)' : 'rgba(255,255,255,0.6)';
+                                        html += `<div class="repo-item file-item" onclick="window.toggleModalNesting('${child.path}', event)" title="${child.path}" style="cursor:pointer; padding-left: ${indent + 12}px;">
+                                            <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
+                                              <i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'}" style="font-size:10px; color:rgba(255,255,255,0.6); margin-right:12px; width:12px; text-align:center;"></i>
+                                              <i class="fa-solid fa-folder" style="margin-right:10px; font-size:14px; color:var(--amber);"></i>
+                                              <span style="font-size:13px; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${child.name}</span>
+                                            </div>
+                                            <div style="display:flex; align-items:center;" class="repo-actions">
+                                                                          <button class="repo-btn" style="display:flex; font-size:10px; color:${selColor};" title="Select/Deselect Folder" onclick="window.toggleModalSelection('${child.path}', event)"><i class="${selIcon}"></i></button>
+                                                                          <button class="repo-btn del" style="display:flex; font-size:10px; color:var(--red);" title="Delete Folder" onclick="window.deleteDirectory('${child.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
+                                                                      </div>
+                                          </div>`;
+                                        if (isExpanded) {
+                                            html += renderNode(child, depth + 1);
+                                        }
+                                    } else {
+                                        const f = child.data;
+                                        const isTarget = f.path === ghFilePath;
+                                        const icon = getIconLocal(f.path);
+                                        const isSelected = window.modalSelectedPaths.has(f.path);
+                                        const selIcon = isSelected ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle';
+                                        const selColor = isSelected ? 'var(--green)' : 'rgba(255,255,255,0.6)';
+                                        html += `<div class="repo-item file-item ${isTarget ? 'active' : ''}" style="padding-left: ${indent + 12}px;" onclick="window.selectFileFromModal('${f.path}')" title="${f.path}">
+                                                <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
+                                                    <i class="fa-solid fa-minus" style="font-size:10px; color:transparent; margin-right:12px; width:12px; text-align:center;"></i>
+                                                    <i class="${icon.i}" style="margin-right:10px; font-size:14px; color:${isTarget ? 'var(--blue)' : icon.c};"></i>
+                                                    <span style="font-size:13px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; font-weight: ${isTarget ? '600' : '400'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${child.name}</span>
+                                                </div>
+                                                <div class="repo-actions">
+                                                                                  <button class="repo-btn" style="font-size:10px; color:${selColor};" title="Select/Deselect" onclick="window.toggleModalSelection('${f.path}', event)"><i class="${selIcon}"></i></button>
+                                                                                  <button class="repo-btn" style="font-size:10px;" title="Rename File" onclick="window.renameFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-pen"></i></button>
+                                                                                  <button class="repo-btn del" style="font-size:10px; color:var(--red);" title="Delete File" onclick="window.deleteFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
+                                                                              </div>
+                                            </div>`;
+                                    }
               });
               return html;
           }
