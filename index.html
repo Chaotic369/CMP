@@ -1063,15 +1063,17 @@ window.renderBookmarks = function() {
                 }
                 if (downloaded > 0) {
                                     toast('⏳ Zipping files...', 'info');
-                                    zip.generateAsync({type:"blob"}).then(function(content) {
-                                        const defaultName = ghRepo.split('/')[1] + '-export.zip';
-                                        let url = URL.createObjectURL(content);
-                                        let a = document.createElement('a');
-                                        a.href = url; a.download = defaultName;
-                                        document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                                        setTimeout(() => URL.revokeObjectURL(url), 3000);
-                                        toast('✅ Zip Downloaded (' + downloaded + ' files)' + (failed ? ' [' + failed + ' failed]' : ''));
-                                    });
+                                    const zipContent = await zip.generateAsync({type:"blob"});
+                                    const defaultName = ghRepo.split('/')[1] + '-export.zip';
+                                    const zipUrl = URL.createObjectURL(zipContent);
+                                    const zipA = document.createElement('a');
+                                    zipA.href = zipUrl;
+                                    zipA.download = defaultName;
+                                    zipA.style.display = 'none';
+                                    document.body.appendChild(zipA);
+                                    zipA.click();
+                                    setTimeout(function() { document.body.removeChild(zipA); URL.revokeObjectURL(zipUrl); }, 5000);
+                                    toast('✅ Zip Downloaded (' + downloaded + ' files)' + (failed ? ' [' + failed + ' failed]' : ''));
                                 } else {
                                     toast('❌ Failed to download any files for zip.', 'err');
                                 }
