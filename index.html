@@ -374,7 +374,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
     <div id="progressBar"></div>
 
-<iframe id="preview" sandbox="allow-scripts allow-same-origin allow-modals allow-forms allow-popups"></iframe>
+<iframe id="preview" sandbox="allow-scripts allow-same-origin allow-modals allow-forms allow-popups allow-downloads"></iframe>
 <textarea id="codeView" spellcheck="false" placeholder="Code will appear here..." readonly></textarea>
 
 <div id="codeEditorActions">
@@ -1030,12 +1030,25 @@ window.renderBookmarks = function() {
                     const bytes = new Uint8Array(len);
                     for (let j = 0; j < len; j++) bytes[j] = binaryString.charCodeAt(j);
                     let blob = new Blob([bytes], { type: 'application/octet-stream' });
-                    let url = URL.createObjectURL(blob);
-                    let a = document.createElement('a');
-                    a.href = url; a.download = path.split('/').pop();
-                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                    setTimeout(() => URL.revokeObjectURL(url), 3000);
-                    toast('✅ Downloaded ' + path.split('/').pop());
+                                        let url = URL.createObjectURL(blob);
+                                        let a = document.createElement('a');
+                                        a.style.position = 'absolute';
+                                        a.style.left = '-9999px';
+                                        a.style.visibility = 'hidden';
+                                        a.href = url; 
+                                        a.download = path.split('/').pop();
+                                        a.target = '_blank';
+                                        document.body.appendChild(a); 
+                    
+                                        let evt = document.createEvent("MouseEvents");
+                                        evt.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
+                                        a.dispatchEvent(evt);
+                    
+                                        setTimeout(() => {
+                                            if (document.body.contains(a)) document.body.removeChild(a);
+                                            URL.revokeObjectURL(url);
+                                        }, 5000);
+                                        toast('✅ Downloaded ' + path.split('/').pop());
                 } catch (err) {
                     toast('❌ Download failed: ' + err.message, 'err');
                 }
@@ -1065,15 +1078,25 @@ window.renderBookmarks = function() {
                                     toast('⏳ Zipping files...', 'info');
                                     const zipContent = await zip.generateAsync({type:"blob"});
                                     const defaultName = ghRepo.split('/')[1] + '-export.zip';
-                                    const zipUrl = URL.createObjectURL(zipContent);
-                                    const zipA = document.createElement('a');
-                                    zipA.href = zipUrl;
-                                    zipA.download = defaultName;
-                                    zipA.style.display = 'none';
-                                    document.body.appendChild(zipA);
-                                    zipA.click();
-                                    setTimeout(function() { document.body.removeChild(zipA); URL.revokeObjectURL(zipUrl); }, 5000);
-                                    toast('✅ Zip Downloaded (' + downloaded + ' files)' + (failed ? ' [' + failed + ' failed]' : ''));
+                                                                        const zipUrl = URL.createObjectURL(zipContent);
+                                                                        const zipA = document.createElement('a');
+                                                                        zipA.style.position = 'absolute';
+                                                                        zipA.style.left = '-9999px';
+                                                                        zipA.style.visibility = 'hidden';
+                                                                        zipA.href = zipUrl;
+                                                                        zipA.download = defaultName;
+                                                                        zipA.target = '_blank';
+                                                                        document.body.appendChild(zipA);
+                                    
+                                                                        let evt = document.createEvent("MouseEvents");
+                                                                        evt.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
+                                                                        zipA.dispatchEvent(evt);
+                                    
+                                                                        setTimeout(function() { 
+                                                                            if (document.body.contains(zipA)) document.body.removeChild(zipA); 
+                                                                            URL.revokeObjectURL(zipUrl); 
+                                                                        }, 5000);
+                                                                        toast('✅ Zip Downloaded (' + downloaded + ' files)' + (failed ? ' [' + failed + ' failed]' : ''));
                                 } else {
                                     toast('❌ Failed to download any files for zip.', 'err');
                                 }
@@ -3402,10 +3425,22 @@ document.getElementById('exportBtn').addEventListener('click', function() {
     var blob = new Blob([sourceContent], { type: 'text/html;charset=utf-8' });
     var url  = URL.createObjectURL(blob);
     var a    = document.createElement('a');
-    a.href = url; a.download = fileName;
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a);
-    setTimeout(function() { URL.revokeObjectURL(url); }, 3000);
+                a.style.position = 'absolute';
+                a.style.left = '-9999px';
+                a.style.visibility = 'hidden';
+                a.href = url; 
+                a.download = fileName;
+                a.target = '_blank';
+                document.body.appendChild(a); 
+            
+                var evt = document.createEvent("MouseEvents");
+                evt.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
+                a.dispatchEvent(evt);
+            
+                setTimeout(function() { 
+                    if (document.body.contains(a)) document.body.removeChild(a); 
+                    URL.revokeObjectURL(url); 
+                }, 5000);
     toast('Exported: ' + fileName); addLog('ok', 'Exported: ' + fileName);
   } catch(e) { toast('Export failed: ' + e.message, 'err'); }
 });
