@@ -1056,7 +1056,7 @@ window.renderBookmarks = function() {
                         let getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${f.path}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }});
                         if (getRes.ok) {
                             let fileData = await getRes.json();
-                            zip.file(f.path, fileData.content, {base64: true});
+                            zip.file(f.path, fileData.content.replace(/\s/g, ''), {base64: true});
                             downloaded++;
                         } else { failed++; }
                     } catch(e) { failed++; }
