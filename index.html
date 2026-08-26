@@ -553,10 +553,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   <h4>
     <span><i class="fa-solid fa-sitemap" style="color:var(--teal); margin-right:8px;"></i> Repository Tree</span>
     <div style="display:flex; align-items:center; gap:10px;">
-      <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.2); color:var(--blue); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
-      <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
-      <span class="panel-close" onclick="window.closeFullTreeModal()">✕</span>
-    </div>
+          <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.2); color:var(--amber); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
+          <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.2); color:var(--blue); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
+          <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
+          <span class="panel-close" onclick="window.closeFullTreeModal()">✕</span>
+        </div>
   </h4>
   <div id="fullTreeContent"></div>
 </div>
@@ -1016,7 +1017,67 @@ window.renderBookmarks = function() {
 
     window.workspaceFiles = window.workspaceFiles || {};
 
-        window.bulkDeleteModalSelected = async function() {
+            window.downloadFile = async function(path, e) {
+                if(e) e.stopPropagation();
+                if (!ghToken) return;
+                showProgress(30);
+                try {
+                    let getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }});
+                    if (!getRes.ok) throw new Error('Failed to fetch file');
+                    let fileData = await getRes.json();
+                    const binaryString = atob(fileData.content.replace(/\s/g, ''));
+                    const len = binaryString.length;
+                    const bytes = new Uint8Array(len);
+                    for (let j = 0; j < len; j++) bytes[j] = binaryString.charCodeAt(j);
+                    let blob = new Blob([bytes], { type: 'application/octet-stream' });
+                    let url = URL.createObjectURL(blob);
+                    let a = document.createElement('a');
+                    a.href = url; a.download = path.split('/').pop();
+                    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                    setTimeout(() => URL.revokeObjectURL(url), 3000);
+                    toast('✅ Downloaded ' + path.split('/').pop());
+                } catch (err) {
+                    toast('❌ Download failed: ' + err.message, 'err');
+                }
+                hideProgress();
+            };
+
+            window.downloadRepoZip = async function() {
+                if (!ghToken || !ghRepo || !currentTreeFiles) return;
+                toast('⏳ Preparing Zip Download...', 'info');
+                showProgress(10);
+                const zip = new JSZip();
+                let downloaded = 0, failed = 0;
+                const filesToDownload = currentTreeFiles.filter(f => f.type === 'blob');
+                for(let i=0; i<filesToDownload.length; i++) {
+                    let f = filesToDownload[i];
+                    showProgress(10 + ((i+1)/filesToDownload.length)*80);
+                    try {
+                        let getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${f.path}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }});
+                        if (getRes.ok) {
+                            let fileData = await getRes.json();
+                            zip.file(f.path, fileData.content, {base64: true});
+                            downloaded++;
+                        } else { failed++; }
+                    } catch(e) { failed++; }
+                }
+                if (downloaded > 0) {
+                    toast('⏳ Zipping files...', 'info');
+                    zip.generateAsync({type:"blob"}).then(function(content) {
+                        let url = URL.createObjectURL(content);
+                        let a = document.createElement('a');
+                        a.href = url; a.download = ghRepo.split('/')[1] + '-export.zip';
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                        setTimeout(() => URL.revokeObjectURL(url), 3000);
+                        toast(`✅ Zip Downloaded (${downloaded} files)` + (failed ? ` [${failed} failed]` : ''));
+                    });
+                } else {
+                    toast('❌ Failed to download any files for zip.', 'err');
+                }
+                hideProgress();
+            };
+
+            window.bulkDeleteModalSelected = async function() {
             if (!window.modalSelectedPaths || window.modalSelectedPaths.size === 0) return;
             if (!confirm(`Delete ${window.modalSelectedPaths.size} selected item(s)?`)) return;
             window.closeFullTreeModal();
@@ -5101,10 +5162,11 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                     <span style="font-size:13px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; font-weight: ${isTarget ? '600' : '400'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${child.name}</span>
                                                 </div>
                                                 <div class="repo-actions">
-                                                                                  <button class="repo-btn" style="font-size:10px; color:${selColor};" title="Select/Deselect" onclick="window.toggleModalSelection('${f.path}', event)"><i class="${selIcon}"></i></button>
-                                                                                  <button class="repo-btn" style="font-size:10px;" title="Rename File" onclick="window.renameFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-pen"></i></button>
-                                                                                  <button class="repo-btn del" style="font-size:10px; color:var(--red);" title="Delete File" onclick="window.deleteFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
-                                                                              </div>
+                                                                                                                                  <button class="repo-btn" style="font-size:10px; color:${selColor};" title="Select/Deselect" onclick="window.toggleModalSelection('${f.path}', event)"><i class="${selIcon}"></i></button>
+                                                                                                                                  <button class="repo-btn" style="font-size:10px; color:var(--blue);" title="Download File" onclick="window.downloadFile('${f.path}', event)"><i class="fa-solid fa-download"></i></button>
+                                                                                                                                  <button class="repo-btn" style="font-size:10px;" title="Rename File" onclick="window.renameFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-pen"></i></button>
+                                                                                                                                  <button class="repo-btn del" style="font-size:10px; color:var(--red);" title="Delete File" onclick="window.deleteFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
+                                                                                                                              </div>
                                             </div>`;
                                     }
               });
