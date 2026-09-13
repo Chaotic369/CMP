@@ -1294,7 +1294,18 @@ function renderRepoTabs() {
   const container = document.getElementById('repoTabsContainer');
   container.innerHTML = '';
   
-  
+  if (window.repoBulkMode) {
+      const bulkToolbar = document.createElement('div');
+      bulkToolbar.style = "display:flex; justify-content:space-between; align-items:center; padding:6px; background:rgba(248,81,73,0.15); border-bottom:1px solid rgba(248,81,73,0.3); margin-bottom:4px; border-radius:6px;";
+      bulkToolbar.innerHTML = `
+          <span style="font-size:7px; color:var(--red); font-weight:bold;">Select Repos</span>
+          <div style="display:flex; gap:4px;">
+              <button class="repo-btn" onclick="window.toggleRepoBulkMode()" style="background:rgba(255,255,255,0.1); padding:2px 6px;">Cancel</button>
+              <button class="repo-btn" onclick="window.executeBulkRepoDelete()" style="background:rgba(248,81,73,0.3); color:var(--red); padding:2px 6px; font-weight:bold;">Delete (${window.selectedBulkRepos.size})</button>
+          </div>
+      `;
+      container.appendChild(bulkToolbar);
+  }
   
   ghRepos.forEach((r, index) => {
     const btn = document.createElement('div');
@@ -1468,11 +1479,17 @@ function renderRepoTabs() {
     nameSpan.textContent = r.split('/')[1] || r;
     
     btn.onclick = (e) => {
-              if (isDragReady) return; 
-              const ftc = document.getElementById('fileTreeContainer');
-              const rtc = document.getElementById('repoTabsContainer');
+                  if (isDragReady) return; 
+                  if (window.repoBulkMode) {
+                      if (window.selectedBulkRepos.has(r)) window.selectedBulkRepos.delete(r);
+                      else window.selectedBulkRepos.add(r);
+                      renderRepoTabs();
+                      return;
+                  }
+                  const ftc = document.getElementById('fileTreeContainer');
+                  const rtc = document.getElementById('repoTabsContainer');
       
-              if (repoCollapsed) {
+                  if (repoCollapsed) {
                   if (ghRepo !== r) {
                       ghRepo = r;
                       ghSaveConfig();
@@ -1520,16 +1537,25 @@ function renderRepoTabs() {
                           };
 
     const actions = document.createElement('div');
-            actions.className = 'repo-actions';
-            const isBookmarked = typeof ghBookmarkedRepos !== 'undefined' && ghBookmarkedRepos.includes(r);
-            const starColor = isBookmarked ? 'color:var(--amber);' : '';
-            actions.innerHTML = `
-              <button class="repo-btn star" style="${starColor}" title="Bookmark Repo" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
-              <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
-              <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
-            `;
+                actions.className = 'repo-actions';
+            
+                if (window.repoBulkMode) {
+                    actions.style.display = 'flex';
+                    const isSel = window.selectedBulkRepos.has(r);
+                    actions.innerHTML = `
+                      <button class="repo-btn" style="color:${isSel ? 'var(--green)' : 'rgba(255,255,255,0.6)'}; font-size:10px;"><i class="${isSel ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'}"></i></button>
+                    `;
+                } else {
+                    const isBookmarked = typeof ghBookmarkedRepos !== 'undefined' && ghBookmarkedRepos.includes(r);
+                    const starColor = isBookmarked ? 'color:var(--amber);' : '';
+                    actions.innerHTML = `
+                      <button class="repo-btn star" style="${starColor}" title="Bookmark Repo" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
+                      <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
+                      <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
+                    `;
+                }
 
-            btn.appendChild(nameSpan);
+                btn.appendChild(nameSpan);
             btn.appendChild(actions);
             container.appendChild(btn);
           });
@@ -1538,6 +1564,7 @@ function renderRepoTabs() {
 
 function updateRepoSidebar() {
   const btn = document.getElementById('repoToggleBtn');
+  const backToReposBtn = document.getElementById('backToReposBtn');
   const addRepoBtn = document.getElementById('repoAddBtn');
   const addFileBtn = document.getElementById('fileAddBtn');
   const uploadBtn = document.getElementById('fileUploadBtn');
@@ -1559,9 +1586,11 @@ function updateRepoSidebar() {
       if (repoCollapsed) {
       btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
       container.classList.add('mini');
+      if (backToReposBtn) backToReposBtn.style.display = 'none';
     } else {
       btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
       container.classList.remove('mini');
+      if (backToReposBtn) backToReposBtn.style.display = 'flex';
   }
   if ($appMenu.classList.contains('open')) updateMenuPosition();
 }
@@ -1906,6 +1935,61 @@ window.renameRepo = async function(full_name, e) {
     } catch (err) {
         toast('❌ Failed: ' + err.message, 'err');
     }
+    hideProgress();
+};
+
+window.repoBulkMode = false;
+window.selectedBulkRepos = new Set();
+
+window.goBackToRepos = function() {
+    repoCollapsed = true;
+    localStorage.setItem('repo_collapsed', repoCollapsed);
+    document.getElementById('fileTreeContainer').style.display = 'none';
+    document.getElementById('repoTabsContainer').classList.add('expanded');
+    updateRepoSidebar();
+};
+
+window.toggleRepoBulkMode = function() {
+    window.repoBulkMode = !window.repoBulkMode;
+    window.selectedBulkRepos.clear();
+    let btn = document.getElementById('repoBulkDeleteModeBtn');
+    if (btn) btn.style.opacity = window.repoBulkMode ? '1' : '0.6';
+    renderRepoTabs();
+};
+
+window.executeBulkRepoDelete = async function() {
+    if (window.selectedBulkRepos.size === 0) {
+        window.toggleRepoBulkMode();
+        return;
+    }
+    if (!confirm(`Delete ${window.selectedBulkRepos.size} repositories? This cannot be undone.`)) return;
+    showProgress(10);
+    let deleted = 0;
+    let failed = 0;
+    for (let r of window.selectedBulkRepos) {
+        try {
+            let res = await fetch(`https://api.github.com/repos/${r}`, {
+                method: 'DELETE',
+                headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+            });
+            if(!res.ok) {
+                if(res.status === 403) throw new Error("403 Forbidden");
+                throw new Error(await res.text());
+            }
+            deleted++;
+            if (ghRepo === r) {
+                ghRepo = '';
+                currentDirectory = '';
+                ghSaveConfig();
+                document.getElementById('fileTreeContainer').style.display='none';
+                document.getElementById('repoTabsContainer').classList.add('expanded');
+            }
+        } catch(e) { failed++; }
+    }
+    toast(`✅ Deleted ${deleted} repos` + (failed ? ` (${failed} failed)` : ''));
+    window.repoBulkMode = false;
+    window.selectedBulkRepos.clear();
+    ghFetchAllRepos();
     hideProgress();
 };
 
