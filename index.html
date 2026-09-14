@@ -463,9 +463,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                             <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i></button>
                             <button id="buildApkBtn" class="btn" style="display:none;"></button>
                             <button id="buildExeBtn" class="btn" style="display:none;"></button>
-                            <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);" onclick="window.checkAndDownloadLatest('build-apk.yml')"><i class="fa-solid fa-file-zipper"></i></button>
-                                                                                        <button id="pullApkLogBtn" class="btn" title="Pull Last APK Build Log" style="color:var(--red);" onclick="fetchLatestFailedLog('build-apk.yml')"><i class="fa-solid fa-file-waveform"></i></button>
-                                                        <button id="downloadExeBtn" class="btn" title="Check & Download Latest EXE Zip" style="color:var(--teal);" onclick="window.checkAndDownloadLatest('build-exe.yml')"><i class="fa-solid fa-file-archive"></i></button>
+                                                        <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);" onclick="window.checkAndDownloadLatest('build-apk.yml')"><i class="fa-solid fa-file-zipper"></i></button>
+                                                        <button id="downloadWallpaperBtn" class="btn" title="Download Live Wallpaper APK" style="color:var(--purple);" onclick="window.checkAndDownloadLatest('build-wallpaper.yml')"><i class="fa-solid fa-mobile-screen"></i></button>
+                                                                                                                    <button id="pullApkLogBtn" class="btn" title="Pull Last APK Build Log" style="color:var(--red);" onclick="fetchLatestFailedLog('build-apk.yml')"><i class="fa-solid fa-file-waveform"></i></button>
+                                                                                    <button id="downloadExeBtn" class="btn" title="Check & Download Latest EXE Zip" style="color:var(--teal);" onclick="window.checkAndDownloadLatest('build-exe.yml')"><i class="fa-solid fa-file-archive"></i></button>
                                                                                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                                     <div style="grid-column: 1 / -1; grid-row: 3; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05);">
                                                                                                                                               <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
@@ -4854,14 +4855,14 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                 let title = 'Building Windows EXE';
         
                 if (isApk) {
-                    workflowPath = '.github/workflows/build-apk.yml';
-                    artifactName = 'Android-APK';
-                    title = 'Building Android APK (Cordova)';
-                } else if (isWallpaper) {
-                    workflowPath = '.github/workflows/build.yml';
-                    artifactName = 'WebWallpaper-APK';
-                    title = 'Building Native Live Wallpaper';
-                }
+                                    workflowPath = '.github/workflows/build-apk.yml';
+                                    artifactName = 'Android-APK';
+                                    title = 'Building Android APK (Cordova)';
+                                } else if (isWallpaper) {
+                                    workflowPath = '.github/workflows/build-wallpaper.yml';
+                                    artifactName = 'WebWallpaper-APK';
+                                    title = 'Building Native Live Wallpaper';
+                                }
   
                 showBuildOverlay(title);
   
@@ -4896,11 +4897,12 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                                                                                         "          sed -i 's/namespace .*/namespace \\\"" + appId + "\\\"/g' app/build.gradle || true",
                                                                                                                         "          sed -i 's/<string name=\"app_name\">.*<\\/string>/<string name=\"app_name\">" + appName.replace(/"/g, '\\"') + "<\\/string>/g' app/src/main/res/values/strings.xml || true",
                                                                                                                         "      - name: Sanitize and Apply Custom Icon",
-                                                                                                                        "        run: |",
-                                                                                                                        "          sed -i '1!{/^[[:space:]]*$/d}' app/src/main/AndroidManifest.xml || true",
-                                                                                                                        "          sed -i '1s/^[[:space:]]*//' app/src/main/AndroidManifest.xml || true",
-                                                                                                                        "          sed -i 's/android:icon=\"[^\"]*\"//g' app/src/main/AndroidManifest.xml || true",
-                                                                                                                        iconBase64 ? "          sed -i 's/<application/<application android:icon=\"@drawable\\/ic_launcher\"/g' app/src/main/AndroidManifest.xml || true" : "          echo 'No custom icon'",
+                                                                                                                                                                                                                                                "        run: |",
+                                                                                                                                                                                                                                                "          sed -i '1!{/^[[:space:]]*$/d}' app/src/main/AndroidManifest.xml || true",
+                                                                                                                                                                                                                                                "          sed -i '1s/^[[:space:]]*//' app/src/main/AndroidManifest.xml || true",
+                                                                                                                                                                                                                                                "          sed -i 's/android:icon=\"[^\"]*\"//g' app/src/main/AndroidManifest.xml || true",
+                                                                                                                                                                                                                                                "          sed -i 's/android:roundIcon=\"[^\"]*\"//g' app/src/main/AndroidManifest.xml || true",
+                                                                                                                                                                                                                                                iconBase64 ? "          sed -i 's/<application/<application android:icon=\"@drawable\\/ic_launcher\" android:roundIcon=\"@drawable\\/ic_launcher\"/g' app/src/main/AndroidManifest.xml || true" : "          echo 'No custom icon'",
                                                                                                                                                                                                             "      - name: Debug - Print Manifest",
                                                                                                                                                                                                             "        run: cat app/src/main/AndroidManifest.xml",
                                                                                                                                                                                                             "      - name: Build Debug APK",
