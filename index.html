@@ -339,6 +339,7 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
   box-shadow: none; transition: background 0.2s, color 0.2s;
 }
 .ce-action-btn:hover { background: rgba(255, 255, 255, 0.1); color: var(--blue); }
+.ce-action-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
 
 #fnrPanel {
   position: fixed; top: calc(36px + env(safe-area-inset-top, 0px)); left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px); z-index: 10001;
@@ -380,6 +381,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <textarea id="codeView" spellcheck="false" placeholder="Code will appear here..." readonly></textarea>
 
 <div id="codeEditorActions">
+  <button class="ce-action-btn" id="ceUndoBtn" title="Undo" disabled style="width:auto; padding:0 6px; gap:4px;"><i class="fa-solid fa-arrow-rotate-left"></i><span id="ceUndoCount" style="font-size:9px; font-weight:600;">0</span></button>
+  <button class="ce-action-btn" id="ceRedoBtn" title="Redo" disabled style="width:auto; padding:0 6px; gap:4px;"><i class="fa-solid fa-arrow-rotate-right"></i><span id="ceRedoCount" style="font-size:9px; font-weight:600;">0</span></button>
   <button class="ce-action-btn" id="selectAllCodeBtn" title="Select All"><i class="fa-solid fa-object-group"></i></button>
   <button class="ce-action-btn" id="copyCodeBtn" title="Copy Whole Code"><i class="fa-regular fa-copy"></i></button>
   <button class="ce-action-btn" id="lockCodeBtn" title="Unlock Editor" style="color:var(--amber);"><i class="fa-solid fa-lock"></i></button>
@@ -3271,6 +3274,16 @@ document.getElementById('selectAllCodeBtn').addEventListener('click', function()
   toast('✅ All code selected');
 });
 
+document.getElementById('ceUndoBtn').addEventListener('click', function() {
+  document.getElementById('undoBtn').click();
+  if (viewMode === 'code') $codeView.value = sourceContent;
+});
+
+document.getElementById('ceRedoBtn').addEventListener('click', function() {
+  document.getElementById('redoBtn').click();
+  if (viewMode === 'code') $codeView.value = sourceContent;
+});
+
 document.getElementById('fnrClose').addEventListener('click', () => {
   document.getElementById('fnrPanel').style.display = 'none';
   $codeView.style.paddingTop = '46px';
@@ -3835,6 +3848,16 @@ function fixEncoding(src) {
 function syncUndoRedo() {
   document.getElementById('undoBtn').disabled = undoStack.length === 0;
   document.getElementById('redoBtn').disabled = redoStack.length === 0;
+  var ceUndo = document.getElementById('ceUndoBtn');
+  var ceRedo = document.getElementById('ceRedoBtn');
+  if (ceUndo) {
+    ceUndo.disabled = undoStack.length === 0;
+    document.getElementById('ceUndoCount').textContent = undoStack.length;
+  }
+  if (ceRedo) {
+    ceRedo.disabled = redoStack.length === 0;
+    document.getElementById('ceRedoCount').textContent = redoStack.length;
+  }
   updateStatusBar();
 }
 
