@@ -2392,22 +2392,34 @@ window.fetchLatestFailedLog = async function(workflowFile) {
           hideProgress();
           return;
         }
-        if (run.conclusion !== 'failure') {
-          toast(`ℹ Latest run concluded: ${run.conclusion} (not a failure).`, 'info');
-          hideProgress();
-          return;
-        }
+        if (run.conclusion === 'cancelled') {
+              toast(`ℹ Latest run was cancelled before completing — no job logs to show.`, 'info');
+              hideProgress();
+              return;
+            }
+            if (run.conclusion !== 'failure') {
+              toast(`ℹ Latest run concluded: ${run.conclusion} (not a failure).`, 'info');
+              hideProgress();
+              return;
+            }
 
-        toast('🔄 Fetching failure logs...', 'info');
-        const jobsRes = await fetch(run.jobs_url, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }});
-        if (!jobsRes.ok) {
-          let detail = '';
-          try { const errJson = await jobsRes.json(); detail = errJson.message || ''; } catch(e) {}
-          throw new Error(`Failed to fetch jobs (${jobsRes.status} ${jobsRes.statusText})` + (detail ? `: ${detail}` : ''));
-        }
-    const jobsData = await jobsRes.json();
-    const failedJob = jobsData.jobs.find(j => j.conclusion === 'failure') || jobsData.jobs[0];
-    if (!failedJob) throw new Error('No job found in run');
+            toast('🔄 Fetching failure logs...', 'info');
+            let jobsData = null;
+            for (let attempt = 0; attempt < 3; attempt++) {
+              const jobsRes = await fetch(run.jobs_url, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+              if (!jobsRes.ok) {
+                let detail = '';
+                try { const errJson = await jobsRes.json(); detail = errJson.message || ''; } catch(e) {}
+                throw new Error(`Failed to fetch jobs (${jobsRes.status} ${jobsRes.statusText})` + (detail ? `: ${detail}` : ''));
+              }
+              jobsData = await jobsRes.json();
+              if (jobsData.jobs && jobsData.jobs.length > 0) break;
+              if (attempt < 2) await new Promise(r => setTimeout(r, 1500));
+            }
+            if (!jobsData || !jobsData.jobs || jobsData.jobs.length === 0) {
+              throw new Error(`No job data returned for run #${run.run_number} (id ${run.id}). It may have been cancelled or GitHub hasn't indexed it yet — view directly: https://github.com/${ghRepo}/actions/runs/${run.id}`);
+            }
+            const failedJob = jobsData.jobs.find(j => j.conclusion === 'failure') || jobsData.jobs[0];
 
     const logRes = await fetch(failedJob.url + '/logs', { headers: { Authorization: `token ${ghToken}` }});
     if (!logRes.ok) throw new Error('Failed to fetch job logs');
