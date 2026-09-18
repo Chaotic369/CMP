@@ -4931,12 +4931,47 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                         });
                       });
 
-      // === Dual Engine Build Modal Logic ===
-      document.getElementById('masterBuildBtn').addEventListener('click', () => {
-              document.getElementById('buildModal').classList.add('open');
-              $backdrop.classList.add('open');
-              window.loadExistingWorkflowsList();
+      // === Build Modal Auto-Save / Restore (prevents lost YAML on reopen or partial paste) ===
+            var BUILD_CONFIG_KEY = 'build_config_v1';
+
+            function saveBuildConfig() {
+              try {
+                var cfg = {
+                  yaml: document.getElementById('bmWorkflowYaml').value,
+                  filename: document.getElementById('bmWorkflowFilename').value,
+                  artifactName: document.getElementById('bmArtifactName').value,
+                  appName: document.getElementById('bmAppName').value,
+                  version: document.getElementById('bmVersion').value
+                };
+                localStorage.setItem(BUILD_CONFIG_KEY, JSON.stringify(cfg));
+              } catch (e) {}
+            }
+
+            function loadBuildConfig() {
+              try {
+                var raw = localStorage.getItem(BUILD_CONFIG_KEY);
+                if (!raw) return;
+                var cfg = JSON.parse(raw);
+                if (cfg.yaml) document.getElementById('bmWorkflowYaml').value = cfg.yaml;
+                if (cfg.filename) document.getElementById('bmWorkflowFilename').value = cfg.filename;
+                if (cfg.artifactName) document.getElementById('bmArtifactName').value = cfg.artifactName;
+                if (cfg.appName) document.getElementById('bmAppName').value = cfg.appName;
+                if (cfg.version) document.getElementById('bmVersion').value = cfg.version;
+              } catch (e) {}
+            }
+
+            ['bmWorkflowYaml', 'bmWorkflowFilename', 'bmArtifactName', 'bmAppName', 'bmVersion'].forEach(function(id) {
+              var el = document.getElementById(id);
+              if (el) el.addEventListener('input', saveBuildConfig);
             });
+
+            // === Dual Engine Build Modal Logic ===
+            document.getElementById('masterBuildBtn').addEventListener('click', () => {
+                    loadBuildConfig();
+                    document.getElementById('buildModal').classList.add('open');
+                    $backdrop.classList.add('open');
+                    window.loadExistingWorkflowsList();
+                  });
 
             window.loadExistingWorkflowsList = async function() {
                     const el = document.getElementById('bmExistingWorkflows');
@@ -5288,8 +5323,9 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       });
 
       document.getElementById('bmCompileBtn').addEventListener('click', async () => {
-              closeBuildModal();
-              const filename = (document.getElementById('bmWorkflowFilename').value.trim() || 'custom-build.yml');
+                    saveBuildConfig();
+                    closeBuildModal();
+                    const filename = (document.getElementById('bmWorkflowFilename').value.trim() || 'custom-build.yml');
               const yamlContent = document.getElementById('bmWorkflowYaml').value;
               const artifactName = document.getElementById('bmArtifactName').value.trim();
               const appName = document.getElementById('bmAppName').value.trim() || 'My App';
