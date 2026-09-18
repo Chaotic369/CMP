@@ -179,9 +179,6 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #sidebarContent.mini .repo-actions { display: none !important; }
 #sidebarContent.mini .repo-item { padding: 0px 4px; margin-bottom: 0px; justify-content: flex-start; text-align: left; flex-direction: row; min-height: 14px; line-height: 14px; }
 #sidebarContent.mini #repoTabsContainer { display: flex !important; flex-direction: column; gap: 0px; max-height: none !important; height: auto; overflow-y: visible; justify-content: flex-start; margin: 0; flex-shrink: 0; }
-#sidebarContent.mini #currentRepoNameDisplay { display: none; }
-#sidebarContent.mini #currentRepoCaret { margin: 0 auto; }
-#sidebarContent.mini #currentRepoHeader { justify-content: center; padding: 8px 0; }
 
 #bookmarkContent { display: flex; flex-direction: column; width: 140px; height: fit-content; max-height: 45vh; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 4px; overflow-x: hidden; }
 #bookmarkContent .repo-item { background: transparent; border-radius: 8px; margin-bottom: 2px; }
@@ -442,11 +439,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                               <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                             </div>
     <div id="sidebarContent">
-              <button id="currentRepoHeader" style="display:none; width:100%; justify-content:space-between; padding:8px 6px; border-radius:0; border:none; border-bottom:1px solid rgba(255,255,255,0.1); font-size:8px; background:transparent; color:#fff; cursor:pointer; align-items:center; flex-shrink:0;">
-                 <span id="currentRepoNameDisplay" style="font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; pointer-events:none; text-align:left; flex-grow:1;">Select Repo</span>
-                 <i id="currentRepoCaret" class="fa-solid fa-caret-down" style="pointer-events:none; margin-left:4px;"></i>
-              </button>
-              <div id="repoTabsContainer" class="expanded" style="display:none;"></div>
+              <div id="repoTabsContainer" class="expanded"></div>
               <div id="directoryNav">
                     <button id="dirBackBtn" title="Go Back"><i class="fa-solid fa-chevron-left"></i></button>
                     <div class="breadcrumb" id="dirPath"></div>
@@ -574,7 +567,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </style>
 <div id="fullTreeModal">
   <h4>
-    <span><i class="fa-solid fa-sitemap" style="color:var(--teal); margin-right:8px;"></i> Repository Tree</span>
+    <span id="modalRepoDropdownBtn" style="cursor:pointer; display:flex; align-items:center;" onclick="window.toggleModalRepoList()">
+        <i class="fa-solid fa-sitemap" style="color:var(--teal); margin-right:8px;"></i> 
+        <span id="modalRepoTitle">Repository Tree</span> 
+        <i class="fa-solid fa-caret-down" id="modalRepoCaret" style="font-size:12px; margin-left:6px; color:rgba(255,255,255,0.6);"></i>
+    </span>
     <div style="display:flex; align-items:center; gap:10px;">
           <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.2); color:var(--amber); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
           <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.2); color:var(--blue); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
@@ -583,6 +580,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         </div>
   </h4>
   <div id="fullTreeContent"></div>
+  <div id="modalRepoList" style="display:none; flex-direction:column; gap:4px; overflow-y:auto; flex:1; padding-right:4px;"></div>
 </div>
 
 <div id="ghConfigPanel">
@@ -1348,17 +1346,6 @@ function renderRepoTabs() {
   const container = document.getElementById('repoTabsContainer');
   container.innerHTML = '';
   
-  const header = document.getElementById('currentRepoHeader');
-  const nameDisplay = document.getElementById('currentRepoNameDisplay');
-  if (header && nameDisplay) {
-      if (ghRepos.length > 0) {
-          header.style.display = 'flex';
-          nameDisplay.textContent = ghRepo ? (ghRepo.split('/')[1] || ghRepo) : 'Select Repo';
-      } else {
-          header.style.display = 'none';
-      }
-  }
-  
   if (window.repoBulkMode) {
       const bulkToolbar = document.createElement('div');
       bulkToolbar.style = "display:flex; justify-content:space-between; align-items:center; padding:6px; background:rgba(248,81,73,0.15); border-bottom:1px solid rgba(248,81,73,0.3); margin-bottom:4px; border-radius:6px;";
@@ -1559,8 +1546,6 @@ function renderRepoTabs() {
                                         ghRepo = r;
                                         ghSaveConfig();
                                         renderRepoTabs();
-                                        rtc.style.display = 'none';
-                                        if (document.getElementById('currentRepoCaret')) document.getElementById('currentRepoCaret').className = 'fa-solid fa-caret-down';
                                         updateRepoSidebar();
                                         fetchFileTree(true, true);
                                     } else {
@@ -1598,8 +1583,6 @@ function renderRepoTabs() {
                                                                           renderRepoTabs();
                                                                           ftc.style.display = 'flex';
                                                                           rtc.classList.remove('expanded');
-                                                                          rtc.style.display = 'none';
-                                                                          if (document.getElementById('currentRepoCaret')) document.getElementById('currentRepoCaret').className = 'fa-solid fa-caret-down';
                                                                           updateRepoSidebar();
                                                                           fetchFileTree(true, false);
                                                                       }
@@ -2964,20 +2947,7 @@ var $toggleBtn   = document.getElementById('toggleUiBtn');
 var $appMenu     = document.getElementById('app-menu');
 var $backdrop    = document.getElementById('menu-backdrop');
 
-var $currentRepoHeader = document.getElementById('currentRepoHeader');
-if ($currentRepoHeader) {
-  $currentRepoHeader.addEventListener('click', function() {
-      var rtc = document.getElementById('repoTabsContainer');
-      var caret = document.getElementById('currentRepoCaret');
-      if (rtc.style.display === 'none' || !rtc.style.display) {
-          rtc.style.display = 'flex';
-          caret.className = 'fa-solid fa-caret-up';
-      } else {
-          rtc.style.display = 'none';
-          caret.className = 'fa-solid fa-caret-down';
-      }
-  });
-}
+
 
 function showProgress(pct) {
   $progress.style.width = pct + '%';
@@ -4791,15 +4761,21 @@ window.syncCurrentFile = async function() {
                 }
 
     /* --- JS FIX: Safe TextDecoder for UTF-8 compatibility (Emojis/Foreign Characters) --- */
-    const binaryString = atob(data.content.replace(/\s/g, ''));
+        if (data.content === undefined && data.download_url) {
+            const rawRes = await fetch(data.download_url);
+            if (!rawRes.ok) throw new Error('Failed to fetch raw content');
+            sourceContent = await rawRes.text();
+        } else {
+            const binaryString = atob((data.content || '').replace(/\s/g, ''));
             const len = binaryString.length;
             const bytes = new Uint8Array(len);
             for (let i = 0; i < len; i++) {
                 bytes[i] = binaryString.charCodeAt(i);
             }
             sourceContent = new TextDecoder('utf-8').decode(bytes);
+        }
         
-            window.workspaceFiles = window.workspaceFiles || {};
+                window.workspaceFiles = window.workspaceFiles || {};
             if (window.workspaceFiles[ghFilePath] && window.workspaceFiles[ghFilePath].modified) {
                 sourceContent = window.workspaceFiles[ghFilePath].content;
                 lastSavedContent = ""; 
@@ -4830,6 +4806,22 @@ window.syncCurrentFile = async function() {
   }
   hideProgress();
 };
+
+document.getElementById('ghSyncBtn').addEventListener('click', async function() {
+  if (!ghToken) { toast('❌ Configure GitHub first.', 'warn'); return; }
+  toast('🔄 Syncing workspace...', 'info');
+  showProgress(20);
+  try {
+    await ghFetchAllRepos();
+    if (ghRepo) {
+      await fetchFileTree(false, true);
+      if (ghFilePath) await syncCurrentFile();
+    }
+  } catch(e) {
+    toast('❌ Sync error: ' + e.message, 'err');
+  }
+  hideProgress();
+});
 
 document.getElementById('ghPushBtn').addEventListener('click', function() {
   syncEditorToSource();
@@ -5556,9 +5548,14 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
             window.modalSelectedPaths = new Set();
 
             window.openFullTreeModal = function() {
-          if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+                      if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+          
+                      document.getElementById('modalRepoTitle').textContent = ghRepo.split('/')[1] || ghRepo;
+                      document.getElementById('modalRepoList').style.display = 'none';
+                      document.getElementById('fullTreeContent').style.display = 'flex';
+                      document.getElementById('modalRepoCaret').className = 'fa-solid fa-caret-down';
     
-          if (currentTreeFiles) {
+                      if (currentTreeFiles) {
               currentTreeFiles.forEach(f => {
                   const parts = f.path.split('/');
                   let currentPath = '';
@@ -5571,11 +5568,75 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
           }
     
           document.getElementById('fullTreeModal').classList.add('open');
-          document.getElementById('menu-backdrop').classList.add('open');
-          window.renderFullTreeModal();
-      };
+                    document.getElementById('menu-backdrop').classList.add('open');
+                    window.renderFullTreeModal();
+                };
 
-      window.closeFullTreeModal = function() {
+                window.toggleModalRepoList = function() {
+                    const list = document.getElementById('modalRepoList');
+                    const content = document.getElementById('fullTreeContent');
+                    const caret = document.getElementById('modalRepoCaret');
+          
+                    if (list.style.display === 'none') {
+                        list.style.display = 'flex';
+                        content.style.display = 'none';
+                        caret.className = 'fa-solid fa-caret-up';
+                        window.renderModalRepoList();
+                    } else {
+                        list.style.display = 'none';
+                        content.style.display = 'flex';
+                        caret.className = 'fa-solid fa-caret-down';
+                    }
+                };
+
+                window.renderModalRepoList = function() {
+                    const list = document.getElementById('modalRepoList');
+                    list.innerHTML = '';
+                    ghRepos.forEach(r => {
+                        const btn = document.createElement('div');
+                        btn.className = 'repo-item' + (r === ghRepo ? ' active' : '');
+                        btn.style.padding = '12px 14px';
+                        btn.style.fontSize = '13px';
+                        btn.style.borderRadius = '10px';
+                        btn.style.cursor = 'pointer';
+                        btn.textContent = r.split('/')[1] || r;
+                        btn.onclick = async () => {
+                            if (ghRepo !== r) {
+                                ghRepo = r;
+                                currentDirectory = '';
+                                ghSaveConfig();
+                                renderRepoTabs();
+                                updateRepoSidebar();
+                      
+                                document.getElementById('modalRepoTitle').textContent = ghRepo.split('/')[1] || ghRepo;
+                                list.style.display = 'none';
+                                document.getElementById('fullTreeContent').style.display = 'flex';
+                                document.getElementById('modalRepoCaret').className = 'fa-solid fa-caret-down';
+                      
+                                document.getElementById('fullTreeContent').innerHTML = '<div style="color:var(--tm); font-size:11px; padding:10px;">Loading tree...</div>';
+                                await fetchFileTree(true, true);
+                      
+                                window.modalTreeExpanded = {};
+                                if (currentTreeFiles) {
+                                    currentTreeFiles.forEach(f => {
+                                        const parts = f.path.split('/');
+                                        let currentPath = '';
+                                        for (let i = 0; i < parts.length - 1; i++) {
+                                            currentPath = currentPath ? currentPath + '/' + parts[i] : parts[i];
+                                            window.modalTreeExpanded[currentPath] = true;
+                                        }
+                                    });
+                                }
+                                window.renderFullTreeModal();
+                            } else {
+                                window.toggleModalRepoList();
+                            }
+                        };
+                        list.appendChild(btn);
+                    });
+                };
+
+                window.closeFullTreeModal = function() {
           document.getElementById('fullTreeModal').classList.remove('open');
           document.getElementById('menu-backdrop').classList.remove('open');
       };
