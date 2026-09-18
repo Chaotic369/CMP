@@ -1080,24 +1080,26 @@ window.renderBookmarks = function() {
                                     const zipContent = await zip.generateAsync({type:"blob"});
                                     const defaultName = ghRepo.split('/')[1] + '-export.zip';
                                                                         const zipUrl = URL.createObjectURL(zipContent);
-                                                                        const zipA = document.createElement('a');
-                                                                        zipA.style.position = 'absolute';
-                                                                        zipA.style.left = '-9999px';
-                                                                        zipA.style.visibility = 'hidden';
-                                                                        zipA.href = zipUrl;
-                                                                        zipA.download = defaultName;
-                                                                        zipA.target = '_blank';
-                                                                        document.body.appendChild(zipA);
+                                                                                                                                                const zipA = document.createElement('a');
+                                                                                                                                                zipA.style.position = 'absolute';
+                                                                                                                                                zipA.style.left = '-9999px';
+                                                                                                                                                zipA.style.visibility = 'hidden';
+                                                                                                                                                zipA.href = zipUrl;
+                                                                                                                                                zipA.download = defaultName;
+                                                                                                                                                zipA.rel = 'noopener';
+                                                                                                                                                document.body.appendChild(zipA);
                                     
-                                                                        let evt = document.createEvent("MouseEvents");
-                                                                        evt.initMouseEvent("click", true, true, window, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
-                                                                        zipA.dispatchEvent(evt);
+                                                                                                                                                try {
+                                                                                                                                                    zipA.click();
+                                                                                                                                                } catch (clickErr) {
+                                                                                                                                                    window.open(zipUrl, '_blank');
+                                                                                                                                                }
                                     
-                                                                        setTimeout(function() { 
-                                                                            if (document.body.contains(zipA)) document.body.removeChild(zipA); 
-                                                                            URL.revokeObjectURL(zipUrl); 
-                                                                        }, 5000);
-                                                                        toast('✅ Zip Downloaded (' + downloaded + ' files)' + (failed ? ' [' + failed + ' failed]' : ''));
+                                                                                                                                                setTimeout(function() { 
+                                                                                                                                                    if (document.body.contains(zipA)) document.body.removeChild(zipA); 
+                                                                                                                                                    URL.revokeObjectURL(zipUrl); 
+                                                                                                                                                }, 8000);
+                                                                                                                                                toast('✅ Zip Downloaded (' + downloaded + ' files)' + (failed ? ' [' + failed + ' failed]' : ''));
                                 } else {
                                     toast('❌ Failed to download any files for zip.', 'err');
                                 }
