@@ -1746,11 +1746,12 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
     }
 
     let source = document.querySelector('input[name="nrSource"]:checked').value;
-        let fileInput = document.getElementById('nrFileInput');
-        let pasteInput = document.getElementById('nrPasteInput');
-        let filesInput = document.getElementById('nrFilesInput');
-        let fileContent = '';
-        let multiFiles = null;
+            let fileInput = document.getElementById('nrFileInput');
+            let pasteInput = document.getElementById('nrPasteInput');
+            let filesInput = document.getElementById('nrFilesInput');
+            let fileContent = '';
+            let multiFiles = null;
+            let filesToProcess = [];
 
         if (source === 'upload') {
             if (!fileInput.files || !fileInput.files[0]) {
@@ -1816,10 +1817,10 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
         let firstUploadedPath = 'index.html';
 
         if (source === 'files') {
-            // Step 4 & 5: Commit multiple files & handle ZIPs
-            toast('⏳ Processing files...', 'info');
-            let filesToProcess = [];
-            let totalExtracted = 0;
+                    // Step 4 & 5: Commit multiple files & handle ZIPs
+                    toast('⏳ Processing files...', 'info');
+                    filesToProcess = [];
+                    let totalExtracted = 0;
 
             for (let file of multiFiles) {
               if (file.name.toLowerCase().endsWith('.zip') || file.type === 'application/zip' || file.type === 'application/x-zip-compressed') {
