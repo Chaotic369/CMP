@@ -179,6 +179,9 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #sidebarContent.mini .repo-actions { display: none !important; }
 #sidebarContent.mini .repo-item { padding: 0px 4px; margin-bottom: 0px; justify-content: flex-start; text-align: left; flex-direction: row; min-height: 14px; line-height: 14px; }
 #sidebarContent.mini #repoTabsContainer { display: flex !important; flex-direction: column; gap: 0px; max-height: none !important; height: auto; overflow-y: visible; justify-content: flex-start; margin: 0; flex-shrink: 0; }
+#sidebarContent.mini #currentRepoNameDisplay { display: none; }
+#sidebarContent.mini #currentRepoCaret { margin: 0 auto; }
+#sidebarContent.mini #currentRepoHeader { justify-content: center; padding: 8px 0; }
 
 #bookmarkContent { display: flex; flex-direction: column; width: 140px; height: fit-content; max-height: 45vh; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 4px; overflow-x: hidden; }
 #bookmarkContent .repo-item { background: transparent; border-radius: 8px; margin-bottom: 2px; }
@@ -439,8 +442,12 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                               <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                             </div>
     <div id="sidebarContent">
-          <div id="repoTabsContainer" class="expanded"></div>
-          <div id="directoryNav">
+              <button id="currentRepoHeader" style="display:none; width:100%; justify-content:space-between; padding:8px 6px; border-radius:0; border:none; border-bottom:1px solid rgba(255,255,255,0.1); font-size:8px; background:transparent; color:#fff; cursor:pointer; align-items:center; flex-shrink:0;">
+                 <span id="currentRepoNameDisplay" style="font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; pointer-events:none; text-align:left; flex-grow:1;">Select Repo</span>
+                 <i id="currentRepoCaret" class="fa-solid fa-caret-down" style="pointer-events:none; margin-left:4px;"></i>
+              </button>
+              <div id="repoTabsContainer" class="expanded" style="display:none;"></div>
+              <div id="directoryNav">
                     <button id="dirBackBtn" title="Go Back"><i class="fa-solid fa-chevron-left"></i></button>
                     <div class="breadcrumb" id="dirPath"></div>
                   </div>
@@ -1341,6 +1348,17 @@ function renderRepoTabs() {
   const container = document.getElementById('repoTabsContainer');
   container.innerHTML = '';
   
+  const header = document.getElementById('currentRepoHeader');
+  const nameDisplay = document.getElementById('currentRepoNameDisplay');
+  if (header && nameDisplay) {
+      if (ghRepos.length > 0) {
+          header.style.display = 'flex';
+          nameDisplay.textContent = ghRepo ? (ghRepo.split('/')[1] || ghRepo) : 'Select Repo';
+      } else {
+          header.style.display = 'none';
+      }
+  }
+  
   if (window.repoBulkMode) {
       const bulkToolbar = document.createElement('div');
       bulkToolbar.style = "display:flex; justify-content:space-between; align-items:center; padding:6px; background:rgba(248,81,73,0.15); border-bottom:1px solid rgba(248,81,73,0.3); margin-bottom:4px; border-radius:6px;";
@@ -1537,13 +1555,15 @@ function renderRepoTabs() {
                   const rtc = document.getElementById('repoTabsContainer');
       
                   if (repoCollapsed) {
-                  if (ghRepo !== r) {
-                      ghRepo = r;
-                      ghSaveConfig();
-                      renderRepoTabs();
-                      updateRepoSidebar();
-                      fetchFileTree(true, true);
-                  } else {
+                                    if (ghRepo !== r) {
+                                        ghRepo = r;
+                                        ghSaveConfig();
+                                        renderRepoTabs();
+                                        rtc.style.display = 'none';
+                                        if (document.getElementById('currentRepoCaret')) document.getElementById('currentRepoCaret').className = 'fa-solid fa-caret-down';
+                                        updateRepoSidebar();
+                                        fetchFileTree(true, true);
+                                    } else {
                       repoCollapsed = false;
                       localStorage.setItem('repo_collapsed', repoCollapsed);
                       if (typeof currentTreeFiles === 'undefined' || currentTreeFiles.length === 0) {
@@ -1572,15 +1592,17 @@ function renderRepoTabs() {
                                 }
                                 updateRepoSidebar();
                             } else {
-                                              ghRepo = r;
-                                              currentDirectory = '';
-                                              ghSaveConfig();
-                                              renderRepoTabs();
-                                              ftc.style.display = 'flex';
-                                              rtc.classList.remove('expanded');
-                                              updateRepoSidebar();
-                                              fetchFileTree(true, false);
-                                          }
+                                                                          ghRepo = r;
+                                                                          currentDirectory = '';
+                                                                          ghSaveConfig();
+                                                                          renderRepoTabs();
+                                                                          ftc.style.display = 'flex';
+                                                                          rtc.classList.remove('expanded');
+                                                                          rtc.style.display = 'none';
+                                                                          if (document.getElementById('currentRepoCaret')) document.getElementById('currentRepoCaret').className = 'fa-solid fa-caret-down';
+                                                                          updateRepoSidebar();
+                                                                          fetchFileTree(true, false);
+                                                                      }
                           };
 
     const actions = document.createElement('div');
@@ -2941,6 +2963,21 @@ var $progress    = document.getElementById('progressBar');
 var $toggleBtn   = document.getElementById('toggleUiBtn');
 var $appMenu     = document.getElementById('app-menu');
 var $backdrop    = document.getElementById('menu-backdrop');
+
+var $currentRepoHeader = document.getElementById('currentRepoHeader');
+if ($currentRepoHeader) {
+  $currentRepoHeader.addEventListener('click', function() {
+      var rtc = document.getElementById('repoTabsContainer');
+      var caret = document.getElementById('currentRepoCaret');
+      if (rtc.style.display === 'none' || !rtc.style.display) {
+          rtc.style.display = 'flex';
+          caret.className = 'fa-solid fa-caret-up';
+      } else {
+          rtc.style.display = 'none';
+          caret.className = 'fa-solid fa-caret-down';
+      }
+  });
+}
 
 function showProgress(pct) {
   $progress.style.width = pct + '%';
