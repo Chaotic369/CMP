@@ -326,7 +326,7 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 /* Find and Replace Panel & Code Actions */
 #codeEditorActions {
   position: fixed; top: env(safe-area-inset-top, 0px); left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px); z-index: 10000;
-  display: none; align-items: center; justify-content: flex-end; gap: 8px; flex-direction: row;
+  display: none; align-items: center; justify-content: flex-start; gap: 8px; flex-direction: row;
   height: 36px; background: #000000; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 0 10px;
 }
 .ce-action-btn {
@@ -378,6 +378,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <textarea id="codeView" spellcheck="false" placeholder="Code will appear here..." readonly></textarea>
 
 <div id="codeEditorActions">
+  <button class="ce-action-btn" id="selectAllCodeBtn" title="Select All"><i class="fa-solid fa-object-group"></i></button>
   <button class="ce-action-btn" id="copyCodeBtn" title="Copy Whole Code"><i class="fa-regular fa-copy"></i></button>
   <button class="ce-action-btn" id="lockCodeBtn" title="Unlock Editor" style="color:var(--amber);"><i class="fa-solid fa-lock"></i></button>
   <button class="ce-action-btn" id="searchCodeBtn" title="Find & Replace"><i class="fa-solid fa-magnifying-glass"></i></button>
@@ -622,12 +623,13 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     </style>
 <div id="buildProgressOverlay" style="display:none; position:fixed; top:80px; left:50%; transform:translateX(-50%); width:calc(100vw - 40px); max-width:420px; background:rgba(22, 22, 22, 0.85); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:20px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:0 16px 48px rgba(0,0,0,0.5);">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px;">
-      <h4 id="bpTitle" style="color:#fff; margin:0; font-size:15px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</h4>
-      <div style="display:flex; gap:16px; align-items:center;">
-        <i class="fa-solid fa-chevron-right panel-close" id="bpMinBtnIcon" style="cursor:pointer; color:rgba(255,255,255,0.7); font-size:16px;" title="Minimize"></i>
-        <i class="fa-solid fa-xmark panel-close" id="bpCloseBtnIcon" style="cursor:pointer; display:none; color:rgba(255,255,255,0.7); font-size:18px;"></i>
+        <h4 id="bpTitle" style="color:#fff; margin:0; font-size:15px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</h4>
+        <div style="display:flex; gap:16px; align-items:center;">
+          <i class="fa-regular fa-copy panel-close" id="bpCopyLogBtnIcon" style="cursor:pointer; color:rgba(255,255,255,0.7); font-size:15px;" title="Copy Error Logs"></i>
+          <i class="fa-solid fa-chevron-right panel-close" id="bpMinBtnIcon" style="cursor:pointer; color:rgba(255,255,255,0.7); font-size:16px;" title="Minimize"></i>
+          <i class="fa-solid fa-xmark panel-close" id="bpCloseBtnIcon" style="cursor:pointer; display:none; color:rgba(255,255,255,0.7); font-size:18px;"></i>
+        </div>
       </div>
-    </div>
   
     <div class="stepper-wrapper" id="bpStepper" style="display:flex; flex-direction:column; gap:16px; margin-bottom:16px; position:relative;">
     <div style="position:absolute; left:11px; top:12px; bottom:12px; width:2px; background:rgba(255,255,255,0.1); z-index:1;">
@@ -3131,6 +3133,13 @@ document.getElementById('copyCodeBtn').addEventListener('click', function() {
   });
 });
 
+document.getElementById('selectAllCodeBtn').addEventListener('click', function() {
+  if (!$codeView.value) { toast('⚠️ Nothing to select', 'warn'); return; }
+  $codeView.focus();
+  $codeView.setSelectionRange(0, $codeView.value.length);
+  toast('✅ All code selected');
+});
+
 document.getElementById('fnrClose').addEventListener('click', () => {
   document.getElementById('fnrPanel').style.display = 'none';
   $codeView.style.paddingTop = '46px';
@@ -4797,11 +4806,24 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       }
 
       if(document.getElementById('bpMinBtnIcon')) {
-        document.getElementById('bpMinBtnIcon').addEventListener('click', (e) => {
-          e.stopPropagation();
-          document.getElementById('buildProgressOverlay').classList.add('minimized');
-        });
-      }
+              document.getElementById('bpMinBtnIcon').addEventListener('click', (e) => {
+                e.stopPropagation();
+                document.getElementById('buildProgressOverlay').classList.add('minimized');
+              });
+            }
+
+            if(document.getElementById('bpCopyLogBtnIcon')) {
+              document.getElementById('bpCopyLogBtnIcon').addEventListener('click', (e) => {
+                e.stopPropagation();
+                const logText = document.getElementById('bpLogs').textContent;
+                if (!logText || !logText.trim()) { toast('⚠️ No logs to copy', 'warn'); return; }
+                navigator.clipboard.writeText(logText).then(function() {
+                  toast('📋 Build logs copied to clipboard!');
+                }).catch(function(err) {
+                  toast('❌ Copy failed: ' + err.message, 'err');
+                });
+              });
+            }
 
       document.getElementById('buildProgressOverlay').addEventListener('click', function(e) {
         if (this.classList.contains('minimized')) {
