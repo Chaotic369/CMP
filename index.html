@@ -468,7 +468,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                                                                 <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i></button>
                             <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i></button>
                             <button id="buildApkBtn" class="btn" style="display:none;"></button>
-                                                        <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);" onclick="window.checkAndDownloadLatest('android.yml')"><i class="fa-solid fa-file-zipper"></i></button>
+                                                        <button id="downloadApkBtn" class="btn" title="Check & Download Latest Build" style="color:var(--teal);" onclick="window.checkAndDownloadLastBuild()"><i class="fa-solid fa-file-zipper"></i></button>
                                                                                                                 <button id="downloadWallpaperBtn" class="btn" title="Download Live Wallpaper APK" style="color:var(--purple);" onclick="window.checkAndDownloadLatest('build-wallpaper.yml')"><i class="fa-solid fa-mobile-screen"></i></button>
                                                                                                                                                                             <button id="pullApkLogBtn" class="btn" title="Pull Last APK Build Log" style="color:var(--red);" onclick="window.fetchLatestFailedLog('android.yml')"><i class="fa-solid fa-file-waveform"></i></button>
                                                                                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
@@ -594,14 +594,15 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
   <div id="bmWrapperSettings">
      <div class="bm-step" style="margin-top:10px;">
-       <label>Target Platform</label>
-       <select id="bmWrapperTarget" class="bm-select">
-                       <option value="wallpaper" selected>Android APK (Native Live Wallpaper)</option>
-                                              <option value="apk">Android APK (Cordova Standard App)</option>
-                                            </select>
+       <label>Workflow YAML</label>
+       <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:140px;"></textarea>
      </div>
+     <div class="gh-row" style="margin-top:10px;"><label>Filename</label><input type="text" id="bmWorkflowFilename" placeholder="custom-build.yml" value="custom-build.yml"></div>
+     <div class="gh-row" style="margin-top:10px;"><label>Artifact Name</label><input type="text" id="bmArtifactName" placeholder="e.g. Android-APK"></div>
+     <div id="bmExistingWorkflows" style="font-size:10px; color:rgba(255,255,255,0.6); margin-top:6px;">Loading existing workflows...</div>
      <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
           <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
+          <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:2px;">These are only used if your YAML declares <code>app_name</code> / <code>app_version</code> under <code>on: workflow_dispatch: inputs:</code> — otherwise GitHub ignores them silently.</div>
                <div class="gh-row" style="margin-top:10px;">
                  <label>App Icon</label>
                  <div style="flex:1; display:flex; align-items:center; gap:8px;">
@@ -610,6 +611,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                    <span id="bmAppIconLabel" style="font-size:10px; color:rgba(255,255,255,0.6);">Optional (auto-scales)</span>
                  </div>
                </div>
+               <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:2px;">Uploaded to <code>build-icon.png</code> in your repo root before the build starts — your workflow must reference this path itself if it wants to use it.</div>
             </div>
 
   <div class="gh-actions">
@@ -2517,12 +2519,21 @@ window.checkAndDownloadLatest = async function(workflowFile) {
           toast('✅ Opened latest run (no artifacts found).', 'ok');
         }
       } catch(e) {
-        toast('❌ Error: ' + e.message, 'err');
-      }
-  hideProgress();
-};
+              toast('❌ Error: ' + e.message, 'err');
+            }
+        hideProgress();
+      };
 
-async function ghFetchAllRepos() {
+      window.checkAndDownloadLastBuild = function() {
+        const lastFile = localStorage.getItem('last_build_workflow_v1');
+        if (!lastFile) {
+          toast('No previous build to check yet.', 'warn');
+          return;
+        }
+        window.checkAndDownloadLatest(lastFile);
+      };
+
+      async function ghFetchAllRepos() {
   if (!ghToken) { toast('❌ Token required to fetch repos.', 'warn'); return; }
   toast('🔄 Fetching repos...', 'info');
   showMenuLoader('Fetching Repositories...');
@@ -4833,9 +4844,31 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
 
       // === Dual Engine Build Modal Logic ===
       document.getElementById('masterBuildBtn').addEventListener('click', () => {
-        document.getElementById('buildModal').classList.add('open');
-        $backdrop.classList.add('open');
-      });
+              document.getElementById('buildModal').classList.add('open');
+              $backdrop.classList.add('open');
+              window.loadExistingWorkflowsList();
+            });
+
+            window.loadExistingWorkflowsList = async function() {
+              const el = document.getElementById('bmExistingWorkflows');
+              if (!el) return;
+              if (!ghToken || !ghRepo) { el.textContent = 'Select a repo first.'; return; }
+              el.textContent = 'Loading existing workflows...';
+              try {
+                const res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/.github/workflows?ref=${ghBranch}`, {
+                  headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+                  cache: 'no-store'
+                });
+                if (res.status === 404) { el.textContent = 'No workflows yet'; return; }
+                if (!res.ok) throw new Error(await res.text());
+                const data = await res.json();
+                const files = (Array.isArray(data) ? data : []).filter(f => f.name.endsWith('.yml') || f.name.endsWith('.yaml'));
+                el.textContent = files.length + ' existing workflow' + (files.length === 1 ? '' : 's') + (files.length > 0 ? ': ' + files.map(f => f.name).join(', ') : '');
+              } catch (err) {
+                el.textContent = 'Failed to load existing workflows: ' + err.message;
+                addLog('err', 'Load workflows list failed: ' + err.message);
+              }
+            };
 
       function closeBuildModal() {
         document.getElementById('buildModal').classList.remove('open');
@@ -4987,213 +5020,99 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
 
       document.getElementById('bmCompileBtn').addEventListener('click', async () => {
               closeBuildModal();
-              const target = document.getElementById('bmWrapperTarget').value;
+              const filename = (document.getElementById('bmWorkflowFilename').value.trim() || 'custom-build.yml');
+              const yamlContent = document.getElementById('bmWorkflowYaml').value;
+              const artifactName = document.getElementById('bmArtifactName').value.trim();
               const appName = document.getElementById('bmAppName').value.trim() || 'My App';
-                      const autoAppId = 'com.custom.webwallpaper' + Date.now().toString().slice(-6);
-                      const appId = autoAppId;
-                      const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
-        
-                      let iconBase64 = '';
-                      const iconFile = document.getElementById('bmAppIcon').files[0];
-                      if (iconFile) {
-                          try {
-                              iconBase64 = await new Promise((res, rej) => {
-                                  const reader = new FileReader();
-                                  reader.onload = (e) => {
-                                      const img = new Image();
-                                      img.onload = () => {
-                                          const cvs = document.createElement('canvas');
-                                          cvs.width = 256; cvs.height = 256; // Standardize to square
-                                          const ctx = cvs.getContext('2d');
-                                          ctx.drawImage(img, 0, 0, 256, 256);
-                                          res(cvs.toDataURL('image/png').split(',')[1]);
-                                      };
-                                      img.onerror = rej;
-                                      img.src = e.target.result;
-                                  };
-                                  reader.onerror = rej;
-                                  reader.readAsDataURL(iconFile);
-                              });
-                          } catch(err) { console.error('Icon parse error', err); }
-                      }
-  
-        if (!ghToken || !ghRepo) {
-          toast('❌ Select a GitHub repo first', 'warn');
-          return;
-        }
+              const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
+              const iconFile = document.getElementById('bmAppIcon').files[0];
 
-        const isApk = target === 'apk';
-                        const isWallpaper = target === 'wallpaper';
-        
-                        let workflowPath = '.github/workflows/build-apk.yml';
-                        let artifactName = 'Android-APK';
-                        let title = 'Building Android APK (Cordova)';
-        
-                        if (isApk) {
-                                    workflowPath = '.github/workflows/build-apk.yml';
-                                    artifactName = 'Android-APK';
-                                    title = 'Building Android APK (Cordova)';
-                                } else if (isWallpaper) {
-                                    workflowPath = '.github/workflows/build-wallpaper.yml';
-                                    artifactName = 'WebWallpaper-APK';
-                                    title = 'Building Native Live Wallpaper';
-                                }
-  
-                showBuildOverlay(title);
-  
-                try {
-                  let workflowContent = '';
-    
-                  if (isWallpaper) {
-                    workflowContent = [
-                      "name: Build APK",
-                      "on: [workflow_dispatch]",
-                      "jobs:",
-                      "  build:",
-                      "    runs-on: ubuntu-latest",
-                      "    steps:",
-                      "      - name: Checkout Code",
-                      "        uses: actions/checkout@v4",
-                      "      - name: Set up Java 17",
-                      "        uses: actions/setup-java@v4",
-                      "        with:",
-                      "          distribution: 'zulu'",
-                      "          java-version: '17'",
-                      "      - name: Setup Gradle",
-                                    "        uses: gradle/actions/setup-gradle@v3",
-                                    "        with:",
-                                    "          gradle-version: '8.2'",
-                                    "          cache-disabled: true",
-                                    "      - name: Set Custom App ID, Namespace, and Name",
-                                                                                                                        "        run: |",
-                                                                                                                        "          sed -i 's/applicationId.*/applicationId = \\\"" + appId + "\\\"/g' app/build.gradle.kts || true",
-                                                                                                                        "          sed -i 's/applicationId .*/applicationId \\\"" + appId + "\\\"/g' app/build.gradle || true",
-                                                                                                                        "          sed -i 's/namespace.*/namespace = \\\"" + appId + "\\\"/g' app/build.gradle.kts || true",
-                                                                                                                        "          sed -i 's/namespace .*/namespace \\\"" + appId + "\\\"/g' app/build.gradle || true",
-                                                                                                                        "          sed -i 's/<string name=\"app_name\">.*<\\/string>/<string name=\"app_name\">" + appName.replace(/"/g, '\\"') + "<\\/string>/g' app/src/main/res/values/strings.xml || true",
-                                                                                                                        "      - name: Sanitize and Apply Custom Icon",
-                                                                                                                                                                                                                                                "        run: |",
-                                                                                                                                                                                                                                                "          sed -i '1!{/^[[:space:]]*$/d}' app/src/main/AndroidManifest.xml || true",
-                                                                                                                                                                                                                                                "          sed -i '1s/^[[:space:]]*//' app/src/main/AndroidManifest.xml || true",
-                                                                                                                                                                                                                                                "          sed -i 's/android:icon=\"[^\"]*\"//g' app/src/main/AndroidManifest.xml || true",
-                                                                                                                                                                                                                                                "          sed -i 's/android:roundIcon=\"[^\"]*\"//g' app/src/main/AndroidManifest.xml || true",
-                                                                                                                                                                                                                                                iconBase64 ? "          sed -i 's/<application/<application android:icon=\"@drawable\\/ic_launcher\" android:roundIcon=\"@drawable\\/ic_launcher\"/g' app/src/main/AndroidManifest.xml || true" : "          echo 'No custom icon'",
-                                                                                                                                                                                                            "      - name: Debug - Print Manifest",
-                                                                                                                                                                                                            "        run: cat app/src/main/AndroidManifest.xml",
-                                                                                                                                                                                                            "      - name: Build Debug APK",
-                                                                        "        run: |",
-                                                                        "          chmod +x gradlew || true",
-                                                                        "          ./gradlew assembleDebug --stacktrace || gradle assembleDebug --stacktrace",
-                                    "      - name: Upload APK",
-                      "        uses: actions/upload-artifact@v4",
-                      "        with:",
-                      "          name: WebWallpaper-APK",
-                      "          path: app/build/outputs/apk/debug/app-debug.apk"
-                    ].join('\n');
-                  } else if (isApk) {
-                    const safeName = appName.replace(/"/g, '\\"');
-            workflowContent = [
-              "name: Build Android APK",
-              "on: [workflow_dispatch]",
-              "jobs:",
-              "  build:",
-              "    runs-on: ubuntu-latest",
-              "    steps:",
-              "      - name: Checkout Source",
-                      "        uses: actions/checkout@v4",
-                      "      - name: Setup Java",
-                      "        uses: actions/setup-java@v4",
-                      "        with:",
-                      "          distribution: 'temurin'",
-                      "          java-version: '17'",
-                      "      - name: Setup Node.js",
-                      "        uses: actions/setup-node@v4",
-                      "        with:",
-                      "          node-version: '24'",
-                      "      - name: Install Cordova",
-                      "        run: npm install -g cordova",
-                      "      - name: Build APK",
-                      "        run: |",
-                      "          export CI=true",
-                      "          export CORDOVA_NO_TELEMETRY=1",
-                      "          export CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https\\://services.gradle.org/distributions/gradle-8.7-all.zip",
-                                          "          cd /tmp",
-                                                                                    "          cordova create app " + appId + " \"" + safeName + "\" --no-telemetry",
-                                                                                    "          rm -rf app/www/*",
-                                                        "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
-                                                        "          cp $GITHUB_WORKSPACE/icon.png app/icon.png || true",
-                                                        "          cd app",
-                                                        "          sed -i 's/version=\"1.0.0\"/version=\"" + appVersion + "\"/g' config.xml",
-                                                        "          sed -i 's/<\\/widget>/\\n    <allow-navigation href=\"*\" \\/>\\n    <allow-intent href=\"*\" \\/>\\n<\\/widget>/g' config.xml",
-                                                                      iconBase64 ? "          sed -i 's/<\\/widget>/\\n    <icon src=\"icon.png\" \\/>\\n<\\/widget>/g' config.xml" : "",
-                                                                      "          cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true",
-              "          cordova platform add android@13.0.0 --no-telemetry",
-              "          cordova build android --no-telemetry",
-                            "      - name: Upload APK",
-                            "        uses: actions/upload-artifact@v4",
-                            "        with:",
-                            "          name: Android-APK",
-                            "          path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk"
-                          ].join('\n');
-                        }
+              if (!ghToken || !ghRepo) {
+                toast('❌ Select a GitHub repo first', 'warn');
+                return;
+              }
+              if (!yamlContent.trim()) {
+                toast('❌ Paste your workflow YAML first', 'warn');
+                return;
+              }
+              if (!artifactName) {
+                toast('❌ Enter the Artifact Name from your upload-artifact step', 'warn');
+                return;
+              }
 
-          if (iconBase64) {
-                      appendBuildLog('Uploading custom icon to repository...');
-                      const iconPath = isWallpaper ? 'app/src/main/res/drawable/ic_launcher.png' : 'icon.png';
-                      try {
-                        await uploadSingleFileToRepo(ghRepo, iconPath, iconBase64, ghBranch, 'Upload custom app icon');
-                        appendBuildLog('Icon uploaded successfully.');
-                      } catch(e) {
-                        appendBuildLog('Warning: Failed to upload icon: ' + e.message);
-                      }
-                    }
+              const title = 'Building: ' + filename;
+              showBuildOverlay(title);
 
-                    appendBuildLog('Updating workflow file in repository...');
-                    let sha = null;
-          const getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
-          if (getRes.ok) sha = (await getRes.json()).sha;
+              try {
+                if (iconFile) {
+                  appendBuildLog('Uploading app icon to build-icon.png...');
+                  try {
+                    const iconBase64 = await readFileAsBase64(iconFile);
+                    await uploadSingleFileToRepo(ghRepo, 'build-icon.png', iconBase64, ghBranch, 'Upload build icon');
+                    appendBuildLog('Icon uploaded successfully.');
+                  } catch (e) {
+                    appendBuildLog('Warning: Failed to upload icon: ' + e.message);
+                  }
+                }
 
-          const encodedWf = btoa(unescape(encodeURIComponent(workflowContent)));
-          const body = { message: "Setup App Builder Action", content: encodedWf, branch: ghBranch };
-          if (sha) body.sha = sha;
+                updateBuildOverlay('Checking for existing workflow file...', 15);
+                const workflowPath = '.github/workflows/' + filename;
+                let sha = null;
+                const getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+                if (getRes.ok) sha = (await getRes.json()).sha;
 
-          const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
-            method: 'PUT',
-            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-          });
-    
-          if (!putRes.ok) throw new Error(await putRes.text());
-    
-          appendBuildLog('Workflow synced. Triggering build dispatch...');
-          updateBuildOverlay('Triggering GitHub Actions...', 25);
-          await new Promise(r => setTimeout(r, 4000));
-    
-          let dispatchSuccess = false;
-          for(let retry=1; retry<=5; retry++){
-            const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowPath.split('/').pop()}/dispatches`, {
-              method: 'POST',
-              headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-              body: JSON.stringify({ ref: ghBranch })
+                appendBuildLog(sha ? 'Existing workflow file found — will overwrite.' : 'No existing workflow file — will create new.');
+                updateBuildOverlay('Writing workflow file...', 20);
+
+                const encodedWf = btoa(unescape(encodeURIComponent(yamlContent)));
+                const body = { message: (sha ? 'Update' : 'Create') + ' ' + filename + ' via AI Compile', content: encodedWf, branch: ghBranch };
+                if (sha) body.sha = sha;
+
+                const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
+                  method: 'PUT',
+                  headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                  body: JSON.stringify(body)
+                });
+                if (!putRes.ok) throw new Error(await putRes.text());
+
+                if (sha) {
+                  toast('⚠ Overwrote existing workflow file: ' + filename, 'warn');
+                  addLog('warn', 'Overwrote existing workflow file: ' + filename);
+                } else {
+                  toast('✅ Created new workflow file: ' + filename, 'ok');
+                  addLog('ok', 'Created new workflow file: ' + filename);
+                }
+
+                appendBuildLog('Workflow synced. Triggering build dispatch...');
+                updateBuildOverlay('Triggering GitHub Actions...', 25);
+                await new Promise(r => setTimeout(r, 4000));
+
+                let dispatchSuccess = false;
+                for (let retry = 1; retry <= 5; retry++) {
+                  const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${filename}/dispatches`, {
+                    method: 'POST',
+                    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ref: ghBranch, inputs: { app_name: appName, app_version: appVersion } })
+                  });
+                  if (dispatchRes.ok) { dispatchSuccess = true; break; }
+                  appendBuildLog(`Dispatch retry ${retry}...`);
+                  await new Promise(r => setTimeout(r, 4000));
+                }
+
+                if (!dispatchSuccess) throw new Error('Failed to trigger workflow dispatch.');
+
+                updateBuildOverlay('Build running. Polling GitHub...', 35);
+                clearTimeout(currentOverlayPollTimer);
+
+                localStorage.setItem('active_build_v1', JSON.stringify({ title, workflowFile: filename, artifactName, startTime: Date.now() }));
+                localStorage.setItem('last_build_workflow_v1', filename);
+                pollOverlayStatus(filename, artifactName);
+
+              } catch (err) {
+                updateBuildOverlay('Build Initialization Failed', 100, 'err');
+                appendBuildLog('ERROR: ' + err.message);
+              }
             });
-            if (dispatchRes.ok) { dispatchSuccess = true; break; }
-            appendBuildLog(`Dispatch retry ${retry}...`);
-            await new Promise(r => setTimeout(r, 4000));
-          }
-    
-          if(!dispatchSuccess) throw new Error('Failed to trigger workflow dispatch.');
-    
-          updateBuildOverlay('Build running. Polling GitHub...', 35);
-              clearTimeout(currentOverlayPollTimer);
-    
-              localStorage.setItem('active_build_v1', JSON.stringify({ title, workflowFile: workflowPath.split('/').pop(), artifactName, startTime: Date.now() }));
-              pollOverlayStatus(workflowPath.split('/').pop(), artifactName);
-    
-        } catch (err) {
-          updateBuildOverlay('Build Initialization Failed', 100, 'err');
-          appendBuildLog('ERROR: ' + err.message);
-        }
-      });
 
       async function pollOverlayStatus(workflowFile, artifactName) {
         try {
