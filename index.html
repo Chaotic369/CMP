@@ -2417,8 +2417,11 @@ window.fetchLatestFailedLog = async function(workflowFile) {
               if (attempt < 2) await new Promise(r => setTimeout(r, 1500));
             }
             if (!jobsData || !jobsData.jobs || jobsData.jobs.length === 0) {
-              throw new Error(`No job data returned for run #${run.run_number} (id ${run.id}). It may have been cancelled or GitHub hasn't indexed it yet — view directly: https://github.com/${ghRepo}/actions/runs/${run.id}`);
-            }
+                  if (run.conclusion === 'startup_failure') {
+                    throw new Error(`Run #${run.run_number} had a startup_failure — GitHub couldn't even parse/schedule the workflow YAML (bad syntax, invalid 'runs-on', bad indentation, etc.), so no job was ever created. Check android.yml directly: https://github.com/${ghRepo}/blob/${ghBranch}/.github/workflows/android.yml`);
+                  }
+                  throw new Error(`No job data returned for run #${run.run_number} (id ${run.id}, conclusion: ${run.conclusion}). This usually means the workflow YAML itself failed to parse — view directly: https://github.com/${ghRepo}/actions/runs/${run.id}`);
+                }
             const failedJob = jobsData.jobs.find(j => j.conclusion === 'failure') || jobsData.jobs[0];
 
     const logRes = await fetch(failedJob.url + '/logs', { headers: { Authorization: `token ${ghToken}` }});
@@ -2433,6 +2436,39 @@ window.fetchLatestFailedLog = async function(workflowFile) {
     toast('✅ Failure log loaded below', 'ok');
   } catch (e) {
     toast('❌ Error: ' + e.message, 'err');
+  }
+  hideProgress();
+};
+
+window.validateWorkflowYaml = async function(workflowFile) {
+  if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+  showProgress(20);
+  try {
+    const res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/.github/workflows/${workflowFile}?ref=${ghBranch}`, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store'
+    });
+    if (!res.ok) throw new Error(`Could not read ${workflowFile} (${res.status})`);
+    const data = await res.json();
+    const binaryString = atob(data.content.replace(/\s/g, ''));
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+    const yamlText = new TextDecoder('utf-8').decode(bytes);
+
+    const issues = [];
+    if (!/^name:/m.test(yamlText)) issues.push('Missing top-level "name:" key.');
+    if (!/^on:/m.test(yamlText)) issues.push('Missing top-level "on:" key.');
+    if (!/^jobs:/m.test(yamlText)) issues.push('Missing top-level "jobs:" key.');
+    if (/\t/.test(yamlText)) issues.push('Contains tab characters — YAML requires spaces only.');
+    if (!/runs-on:\s*\S+/.test(yamlText)) issues.push('No "runs-on:" value found under a job.');
+
+    if (issues.length > 0) {
+      addLog('err', 'Workflow YAML pre-check found issues: ' + issues.join(' | '));
+      toast('⚠ Possible YAML issues:\n' + issues.join('\n'), 'warn', 8000);
+    } else {
+      toast('✅ Basic YAML structure looks OK (name/on/jobs/runs-on present). Startup failures can still be caused by things this check can\'t see, e.g. invalid action references.', 'info', 6000);
+    }
+  } catch (e) {
+    toast('❌ ' + e.message, 'err');
   }
   hideProgress();
 };
