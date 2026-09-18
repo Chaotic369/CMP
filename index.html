@@ -716,6 +716,22 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   <div id="logContent"></div>
 </div>
 
+<style>
+#errLogModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 92vw; max-width: 560px; height: 70vh; display: none; flex-direction: column; gap: 12px; z-index: 32000; background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.08); outline: none !important; border-radius: 20px; padding: 20px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5); }
+#errLogModal.open { display: flex; }
+#errLogModal h4 { color: #ffffff; margin: 0 0 4px 0; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; display: flex; align-items: center; flex-shrink: 0; }
+#errLogModal h4 .panel-close { margin-left: auto; }
+#errLogContent { flex: 1; overflow-y: auto; overflow-x: hidden; background: rgba(0,0,0,0.35); border-radius: 12px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; line-height: 1.6; color: var(--red); white-space: pre-wrap; word-break: break-all; margin: 0; border: 1px solid rgba(255,255,255,0.05); }
+</style>
+<div id="errLogModal">
+  <h4><i class="fa-solid fa-triangle-exclamation" style="color:var(--red); margin-right:8px;"></i> Build Errors <span id="errLogCount" style="font-size:11px; font-weight:500; color:rgba(255,255,255,0.6); margin-left:8px;"></span><span class="panel-close" id="errLogCloseBtnTop">✕</span></h4>
+  <pre id="errLogContent"></pre>
+  <div class="gh-actions" style="margin-top:0; flex-shrink:0;">
+    <button id="errLogCloseBtn"><i class="fa-solid fa-xmark"></i> Close</button>
+    <button id="errLogCopyBtn" style="color:var(--blue); background: rgba(92,157,255,0.2);"><i class="fa-regular fa-copy"></i> Copy All Errors</button>
+  </div>
+</div>
+
 <div id="statusBar">
   <span class="sb-item" id="sb-lines">– lines</span>
   <span class="sb-sep">|</span>
@@ -2393,6 +2409,18 @@ window.deleteFile = async function(path, e) {
             hideProgress();
         };
 
+function extractErrorLines(fullLog) {
+  const rawLines = fullLog.split('\n');
+  const errRegex = /(##\[error\]|\berror\b|\bexception\b|\bfatal\b|\bfailed\b|\bfailure\b)/i;
+  const tsStrip = /^\d{4}-\d{2}-\d{2}T[\d:.]+Z\s?/;
+  const out = [];
+  for (let i = 0; i < rawLines.length; i++) {
+    const clean = rawLines[i].replace(tsStrip, '').trimEnd();
+    if (clean && errRegex.test(clean)) out.push(clean);
+  }
+  return out;
+}
+
 window.fetchLatestFailedLog = async function(workflowFile) {
   if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
   showProgress(20);
@@ -2452,15 +2480,18 @@ window.fetchLatestFailedLog = async function(workflowFile) {
             const failedJob = jobsData.jobs.find(j => j.conclusion === 'failure') || jobsData.jobs[0];
 
     const logRes = await fetch(failedJob.url + '/logs', { headers: { Authorization: `token ${ghToken}` }});
-    if (!logRes.ok) throw new Error('Failed to fetch job logs');
-    const fullLog = await logRes.text();
-    const lines = fullLog.split('\n');
-    const tail = lines.slice(-250).join('\n');
+        if (!logRes.ok) throw new Error('Failed to fetch job logs');
+        const fullLog = await logRes.text();
+        const errorLines = extractErrorLines(fullLog);
+        const hasErrors = errorLines.length > 0;
+        window.lastErrorLogText = hasErrors ? errorLines.join('\n') : fullLog.split('\n').slice(-250).join('\n');
 
-    addLog('err', `Latest failed run log (${workflowFile}) — last 250 lines pulled.`);
-    $logContent.innerHTML = `<div style="margin-bottom:10px; color:var(--red); font-weight:600;">Failed Job: ${escHtml(failedJob.name)}</div><pre style="white-space:pre-wrap; word-break:break-all; font-size:10px; color:rgba(255,255,255,0.85);">${escHtml(tail)}</pre>`;
-    $logPanel.style.display = 'block';
-    toast('✅ Failure log loaded below', 'ok');
+        addLog('err', `Latest failed run log (${workflowFile}) — ${hasErrors ? errorLines.length + ' error line(s) extracted.' : 'no error lines matched, showing last 250 raw lines.'}`);
+        document.getElementById('errLogCount').textContent = hasErrors ? `(${errorLines.length} line${errorLines.length === 1 ? '' : 's'} · ${failedJob.name})` : `(raw tail · ${failedJob.name})`;
+        document.getElementById('errLogContent').textContent = window.lastErrorLogText;
+        document.getElementById('errLogModal').classList.add('open');
+        $backdrop.classList.add('open');
+        toast('✅ Error lines loaded — tap Copy All Errors', 'ok');
   } catch (e) {
     toast('❌ Error: ' + e.message, 'err');
   }
@@ -4852,19 +4883,44 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
 });
 
                 $backdrop.addEventListener('click', function() {
-                        document.getElementById('ghConfigPanel').classList.remove('open');
-                        document.getElementById('commitModal').classList.remove('open');
-                        document.getElementById('newRepoModal').classList.remove('open');
-                        document.getElementById('wallpaperModal').classList.remove('open');
-                        var ftModal = document.getElementById('fullTreeModal');
-                        if (ftModal) ftModal.classList.remove('open');
-                        var bModal = document.getElementById('bulkModal');
-                        if (bModal) bModal.classList.remove('open');
-                        var bdModal = document.getElementById('buildModal');
-                                                if (bdModal) bdModal.classList.remove('open');
-                                                var wfModal = document.getElementById('workflowsModal');
-                                                if (wfModal) wfModal.classList.remove('open');
-                                              });
+                                        document.getElementById('ghConfigPanel').classList.remove('open');
+                                        document.getElementById('commitModal').classList.remove('open');
+                                        document.getElementById('newRepoModal').classList.remove('open');
+                                        document.getElementById('wallpaperModal').classList.remove('open');
+                                        var ftModal = document.getElementById('fullTreeModal');
+                                        if (ftModal) ftModal.classList.remove('open');
+                                        var bModal = document.getElementById('bulkModal');
+                                        if (bModal) bModal.classList.remove('open');
+                                        var bdModal = document.getElementById('buildModal');
+                                                                if (bdModal) bdModal.classList.remove('open');
+                                                                var wfModal = document.getElementById('workflowsModal');
+                                                                if (wfModal) wfModal.classList.remove('open');
+                                                                var elModal = document.getElementById('errLogModal');
+                                                                if (elModal) elModal.classList.remove('open');
+                                                              });
+
+                      var errLogCloseBtnTopEl = document.getElementById('errLogCloseBtnTop');
+                      if (errLogCloseBtnTopEl) errLogCloseBtnTopEl.addEventListener('click', function() {
+                        document.getElementById('errLogModal').classList.remove('open');
+                        $backdrop.classList.remove('open');
+                      });
+
+                      var errLogCloseBtnEl = document.getElementById('errLogCloseBtn');
+                      if (errLogCloseBtnEl) errLogCloseBtnEl.addEventListener('click', function() {
+                        document.getElementById('errLogModal').classList.remove('open');
+                        $backdrop.classList.remove('open');
+                      });
+
+                      var errLogCopyBtnEl = document.getElementById('errLogCopyBtn');
+                      if (errLogCopyBtnEl) errLogCopyBtnEl.addEventListener('click', function() {
+                        var text = window.lastErrorLogText || document.getElementById('errLogContent').textContent || '';
+                        if (!text.trim()) { toast('⚠️ No error lines to copy', 'warn'); return; }
+                        navigator.clipboard.writeText(text).then(function() {
+                          toast('📋 All errors copied to clipboard!');
+                        }).catch(function(err) {
+                          toast('❌ Copy failed: ' + err.message, 'err');
+                        });
+                      });
 
       // === Dual Engine Build Modal Logic ===
       document.getElementById('masterBuildBtn').addEventListener('click', () => {
