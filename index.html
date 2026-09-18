@@ -693,9 +693,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <div id="bpLogs" style="font-size:10px; color:rgba(255,255,255,0.7); background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; min-height:80px; max-height:150px; overflow-y:auto; white-space:pre-wrap; word-break:break-all; border:1px solid rgba(255,255,255,0.05);"></div>
       <div style="display:flex; gap:12px; margin-top:12px;">
         <button id="bpCancelBtn" style="flex:1; padding:8px 16px; background:rgba(248,81,73,0.15); border:1px solid rgba(248,81,73,0.3); border-radius:12px; color:var(--red); cursor:pointer; font-weight:600; font-size:12px; transition:all 0.2s;">Cancel Build</button>
-        <button id="bpCloseBtn" style="display:none; flex:1; padding:8px 16px; background:rgba(255,255,255,0.1); border:none; border-radius:12px; color:#fff; cursor:pointer; font-weight:600; font-size:12px; transition:all 0.2s;">Close</button>
-      </div>
-    </div>
+                <button id="bpCloseBtn" style="display:none; flex:1; padding:8px 16px; background:rgba(255,255,255,0.1); border:none; border-radius:12px; color:#fff; cursor:pointer; font-weight:600; font-size:12px; transition:all 0.2s;">Close</button>
+                <button id="bpCopyErrBtn" style="display:none; flex:1; padding:8px 16px; background:rgba(92,157,255,0.15); border:1px solid rgba(92,157,255,0.3); border-radius:12px; color:var(--blue); cursor:pointer; font-weight:600; font-size:12px; transition:all 0.2s;"><i class="fa-regular fa-copy"></i> Copy Error Log</button>
+              </div>
+            </div>
 
 <div id="astPanel">
   <h4>🧠 AST Health <span class="panel-close" onclick="document.getElementById('astPanel').style.display='none'">✕</span></h4>
@@ -5109,35 +5110,38 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       }
 
       function showBuildOverlay(title) {
-        const ov = document.getElementById('buildProgressOverlay');
-        ov.classList.remove('minimized');
-        document.getElementById('bpTitle').innerHTML = '<i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>' + title;
-        document.getElementById('bpStatusText').textContent = 'Starting build...';
-        document.getElementById('bpStatusText').style.color = 'var(--blue)';
-        document.getElementById('bpLogs').textContent = 'Initializing GitHub Actions...\n';
-        document.getElementById('bpCloseBtn').style.display = 'none';
-          if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'block';
-          if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'none';
-          updateStepperUI(10, '');
-          ov.style.display = 'flex';
-        }
+              const ov = document.getElementById('buildProgressOverlay');
+              ov.classList.remove('minimized');
+              document.getElementById('bpTitle').innerHTML = '<i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>' + title;
+              document.getElementById('bpStatusText').textContent = 'Starting build...';
+              document.getElementById('bpStatusText').style.color = 'var(--blue)';
+              document.getElementById('bpLogs').textContent = 'Initializing GitHub Actions...\n';
+              document.getElementById('bpCloseBtn').style.display = 'none';
+                if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'block';
+                if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'none';
+                if(document.getElementById('bpCopyErrBtn')) document.getElementById('bpCopyErrBtn').style.display = 'none';
+                updateStepperUI(10, '');
+                ov.style.display = 'flex';
+              }
 
       function updateBuildOverlay(status, pct, stateStr) {
-        document.getElementById('bpStatusText').textContent = status;
-        if (pct) updateStepperUI(pct, stateStr);
-        if (stateStr === 'err') {
-            document.getElementById('bpStatusText').style.color = 'var(--red)';
-            if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'none';
-            document.getElementById('bpCloseBtn').style.display = 'block';
-            if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
-          } else if (stateStr === 'ok') {
-            document.getElementById('bpStatusText').style.color = 'var(--green)';
-            if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'none';
-            document.getElementById('bpCloseBtn').style.display = 'block';
-            if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
-            document.getElementById('bpCloseBtn').textContent = 'Download Ready / Close';
-          }
-        }
+              document.getElementById('bpStatusText').textContent = status;
+              if (pct) updateStepperUI(pct, stateStr);
+              if (stateStr === 'err') {
+                  document.getElementById('bpStatusText').style.color = 'var(--red)';
+                  if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'none';
+                  document.getElementById('bpCloseBtn').style.display = 'block';
+                  if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
+                  if(document.getElementById('bpCopyErrBtn')) document.getElementById('bpCopyErrBtn').style.display = 'block';
+                } else if (stateStr === 'ok') {
+                  document.getElementById('bpStatusText').style.color = 'var(--green)';
+                  if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'none';
+                  document.getElementById('bpCloseBtn').style.display = 'block';
+                  if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
+                  document.getElementById('bpCloseBtn').textContent = 'Download Ready / Close';
+                  if(document.getElementById('bpCopyErrBtn')) document.getElementById('bpCopyErrBtn').style.display = 'none';
+                }
+              }
 
       function appendBuildLog(log) {
         const el = document.getElementById('bpLogs');
@@ -5185,17 +5189,32 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
             }
 
             if(document.getElementById('bpCopyLogBtnIcon')) {
-              document.getElementById('bpCopyLogBtnIcon').addEventListener('click', (e) => {
-                e.stopPropagation();
-                const logText = document.getElementById('bpLogs').textContent;
-                if (!logText || !logText.trim()) { toast('⚠️ No logs to copy', 'warn'); return; }
-                navigator.clipboard.writeText(logText).then(function() {
-                  toast('📋 Build logs copied to clipboard!');
-                }).catch(function(err) {
-                  toast('❌ Copy failed: ' + err.message, 'err');
-                });
-              });
-            }
+                          document.getElementById('bpCopyLogBtnIcon').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const logText = document.getElementById('bpLogs').textContent;
+                            if (!logText || !logText.trim()) { toast('⚠️ No logs to copy', 'warn'); return; }
+                            navigator.clipboard.writeText(logText).then(function() {
+                              toast('📋 Build logs copied to clipboard!');
+                            }).catch(function(err) {
+                              toast('❌ Copy failed: ' + err.message, 'err');
+                            });
+                          });
+                        }
+
+                  if(document.getElementById('bpCopyErrBtn')) {
+                          document.getElementById('bpCopyErrBtn').addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const fullLog = document.getElementById('bpLogs').textContent;
+                            if (!fullLog || !fullLog.trim()) { toast('⚠️ No error log to copy', 'warn'); return; }
+                            const traceIdx = fullLog.indexOf('=== ERROR TRACE ===');
+                            const errText = traceIdx !== -1 ? fullLog.slice(traceIdx) : fullLog;
+                            navigator.clipboard.writeText(errText).then(function() {
+                              toast('📋 Error log copied to clipboard!');
+                            }).catch(function(err) {
+                              toast('❌ Copy failed: ' + err.message, 'err');
+                            });
+                          });
+                        }
 
       document.getElementById('buildProgressOverlay').addEventListener('click', function(e) {
         if (this.classList.contains('minimized')) {
