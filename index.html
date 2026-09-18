@@ -2364,6 +2364,57 @@ window.deleteFile = async function(path, e) {
             hideProgress();
         };
 
+window.fetchLatestFailedLog = async function(workflowFile) {
+  if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+  showProgress(20);
+  try {
+    toast('🔄 Checking latest run...', 'info');
+    const runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowFile}/runs?per_page=1`, {
+      headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+      cache: 'no-store'
+    });
+    if (!runsRes.ok) throw new Error('Failed to fetch runs');
+    const runsData = await runsRes.json();
+    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) {
+      toast('❌ No runs found for this workflow.', 'warn');
+      hideProgress();
+      return;
+    }
+    const run = runsData.workflow_runs[0];
+    if (run.status !== 'completed') {
+      toast(`⏳ Latest run is still ${run.status}.`, 'info');
+      hideProgress();
+      return;
+    }
+    if (run.conclusion !== 'failure') {
+      toast(`ℹ Latest run concluded: ${run.conclusion} (not a failure).`, 'info');
+      hideProgress();
+      return;
+    }
+
+    toast('🔄 Fetching failure logs...', 'info');
+    const jobsRes = await fetch(run.jobs_url, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }});
+    if (!jobsRes.ok) throw new Error('Failed to fetch jobs');
+    const jobsData = await jobsRes.json();
+    const failedJob = jobsData.jobs.find(j => j.conclusion === 'failure') || jobsData.jobs[0];
+    if (!failedJob) throw new Error('No job found in run');
+
+    const logRes = await fetch(failedJob.url + '/logs', { headers: { Authorization: `token ${ghToken}` }});
+    if (!logRes.ok) throw new Error('Failed to fetch job logs');
+    const fullLog = await logRes.text();
+    const lines = fullLog.split('\n');
+    const tail = lines.slice(-250).join('\n');
+
+    addLog('err', `Latest failed run log (${workflowFile}) — last 250 lines pulled.`);
+    $logContent.innerHTML = `<div style="margin-bottom:10px; color:var(--red); font-weight:600;">Failed Job: ${escHtml(failedJob.name)}</div><pre style="white-space:pre-wrap; word-break:break-all; font-size:10px; color:rgba(255,255,255,0.85);">${escHtml(tail)}</pre>`;
+    $logPanel.style.display = 'block';
+    toast('✅ Failure log loaded below', 'ok');
+  } catch (e) {
+    toast('❌ Error: ' + e.message, 'err');
+  }
+  hideProgress();
+};
+
 window.checkAndDownloadLatest = async function(workflowFile) {
   if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
   showProgress(20);
