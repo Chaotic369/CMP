@@ -539,13 +539,25 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   <p style="font-size:11px; margin-bottom:8px; color:#a0a0a0;">Paste file paths (one per line). Folders are auto-created.</p>
   <textarea id="bulkPathsInput" placeholder="app/build.gradle&#10;app/src/main/AndroidManifest.xml&#10;.github/workflows/build.yml" style="width:100%; height:150px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:12px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:11px;"></textarea>
   <div class="gh-actions">
-    <button id="bulkCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
-    <button id="bulkConfirmBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-check"></i> Create</button>
+      <button id="bulkCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+      <button id="bulkConfirmBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-check"></i> Create</button>
+    </div>
   </div>
-</div>
 
-<style>
-#fullTreeModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 95vw; max-width: 650px; height: 85vh; display: none; flex-direction: column; gap: 12px; z-index: 30000; background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); outline: none !important; border-radius: 20px; padding: 20px; color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6); }
+  <style>
+  #workflowsModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 420px; display: none; flex-direction: column; gap: 12px; z-index: 30000; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px; padding: 24px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); max-height: calc(100vh - 40px); overflow-y: auto; }
+  #workflowsModal.open { display: flex; }
+  #workflowsModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
+  #workflowsModalList { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
+  #workflowsModalList .repo-item { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.05); }
+  </style>
+  <div id="workflowsModal">
+    <h4><i class="fa-solid fa-folder-tree"></i> Workflow Files <span class="panel-close" id="wfModalCloseBtn">✕</span></h4>
+    <div id="workflowsModalList">Loading...</div>
+  </div>
+
+  <style>
+  #fullTreeModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 95vw; max-width: 650px; height: 85vh; display: none; flex-direction: column; gap: 12px; z-index: 30000; background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); outline: none !important; border-radius: 20px; padding: 20px; color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6); }
 #fullTreeModal.open { display: flex; }
 #fullTreeModal h4 { color: #ffffff; margin-bottom: 8px; font-size: 15px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; flex-shrink:0; display:flex; justify-content:space-between; align-items:center; }
 #fullTreeContent { flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 4px; display: flex; flex-direction: column; gap: 4px; }
@@ -599,7 +611,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
      </div>
      <div class="gh-row" style="margin-top:10px;"><label>Filename</label><input type="text" id="bmWorkflowFilename" placeholder="custom-build.yml" value="custom-build.yml"></div>
      <div class="gh-row" style="margin-top:10px;"><label>Artifact Name</label><input type="text" id="bmArtifactName" placeholder="e.g. Android-APK"></div>
-     <div id="bmExistingWorkflows" style="font-size:10px; color:rgba(255,255,255,0.6); margin-top:6px;">Loading existing workflows...</div>
+     <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
+            <div id="bmExistingWorkflows" style="font-size:10px; color:rgba(255,255,255,0.6); flex:1;">Loading existing workflows...</div>
+            <button id="bmManageWorkflowsBtn" class="btn" style="width:auto; padding:4px 10px; font-size:10px; background:rgba(255,255,255,0.1); border-radius:10px;" title="View & Delete Workflow Files" type="button"><i class="fa-solid fa-folder-tree"></i></button>
+          </div>
      <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
           <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
           <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:2px;">These are only used if your YAML declares <code>app_name</code> / <code>app_version</code> under <code>on: workflow_dispatch: inputs:</code> — otherwise GitHub ignores them silently.</div>
@@ -4839,8 +4854,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                         var bModal = document.getElementById('bulkModal');
                         if (bModal) bModal.classList.remove('open');
                         var bdModal = document.getElementById('buildModal');
-                        if (bdModal) bdModal.classList.remove('open');
-                      });
+                                                if (bdModal) bdModal.classList.remove('open');
+                                                var wfModal = document.getElementById('workflowsModal');
+                                                if (wfModal) wfModal.classList.remove('open');
+                                              });
 
       // === Dual Engine Build Modal Logic ===
       document.getElementById('masterBuildBtn').addEventListener('click', () => {
@@ -4850,25 +4867,90 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
             });
 
             window.loadExistingWorkflowsList = async function() {
-              const el = document.getElementById('bmExistingWorkflows');
-              if (!el) return;
-              if (!ghToken || !ghRepo) { el.textContent = 'Select a repo first.'; return; }
-              el.textContent = 'Loading existing workflows...';
-              try {
-                const res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/.github/workflows?ref=${ghBranch}`, {
-                  headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
-                  cache: 'no-store'
-                });
-                if (res.status === 404) { el.textContent = 'No workflows yet'; return; }
-                if (!res.ok) throw new Error(await res.text());
-                const data = await res.json();
-                const files = (Array.isArray(data) ? data : []).filter(f => f.name.endsWith('.yml') || f.name.endsWith('.yaml'));
-                el.textContent = files.length + ' existing workflow' + (files.length === 1 ? '' : 's') + (files.length > 0 ? ': ' + files.map(f => f.name).join(', ') : '');
-              } catch (err) {
-                el.textContent = 'Failed to load existing workflows: ' + err.message;
-                addLog('err', 'Load workflows list failed: ' + err.message);
-              }
-            };
+                    const el = document.getElementById('bmExistingWorkflows');
+                    if (!el) return;
+                    if (!ghToken || !ghRepo) { el.textContent = 'Select a repo first.'; return; }
+                    el.textContent = 'Loading existing workflows...';
+                    try {
+                      const res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/.github/workflows?ref=${ghBranch}`, {
+                        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+                        cache: 'no-store'
+                      });
+                      if (res.status === 404) { el.textContent = 'No workflows yet'; return; }
+                      if (!res.ok) throw new Error(await res.text());
+                      const data = await res.json();
+                      const files = (Array.isArray(data) ? data : []).filter(f => f.name.endsWith('.yml') || f.name.endsWith('.yaml'));
+                      el.textContent = files.length + ' existing workflow' + (files.length === 1 ? '' : 's') + (files.length > 0 ? ': ' + files.map(f => f.name).join(', ') : '');
+                    } catch (err) {
+                      el.textContent = 'Failed to load existing workflows: ' + err.message;
+                      addLog('err', 'Load workflows list failed: ' + err.message);
+                    }
+                  };
+
+                  window.openWorkflowsModal = async function() {
+                    if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+                    document.getElementById('workflowsModal').classList.add('open');
+                    $backdrop.classList.add('open');
+                    await window.refreshWorkflowsModalList();
+                  };
+
+                  window.refreshWorkflowsModalList = async function() {
+                    const listEl = document.getElementById('workflowsModalList');
+                    listEl.textContent = 'Loading...';
+                    try {
+                      const res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/.github/workflows?ref=${ghBranch}`, {
+                        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+                        cache: 'no-store'
+                      });
+                      if (res.status === 404) { listEl.innerHTML = '<div style="color:rgba(255,255,255,0.6);">No workflows yet</div>'; return; }
+                      if (!res.ok) throw new Error(await res.text());
+                      const data = await res.json();
+                      const files = (Array.isArray(data) ? data : []).filter(f => f.name.endsWith('.yml') || f.name.endsWith('.yaml'));
+                      if (files.length === 0) {
+                        listEl.innerHTML = '<div style="color:rgba(255,255,255,0.6);">No workflows yet</div>';
+                        return;
+                      }
+                      listEl.innerHTML = files.map(function(f) {
+                        return '<div class="repo-item" style="display:flex; align-items:center; justify-content:space-between;">' +
+                          '<span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escHtml(f.name) + '</span>' +
+                          '<button class="repo-btn del" title="Delete" onclick="window.deleteWorkflowFile(\'' + f.path + '\', \'' + f.sha + '\')"><i class="fa-solid fa-trash"></i></button>' +
+                        '</div>';
+                      }).join('');
+                    } catch (err) {
+                      listEl.innerHTML = '<div style="color:var(--red);">Failed to load: ' + escHtml(err.message) + '</div>';
+                      addLog('err', 'Load workflows modal list failed: ' + err.message);
+                    }
+                  };
+
+                  window.deleteWorkflowFile = async function(path, sha) {
+                    if (!confirm('Delete workflow file "' + path + '"? This cannot be undone.')) return;
+                    showProgress(30);
+                    try {
+                      const res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
+                        method: 'DELETE',
+                        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: 'Delete ' + path, sha: sha, branch: ghBranch })
+                      });
+                      if (!res.ok) throw new Error(await res.text());
+                      toast('✅ Deleted ' + path.split('/').pop());
+                      addLog('ok', 'Deleted workflow file: ' + path);
+                      await window.refreshWorkflowsModalList();
+                      var bd = document.getElementById('buildModal');
+                      if (bd && bd.classList.contains('open')) window.loadExistingWorkflowsList();
+                    } catch (err) {
+                      toast('❌ Delete failed: ' + err.message, 'err');
+                      addLog('err', 'Delete workflow file failed: ' + err.message);
+                    }
+                    hideProgress();
+                  };
+
+                  var bmManageWorkflowsBtnEl = document.getElementById('bmManageWorkflowsBtn');
+                  if (bmManageWorkflowsBtnEl) bmManageWorkflowsBtnEl.addEventListener('click', window.openWorkflowsModal);
+                  var wfModalCloseBtnEl = document.getElementById('wfModalCloseBtn');
+                  if (wfModalCloseBtnEl) wfModalCloseBtnEl.addEventListener('click', function() {
+                    document.getElementById('workflowsModal').classList.remove('open');
+                    $backdrop.classList.remove('open');
+                  });
 
       function closeBuildModal() {
         document.getElementById('buildModal').classList.remove('open');
@@ -5045,15 +5127,20 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
 
               try {
                 if (iconFile) {
-                  appendBuildLog('Uploading app icon to build-icon.png...');
-                  try {
-                    const iconBase64 = await readFileAsBase64(iconFile);
-                    await uploadSingleFileToRepo(ghRepo, 'build-icon.png', iconBase64, ghBranch, 'Upload build icon');
-                    appendBuildLog('Icon uploaded successfully.');
-                  } catch (e) {
-                    appendBuildLog('Warning: Failed to upload icon: ' + e.message);
-                  }
-                }
+                            appendBuildLog('Uploading app icon to build-icon.png...');
+                            try {
+                              const iconBase64 = await readFileAsBase64(iconFile);
+                              let iconSha = null;
+                              try {
+                                const iconGetRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/build-icon.png?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+                                if (iconGetRes.ok) iconSha = (await iconGetRes.json()).sha;
+                              } catch (e) {}
+                              await uploadSingleFileToRepo(ghRepo, 'build-icon.png', iconBase64, ghBranch, iconSha ? 'Overwrite build icon' : 'Upload build icon');
+                              appendBuildLog(iconSha ? '⚠ Icon overwritten (build-icon.png replaced).' : '✅ Icon uploaded (build-icon.png created).');
+                            } catch (e) {
+                              appendBuildLog('Warning: Failed to upload icon: ' + e.message);
+                            }
+                          }
 
                 updateBuildOverlay('Checking for existing workflow file...', 15);
                 const workflowPath = '.github/workflows/' + filename;
