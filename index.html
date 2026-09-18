@@ -2423,6 +2423,11 @@ function extractErrorLines(fullLog) {
 
 window.fetchLatestFailedLog = async function(workflowFile) {
   if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+  window.lastErrorLogText = '';
+  var elCountReset = document.getElementById('errLogCount');
+  var elContentReset = document.getElementById('errLogContent');
+  if (elCountReset) elCountReset.textContent = '';
+  if (elContentReset) elContentReset.textContent = 'Fetching latest run...';
   showProgress(20);
   try {
     toast('🔄 Checking latest run...', 'info');
@@ -2459,18 +2464,18 @@ window.fetchLatestFailedLog = async function(workflowFile) {
             }
 
             toast('🔄 Fetching failure logs...', 'info');
-            let jobsData = null;
-            for (let attempt = 0; attempt < 3; attempt++) {
-              const jobsRes = await fetch(run.jobs_url, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
-              if (!jobsRes.ok) {
-                let detail = '';
-                try { const errJson = await jobsRes.json(); detail = errJson.message || ''; } catch(e) {}
-                throw new Error(`Failed to fetch jobs (${jobsRes.status} ${jobsRes.statusText})` + (detail ? `: ${detail}` : ''));
-              }
-              jobsData = await jobsRes.json();
-              if (jobsData.jobs && jobsData.jobs.length > 0) break;
-              if (attempt < 2) await new Promise(r => setTimeout(r, 1500));
-            }
+                        let jobsData = null;
+                        for (let attempt = 0; attempt < 5; attempt++) {
+                          const jobsRes = await fetch(run.jobs_url, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
+                          if (!jobsRes.ok) {
+                            let detail = '';
+                            try { const errJson = await jobsRes.json(); detail = errJson.message || ''; } catch(e) {}
+                            throw new Error(`Failed to fetch jobs (${jobsRes.status} ${jobsRes.statusText})` + (detail ? `: ${detail}` : ''));
+                          }
+                          jobsData = await jobsRes.json();
+                          if (jobsData.jobs && jobsData.jobs.length > 0) break;
+                          if (attempt < 4) { if (elContentReset) elContentReset.textContent = 'GitHub is still indexing this run\u2019s jobs\u2026 retrying (' + (attempt + 1) + '/5)'; await new Promise(r => setTimeout(r, 2000)); }
+                        }
             if (!jobsData || !jobsData.jobs || jobsData.jobs.length === 0) {
                   if (run.conclusion === 'startup_failure') {
                     throw new Error(`Run #${run.run_number} had a startup_failure — GitHub couldn't even parse/schedule the workflow YAML (bad syntax, invalid 'runs-on', bad indentation, etc.), so no job was ever created. Check android.yml directly: https://github.com/${ghRepo}/blob/${ghBranch}/.github/workflows/android.yml`);
@@ -5468,24 +5473,35 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                         window.location.href = directDownloadUrl;
                                                         updateBuildOverlay('Build Complete! Download should start automatically.', 100, 'ok');
             } else {
-              updateBuildOverlay(`Build Failed (${run.conclusion})`, 100, 'err');
-              appendBuildLog(`\n[${new Date().toLocaleTimeString()}] CONCLUSION: ${run.conclusion.toUpperCase()}\nFetching detailed error logs from GitHub...`);
+                          updateBuildOverlay(`Build Failed (${run.conclusion})`, 100, 'err');
+                          appendBuildLog(`\n[${new Date().toLocaleTimeString()}] CONCLUSION: ${run.conclusion.toUpperCase()}\nFetching detailed error logs from GitHub...`);
         
-              try {
-                const jobsRes = await fetch(run.jobs_url, { headers: { Authorization: `token ${ghToken}` }});
-                const jobsData = await jobsRes.json();
-                const failedJob = jobsData.jobs.find(j => j.conclusion === 'failure') || jobsData.jobs[0];
-                if(failedJob) {
-                  const logRes = await fetch(failedJob.url + '/logs', { headers: { Authorization: `token ${ghToken}` }});
-                  const fullLog = await logRes.text();
-                                    const lines = fullLog.split('\n');
-                                    const tail = lines.slice(-250).join('\n'); // Show last 250 lines of error
-                                    appendBuildLog(`\n=== ERROR TRACE ===\n${tail}`);
-                }
-              } catch(logErr) {
-                appendBuildLog(`Failed to pull direct logs. View on GitHub: https://github.com/${ghRepo}/actions/runs/${run.id}`);
-              }
-            }
+                          try {
+                            let jobsData = null;
+                            for (let attempt = 0; attempt < 4; attempt++) {
+                              const jobsRes = await fetch(run.jobs_url, { headers: { Authorization: `token ${ghToken}` }, cache: 'no-store' });
+                              jobsData = await jobsRes.json();
+                              if (jobsData && jobsData.jobs && jobsData.jobs.length > 0) break;
+                              if (attempt < 3) { appendBuildLog(`Waiting for job data (${attempt + 1}/4)...`); await new Promise(r => setTimeout(r, 2000)); }
+                            }
+
+                            const failedJob = (jobsData && jobsData.jobs && jobsData.jobs.length > 0)
+                              ? (jobsData.jobs.find(j => j.conclusion === 'failure') || jobsData.jobs[0])
+                              : null;
+
+                            if (failedJob) {
+                              const logRes = await fetch(failedJob.url + '/logs', { headers: { Authorization: `token ${ghToken}` }});
+                              const fullLog = await logRes.text();
+                              const errorLines = extractErrorLines(fullLog);
+                              const tail = errorLines.length > 0 ? errorLines.join('\n') : fullLog.split('\n').slice(-250).join('\n');
+                              appendBuildLog(`\n=== ERROR TRACE (${failedJob.name}) ===\n${tail}`);
+                            } else {
+                              appendBuildLog(`\nNo job data ever appeared for this run — this usually means the workflow YAML failed to parse before any job could start.\nView directly: https://github.com/${ghRepo}/actions/runs/${run.id}`);
+                            }
+                          } catch(logErr) {
+                            appendBuildLog(`Failed to pull direct logs (${logErr.message}). View on GitHub: https://github.com/${ghRepo}/actions/runs/${run.id}`);
+                          }
+                        }
           }
         } catch(err) {
           appendBuildLog('Polling error: ' + err.message);
