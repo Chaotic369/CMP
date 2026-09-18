@@ -606,9 +606,12 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
   <div id="bmWrapperSettings">
      <div class="bm-step" style="margin-top:10px;">
-       <label>Workflow YAML</label>
-       <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:140px;"></textarea>
-     </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+              <label style="margin-bottom:0;">Workflow YAML</label>
+              <button id="bmCopyYamlPromptBtn" class="btn" style="width:auto; padding:4px 10px; font-size:10px; background:rgba(255,255,255,0.1); border-radius:10px;" title="Copy an AI prompt to generate this YAML" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Copy AI Prompt</button>
+            </div>
+            <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:140px;"></textarea>
+          </div>
      <div class="gh-row" style="margin-top:10px;"><label>Filename</label><input type="text" id="bmWorkflowFilename" placeholder="custom-build.yml" value="custom-build.yml"></div>
      <div class="gh-row" style="margin-top:10px;"><label>Artifact Name</label><input type="text" id="bmArtifactName" placeholder="e.g. Android-APK"></div>
      <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
@@ -4947,10 +4950,37 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                   var bmManageWorkflowsBtnEl = document.getElementById('bmManageWorkflowsBtn');
                   if (bmManageWorkflowsBtnEl) bmManageWorkflowsBtnEl.addEventListener('click', window.openWorkflowsModal);
                   var wfModalCloseBtnEl = document.getElementById('wfModalCloseBtn');
-                  if (wfModalCloseBtnEl) wfModalCloseBtnEl.addEventListener('click', function() {
-                    document.getElementById('workflowsModal').classList.remove('open');
-                    $backdrop.classList.remove('open');
-                  });
+                        if (wfModalCloseBtnEl) wfModalCloseBtnEl.addEventListener('click', function() {
+                          document.getElementById('workflowsModal').classList.remove('open');
+                          $backdrop.classList.remove('open');
+                        });
+
+                        var bmCopyYamlPromptBtnEl = document.getElementById('bmCopyYamlPromptBtn');
+                        if (bmCopyYamlPromptBtnEl) bmCopyYamlPromptBtnEl.addEventListener('click', function() {
+                          var filename = (document.getElementById('bmWorkflowFilename').value.trim() || 'custom-build.yml');
+                          var artifactName = (document.getElementById('bmArtifactName').value.trim() || '(name you choose, then enter it in the Artifact Name field)');
+                          var appName = (document.getElementById('bmAppName').value.trim() || 'My App');
+                          var appVersion = (document.getElementById('bmVersion').value.trim() || '1.0.0');
+                          var repoContext = ghRepo ? ghRepo : '(my GitHub repo)';
+
+                          var prompt = 'Write a complete GitHub Actions workflow YAML file for me.\n\n' +
+                            'Context:\n' +
+                            '- Repo: ' + repoContext + '\n' +
+                            '- The YAML will be saved as .github/workflows/' + filename + '\n' +
+                            '- It must be triggered by "on: workflow_dispatch:" so it can be dispatched via the GitHub REST API.\n' +
+                            '- If it needs app name / version at build time, declare them as workflow_dispatch inputs named exactly "app_name" and "app_version" (defaults "' + appName + '" and "' + appVersion + '") — my app dispatches these two inputs on every run, but GitHub silently drops them if the YAML does not declare matching input names under "on: workflow_dispatch: inputs:".\n' +
+                            '- If the build needs a custom icon, know that before dispatch my app PUTs an icon file to "build-icon.png" at the repo root (only if I chose one) — reference that path in a build step if relevant, but do not fail the build if it is missing.\n' +
+                            '- The final build output MUST be uploaded with "actions/upload-artifact@v4" and the artifact "name:" must be exactly: ' + artifactName + ' — my app polls for an artifact with this exact name to auto-download it, so do not change or invent a different name.\n' +
+                            '- Use "runs-on: ubuntu-latest" unless I say otherwise.\n' +
+                            '- Keep it a single valid YAML file, spaces only (no tabs), with "name:", "on:", and "jobs:" top-level keys.\n\n' +
+                            'Give me ONLY the final YAML content, no explanation, no markdown code fences.';
+
+                          navigator.clipboard.writeText(prompt).then(function() {
+                            toast('🚀 AI prompt for YAML copied!');
+                          }).catch(function(err) {
+                            toast('❌ Failed to copy prompt: ' + err.message, 'err');
+                          });
+                        });
 
       function closeBuildModal() {
         document.getElementById('buildModal').classList.remove('open');
