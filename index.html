@@ -469,7 +469,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                             <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i></button>
                                                         <button id="buildApkBtn" class="btn" style="display:none;"></button>
                                                                                                                                             <button id="downloadWallpaperBtn" class="btn" title="Download Live Wallpaper APK" style="color:var(--purple);" onclick="window.checkAndDownloadLatest('build-wallpaper.yml')"><i class="fa-solid fa-mobile-screen"></i></button>
-                                                                                                                                                                            <button id="pullApkLogBtn" class="btn" title="Pull Last APK Build Log" style="color:var(--red);" onclick="window.fetchLatestFailedLog('android.yml')"><i class="fa-solid fa-file-waveform"></i></button>
+                                                                                                                                                                            <button id="pullApkLogBtn" class="btn" title="Pull Last APK Build Log" style="color:var(--red);" onclick="window.pullLastFailedLog()"><i class="fa-solid fa-file-waveform"></i></button>
                                                                                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                                     <div style="grid-column: 1 / -1; grid-row: 3; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05);">
                                                                                                                                               <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
@@ -2578,15 +2578,24 @@ window.checkAndDownloadLatest = async function(workflowFile) {
       };
 
       window.checkAndDownloadLastBuild = function() {
-        const lastFile = localStorage.getItem('last_build_workflow_v1');
-        if (!lastFile) {
-          toast('No previous build to check yet.', 'warn');
-          return;
-        }
-        window.checkAndDownloadLatest(lastFile);
-      };
+              const lastFile = localStorage.getItem('last_build_workflow_v1');
+              if (!lastFile) {
+                toast('No previous build to check yet.', 'warn');
+                return;
+              }
+              window.checkAndDownloadLatest(lastFile);
+            };
 
-      async function ghFetchAllRepos() {
+            window.pullLastFailedLog = function() {
+              const lastFile = localStorage.getItem('last_build_workflow_v1');
+              if (!lastFile) {
+                toast('No previous build to check yet.', 'warn');
+                return;
+              }
+              window.fetchLatestFailedLog(lastFile);
+            };
+
+            async function ghFetchAllRepos() {
   if (!ghToken) { toast('❌ Token required to fetch repos.', 'warn'); return; }
   toast('🔄 Fetching repos...', 'info');
   showMenuLoader('Fetching Repositories...');
