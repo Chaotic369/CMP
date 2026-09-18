@@ -462,11 +462,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                                                                 <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i></button>
                             <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i></button>
                             <button id="buildApkBtn" class="btn" style="display:none;"></button>
-                            <button id="buildExeBtn" class="btn" style="display:none;"></button>
                                                         <button id="downloadApkBtn" class="btn" title="Check & Download Latest APK" style="color:var(--teal);" onclick="window.checkAndDownloadLatest('build-apk.yml')"><i class="fa-solid fa-file-zipper"></i></button>
                                                         <button id="downloadWallpaperBtn" class="btn" title="Download Live Wallpaper APK" style="color:var(--purple);" onclick="window.checkAndDownloadLatest('build-wallpaper.yml')"><i class="fa-solid fa-mobile-screen"></i></button>
                                                                                                                     <button id="pullApkLogBtn" class="btn" title="Pull Last APK Build Log" style="color:var(--red);" onclick="fetchLatestFailedLog('build-apk.yml')"><i class="fa-solid fa-file-waveform"></i></button>
-                                                                                    <button id="downloadExeBtn" class="btn" title="Check & Download Latest EXE Zip" style="color:var(--teal);" onclick="window.checkAndDownloadLatest('build-exe.yml')"><i class="fa-solid fa-file-archive"></i></button>
                                                                                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                                     <div style="grid-column: 1 / -1; grid-row: 3; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05);">
                                                                                                                                               <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
@@ -593,9 +591,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
        <label>Target Platform</label>
        <select id="bmWrapperTarget" class="bm-select">
                        <option value="wallpaper" selected>Android APK (Native Live Wallpaper)</option>
-                       <option value="apk">Android APK (Cordova Standard App)</option>
-                       <option value="exe">Windows EXE (Electron)</option>
-                     </select>
+                                              <option value="apk">Android APK (Cordova Standard App)</option>
+                                            </select>
      </div>
      <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
           <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
@@ -4850,13 +4847,13 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
         }
 
         const isApk = target === 'apk';
-                const isWallpaper = target === 'wallpaper';
+                        const isWallpaper = target === 'wallpaper';
         
-                let workflowPath = '.github/workflows/build-exe.yml';
-                let artifactName = 'Windows-EXE';
-                let title = 'Building Windows EXE';
+                        let workflowPath = '.github/workflows/build-apk.yml';
+                        let artifactName = 'Android-APK';
+                        let title = 'Building Android APK (Cordova)';
         
-                if (isApk) {
+                        if (isApk) {
                                     workflowPath = '.github/workflows/build-apk.yml';
                                     artifactName = 'Android-APK';
                                     title = 'Building Android APK (Cordova)';
@@ -4956,64 +4953,13 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                                       "          cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true",
               "          cordova platform add android@13.0.0 --no-telemetry",
               "          cordova build android --no-telemetry",
-              "      - name: Upload APK",
-              "        uses: actions/upload-artifact@v4",
-              "        with:",
-              "          name: Android-APK",
-              "          path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk"
-            ].join('\n');
-          } else {
-            const safeName = appName.replace(/"/g, '\\"');
-            workflowContent = [
-              "name: Build Windows EXE",
-              "on: [workflow_dispatch]",
-              "jobs:",
-              "  build:",
-              "    runs-on: windows-latest",
-              "    steps:",
-              "      - name: Checkout Source",
-                      "        uses: actions/checkout@v4",
-                      "      - name: Setup Node.js",
-                      "        uses: actions/setup-node@v4",
-                      "        with:",
-                      "          node-version: '24'",
-                      "      - name: Build App",
-              "        shell: bash",
-              "        run: |",
-              "          mkdir build_app",
-              "          cp -R $GITHUB_WORKSPACE/* build_app/ || true",
-              "          cd build_app",
-              "          npm init -y",
-              "          npm install electron electron-builder --save-dev",
-              "          cat << 'EOF' > main.js",
-                      "const { app, BrowserWindow } = require('electron');",
-                      "const path = require('path');",
-                      "const fs = require('fs');",
-                      "app.whenReady().then(() => {",
-                      "  let win = new BrowserWindow({ autoHideMenuBar: true, width: 1280, height: 720, webPreferences: { nodeIntegration: false, contextIsolation: true, webSecurity: false } });",
-                      "  let mainFile = 'index.html';",
-                      "  if (!fs.existsSync(path.join(__dirname, mainFile))) {",
-                      "    let files = fs.readdirSync(__dirname).filter(f => f.endsWith('.html'));",
-                      "    if (files.length > 0) mainFile = files[0];",
-                      "  }",
-                      "  win.loadFile(path.join(__dirname, mainFile)).catch((err) => console.error('Failed to load:', err));",
-                      "});",
-                      "app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });",
-                      "EOF",
-              "          npm pkg set main=\"main.js\"",
-                            "          npm pkg set scripts.build=\"electron-builder --win portable --x64\"",
-                            "          npm pkg set build.appId=\"" + appId + "\"",
-                                          "          npm pkg set build.productName=\"" + safeName + "\"",
-                                                        "          npm pkg set version=\"" + appVersion + "\"",
-                                                        iconBase64 ? "          mkdir -p build\n          cp icon.png build/icon.png || true" : "",
-                                                        "          npm run build",
-              "      - name: Upload EXE",
-              "        uses: actions/upload-artifact@v4",
-              "        with:",
-              "          name: Windows-EXE",
-              "          path: build_app/dist/*.exe"
-            ].join('\n');
-          }
+                            "      - name: Upload APK",
+                            "        uses: actions/upload-artifact@v4",
+                            "        with:",
+                            "          name: Android-APK",
+                            "          path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk"
+                          ].join('\n');
+                        }
 
           if (iconBase64) {
                       appendBuildLog('Uploading custom icon to repository...');
