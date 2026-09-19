@@ -350,6 +350,28 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   color: var(--red);
   background: rgba(248, 81, 73, 0.15);
 }
+
+.modal-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: se-resize;
+  z-index: 10001;
+  pointer-events: auto;
+  touch-action: none;
+}
+.modal-resize-handle::after {
+  content: '';
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+}
 input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 0.8; }
 
 .gh-row { display: flex; gap: 8px; align-items: center; }
@@ -859,6 +881,7 @@ function bringModalToFront(modal) {
 
 function centerModal(el) {
   if (!el) return;
+  if (restoreWindowState(el)) return;
   el.style.transform = 'none';
   var w = el.offsetWidth || 360;
   var h = el.offsetHeight || 300;
@@ -866,6 +889,84 @@ function centerModal(el) {
   var top = Math.max(10, (window.innerHeight - h) / 2);
   el.style.left = left + 'px';
   el.style.top = top + 'px';
+}
+
+var WINDOW_STATE_PREFIX = 'win_state_';
+
+function saveWindowState(win) {
+  if (!win || !win.id) return;
+  var state = {
+    left: win.style.left,
+    top: win.style.top,
+    width: win.style.width,
+    height: win.style.height
+  };
+  try {
+    localStorage.setItem(WINDOW_STATE_PREFIX + win.id, JSON.stringify(state));
+  } catch(e) {}
+}
+
+function restoreWindowState(win) {
+  if (!win || !win.id) return false;
+  try {
+    var raw = localStorage.getItem(WINDOW_STATE_PREFIX + win.id);
+    if (!raw) return false;
+    var state = JSON.parse(raw);
+    if (state.width) win.style.width = state.width;
+    if (state.height) win.style.height = state.height;
+    if (state.left && state.top) {
+      win.style.transform = 'none';
+      win.style.left = state.left;
+      win.style.top = state.top;
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+
+function makeWindowResizable(win) {
+  if (!win || win.querySelector('.modal-resize-handle')) return;
+
+  var handle = document.createElement('div');
+  handle.className = 'modal-resize-handle';
+  handle.title = 'Drag to Resize';
+  win.appendChild(handle);
+
+  var isResizing = false;
+  var startX, startY, startW, startH;
+
+  handle.addEventListener('pointerdown', function(e) {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    e.stopPropagation();
+    isResizing = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startW = win.offsetWidth;
+    startH = win.offsetHeight;
+    win.style.transform = 'none';
+    bringModalToFront(win);
+    try { if (handle.setPointerCapture) handle.setPointerCapture(e.pointerId); } catch(err) {}
+  });
+
+  handle.addEventListener('pointermove', function(e) {
+    if (!isResizing) return;
+    e.stopPropagation();
+    if (e.cancelable) e.preventDefault();
+    var newW = Math.max(200, Math.min(window.innerWidth - win.offsetLeft, startW + (e.clientX - startX)));
+    var newH = Math.max(120, Math.min(window.innerHeight - win.offsetTop, startH + (e.clientY - startY)));
+    win.style.width = newW + 'px';
+    win.style.height = newH + 'px';
+  });
+
+  function stopResize(e) {
+    if (!isResizing) return;
+    isResizing = false;
+    e.stopPropagation();
+    saveWindowState(win);
+  }
+
+  handle.addEventListener('pointerup', stopResize);
+  handle.addEventListener('pointercancel', stopResize);
 }
 
 function makeWindowDraggable(win) {
@@ -900,6 +1001,7 @@ function makeWindowDraggable(win) {
       bar.removeEventListener('pointermove', onMove);
       bar.removeEventListener('pointerup', onUp);
       bar.removeEventListener('pointercancel', onUp);
+      saveWindowState(win);
     }
 
     bar.addEventListener('pointermove', onMove, { passive: false });
@@ -6201,7 +6303,11 @@ updateMenuPosition();
   'fullTreeModal', 'buildModal', 'buildProgressOverlay', 'errLogModal'
 ].forEach(function(id) {
   var el = document.getElementById(id);
-  if (el) makeWindowDraggable(el);
+  if (el) {
+    makeWindowDraggable(el);
+    makeWindowResizable(el);
+    restoreWindowState(el);
+  }
 });
 
 sourceContent = '';
