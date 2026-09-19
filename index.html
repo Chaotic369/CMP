@@ -2944,10 +2944,38 @@ window.toggleNesting = function(path, e) {
     renderFileTreeUI();
 };
 
+window._treeCache = window._treeCache || {};
+
 async function fetchFileTree(autoLoad = false, silent = false) {
     if (!ghToken || !ghRepo) return;
     const ftc = document.getElementById('fileTreeContainer');
     const rtc = document.getElementById('repoTabsContainer');
+
+    if (!silent && window._treeCache[ghRepo]) {
+        currentTreeFiles = window._treeCache[ghRepo];
+        if (autoLoad) {
+            let targetFile = currentTreeFiles.find(f => f.path.toLowerCase() === 'index.html' || f.path.toLowerCase().endsWith('/index.html')) 
+                          || currentTreeFiles.find(f => f.path.toLowerCase().endsWith('.html')) 
+                          || currentTreeFiles[0];
+            if (targetFile) {
+                ghFilePath = targetFile.path;
+                document.getElementById('ghFilePath').value = ghFilePath;
+                ghSaveConfig();
+                syncCurrentFile();
+            }
+        }
+        renderFileTreeUI();
+        if (repoCollapsed) {
+            ftc.style.display = 'none';
+            rtc.classList.add('expanded');
+        } else {
+            ftc.style.display = 'flex';
+            rtc.classList.remove('expanded');
+        }
+        updateRepoSidebar();
+        return;
+    }
+
     if (!autoLoad && !silent) {
         ftc.innerHTML = '<div style="color:var(--tm); font-size:10px; padding:4px;">Loading directory map...</div>';
         ftc.style.display = 'flex';
@@ -2973,7 +3001,9 @@ async function fetchFileTree(autoLoad = false, silent = false) {
         if (!res.ok) throw new Error('Tree fetch failed');
         const data = await res.json();
         
-        currentTreeFiles = data.tree.filter(t => t.type === 'blob' && !t.path.includes('.git/'));
+        const IGNORED = ['node_modules/', '.git/', '.gradle/', 'build/', 'dist/', '.next/', 'vendor/', '.cache/'];
+        currentTreeFiles = data.tree.filter(t => t.type === 'blob' && !IGNORED.some(dir => t.path.includes(dir)));
+        window._treeCache[ghRepo] = currentTreeFiles;
         
         if (autoLoad) {
                     let targetFile = currentTreeFiles.find(f => f.path.toLowerCase() === 'index.html' || f.path.toLowerCase().endsWith('/index.html')) 
@@ -5132,6 +5162,7 @@ document.getElementById('ghSyncBtn').addEventListener('click', async function() 
   toast('🔄 Syncing workspace...', 'info');
   showProgress(20);
   try {
+    window._treeCache = {};
     await ghFetchAllRepos();
     if (ghRepo) {
       await fetchFileTree(false, true);
