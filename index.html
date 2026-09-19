@@ -298,6 +298,18 @@ body.hide-btn-labels .btn-lbl {
 .mini-zoom-pop input[type="range"] { width: 70px; accent-color: var(--blue); cursor: pointer; }
 .mini-zoom-pop span { font-size: 8px; font-family: monospace; min-width: 28px; }
 
+.mini-tile-pop {
+  display: none; grid-template-columns: repeat(4, 18px); gap: 4px; position: absolute;
+  top: 22px; right: 28px; background: rgba(22, 22, 22, 0.95); padding: 5px; border-radius: 6px;
+  border: none !important; z-index: 10002; box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+}
+.mini-tile-pop.open { display: grid; }
+.tile-preset-btn {
+  width: 18px; height: 18px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px;
+  background: rgba(255,255,255,0.06); cursor: pointer; display: flex; padding: 1px;
+}
+.tile-preset-btn:hover { border-color: var(--blue); background: rgba(92,157,255,0.2); }
+
 #snapGuideOverlay {
   position: fixed; inset: 0; pointer-events: none; z-index: 32490; display: none;
 }
@@ -305,6 +317,28 @@ body.hide-btn-labels .btn-lbl {
   position: absolute; border: 2px dashed rgba(92, 157, 255, 0.85); background: rgba(92, 157, 255, 0.18);
   border-radius: 8px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   transition: all 0.1s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
+.tile-splitter-v, .tile-splitter-h {
+  position: fixed; z-index: 32495; touch-action: none; user-select: none;
+}
+.tile-splitter-v {
+  top: 0; width: 10px; cursor: col-resize; margin-left: -5px;
+}
+.tile-splitter-v::after {
+  content: ''; position: absolute; left: 4px; top: 0; bottom: 0; width: 2px;
+  background: rgba(255, 255, 255, 0.15); transition: background 0.15s;
+}
+.tile-splitter-h {
+  left: 0; height: 10px; cursor: row-resize; margin-top: -5px;
+}
+.tile-splitter-h::after {
+  content: ''; position: absolute; top: 4px; left: 0; right: 0; height: 2px;
+  background: rgba(255, 255, 255, 0.15); transition: background 0.15s;
+}
+.tile-splitter-v:hover::after, .tile-splitter-h:hover::after,
+.tile-splitter-v.active::after, .tile-splitter-h.active::after {
+  background: var(--blue);
 }
 
 .resize-handle { position: absolute; z-index: 10001; touch-action: none; }
@@ -552,6 +586,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="fring"></div>
 <div id="snapGuideOverlay"><div id="snapGuideBox"></div></div>
+<div id="tileSplittersContainer"></div>
 <div id="menu-backdrop"></div>
 
 <button id="toggleUiBtn" title="Toggle Menu">
@@ -1074,14 +1109,20 @@ function getSnapCoordinates(type) {
   var halfW = Math.floor(w / 2);
   var halfH = Math.floor(h / 2);
 
-  if (type === 'max') return { left: 0, top: 0, width: w, height: h };
-  if (type === 'left') return { left: 0, top: 0, width: halfW, height: h };
-  if (type === 'right') return { left: halfW, top: 0, width: halfW, height: h };
-  if (type === 'tl') return { left: 0, top: 0, width: halfW, height: halfH };
-  if (type === 'bl') return { left: 0, top: halfH, width: halfW, height: halfH };
-  if (type === 'tr') return { left: halfW, top: 0, width: halfW, height: halfH };
-  if (type === 'br') return { left: halfW, top: halfH, width: halfW, height: halfH };
-  return null;
+  var thirdW = Math.floor(w / 3);
+    if (type === 'max') return { left: 0, top: 0, width: w, height: h };
+    if (type === 'left') return { left: 0, top: 0, width: halfW, height: h };
+    if (type === 'right') return { left: halfW, top: 0, width: halfW, height: h };
+    if (type === 'top') return { left: 0, top: 0, width: w, height: halfH };
+    if (type === 'bottom') return { left: 0, top: halfH, width: w, height: halfH };
+    if (type === 'tl') return { left: 0, top: 0, width: halfW, height: halfH };
+    if (type === 'bl') return { left: 0, top: halfH, width: halfW, height: halfH };
+    if (type === 'tr') return { left: halfW, top: 0, width: halfW, height: halfH };
+    if (type === 'br') return { left: halfW, top: halfH, width: halfW, height: halfH };
+    if (type === 'left-third') return { left: 0, top: 0, width: thirdW, height: h };
+    if (type === 'center-third') return { left: thirdW, top: 0, width: thirdW, height: h };
+    if (type === 'right-third') return { left: thirdW * 2, top: 0, width: w - thirdW * 2, height: h };
+    return null;
 }
 
 function updateSnapGuide(type) {
@@ -1141,7 +1182,206 @@ function applyWindowSnap(win, type) {
     frame.style.width = (100 / z) + '%';
     frame.style.height = (100 / z) + '%';
   }
+
+  if (window.updateTileSplitters) window.updateTileSplitters();
 }
+
+window.updateTileSplitters = function() {
+  var container = document.getElementById('tileSplittersContainer');
+  if (!container) return;
+  container.innerHTML = '';
+
+  var wins = Array.from(document.querySelectorAll('.mini-web-modal')).filter(function(w) {
+    return w.style.display !== 'none';
+  });
+  if (wins.length < 2) return;
+
+  var rects = wins.map(function(w) {
+    var r = w.getBoundingClientRect();
+    return { el: w, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
+  });
+
+  var TOL = 16;
+  var vGroups = [];
+  rects.forEach(function(r1) {
+    rects.forEach(function(r2) {
+      if (r1 === r2) return;
+      if (Math.abs(r1.right - r2.left) <= TOL) {
+        var overlapTop = Math.max(r1.top, r2.top);
+        var overlapBottom = Math.min(r1.bottom, r2.bottom);
+        if (overlapBottom - overlapTop >= 50) {
+          var splitX = (r1.right + r2.left) / 2;
+          var found = vGroups.find(function(g) { return Math.abs(g.x - splitX) <= TOL; });
+          if (!found) {
+            vGroups.push({ x: splitX, top: overlapTop, bottom: overlapBottom, leftWins: [r1.el], rightWins: [r2.el] });
+          } else {
+            found.top = Math.min(found.top, overlapTop);
+            found.bottom = Math.max(found.bottom, overlapBottom);
+            if (!found.leftWins.includes(r1.el)) found.leftWins.push(r1.el);
+            if (!found.rightWins.includes(r2.el)) found.rightWins.push(r2.el);
+          }
+        }
+      }
+    });
+  });
+
+  var hGroups = [];
+  rects.forEach(function(r1) {
+    rects.forEach(function(r2) {
+      if (r1 === r2) return;
+      if (Math.abs(r1.bottom - r2.top) <= TOL) {
+        var overlapLeft = Math.max(r1.left, r2.left);
+        var overlapRight = Math.min(r1.right, r2.right);
+        if (overlapRight - overlapLeft >= 50) {
+          var splitY = (r1.bottom + r2.top) / 2;
+          var found = hGroups.find(function(g) { return Math.abs(g.y - splitY) <= TOL; });
+          if (!found) {
+            hGroups.push({ y: splitY, left: overlapLeft, right: overlapRight, topWins: [r1.el], bottomWins: [r2.el] });
+          } else {
+            found.left = Math.min(found.left, overlapLeft);
+            found.right = Math.max(found.right, overlapRight);
+            if (!found.topWins.includes(r1.el)) found.topWins.push(r1.el);
+            if (!found.bottomWins.includes(r2.el)) found.bottomWins.push(r2.el);
+          }
+        }
+      }
+    });
+  });
+
+  vGroups.forEach(function(g) {
+    var d = document.createElement('div');
+    d.className = 'tile-splitter-v';
+    d.style.left = g.x + 'px';
+    d.style.top = g.top + 'px';
+    d.style.height = (g.bottom - g.top) + 'px';
+
+    d.addEventListener('pointerdown', function(e) {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      e.stopPropagation();
+      try { d.setPointerCapture(e.pointerId); } catch(err) {}
+      d.classList.add('active');
+
+      var startX = e.clientX;
+      var leftStates = g.leftWins.map(function(w) { return { el: w, rect: w.getBoundingClientRect() }; });
+      var rightStates = g.rightWins.map(function(w) { return { el: w, rect: w.getBoundingClientRect() }; });
+
+      function onMove(ev) {
+        ev.stopPropagation();
+        if (ev.cancelable) ev.preventDefault();
+        var delta = ev.clientX - startX;
+
+        var canLeft = leftStates.every(function(s) { return s.rect.width + delta >= 120; });
+        var canRight = rightStates.every(function(s) { return s.rect.width - delta >= 120; });
+        if (!canLeft || !canRight) return;
+
+        leftStates.forEach(function(s) {
+          s.el.style.width = (s.rect.width + delta) + 'px';
+          var f = s.el.querySelector('iframe');
+          if (f && f.dataset.zoom) {
+            var z = parseFloat(f.dataset.zoom) || 1;
+            f.style.width = (100 / z) + '%';
+            f.style.height = (100 / z) + '%';
+          }
+        });
+
+        rightStates.forEach(function(s) {
+          s.el.style.left = (s.rect.left + delta) + 'px';
+          s.el.style.width = (s.rect.width - delta) + 'px';
+          var f = s.el.querySelector('iframe');
+          if (f && f.dataset.zoom) {
+            var z = parseFloat(f.dataset.zoom) || 1;
+            f.style.width = (100 / z) + '%';
+            f.style.height = (100 / z) + '%';
+          }
+        });
+
+        d.style.left = (g.x + delta) + 'px';
+      }
+
+      function onUp(ev) {
+        d.releasePointerCapture(ev.pointerId);
+        d.classList.remove('active');
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+        window.removeEventListener('pointercancel', onUp);
+        window.updateTileSplitters();
+      }
+
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onUp);
+    });
+
+    container.appendChild(d);
+  });
+
+  hGroups.forEach(function(g) {
+    var d = document.createElement('div');
+    d.className = 'tile-splitter-h';
+    d.style.top = g.y + 'px';
+    d.style.left = g.left + 'px';
+    d.style.width = (g.right - g.left) + 'px';
+
+    d.addEventListener('pointerdown', function(e) {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      e.stopPropagation();
+      try { d.setPointerCapture(e.pointerId); } catch(err) {}
+      d.classList.add('active');
+
+      var startY = e.clientY;
+      var topStates = g.topWins.map(function(w) { return { el: w, rect: w.getBoundingClientRect() }; });
+      var bottomStates = g.bottomWins.map(function(w) { return { el: w, rect: w.getBoundingClientRect() }; });
+
+      function onMove(ev) {
+        ev.stopPropagation();
+        if (ev.cancelable) ev.preventDefault();
+        var delta = ev.clientY - startY;
+
+        var canTop = topStates.every(function(s) { return s.rect.height + delta >= 100; });
+        var canBottom = bottomStates.every(function(s) { return s.rect.height - delta >= 100; });
+        if (!canTop || !canBottom) return;
+
+        topStates.forEach(function(s) {
+          s.el.style.height = (s.rect.height + delta) + 'px';
+          var f = s.el.querySelector('iframe');
+          if (f && f.dataset.zoom) {
+            var z = parseFloat(f.dataset.zoom) || 1;
+            f.style.width = (100 / z) + '%';
+            f.style.height = (100 / z) + '%';
+          }
+        });
+
+        bottomStates.forEach(function(s) {
+          s.el.style.top = (s.rect.top + delta) + 'px';
+          s.el.style.height = (s.rect.height - delta) + 'px';
+          var f = s.el.querySelector('iframe');
+          if (f && f.dataset.zoom) {
+            var z = parseFloat(f.dataset.zoom) || 1;
+            f.style.width = (100 / z) + '%';
+            f.style.height = (100 / z) + '%';
+          }
+        });
+
+        d.style.top = (g.y + delta) + 'px';
+      }
+
+      function onUp(ev) {
+        d.releasePointerCapture(ev.pointerId);
+        d.classList.remove('active');
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+        window.removeEventListener('pointercancel', onUp);
+        window.updateTileSplitters();
+      }
+
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onUp);
+    });
+
+    container.appendChild(d);
+  });
+};
 
 function makeWindowDraggable(win) {
   var bar = win.querySelector('.window-header') || win.querySelector('h4, h5') || win;
@@ -1195,12 +1435,13 @@ function makeWindowDraggable(win) {
           bar.removeEventListener('pointercancel', onUp);
 
           if (win.classList.contains('mini-web-modal')) {
-            updateSnapGuide(null);
-            if (activeSnapTarget) {
-              applyWindowSnap(win, activeSnapTarget);
-              activeSnapTarget = null;
-            }
-          }
+                      updateSnapGuide(null);
+                      if (activeSnapTarget) {
+                        applyWindowSnap(win, activeSnapTarget);
+                        activeSnapTarget = null;
+                      }
+                      if (window.updateTileSplitters) window.updateTileSplitters();
+                    }
 
           var scale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
           win.style.transformOrigin = 'top left';
@@ -1340,10 +1581,11 @@ function makeWindowDimensionalResizable(win) {
               }
             }
       function onUp(ev) {
-        handle.removeEventListener('pointermove', onMove);
-        handle.removeEventListener('pointerup', onUp);
-        handle.removeEventListener('pointercancel', onUp);
-      }
+              handle.removeEventListener('pointermove', onMove);
+              handle.removeEventListener('pointerup', onUp);
+              handle.removeEventListener('pointercancel', onUp);
+              if (window.updateTileSplitters) window.updateTileSplitters();
+            }
       handle.addEventListener('pointermove', onMove);
       handle.addEventListener('pointerup', onUp);
       handle.addEventListener('pointercancel', onUp);
@@ -1370,11 +1612,31 @@ window.openMiniWeb = function(repoFullName, e) {
           <div class="window-header" style="cursor:move;">
             <div class="win-title" style="font-size:10px; pointer-events:none;"><i class="fa-solid fa-globe" style="color:var(--blue); margin-right:4px;"></i> ${repoName}</div>
             <div style="display:flex; align-items:center; gap:3px;">
-              <button class="panel-close" title="Zoom In/Out" onclick="window.toggleMiniZoom('${winId}')"><i class="fa-solid fa-magnifying-glass" style="font-size:8px;"></i></button>
-              <button class="panel-close" title="Reload" onclick="document.getElementById('${winId}_frame').src = '${url.split('?')[0]}?t=' + Date.now()"><i class="fa-solid fa-rotate-right" style="font-size:8px;"></i></button>
-              <button class="panel-close" title="Open in New Tab" onclick="window.open('${url}', '_blank')"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:8px;"></i></button>
-              <button class="panel-close" onclick="this.closest('.mini-web-modal').remove()">✕</button>
-            </div>
+                      <button class="panel-close" title="Tile Window" onclick="window.toggleMiniTile('${winId}')"><i class="fa-solid fa-table-cells-large" style="font-size:8px;"></i></button>
+                      <button class="panel-close" title="Zoom In/Out" onclick="window.toggleMiniZoom('${winId}')"><i class="fa-solid fa-magnifying-glass" style="font-size:8px;"></i></button>
+                      <button class="panel-close" title="Reload" onclick="document.getElementById('${winId}_frame').src = '${url.split('?')[0]}?t=' + Date.now()"><i class="fa-solid fa-rotate-right" style="font-size:8px;"></i></button>
+                      <button class="panel-close" title="Open in New Tab" onclick="window.open('${url}', '_blank')"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:8px;"></i></button>
+                      <button class="panel-close" onclick="this.closest('.mini-web-modal').remove(); window.checkFreezePreviewState(); if(window.updateTileSplitters) window.updateTileSplitters();">✕</button>
+                    </div>
+                  </div>
+                  <div class="mini-tile-pop" id="${winId}_tilePop">
+                    <button class="tile-preset-btn" title="Full Screen" onclick="window.applyTilePreset('${winId}', 'max')"><div style="flex:1; background:rgba(255,255,255,0.4); border-radius:1px;"></div></button>
+                    <button class="tile-preset-btn" title="Left Half" onclick="window.applyTilePreset('${winId}', 'left')"><div style="width:50%; height:100%; background:rgba(255,255,255,0.4); border-radius:1px 0 0 1px;"></div></button>
+                    <button class="tile-preset-btn" title="Right Half" onclick="window.applyTilePreset('${winId}', 'right')"><div style="width:50%; margin-left:auto; height:100%; background:rgba(255,255,255,0.4); border-radius:0 1px 1px 0;"></div></button>
+                    <button class="tile-preset-btn" title="Top Half" onclick="window.applyTilePreset('${winId}', 'top')"><div style="width:100%; height:50%; background:rgba(255,255,255,0.4); border-radius:1px 1px 0 0;"></div></button>
+                    <button class="tile-preset-btn" title="Bottom Half" onclick="window.applyTilePreset('${winId}', 'bottom')"><div style="width:100%; height:50%; margin-top:auto; background:rgba(255,255,255,0.4); border-radius:0 0 1px 1px;"></div></button>
+                    <button class="tile-preset-btn" title="Top Left Quarter" onclick="window.applyTilePreset('${winId}', 'tl')"><div style="width:50%; height:50%; background:rgba(255,255,255,0.4); border-radius:1px 0 0 0;"></div></button>
+                    <button class="tile-preset-btn" title="Top Right Quarter" onclick="window.applyTilePreset('${winId}', 'tr')"><div style="width:50%; height:50%; margin-left:auto; background:rgba(255,255,255,0.4); border-radius:0 1px 0 0;"></div></button>
+                    <button class="tile-preset-btn" title="Bottom Left Quarter" onclick="window.applyTilePreset('${winId}', 'bl')"><div style="width:50%; height:50%; margin-top:auto; background:rgba(255,255,255,0.4); border-radius:0 0 0 1px;"></div></button>
+                    <button class="tile-preset-btn" title="Bottom Right Quarter" onclick="window.applyTilePreset('${winId}', 'br')"><div style="width:50%; height:50%; margin-top:auto; margin-left:auto; background:rgba(255,255,255,0.4); border-radius:0 0 1px 0;"></div></button>
+                    <button class="tile-preset-btn" title="Left Third" onclick="window.applyTilePreset('${winId}', 'left-third')"><div style="width:33%; height:100%; background:rgba(255,255,255,0.4); border-radius:1px 0 0 1px;"></div></button>
+                    <button class="tile-preset-btn" title="Center Third" onclick="window.applyTilePreset('${winId}', 'center-third')"><div style="width:34%; height:100%; margin:auto; background:rgba(255,255,255,0.4);"></div></button>
+                    <button class="tile-preset-btn" title="Right Third" onclick="window.applyTilePreset('${winId}', 'right-third')"><div style="width:33%; height:100%; margin-left:auto; background:rgba(255,255,255,0.4); border-radius:0 1px 1px 0;"></div></button>
+                  </div>
+                  <div class="mini-zoom-pop" id="${winId}_zoomPop">
+                    <input type="range" min="0.3" max="2" step="0.05" value="0.7" oninput="window.setMiniWebZoom('${winId}', this.value)">
+                    <span id="${winId}_zoomVal">70%</span>
+                  </div>
           </div>
           <div class="mini-zoom-pop" id="${winId}_zoomPop">
                   <input type="range" min="0.3" max="2" step="0.05" value="0.7" oninput="window.setMiniWebZoom('${winId}', this.value)">
@@ -1406,7 +1668,24 @@ window.openMiniWeb = function(repoFullName, e) {
 
     window.toggleMiniZoom = function(winId) {
         const pop = document.getElementById(winId + '_zoomPop');
+        const tilePop = document.getElementById(winId + '_tilePop');
+        if (tilePop) tilePop.classList.remove('open');
         if (pop) pop.classList.toggle('open');
+    };
+
+    window.toggleMiniTile = function(winId) {
+        const pop = document.getElementById(winId + '_tilePop');
+        const zoomPop = document.getElementById(winId + '_zoomPop');
+        if (zoomPop) zoomPop.classList.remove('open');
+        if (pop) pop.classList.toggle('open');
+    };
+
+    window.applyTilePreset = function(winId, preset) {
+        const win = document.getElementById(winId);
+        if (!win) return;
+        const tilePop = document.getElementById(winId + '_tilePop');
+        if (tilePop) tilePop.classList.remove('open');
+        applyWindowSnap(win, preset);
     };
 
     window.setMiniWebZoom = function(winId, scale) {
