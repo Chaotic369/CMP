@@ -671,8 +671,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <div class="win-title"><i class="fa-solid fa-hammer"></i> Build App</div>
     <button class="panel-close" id="bmCloseBtn">✕</button>
   </div>
-    <button class="panel-close" id="bmCloseBtn">✕</button>
-  </div>
 
   <div id="bmWrapperSettings">
      <div class="bm-step" style="margin-top:10px;">
@@ -867,17 +865,17 @@ function centerModal(el) {
 }
 
 function makeWindowDraggable(win) {
-  var handle = win.querySelector('.win-drag-handle') || win.querySelector('.window-header') || win;
+  var bar = win.querySelector('.window-header') || win.querySelector('h4, h5') || win;
 
   win.addEventListener('pointerdown', function() {
     bringModalToFront(win);
   });
 
-  handle.addEventListener('pointerdown', function(e) {
+  bar.addEventListener('pointerdown', function(e) {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
-    if (e.target.closest('input, textarea, select, .panel-close, a') || (e.target.closest('button') && !e.target.closest('.win-drag-handle'))) return;
+    if (e.target.closest('button, input, textarea, select, a, .panel-close')) return;
     bringModalToFront(win);
-    try { if (handle.setPointerCapture) handle.setPointerCapture(e.pointerId); } catch(err) {}
+    try { if (bar.setPointerCapture) bar.setPointerCapture(e.pointerId); } catch(err) {}
 
     var rect = win.getBoundingClientRect();
     var shiftX = e.clientX - rect.left;
@@ -895,14 +893,14 @@ function makeWindowDraggable(win) {
     }
 
     function onUp() {
-      handle.removeEventListener('pointermove', onMove);
-      handle.removeEventListener('pointerup', onUp);
-      handle.removeEventListener('pointercancel', onUp);
+      bar.removeEventListener('pointermove', onMove);
+      bar.removeEventListener('pointerup', onUp);
+      bar.removeEventListener('pointercancel', onUp);
     }
 
-    handle.addEventListener('pointermove', onMove, { passive: false });
-    handle.addEventListener('pointerup', onUp);
-    handle.addEventListener('pointercancel', onUp);
+    bar.addEventListener('pointermove', onMove, { passive: false });
+    bar.addEventListener('pointerup', onUp);
+    bar.addEventListener('pointercancel', onUp);
   });
 }
 
