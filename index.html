@@ -241,7 +241,21 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 .repo-item.active { background: rgba(255,255,255,0.15); color: #ffffff; font-weight: 600; }
 
 .repo-actions { display: none; align-items: center; gap: 3px; }
-.repo-item.active .repo-actions { display: flex; }
+.repo-item.active .repo-actions, .repo-item:hover .repo-actions { display: flex; }
+
+.mini-web-modal {
+  position: fixed; width: 340px; height: 400px; min-width: 200px; min-height: 150px;
+  display: flex; flex-direction: column; gap: 4px; z-index: 32500;
+  background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.12); outline: none !important; border-radius: 8px; padding: 4px;
+  color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+}
+.mini-web-modal iframe { width: 100%; flex: 1; border: none; border-radius: 4px; background: #ffffff; }
+
+.resize-handle { position: absolute; z-index: 10001; touch-action: none; }
+.resize-r { top: 0; right: -4px; width: 12px; height: 100%; cursor: e-resize; }
+.resize-b { bottom: -4px; left: 0; width: 100%; height: 12px; cursor: s-resize; }
+.resize-br { bottom: -4px; right: -4px; width: 16px; height: 16px; cursor: se-resize; background: radial-gradient(circle at 70% 70%, rgba(255,255,255,0.3) 2px, transparent 3px); }
 .repo-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 2px 4px; font-size: 6px; border-radius: 6px; }
 .repo-btn.del { color: var(--red); }
 
@@ -843,6 +857,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
 </div>
 
+
+
 <div id="statusBar">
   <span class="sb-item" id="sb-lines">– lines</span>
   <span class="sb-sep">|</span>
@@ -1119,6 +1135,85 @@ window.toggleBookmarkRepo = function(r, e) {
     if(window.renderBookmarks) window.renderBookmarks();
 };
 
+function makeWindowDimensionalResizable(win) {
+  const handles = ['r', 'b', 'br'];
+  handles.forEach(dir => {
+    let handle = document.createElement('div');
+    handle.className = `resize-handle resize-${dir}`;
+    win.appendChild(handle);
+    let startW, startH, startX, startY;
+    
+    handle.addEventListener('pointerdown', function(e) {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      e.stopPropagation();
+      startX = e.clientX; startY = e.clientY;
+      startW = win.offsetWidth; startH = win.offsetHeight;
+      bringModalToFront(win);
+      try { handle.setPointerCapture(e.pointerId); } catch(err) {}
+      
+      function onMove(ev) {
+        ev.stopPropagation();
+        if (ev.cancelable) ev.preventDefault();
+        if (dir === 'r' || dir === 'br') win.style.width = Math.max(200, startW + (ev.clientX - startX)) + 'px';
+        if (dir === 'b' || dir === 'br') win.style.height = Math.max(150, startH + (ev.clientY - startY)) + 'px';
+      }
+      function onUp(ev) {
+        handle.removeEventListener('pointermove', onMove);
+        handle.removeEventListener('pointerup', onUp);
+        handle.removeEventListener('pointercancel', onUp);
+      }
+      handle.addEventListener('pointermove', onMove);
+      handle.addEventListener('pointerup', onUp);
+      handle.addEventListener('pointercancel', onUp);
+    });
+  });
+}
+
+window.miniWebCount = 0;
+window.openMiniWeb = function(repoFullName, e) {
+    if (e) e.stopPropagation();
+    const repoOwner = repoFullName.split('/')[0] || ghUser;
+    const repoName = repoFullName.split('/')[1] || repoFullName;
+    if (!repoName) { toast('❌ Invalid repo', 'warn'); return; }
+
+    const url = `https://${repoOwner}.github.io/${repoName}/?t=${Date.now()}`;
+    window.miniWebCount++;
+    const winId = 'miniWeb_' + window.miniWebCount;
+
+    const modal = document.createElement('div');
+    modal.className = 'mini-web-modal';
+    modal.id = winId;
+    
+    modal.innerHTML = `
+      <div class="window-header" style="margin-bottom:0px; padding-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:move;">
+        <div class="win-title" style="font-size:12px; pointer-events:none;"><i class="fa-solid fa-globe" style="color:var(--blue); margin-right:6px;"></i> ${repoName}</div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <button class="panel-close" title="Reload" onclick="document.getElementById('${winId}_frame').src = '${url.split('?')[0]}?t=' + Date.now()" style="padding:2px 6px;"><i class="fa-solid fa-rotate-right" style="font-size:10px;"></i></button>
+          <button class="panel-close" title="Open in New Tab" onclick="window.open('${url}', '_blank')" style="padding:2px 6px;"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px;"></i></button>
+          <button class="panel-close" onclick="this.closest('.mini-web-modal').remove()">✕</button>
+        </div>
+      </div>
+      <iframe id="${winId}_frame" src="${url}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
+    `;
+    
+    document.body.appendChild(modal);
+    modal.style.transformOrigin = 'top left';
+    modal.style.transform = 'scale(1)';
+    
+    // Offset overlapping windows
+    const w = 340; const h = 400;
+    const offset = ((window.miniWebCount - 1) % 10) * 20;
+    const left = Math.max(10, (window.innerWidth - w) / 2) + offset;
+    const top = Math.max(10, (window.innerHeight - h) / 2) + offset;
+    
+    modal.style.left = left + 'px';
+    modal.style.top = top + 'px';
+    
+    bringModalToFront(modal);
+    makeWindowDraggable(modal);
+    makeWindowDimensionalResizable(modal);
+};
+
 window.switchRepo = function(r) {
     if (ghRepo === r) return;
     
@@ -1175,11 +1270,12 @@ window.renderBookmarks = function() {
         
         const actions = document.createElement('div');
                 actions.className = 'repo-actions';
-                actions.innerHTML = `
-                  <button class="repo-btn star" style="color:var(--amber);" title="Remove Bookmark" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
-                  <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
-                  <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
-                `;
+                                actions.innerHTML = `
+                                  <button class="repo-btn" style="color:var(--blue);" title="Open Mini Site" onclick="window.openMiniWeb('${r}', event)"><i class="fa-solid fa-globe"></i></button>
+                                  <button class="repo-btn star" style="color:var(--amber);" title="Remove Bookmark" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
+                                  <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
+                                  <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
+                                `;
         
         rBtn.appendChild(nameSpan);
         rBtn.appendChild(actions);
@@ -1869,12 +1965,13 @@ function renderRepoTabs() {
                     `;
                 } else {
                     const isBookmarked = typeof ghBookmarkedRepos !== 'undefined' && ghBookmarkedRepos.includes(r);
-                    const starColor = isBookmarked ? 'color:var(--amber);' : '';
-                    actions.innerHTML = `
-                      <button class="repo-btn star" style="${starColor}" title="Bookmark Repo" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
-                      <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
-                      <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
-                    `;
+                                        const starColor = isBookmarked ? 'color:var(--amber);' : '';
+                                        actions.innerHTML = `
+                                          <button class="repo-btn" style="color:var(--blue);" title="Open Mini Site" onclick="window.openMiniWeb('${r}', event)"><i class="fa-solid fa-globe"></i></button>
+                                          <button class="repo-btn star" style="${starColor}" title="Bookmark Repo" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
+                                          <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
+                                          <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
+                                        `;
                 }
 
                 btn.appendChild(nameSpan);
@@ -5995,10 +6092,11 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                   const isBookmarked = typeof ghBookmarkedRepos !== 'undefined' && ghBookmarkedRepos.includes(r);
                                   const starColor = isBookmarked ? 'color:var(--amber);' : 'color:rgba(255,255,255,0.4);';
                                   actions.innerHTML = `
-                                      <button class="repo-btn star" style="${starColor} font-size:12px;" title="Bookmark Repo" onclick="window.toggleBookmarkRepo('${r}', event); window.renderModalRepoList();"><i class="fa-solid fa-star"></i></button>
-                                      <button class="repo-btn" style="font-size:12px; color:#fff;" title="Rename Repo" onclick="window.renameRepo('${r}', event); setTimeout(()=>window.renderModalRepoList(), 2000);"><i class="fa-solid fa-pen"></i></button>
-                                      <button class="repo-btn del" style="font-size:12px; color:var(--red);" title="Delete Repo" onclick="window.deleteRepo('${r}', event); setTimeout(()=>window.renderModalRepoList(), 2000);"><i class="fa-solid fa-trash"></i></button>
-                                  `;
+                                                                        <button class="repo-btn" style="color:var(--blue); font-size:12px;" title="Open Mini Site" onclick="window.openMiniWeb('${r}', event)"><i class="fa-solid fa-globe"></i></button>
+                                                                        <button class="repo-btn star" style="${starColor} font-size:12px;" title="Bookmark Repo" onclick="window.toggleBookmarkRepo('${r}', event); window.renderModalRepoList();"><i class="fa-solid fa-star"></i></button>
+                                                                        <button class="repo-btn" style="font-size:12px; color:#fff;" title="Rename Repo" onclick="window.renameRepo('${r}', event); setTimeout(()=>window.renderModalRepoList(), 2000);"><i class="fa-solid fa-pen"></i></button>
+                                                                        <button class="repo-btn del" style="font-size:12px; color:var(--red);" title="Delete Repo" onclick="window.deleteRepo('${r}', event); setTimeout(()=>window.renderModalRepoList(), 2000);"><i class="fa-solid fa-trash"></i></button>
+                                                                    `;
                               }
 
                               btn.onclick = async () => {
