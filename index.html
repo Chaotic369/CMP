@@ -1355,22 +1355,8 @@ window.miniWebCount = 0;
 window.openMiniWeb = function(repoFullName, e) {
     if (e) e.stopPropagation();
     const repoOwner = repoFullName.split('/')[0] || ghUser;
-    const repoName = (repoFullName.split('/')[1] || repoFullName).trim();
+    const repoName = repoFullName.split('/')[1] || repoFullName;
     if (!repoName) { toast('❌ Invalid repo', 'warn'); return; }
-
-    const targetRepoLower = repoName.toLowerCase();
-    const currentPathLower = window.location.pathname.toLowerCase();
-    const currentRepoLower = (ghRepo ? (ghRepo.split('/')[1] || ghRepo) : '').toLowerCase();
-
-    // Block direct CMP-to-CMP nesting and identical repository self-replication
-    const isSelfReplicating = targetRepoLower === 'cmp' ||
-                              (currentRepoLower && targetRepoLower === currentRepoLower) ||
-                              currentPathLower.includes('/' + targetRepoLower + '/');
-
-    if (isSelfReplicating) {
-        toast('🛑 Replication blocked: CMP cannot embed itself.', 'warn', 4000);
-        return;
-    }
 
     const url = `https://${repoOwner}.github.io/${repoName}/?t=${Date.now()}`;
     window.miniWebCount++;
