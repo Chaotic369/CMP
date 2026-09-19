@@ -94,12 +94,12 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 #fring { position: fixed; inset: 0; z-index: 99; border: 3px solid var(--green); pointer-events: none; opacity: 0; }
 #fring.on { opacity: 1; }
-#menu-backdrop { position: fixed; inset: 0; z-index: 9998; background: transparent; display: none; }
+#menu-backdrop { position: fixed; inset: 0; z-index: 999990 !important; background: transparent; display: none; }
 #menu-backdrop.open { display: block; }
 
 /* Action Pop Up Button */
 #toggleUiBtn {
-  position: fixed; bottom: calc(130px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 10000; width: 24px; height: 24px; border-radius: 6px;
+  position: fixed; bottom: calc(130px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 999999 !important; width: 24px; height: 24px; border-radius: 6px;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; user-select: none; touch-action: none;
@@ -119,7 +119,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 }
 
 #floatingPushBtn {
-  position: fixed; z-index: 10000; width: 24px; height: 24px; border-radius: 6px;
+  position: fixed; z-index: 999999 !important; width: 24px; height: 24px; border-radius: 6px;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
   align-items: center; justify-content: center;
   cursor: pointer; user-select: none; touch-action: none;
@@ -133,7 +133,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 }
 
 #app-menu {
-      position: fixed; z-index: 9999; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 6px;
+      position: fixed; z-index: 999995 !important; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 6px;
       background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 6px; border: none !important; outline: none !important; border-radius: 14px;
       box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); width: fit-content; height: fit-content;
       max-width: min(calc(100vw - 12px), calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 12px));
@@ -1001,8 +1001,25 @@ function applyLabelsState(show) {
 }
 
 var topModalZ = 30000;
+var MAX_WINDOW_Z = 999900; // Ceiling stays strictly below the main menu (999995) and plus button (999999)
 function bringModalToFront(modal) {
+  if (!modal) return;
   topModalZ += 2;
+  if (topModalZ >= MAX_WINDOW_Z) {
+    var allModals = Array.from(document.querySelectorAll(
+      '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
+      '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
+      '#errLogModal, .mini-web-modal'
+    ));
+    allModals.sort(function(a, b) {
+      return (parseInt(window.getComputedStyle(a).zIndex) || 30000) - 
+             (parseInt(window.getComputedStyle(b).zIndex) || 30000);
+    });
+    allModals.forEach(function(el, idx) {
+      el.style.zIndex = 30000 + (idx * 2);
+    });
+    topModalZ = 30000 + (allModals.length * 2);
+  }
   modal.style.zIndex = topModalZ;
 }
 
@@ -1386,8 +1403,10 @@ window.updateTileSplitters = function() {
 function makeWindowDraggable(win) {
   var bar = win.querySelector('.window-header') || win.querySelector('h4, h5') || win;
 
-  win.addEventListener('pointerdown', function() {
-    bringModalToFront(win);
+  ['pointerdown', 'mousedown', 'touchstart'].forEach(function(evt) {
+    win.addEventListener(evt, function() {
+      bringModalToFront(win);
+    }, { capture: true, passive: true });
   });
 
   bar.addEventListener('pointerdown', function(e) {
@@ -1660,10 +1679,35 @@ window.openMiniWeb = function(repoFullName, e) {
     modal.style.left = left + 'px';
     modal.style.top = top + 'px';
     
-    bringModalToFront(modal);
+    ['pointerdown', 'mousedown', 'touchstart'].forEach(function(evt) {
+          modal.addEventListener(evt, function() {
+            bringModalToFront(modal);
+          }, { capture: true, passive: true });
+        });
+
+        // Create an overlay so tapping inside the embedded iframe also brings the window forward
+        var iframeShield = document.createElement('div');
+        iframeShield.style.cssText = 'position:absolute; inset:22px 0 0 0; z-index:2; cursor:default;';
+        modal.appendChild(iframeShield);
+
+        function deactivateShield() {
+          iframeShield.style.display = 'none';
+        }
+
+        iframeShield.addEventListener('pointerdown', function(e) {
+          bringModalToFront(modal);
+          deactivateShield();
+        });
+
+        modal.addEventListener('pointerleave', function() {
+          iframeShield.style.display = 'block';
+        });
+
+        bringModalToFront(modal);
         makeWindowDraggable(modal);
         makeWindowDimensionalResizable(modal);
         window.setMiniWebZoom(winId, 0.7);
+        window.checkFreezePreviewState();
     };
 
     window.toggleMiniZoom = function(winId) {
@@ -6974,6 +7018,11 @@ updateMenuPosition();
 ].forEach(function(id) {
   var el = document.getElementById(id);
   if (el) {
+    ['pointerdown', 'mousedown', 'touchstart'].forEach(function(evt) {
+      el.addEventListener(evt, function() {
+        bringModalToFront(el);
+      }, { capture: true, passive: true });
+    });
     makeWindowDraggable(el);
     makeWindowResizable(el);
     restoreWindowState(el);
