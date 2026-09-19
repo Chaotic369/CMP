@@ -500,9 +500,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         <span id="app-menu-loader-text" style="font-size: 6px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">Connecting...</span>
   </div>
   <div id="repoSidebar">
-        <div style="display:flex; flex-direction:column; gap:0px;">
-                <button id="repoToggleBtn" class="btn" title="Toggle Sidebar" style="width:24px; height:24px;"><</button>
-                <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:flex; width:18px; height:18px;"><i class="fa-solid fa-folder-plus"></i></button>
+          <div style="display:flex; flex-direction:column; gap:0px;">
+                  <button id="repoToggleBtn" class="btn" title="Toggle Sidebar" style="width:24px; height:24px;"><</button>
+                  <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:flex; width:18px; height:18px;"><i class="fa-solid fa-folder-plus"></i></button>
                                                                   <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:flex; width:18px; height:18px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
                                                                                                                                                                                                               <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; width:18px; height:18px; color:var(--amber);" onclick="openBulkModal()"><i class="fa-solid fa-file-circle-plus"></i></button>
                                                                                                                                                                                                               <button id="fullTreeBtn" class="btn" title="Show Full Tree Popup" style="display:flex; width:18px; height:18px; color:var(--teal);" onclick="window.openFullTreeModal()"><i class="fa-solid fa-sitemap"></i></button>
@@ -948,16 +948,16 @@ function makeWindowResizable(win) {
   var startX, startY, startScale;
 
   handle.addEventListener('pointerdown', function(e) {
-      if (e.button !== 0 && e.pointerType === 'mouse') return;
-      e.stopPropagation();
-      isResizing = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      startScale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
-      win.style.transformOrigin = 'top left';
-      bringModalToFront(win);
-      try { handle.setPointerCapture(e.pointerId); } catch(err) {}
-    });
+        if (e.button !== 0 && e.pointerType === 'mouse') return;
+        e.stopPropagation();
+        isResizing = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        startScale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
+        win.style.transformOrigin = 'top right';
+        bringModalToFront(win);
+        try { handle.setPointerCapture(e.pointerId); } catch(err) {}
+      });
 
   handle.addEventListener('pointermove', function(e) {
     if (!isResizing) return;
@@ -1128,7 +1128,12 @@ window.switchRepo = function(r) {
     document.getElementById('fileTreeContainer').style.display = 'flex';
     document.getElementById('repoTabsContainer').classList.remove('expanded');
     updateRepoSidebar();
-    fetchFileTree(true, false);
+    
+    // Quick-load default index.html immediately in parallel without waiting for full tree recursion
+    ghFilePath = 'index.html';
+    document.getElementById('ghFilePath').value = ghFilePath;
+    syncCurrentFile();
+    fetchFileTree(false, true);
     
     if (window.innerWidth < 768 && !document.getElementById('app-menu').classList.contains('open')) {
         toggleMenu();
@@ -5024,7 +5029,7 @@ window.syncCurrentFile = async function() {
   if (!ghToken || !ghRepo) { toast('❌ Configure GitHub settings and select a repo first.', 'warn'); return; }
   showProgress(20);
   try {
-      toast('🔄 Syncing from GitHub...', 'info');
+      toast('🔄 Syncing from GitHub...', 'info', 1500);
     
       window._branchCache = window._branchCache || {};
       if (!window._branchCache[ghRepo]) {
@@ -5037,8 +5042,45 @@ window.syncCurrentFile = async function() {
       if (window._branchCache[ghRepo] && ghBranch !== window._branchCache[ghRepo]) {
           ghBranch = window._branchCache[ghRepo];
           document.getElementById('ghBranch').value = ghBranch;
-          ghSaveConfig();
       }
+
+      const ext = ghFilePath.split('.').pop().toLowerCase();
+      const imgExts = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico', 'bmp', 'avif'];
+      const audExts = ['mp3', 'wav', 'ogg', 'aac', 'flac', 'm4a'];
+      const vidExts = ['mp4', 'webm', 'ogg', 'mov'];
+      const isMedia = imgExts.includes(ext) || audExts.includes(ext) || vidExts.includes(ext);
+
+      // Fast-path: Directly fetch text files via raw media URL to skip Base64 encoding lag
+            if (!isMedia) {
+                try {
+                    const rawUrl = `https://raw.githubusercontent.com/${ghRepo}/${ghBranch}/${ghFilePath}?t=${Date.now()}`;
+                    const rawRes = await fetch(rawUrl);
+                    if (rawRes.ok) {
+                        sourceContent = await rawRes.text();
+                        lastSavedContent = sourceContent;
+                        window.workspaceFiles = window.workspaceFiles || {};
+                        window.workspaceFiles[ghFilePath] = { content: sourceContent, modified: false };
+                        fileName = ghFilePath.split('/').pop() || 'index.html';
+                        if (fileName.toLowerCase().endsWith('.html') || fileName.toLowerCase().endsWith('.htm')) {
+                            viewMode = 'preview';
+                            document.getElementById('viewBtn').style.color = '#ffffff';
+                        } else {
+                            viewMode = 'code';
+                            document.getElementById('viewBtn').style.color = 'var(--amber)';
+                        }
+                        render(sourceContent, false);
+                        showControls();
+                        document.getElementById('ghPushBtn').disabled = false;
+                        toast(`✅ Loaded ${fileName} from ${ghRepo}`);
+                        addLog('ok', `Synced ${ghFilePath} from ${ghRepo}`);
+                        undoStack = []; redoStack = []; syncUndoRedo(); updateStatusBar();
+                        hideProgress();
+                        return;
+                    }
+                } catch (rawErr) {
+                    console.warn('Raw fetch skipped, falling back to Contents API:', rawErr);
+                }
+            }
 
       const url = `https://api.github.com/repos/${ghRepo}/contents/${ghFilePath}?ref=${ghBranch}`;
       const res = await fetch(url, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' } });
