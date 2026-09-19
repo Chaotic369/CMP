@@ -1121,18 +1121,29 @@ window.toggleBookmarkRepo = function(r, e) {
 
 window.switchRepo = function(r) {
     if (ghRepo === r) return;
-    ghRepo = r;
-    currentDirectory = '';
-    ghSaveConfig();
-    renderRepoTabs();
-    document.getElementById('fileTreeContainer').style.display = 'flex';
-    document.getElementById('repoTabsContainer').classList.remove('expanded');
-    updateRepoSidebar();
-    fetchFileTree(true, false);
     
-    if (window.innerWidth < 768 && !document.getElementById('app-menu').classList.contains('open')) {
-        toggleMenu();
+    const ftc = document.getElementById('fileTreeContainer');
+    const rtc = document.getElementById('repoTabsContainer');
+    if (ftc) {
+        ftc.innerHTML = '<div style="color:var(--tm); font-size:10px; padding:10px; text-align:center;"><i class="fa-solid fa-circle-notch fa-spin"></i> Switching Repo...</div>';
+        ftc.style.display = 'flex';
     }
+    if (rtc) rtc.classList.remove('expanded');
+    
+    document.querySelectorAll('#repoTabsContainer .repo-item').forEach(el => el.classList.remove('active'));
+    
+    setTimeout(() => {
+        ghRepo = r;
+        currentDirectory = '';
+        ghSaveConfig();
+        renderRepoTabs();
+        updateRepoSidebar();
+        fetchFileTree(true, false);
+        
+        if (window.innerWidth < 768 && !document.getElementById('app-menu').classList.contains('open')) {
+            toggleMenu();
+        }
+    }, 10);
 };
 
 window.renderBookmarks = function() {
@@ -1810,51 +1821,42 @@ function renderRepoTabs() {
                   const rtc = document.getElementById('repoTabsContainer');
       
                   if (repoCollapsed) {
-                                    if (ghRepo !== r) {
-                                        ghRepo = r;
-                                        ghSaveConfig();
-                                        renderRepoTabs();
-                                        updateRepoSidebar();
-                                        fetchFileTree(true, true);
-                                    } else {
-                      repoCollapsed = false;
-                      localStorage.setItem('repo_collapsed', repoCollapsed);
-                      if (typeof currentTreeFiles === 'undefined' || currentTreeFiles.length === 0) {
-                          fetchFileTree(false);
-                      } else { 
-                          ftc.style.display = 'flex'; 
-                          rtc.classList.remove('expanded');
-                          renderFileTreeUI(); 
-                          updateRepoSidebar();
-                      }
-                  }
-                  return;
-              }
-
-              if (ghRepo === r) {
-                                if (ftc.style.display === 'flex') {
-                                    ftc.style.display = 'none';
-                                    rtc.classList.add('expanded');
-                                } else {
-                                    if (typeof currentTreeFiles === 'undefined' || currentTreeFiles.length === 0) fetchFileTree(false);
-                                    else { 
-                                        ftc.style.display = 'flex'; 
-                                        rtc.classList.remove('expanded');
-                                        renderFileTreeUI(); 
+                                        if (ghRepo !== r) {
+                                            repoCollapsed = false;
+                                            localStorage.setItem('repo_collapsed', repoCollapsed);
+                                            window.switchRepo(r);
+                                        } else {
+                                            repoCollapsed = false;
+                                            localStorage.setItem('repo_collapsed', repoCollapsed);
+                                            if (typeof currentTreeFiles === 'undefined' || currentTreeFiles.length === 0) {
+                                                fetchFileTree(false);
+                                            } else { 
+                                                ftc.style.display = 'flex'; 
+                                                rtc.classList.remove('expanded');
+                                                renderFileTreeUI(); 
+                                                updateRepoSidebar();
+                                            }
+                                        }
+                                        return;
                                     }
-                                }
-                                updateRepoSidebar();
-                            } else {
-                                                                          ghRepo = r;
-                                                                          currentDirectory = '';
-                                                                          ghSaveConfig();
-                                                                          renderRepoTabs();
-                                                                          ftc.style.display = 'flex';
-                                                                          rtc.classList.remove('expanded');
-                                                                          updateRepoSidebar();
-                                                                          fetchFileTree(true, false);
-                                                                      }
-                          };
+
+                                    if (ghRepo === r) {
+                                        if (ftc.style.display === 'flex') {
+                                            ftc.style.display = 'none';
+                                            rtc.classList.add('expanded');
+                                        } else {
+                                            if (typeof currentTreeFiles === 'undefined' || currentTreeFiles.length === 0) fetchFileTree(false);
+                                            else { 
+                                                ftc.style.display = 'flex'; 
+                                                rtc.classList.remove('expanded');
+                                                renderFileTreeUI(); 
+                                            }
+                                        }
+                                        updateRepoSidebar();
+                                    } else {
+                                        window.switchRepo(r);
+                                    }
+                                };
 
     const actions = document.createElement('div');
                 actions.className = 'repo-actions';
@@ -2976,12 +2978,12 @@ async function fetchFileTree(autoLoad = false, silent = false) {
         return;
     }
 
-    if (!autoLoad && !silent) {
-        ftc.innerHTML = '<div style="color:var(--tm); font-size:10px; padding:4px;">Loading directory map...</div>';
-        ftc.style.display = 'flex';
-        rtc.classList.remove('expanded');
-        updateRepoSidebar();
-    }
+    if (!silent) {
+            ftc.innerHTML = '<div style="color:var(--tm); font-size:10px; padding:10px; text-align:center;"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading directory map...</div>';
+            ftc.style.display = 'flex';
+            rtc.classList.remove('expanded');
+            updateRepoSidebar();
+        }
     try {
             window._branchCache = window._branchCache || {};
             if (!window._branchCache[ghRepo]) {
