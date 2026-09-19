@@ -3853,24 +3853,28 @@ function renderFileTreeUI() {
             }
 
         function renderItem(f, isChild = false) {
-                            const isTarget = f.path === ghFilePath;
-                            const relativeName = currentDirectory ? f.path.slice(currentDirectory.length + 1).split('/')[0] : f.path.split('/')[0];
-                            const name = f.path.split('/').pop();
-                            const icon = getIcon(f.path);
-                    const hasChildren = !!fileNesting[f.path];
-                    const isExpanded = window.nestedExpanded[f.path];
+                                    const isTarget = f.path === ghFilePath;
+                                    const relativeName = currentDirectory ? f.path.slice(currentDirectory.length + 1).split('/')[0] : f.path.split('/')[0];
+                                    const name = f.path.split('/').pop();
+                                    const icon = getIcon(f.path);
+                            const hasChildren = !!fileNesting[f.path];
+                            const isExpanded = window.nestedExpanded[f.path];
+                            const isSelected = window.modalSelectedPaths && window.modalSelectedPaths.has(f.path);
+                            const selIcon = isSelected ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle';
+                            const selColor = isSelected ? 'var(--green)' : 'rgba(255,255,255,0.6)';
         
-                    let str = `<div class="repo-item file-item ${isTarget ? 'active' : ''}" style="${isChild ? 'margin-left:10px; border-left:1px solid rgba(255, 255, 255, 0.1); border-radius:0;' : ''}" onclick="window.selectFileFromTree('${f.path}')" ondblclick="if(${hasChildren}) window.toggleNesting('${f.path}', event)" title="${f.path}">
-                                    <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
-                                        ${hasChildren ? `<i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'}" style="font-size:8px; color:rgba(255,255,255,0.6); margin-right:4px; cursor:pointer;" onclick="window.toggleNesting('${f.path}', event)"></i>` : (isChild ? '' : `<i class="fa-solid fa-minus" style="font-size:8px; color:transparent; margin-right:4px;"></i>`)}
-                                <i class="${icon.i}" style="margin-right:6px; font-size:11px; color:${isTarget ? 'var(--blue)' : icon.c};"></i>
-                                <span style="font-size:8px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; font-weight: ${isTarget ? '600' : '400'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</span>
-                            </div>
-                        <div class="repo-actions">
-                                        <button class="repo-btn" title="Rename File" onclick="window.renameFile('${f.path}', event)"><i class="fa-solid fa-pen"></i></button>
-                                        <button class="repo-btn del" title="Delete File" onclick="window.deleteFile('${f.path}', event)"><i class="fa-solid fa-trash"></i></button>
+                            let str = `<div class="repo-item file-item ${isTarget ? 'active' : ''}" style="${isChild ? 'margin-left:10px; border-left:1px solid rgba(255, 255, 255, 0.1); border-radius:0;' : ''}" onclick="window.selectFileFromTree('${f.path}')" ondblclick="if(${hasChildren}) window.toggleNesting('${f.path}', event)" title="${f.path}">
+                                            <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
+                                                ${hasChildren ? `<i class="fa-solid fa-chevron-${isExpanded ? 'down' : 'right'}" style="font-size:8px; color:rgba(255,255,255,0.6); margin-right:4px; cursor:pointer;" onclick="window.toggleNesting('${f.path}', event)"></i>` : (isChild ? '' : `<i class="fa-solid fa-minus" style="font-size:8px; color:transparent; margin-right:4px;"></i>`)}
+                                        <i class="${icon.i}" style="margin-right:6px; font-size:11px; color:${isTarget ? 'var(--blue)' : icon.c};"></i>
+                                        <span style="font-size:8px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; font-weight: ${isTarget ? '600' : '400'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${name}</span>
                                     </div>
-        </div>`;
+                                <div class="repo-actions">
+                                                <button class="repo-btn" style="display:flex; font-size:9px; color:${selColor};" title="Select/Deselect" onclick="if(!window.modalSelectedPaths) window.modalSelectedPaths = new Set(); window.toggleModalSelection('${f.path}', event); renderFileTreeUI();"><i class="${selIcon}"></i></button>
+                                                <button class="repo-btn" title="Rename File" onclick="window.renameFile('${f.path}', event)"><i class="fa-solid fa-pen"></i></button>
+                                                <button class="repo-btn del" title="Delete File" onclick="window.deleteFile('${f.path}', event)"><i class="fa-solid fa-trash"></i></button>
+                                            </div>
+                </div>`;
 
         if (hasChildren && isExpanded) {
             fileNesting[f.path].forEach(child => {
