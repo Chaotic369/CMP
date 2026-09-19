@@ -305,9 +305,69 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 :fullscreen #app-menu, :-webkit-full-screen #app-menu { transform: scale(calc(var(--user-scale, 1) * 0.85)); }
 :fullscreen #fnrPanel, :-webkit-full-screen #fnrPanel { transform: scale(0.85); transform-origin: top center; }
 
-.panel-close { float: right; cursor: pointer; color: #ffffff; font-size: 6px; line-height: 1; margin-top: -2px; padding: 2px 4px; transition: color 0.2s; }
+.window-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  user-select: none;
+  flex-shrink: 0;
+}
+.win-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.win-drag-handle {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+  cursor: grab;
+  font-size: 11px;
+  touch-action: none;
+  flex-shrink: 0;
+}
+.win-drag-handle:active {
+  cursor: grabbing;
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+.panel-close {
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  line-height: 1;
+  padding: 4px 6px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.panel-close:hover {
+  color: var(--red);
+  background: rgba(248, 81, 73, 0.15);
+}
 input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 0.8; }
-.panel-close:hover { color: #ffffff; }
 
 .gh-row { display: flex; gap: 8px; align-items: center; }
 .gh-row label { width: 70px; color: #ffffff; font-size: 11px; font-weight: 500; }
@@ -486,7 +546,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                       <div id="toast"><span id="toastMsg"></span><button id="toastCopyBtn" title="Copy Error"><i class="fa-regular fa-copy"></i></button></div>
 
 <div id="wallpaperModal">
-  <h4><i class="fa-solid fa-image"></i> Workspace Wallpaper</h4>
+  <div class="window-header">
+    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
+    <div class="win-title"><i class="fa-solid fa-image"></i> Workspace Wallpaper</div>
+    <button class="panel-close" onclick="document.getElementById('wallpaperModal').classList.remove('open'); document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
+  </div>
   <div class="gh-row"><label>Image URL</label><input type="text" id="wpUrlInput" placeholder=""></div>
   <div style="display:flex; justify-content:center; margin: 10px 0;">
     <button id="wpUploadBtn" style="background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 16px; border-radius: 20px; cursor: pointer; display:flex; align-items:center; gap:8px; transition: background 0.2s;"><i class="fa-solid fa-upload"></i> Or Upload Image</button>
@@ -533,7 +597,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 #bulkModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
 </style>
 <div id="bulkModal">
-  <h4><i class="fa-solid fa-cubes"></i> Bulk Create Files</h4>
+  <div class="window-header">
+    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
+    <div class="win-title"><i class="fa-solid fa-cubes"></i> Bulk Create Files</div>
+    <button class="panel-close" onclick="document.getElementById('bulkModal').classList.remove('open'); document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
+  </div>
   <p style="font-size:11px; margin-bottom:8px; color:#a0a0a0;">Paste file paths (one per line). Folders are auto-created.</p>
   <textarea id="bulkPathsInput" placeholder="app/build.gradle&#10;app/src/main/AndroidManifest.xml&#10;.github/workflows/build.yml" style="width:100%; height:150px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:12px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:11px;"></textarea>
   <div class="gh-actions">
@@ -550,7 +618,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   #workflowsModalList .repo-item { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.05); }
   </style>
   <div id="workflowsModal">
-    <h4><i class="fa-solid fa-folder-tree"></i> Workflow Files <span class="panel-close" id="wfModalCloseBtn">✕</span></h4>
+      <div class="window-header">
+        <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
+        <div class="win-title"><i class="fa-solid fa-folder-tree"></i> Workflow Files</div>
+        <button class="panel-close" id="wfModalCloseBtn">✕</button>
+      </div>
     <div id="workflowsModalList">Loading...</div>
   </div>
 
@@ -565,25 +637,32 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 #fullTreeContent .repo-actions { display: flex; align-items: center; gap: 10px; }
 </style>
 <div id="fullTreeModal">
-  <h4>
-    <span id="modalRepoDropdownBtn" style="cursor:pointer; display:flex; align-items:center;" onclick="window.toggleModalRepoList()">
+  <div class="window-header">
+    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
+    <div class="win-title">
+      <span id="modalRepoDropdownBtn" style="cursor:pointer; display:flex; align-items:center;" onclick="window.toggleModalRepoList()">
         <i class="fa-solid fa-sitemap" style="color:var(--teal); margin-right:8px;"></i> 
         <span id="modalRepoTitle">Repository Tree</span> 
         <i class="fa-solid fa-caret-down" id="modalRepoCaret" style="font-size:12px; margin-left:6px; color:rgba(255,255,255,0.6);"></i>
-    </span>
+      </span>
+    </div>
     <div style="display:flex; align-items:center; gap:10px;">
-          <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.2); color:var(--amber); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
-          <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.2); color:var(--blue); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
-          <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
-          <span class="panel-close" onclick="window.closeFullTreeModal()">✕</span>
-        </div>
-  </h4>
+      <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.2); color:var(--amber); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
+      <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.2); color:var(--blue); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
+      <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
+      <button class="panel-close" onclick="window.closeFullTreeModal()">✕</button>
+    </div>
+  </div>
   <div id="fullTreeContent"></div>
   <div id="modalRepoList" style="display:none; flex-direction:column; gap:4px; overflow-y:auto; flex:1; padding-right:4px;"></div>
 </div>
 
 <div id="ghConfigPanel">
-  <h4><i class="fa-brands fa-github"></i> GitHub Integration</h4>
+  <div class="window-header">
+    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
+    <div class="win-title"><i class="fa-brands fa-github"></i> GitHub Integration</div>
+    <button class="panel-close" id="ghClosePanelTopBtn" onclick="document.getElementById('ghConfigPanel').classList.remove('open'); document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
+  </div>
   <div class="gh-row"><label>Token</label><input type="password" id="ghToken" placeholder=""></div>
   <div class="gh-row"><label>User</label><input type="text" id="ghUser" placeholder=""></div>
   <div class="gh-row"><label>Branch</label><input type="text" id="ghBranch" placeholder=""></div>
@@ -596,7 +675,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </div>
 
 <div id="commitModal">
-  <h4><i class="fa-solid fa-arrow-up-from-bracket"></i> Commit & Push</h4>
+  <div class="window-header">
+    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
+    <div class="win-title"><i class="fa-solid fa-arrow-up-from-bracket"></i> Commit & Push</div>
+    <button class="panel-close" onclick="document.getElementById('commitModal').classList.remove('open'); document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
+  </div>
   <textarea id="commitMsgInput" placeholder=""></textarea>
   <div class="gh-actions">
     <button id="cmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
@@ -605,7 +688,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </div>
 
 <div id="buildModal">
-  <h4><i class="fa-solid fa-hammer"></i> Build App <span class="panel-close" id="bmCloseBtn">✕</span></h4>
+  <div class="window-header">
+    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
+    <div class="win-title"><i class="fa-solid fa-hammer"></i> Build App</div>
+    <button class="panel-close" id="bmCloseBtn">✕</button>
+  </div>
 
   <div id="bmWrapperSettings">
      <div class="bm-step" style="margin-top:10px;">
@@ -654,14 +741,15 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     #buildProgressOverlay.minimized:hover { background: transparent !important; opacity: 0.8; }
     </style>
 <div id="buildProgressOverlay" style="display:none; position:fixed; top:80px; left:calc(50vw - 210px); width:calc(100vw - 40px); max-width:420px; background:rgba(22, 22, 22, 0.85); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:20px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:0 16px 48px rgba(0,0,0,0.5);">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px;">
-        <h4 id="bpTitle" style="color:#fff; margin:0; font-size:15px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</h4>
-        <div style="display:flex; gap:16px; align-items:center;">
-          <i class="fa-regular fa-copy panel-close" id="bpCopyLogBtnIcon" style="cursor:pointer; color:rgba(255,255,255,0.7); font-size:15px;" title="Copy Error Logs"></i>
-          <i class="fa-solid fa-chevron-right panel-close" id="bpMinBtnIcon" style="cursor:pointer; color:rgba(255,255,255,0.7); font-size:16px;" title="Minimize"></i>
-          <i class="fa-solid fa-xmark panel-close" id="bpCloseBtnIcon" style="cursor:pointer; display:none; color:rgba(255,255,255,0.7); font-size:18px;"></i>
-        </div>
-      </div>
+  <div class="window-header" style="margin-bottom:16px; padding-bottom:12px;">
+    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
+    <div class="win-title" id="bpTitle" style="font-size:15px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</div>
+    <div style="display:flex; gap:12px; align-items:center;">
+      <i class="fa-regular fa-copy" id="bpCopyLogBtnIcon" style="cursor:pointer; color:rgba(255,255,255,0.7); font-size:13px;" title="Copy Error Logs"></i>
+      <i class="fa-solid fa-chevron-right" id="bpMinBtnIcon" style="cursor:pointer; color:rgba(255,255,255,0.7); font-size:13px;" title="Minimize"></i>
+      <button class="panel-close" id="bpCloseBtnIcon" style="display:none;">✕</button>
+    </div>
+  </div>
   
     <div class="stepper-wrapper" id="bpStepper" style="display:flex; flex-direction:column; gap:16px; margin-bottom:16px; position:relative;">
     <div style="position:absolute; left:11px; top:12px; bottom:12px; width:2px; background:rgba(255,255,255,0.1); z-index:1;">
@@ -703,7 +791,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
             </div>
 
 <div id="astPanel">
-  <h4>🧠 AST Health <span class="panel-close" onclick="document.getElementById('astPanel').style.display='none'">✕</span></h4>
+  <div class="window-header">
+    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
+    <div class="win-title">🧠 AST Health</div>
+    <button class="panel-close" onclick="document.getElementById('astPanel').style.display='none'">✕</button>
+  </div>
   <div id="astContent">Load a file to analyse.</div>
 </div>
 
@@ -716,7 +808,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </div>
 
 <div id="logPanel">
-  <h4 style="color: #ffffff; margin-bottom: 16px; font-size: 6px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px;">🪵 Patch Log <span class="panel-close" onclick="document.getElementById('logPanel').style.display='none'">✕</span></h4>
+  <div class="window-header">
+    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
+    <div class="win-title">🪵 Patch Log</div>
+    <button class="panel-close" onclick="document.getElementById('logPanel').style.display='none'">✕</button>
+  </div>
   <div id="logContent"></div>
 </div>
 
@@ -728,7 +824,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 #errLogContent { flex: 1; overflow-y: auto; overflow-x: hidden; background: rgba(0,0,0,0.35); border-radius: 12px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; line-height: 1.6; color: var(--red); white-space: pre-wrap; word-break: break-all; margin: 0; border: 1px solid rgba(255,255,255,0.05); }
 </style>
 <div id="errLogModal">
-  <h4><i class="fa-solid fa-triangle-exclamation" style="color:var(--red); margin-right:8px;"></i> Build Errors <span id="errLogCount" style="font-size:11px; font-weight:500; color:rgba(255,255,255,0.6); margin-left:8px;"></span><span class="panel-close" id="errLogCloseBtnTop">✕</span></h4>
+  <div class="window-header">
+    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
+    <div class="win-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--red); margin-right:8px;"></i> Build Errors <span id="errLogCount" style="font-size:11px; font-weight:500; color:rgba(255,255,255,0.6); margin-left:8px;"></span></div>
+    <button class="panel-close" id="errLogCloseBtnTop">✕</button>
+  </div>
   <pre id="errLogContent"></pre>
   <div class="gh-actions" style="margin-top:0; flex-shrink:0;">
     <button id="errLogCloseBtn"><i class="fa-solid fa-xmark"></i> Close</button>
@@ -791,20 +891,17 @@ function centerModal(el) {
 }
 
 function makeWindowDraggable(win) {
-  var header = win.querySelector('h4, h5, .modal-header') || win;
-  header.style.cursor = 'move';
-  header.style.userSelect = 'none';
-  header.style.touchAction = 'none';
+  var handle = win.querySelector('.win-drag-handle') || win.querySelector('.window-header') || win;
 
   win.addEventListener('pointerdown', function() {
     bringModalToFront(win);
   });
 
-  header.addEventListener('pointerdown', function(e) {
+  handle.addEventListener('pointerdown', function(e) {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
-    if (e.target.closest('button, input, textarea, select, .panel-close, a')) return;
+    if (e.target.closest('input, textarea, select, .panel-close, a') || (e.target.closest('button') && !e.target.closest('.win-drag-handle'))) return;
     bringModalToFront(win);
-    try { if (header.setPointerCapture) header.setPointerCapture(e.pointerId); } catch(err) {}
+    try { if (handle.setPointerCapture) handle.setPointerCapture(e.pointerId); } catch(err) {}
 
     var rect = win.getBoundingClientRect();
     var shiftX = e.clientX - rect.left;
@@ -822,14 +919,14 @@ function makeWindowDraggable(win) {
     }
 
     function onUp() {
-      header.removeEventListener('pointermove', onMove);
-      header.removeEventListener('pointerup', onUp);
-      header.removeEventListener('pointercancel', onUp);
+      handle.removeEventListener('pointermove', onMove);
+      handle.removeEventListener('pointerup', onUp);
+      handle.removeEventListener('pointercancel', onUp);
     }
 
-    header.addEventListener('pointermove', onMove, { passive: false });
-    header.addEventListener('pointerup', onUp);
-    header.addEventListener('pointercancel', onUp);
+    handle.addEventListener('pointermove', onMove, { passive: false });
+    handle.addEventListener('pointerup', onUp);
+    handle.addEventListener('pointercancel', onUp);
   });
 }
 
