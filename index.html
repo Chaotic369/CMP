@@ -597,20 +597,20 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </button>
 
 <div id="app-menu">
-      <div id="menu-resize-handle" style="position: absolute; bottom: -4px; left: -4px; width: 34px; height: 34px; cursor: sw-resize; z-index: 10001; pointer-events: auto; touch-action: none;" title="Drag to Resize">
-        <div style="position: absolute; bottom: 10px; left: 10px; width: 14px; height: 14px; border-bottom: 3px solid rgba(160, 160, 160, 0.8); border-left: 3px solid rgba(160, 160, 160, 0.8); border-bottom-left-radius: 14px; box-shadow: -2px 2px 4px rgba(0,0,0,0.2);"></div>
+      <div id="menu-resize-handle" style="position: absolute; bottom: 0; left: 0; width: 20px; height: 20px; cursor: sw-resize; z-index: 10001; pointer-events: auto; touch-action: none;" title="Drag to Resize">
+        <div style="position: absolute; bottom: 4px; left: 4px; width: 12px; height: 12px; border-bottom: 2.5px solid rgba(160, 160, 160, 0.8); border-left: 2.5px solid rgba(160, 160, 160, 0.8); border-bottom-left-radius: 8px; box-shadow: -2px 2px 4px rgba(0,0,0,0.2);"></div>
       </div>
       <div id="app-menu-loader" style="display: none; position: absolute; inset: 0; z-index: 10000; background: rgba(22, 22, 22, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 20px; align-items: center; justify-content: center; flex-direction: column; gap: 10px;">
     <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 6px; color: var(--blue);"></i>
         <span id="app-menu-loader-text" style="font-size: 6px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">Connecting...</span>
   </div>
   <div id="repoSidebar">
-          <div style="display:flex; flex-direction:column; gap:0px;">
+          <div style="display:flex; flex-direction:column; gap:0px; padding-bottom:20px; position:relative; z-index:10002;">
                   <button id="repoToggleBtn" class="btn" title="Toggle Sidebar"><i class="fa-solid fa-chevron-left"></i><span class="btn-lbl">Hide</span></button>
                   <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:flex;"><i class="fa-solid fa-folder-plus"></i><span class="btn-lbl">New</span></button>
                   <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:flex;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i><span class="btn-lbl">Upload</span></button>
-                  <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; color:var(--amber);" onclick="openBulkModal()"><i class="fa-solid fa-file-circle-plus"></i><span class="btn-lbl">Bulk</span></button>
-                  <button id="fullTreeBtn" class="btn" title="Show Full Tree Popup" style="display:flex; color:var(--teal);" onclick="window.openFullTreeModal()"><i class="fa-solid fa-sitemap"></i><span class="btn-lbl">Tree</span></button>
+                  <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; color:var(--amber);" onclick="window.openBulkModal()"><i class="fa-solid fa-file-circle-plus"></i><span class="btn-lbl">Bulk</span></button>
+                  <button id="fullTreeBtn" class="btn" title="Show Full Tree Popup" style="display:flex; color:var(--teal); position:relative; z-index:10005; cursor:pointer; pointer-events:auto;" onclick="window.openFullTreeModal()"><i class="fa-solid fa-sitemap"></i><span class="btn-lbl">Tree</span></button>
                                                                                                                                                                                   <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
                                 <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                               </div>
