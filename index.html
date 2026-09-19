@@ -261,16 +261,15 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #toast.err #toastCopyBtn { display: flex; }
 
 #astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal {
-  position: fixed; z-index: 98; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px;
+  position: fixed; z-index: 30000; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px;
   padding: 24px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
-  transform: translateZ(0);
   max-height: calc(100vh - 40px); overflow-y: auto;
 }
-#astPanel, #logPanel { width: calc(100vw - 40px); max-width: 420px; max-height: 48vh; overflow-y: auto; display: none; line-height: 1.6; left: 50%; transform: translateX(-50%); }
-#astPanel { top: 80px; }
-#logPanel { top: 80px; z-index: 112; }
+#astPanel, #logPanel { width: calc(100vw - 40px); max-width: 420px; max-height: 48vh; overflow-y: auto; display: none; line-height: 1.6; }
+#astPanel { top: 80px; left: calc(50vw - 210px); }
+#logPanel { top: 80px; left: calc(50vw - 210px); z-index: 30005; }
 
-#ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; z-index: 30000; }
+#ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal { width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; }
 #ghConfigPanel.open, #commitModal.open, #newRepoModal.open, #wallpaperModal.open { display: flex; }
 
 #astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
@@ -354,7 +353,7 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 .fnr-btn:hover { background: rgba(255,255,255,0.2); }
 
 /* Dual-Engine Build Modal */
-#buildModal { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px; padding: 24px; color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); max-height: 85vh; overflow-y: auto; }
+#buildModal { width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px; padding: 24px; color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); max-height: 85vh; overflow-y: auto; }
 #buildModal.open { display: flex; }
 #buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
 .bm-step label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--blue); }
@@ -529,7 +528,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </div>
 
 <style>
-#bulkModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; z-index: 30000; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px; padding: 24px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); max-height: calc(100vh - 40px); overflow-y: auto; }
+#bulkModal { position: fixed; width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; z-index: 30000; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px; padding: 24px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); max-height: calc(100vh - 40px); overflow-y: auto; }
 #bulkModal.open { display: flex; }
 #bulkModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
 </style>
@@ -544,7 +543,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
 
   <style>
-  #workflowsModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90vw; max-width: 420px; display: none; flex-direction: column; gap: 12px; z-index: 31000; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px; padding: 24px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); max-height: calc(100vh - 40px); overflow-y: auto; }
+  #workflowsModal { position: fixed; width: 90vw; max-width: 420px; display: none; flex-direction: column; gap: 12px; z-index: 31000; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px; padding: 24px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); max-height: calc(100vh - 40px); overflow-y: auto; }
   #workflowsModal.open { display: flex; }
   #workflowsModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
   #workflowsModalList { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
@@ -556,7 +555,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
 
   <style>
-  #fullTreeModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 95vw; max-width: 650px; height: 85vh; display: none; flex-direction: column; gap: 12px; z-index: 30000; background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); outline: none !important; border-radius: 20px; padding: 20px; color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6); }
+  #fullTreeModal { position: fixed; width: 95vw; max-width: 650px; height: 85vh; display: none; flex-direction: column; gap: 12px; z-index: 30000; background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); outline: none !important; border-radius: 20px; padding: 20px; color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6); }
 #fullTreeModal.open { display: flex; }
 #fullTreeModal h4 { color: #ffffff; margin-bottom: 8px; font-size: 15px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; flex-shrink:0; display:flex; justify-content:space-between; align-items:center; }
 #fullTreeContent { flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 4px; display: flex; flex-direction: column; gap: 4px; }
@@ -654,7 +653,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     #buildProgressOverlay.minimized #bpStepper { margin: 0 !important; }
     #buildProgressOverlay.minimized:hover { background: transparent !important; opacity: 0.8; }
     </style>
-<div id="buildProgressOverlay" style="display:none; position:fixed; top:80px; left:50%; transform:translateX(-50%); width:calc(100vw - 40px); max-width:420px; background:rgba(22, 22, 22, 0.85); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:20px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:0 16px 48px rgba(0,0,0,0.5);">
+<div id="buildProgressOverlay" style="display:none; position:fixed; top:80px; left:calc(50vw - 210px); width:calc(100vw - 40px); max-width:420px; background:rgba(22, 22, 22, 0.85); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:20px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:0 16px 48px rgba(0,0,0,0.5);">
   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:12px;">
         <h4 id="bpTitle" style="color:#fff; margin:0; font-size:15px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</h4>
         <div style="display:flex; gap:16px; align-items:center;">
@@ -722,7 +721,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </div>
 
 <style>
-#errLogModal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 92vw; max-width: 560px; height: 70vh; display: none; flex-direction: column; gap: 12px; z-index: 32000; background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.08); outline: none !important; border-radius: 20px; padding: 20px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5); }
+#errLogModal { position: fixed; width: 92vw; max-width: 560px; height: 70vh; display: none; flex-direction: column; gap: 12px; z-index: 32000; background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.08); outline: none !important; border-radius: 20px; padding: 20px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5); }
 #errLogModal.open { display: flex; }
 #errLogModal h4 { color: #ffffff; margin: 0 0 4px 0; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; display: flex; align-items: center; flex-shrink: 0; }
 #errLogModal h4 .panel-close { margin-left: auto; }
@@ -773,6 +772,66 @@ var currentErrText = '';
 
 // AST Guard disabled by default to prevent apply rejections
 var settings = { astGuard: false, indentFix: true, warnAmbiguous: true, menuScale: 1 };
+
+var topModalZ = 30000;
+function bringModalToFront(modal) {
+  topModalZ += 2;
+  modal.style.zIndex = topModalZ;
+}
+
+function centerModal(el) {
+  if (!el) return;
+  el.style.transform = 'none';
+  var w = el.offsetWidth || 360;
+  var h = el.offsetHeight || 300;
+  var left = Math.max(10, (window.innerWidth - w) / 2);
+  var top = Math.max(10, (window.innerHeight - h) / 2);
+  el.style.left = left + 'px';
+  el.style.top = top + 'px';
+}
+
+function makeWindowDraggable(win) {
+  var header = win.querySelector('h4, h5, .modal-header') || win;
+  header.style.cursor = 'move';
+  header.style.userSelect = 'none';
+  header.style.touchAction = 'none';
+
+  win.addEventListener('pointerdown', function() {
+    bringModalToFront(win);
+  });
+
+  header.addEventListener('pointerdown', function(e) {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    if (e.target.closest('button, input, textarea, select, .panel-close, a')) return;
+    bringModalToFront(win);
+    try { if (header.setPointerCapture) header.setPointerCapture(e.pointerId); } catch(err) {}
+
+    var rect = win.getBoundingClientRect();
+    var shiftX = e.clientX - rect.left;
+    var shiftY = e.clientY - rect.top;
+
+    function onMove(ev) {
+      if (ev.cancelable) ev.preventDefault();
+      var newLeft = ev.clientX - shiftX;
+      var newTop = ev.clientY - shiftY;
+      var maxLeft = window.innerWidth - win.offsetWidth;
+      var maxTop = window.innerHeight - 40;
+      win.style.transform = 'none';
+      win.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
+      win.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
+    }
+
+    function onUp() {
+      header.removeEventListener('pointermove', onMove);
+      header.removeEventListener('pointerup', onUp);
+      header.removeEventListener('pointercancel', onUp);
+    }
+
+    header.addEventListener('pointermove', onMove, { passive: false });
+    header.addEventListener('pointerup', onUp);
+    header.addEventListener('pointercancel', onUp);
+  });
+}
 
 function setMenuScale(scale) {
   scale = Math.max(0.5, Math.min(scale, 2));
@@ -1722,7 +1781,10 @@ document.getElementById('repoAddBtn').addEventListener('click', () => {
     document.getElementById('nrPasteInput').style.display = 'none';
     document.getElementById('nrPasteInput').value = '';
     document.querySelector('input[name="nrSource"][value="upload"]').checked = true;
-    document.getElementById('newRepoModal').classList.add('open');
+    var modal = document.getElementById('newRepoModal');
+    modal.classList.add('open');
+    centerModal(modal);
+    bringModalToFront(modal);
     document.getElementById('menu-backdrop').classList.add('open');
 });
 
@@ -2532,10 +2594,13 @@ window.fetchLatestFailedLog = async function(workflowFile) {
 
         addLog('err', `Latest failed run log (${workflowFile}) — ${hasErrors ? errorLines.length + ' error line(s) extracted.' : 'no error lines matched, showing last 250 raw lines.'}`);
         document.getElementById('errLogCount').textContent = hasErrors ? `(${errorLines.length} line${errorLines.length === 1 ? '' : 's'} · ${failedJob.name})` : `(raw tail · ${failedJob.name})`;
-        document.getElementById('errLogContent').textContent = window.lastErrorLogText;
-        document.getElementById('errLogModal').classList.add('open');
-        $backdrop.classList.add('open');
-        toast('✅ Error lines loaded — tap Copy All Errors', 'ok');
+                document.getElementById('errLogContent').textContent = window.lastErrorLogText;
+                var elModal = document.getElementById('errLogModal');
+                elModal.classList.add('open');
+                centerModal(elModal);
+                bringModalToFront(elModal);
+                $backdrop.classList.add('open');
+                toast('✅ Error lines loaded — tap Copy All Errors', 'ok');
   } catch (e) {
     toast('❌ Error: ' + e.message, 'err');
   }
@@ -3547,7 +3612,10 @@ document.getElementById('liveSiteBtn').addEventListener('click', function() {
 // Wallpaper UI Triggers
 document.getElementById('wallpaperBtn').addEventListener('click', function() {
   document.getElementById('wpUrlInput').value = settings.wallpaper || '';
-  document.getElementById('wallpaperModal').classList.add('open');
+  var wpModal = document.getElementById('wallpaperModal');
+  wpModal.classList.add('open');
+  centerModal(wpModal);
+  bringModalToFront(wpModal);
   $backdrop.classList.add('open');
 });
 
@@ -4091,8 +4159,12 @@ function render(src, skipEditorUpdate) {
 
 document.getElementById('astBtn').addEventListener('click', function() {
   syncEditorToSource();
-  $astPanel.style.display = $astPanel.style.display === 'block' ? 'none' : 'block';
-  if ($astPanel.style.display === 'block' && sourceContent) runASTCheck(sourceContent);
+  var isOpen = $astPanel.style.display === 'block';$astPanel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    centerModal($astPanel);
+    bringModalToFront($astPanel);
+    if (sourceContent) runASTCheck(sourceContent);
+  }
 });
 
 function tokenBalance(src) {
@@ -4222,8 +4294,12 @@ function astGuardAfterApply() {
 }
 
 document.getElementById('logBtn').addEventListener('click', function() {
-  $logPanel.style.display = $logPanel.style.display === 'block' ? 'none' : 'block';
-  if ($logPanel.style.display === 'block') renderLog();
+  var isOpen = $logPanel.style.display === 'block';$logPanel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    centerModal($logPanel);
+    bringModalToFront($logPanel);
+    renderLog();
+  }
 });
 
 function escHtml(s) {
@@ -4535,7 +4611,10 @@ document.getElementById('ghSettingsBtn').addEventListener('click', function() {
   document.getElementById('ghUser').value = ghUser;
   document.getElementById('ghBranch').value = ghBranch;
   document.getElementById('ghFilePath').value = ghFilePath;
-  document.getElementById('ghConfigPanel').classList.add('open');
+  var ghPanel = document.getElementById('ghConfigPanel');
+  ghPanel.classList.add('open');
+  centerModal(ghPanel);
+  bringModalToFront(ghPanel);
   $backdrop.classList.add('open');
 });
 
@@ -4863,7 +4942,10 @@ document.getElementById('ghPushBtn').addEventListener('click', function() {
   if (!ghToken || !ghRepo) { toast('❌ Configure GitHub first.', 'warn'); return; }
   const ts = new Date().toISOString().replace('T',' ').slice(0,19);
   document.getElementById('commitMsgInput').value = `Update ${ghFilePath} via AI Compile – ${ts}`;
-  document.getElementById('commitModal').classList.add('open');
+  var cmModal = document.getElementById('commitModal');
+  cmModal.classList.add('open');
+  centerModal(cmModal);
+  bringModalToFront(cmModal);
   $backdrop.classList.add('open');
 });
 
@@ -5034,12 +5116,15 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
             });
 
             // === Dual Engine Build Modal Logic ===
-            document.getElementById('masterBuildBtn').addEventListener('click', () => {
-                    loadBuildConfig();
-                    document.getElementById('buildModal').classList.add('open');
-                    $backdrop.classList.add('open');
-                    window.loadExistingWorkflowsList();
-                  });
+                        document.getElementById('masterBuildBtn').addEventListener('click', () => {
+                                loadBuildConfig();
+                                var bModal = document.getElementById('buildModal');
+                                bModal.classList.add('open');
+                                centerModal(bModal);
+                                bringModalToFront(bModal);
+                                $backdrop.classList.add('open');
+                                window.loadExistingWorkflowsList();
+                              });
 
             window.loadExistingWorkflowsList = async function() {
                     const el = document.getElementById('bmExistingWorkflows');
@@ -5063,11 +5148,14 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                   };
 
                   window.openWorkflowsModal = async function() {
-                    if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
-                    document.getElementById('workflowsModal').classList.add('open');
-                    $backdrop.classList.add('open');
-                    await window.refreshWorkflowsModalList();
-                  };
+                                      if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+                                      var wfModal = document.getElementById('workflowsModal');
+                                      wfModal.classList.add('open');
+                                      centerModal(wfModal);
+                                      bringModalToFront(wfModal);
+                                      $backdrop.classList.add('open');
+                                      await window.refreshWorkflowsModalList();
+                                    };
 
                   window.refreshWorkflowsModalList = async function() {
                     const listEl = document.getElementById('workflowsModalList');
@@ -5284,19 +5372,21 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       }
 
       function showBuildOverlay(title) {
-              const ov = document.getElementById('buildProgressOverlay');
-              ov.classList.remove('minimized');
-              document.getElementById('bpTitle').innerHTML = '<i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>' + title;
-              document.getElementById('bpStatusText').textContent = 'Starting build...';
-              document.getElementById('bpStatusText').style.color = 'var(--blue)';
-              document.getElementById('bpLogs').textContent = 'Initializing GitHub Actions...\n';
-              document.getElementById('bpCloseBtn').style.display = 'none';
-                if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'block';
-                if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'none';
-                if(document.getElementById('bpCopyErrBtn')) document.getElementById('bpCopyErrBtn').style.display = 'none';
-                updateStepperUI(10, '');
-                ov.style.display = 'flex';
-              }
+                    const ov = document.getElementById('buildProgressOverlay');
+                    ov.classList.remove('minimized');
+                    document.getElementById('bpTitle').innerHTML = '<i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>' + title;
+                    document.getElementById('bpStatusText').textContent = 'Starting build...';
+                    document.getElementById('bpStatusText').style.color = 'var(--blue)';
+                    document.getElementById('bpLogs').textContent = 'Initializing GitHub Actions...\n';
+                    document.getElementById('bpCloseBtn').style.display = 'none';
+                      if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'block';
+                      if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'none';
+                      if(document.getElementById('bpCopyErrBtn')) document.getElementById('bpCopyErrBtn').style.display = 'none';
+                      updateStepperUI(10, '');
+                      ov.style.display = 'flex';
+                      centerModal(ov);
+                      bringModalToFront(ov);
+                    }
 
       function updateBuildOverlay(status, pct, stateStr) {
               document.getElementById('bpStatusText').textContent = status;
@@ -5601,7 +5691,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
               });
           }
     
-          document.getElementById('fullTreeModal').classList.add('open');
+          var ftModal = document.getElementById('fullTreeModal');
+                    ftModal.classList.add('open');
+                    centerModal(ftModal);
+                    bringModalToFront(ftModal);
                     document.getElementById('menu-backdrop').classList.add('open');
                     window.renderFullTreeModal();
                 };
@@ -5848,11 +5941,14 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       };
 
       window.openBulkModal = function() {
-          if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
-          document.getElementById('bulkPathsInput').value = '';
-          document.getElementById('bulkModal').classList.add('open');
-          document.getElementById('menu-backdrop').classList.add('open');
-      };
+                if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+                document.getElementById('bulkPathsInput').value = '';
+                var bModal = document.getElementById('bulkModal');
+                bModal.classList.add('open');
+                centerModal(bModal);
+                bringModalToFront(bModal);
+                document.getElementById('menu-backdrop').classList.add('open');
+            };
 
 document.getElementById('bulkCancelBtn').addEventListener('click', () => {
     document.getElementById('bulkModal').classList.remove('open');
@@ -6024,7 +6120,14 @@ window.addEventListener('beforeunload', function(e) {
 
 updateMenuPosition();
 
-
+[
+  'astPanel', 'logPanel', 'ghConfigPanel', 'commitModal',
+  'newRepoModal', 'wallpaperModal', 'bulkModal', 'workflowsModal',
+  'fullTreeModal', 'buildModal', 'buildProgressOverlay', 'errLogModal'
+].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) makeWindowDraggable(el);
+});
 
 sourceContent = '';
 render('', false); 
