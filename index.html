@@ -298,6 +298,15 @@ body.hide-btn-labels .btn-lbl {
 .mini-zoom-pop input[type="range"] { width: 70px; accent-color: var(--blue); cursor: pointer; }
 .mini-zoom-pop span { font-size: 8px; font-family: monospace; min-width: 28px; }
 
+#snapGuideOverlay {
+  position: fixed; inset: 0; pointer-events: none; z-index: 32490; display: none;
+}
+#snapGuideBox {
+  position: absolute; border: 2px dashed rgba(92, 157, 255, 0.85); background: rgba(92, 157, 255, 0.18);
+  border-radius: 8px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  transition: all 0.1s cubic-bezier(0.2, 0, 0.2, 1);
+}
+
 .resize-handle { position: absolute; z-index: 10001; touch-action: none; }
 .resize-r { top: 0; right: -4px; width: 12px; height: 100%; cursor: e-resize; }
 .resize-b { bottom: -4px; left: 0; width: 100%; height: 12px; cursor: s-resize; }
@@ -542,6 +551,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </div>
 
 <div id="fring"></div>
+<div id="snapGuideOverlay"><div id="snapGuideBox"></div></div>
 <div id="menu-backdrop"></div>
 
 <button id="toggleUiBtn" title="Toggle Menu">
@@ -1057,6 +1067,82 @@ function makeWindowResizable(win) {
   handle.addEventListener('pointercancel', stopResize);
 }
 
+var activeSnapTarget = null;
+function getSnapCoordinates(type) {
+  var w = window.innerWidth;
+  var h = window.innerHeight - 24; // Keep status bar clear
+  var halfW = Math.floor(w / 2);
+  var halfH = Math.floor(h / 2);
+
+  if (type === 'max') return { left: 0, top: 0, width: w, height: h };
+  if (type === 'left') return { left: 0, top: 0, width: halfW, height: h };
+  if (type === 'right') return { left: halfW, top: 0, width: halfW, height: h };
+  if (type === 'tl') return { left: 0, top: 0, width: halfW, height: halfH };
+  if (type === 'bl') return { left: 0, top: halfH, width: halfW, height: halfH };
+  if (type === 'tr') return { left: halfW, top: 0, width: halfW, height: halfH };
+  if (type === 'br') return { left: halfW, top: halfH, width: halfW, height: halfH };
+  return null;
+}
+
+function updateSnapGuide(type) {
+  var overlay = document.getElementById('snapGuideOverlay');
+  var box = document.getElementById('snapGuideBox');
+  if (!type) {
+    if (overlay) overlay.style.display = 'none';
+    return;
+  }
+  var coords = getSnapCoordinates(type);
+  if (!coords) return;
+  box.style.left = coords.left + 'px';
+  box.style.top = coords.top + 'px';
+  box.style.width = coords.width + 'px';
+  box.style.height = coords.height + 'px';
+  overlay.style.display = 'block';
+}
+
+function detectSnapZone(x, y) {
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  var edge = 24;
+  var corner = 80;
+
+  var atLeft = x <= edge;
+  var atRight = x >= w - edge;
+  var atTop = y <= edge;
+  var atBottom = y >= h - edge;
+
+  if (atTop && x <= corner) return 'tl';
+  if (atTop && x >= w - corner) return 'tr';
+  if (atBottom && x <= corner) return 'bl';
+  if (atBottom && x >= w - corner) return 'br';
+  if (atTop) return 'max';
+  if (atLeft) return 'left';
+  if (atRight) return 'right';
+  return null;
+}
+
+function applyWindowSnap(win, type) {
+  var coords = getSnapCoordinates(type);
+  if (!coords) return;
+
+  if (!win.dataset.preSnapW) {
+    win.dataset.preSnapW = win.style.width || (win.offsetWidth + 'px');
+    win.dataset.preSnapH = win.style.height || (win.offsetHeight + 'px');
+  }
+
+  win.style.left = coords.left + 'px';
+  win.style.top = coords.top + 'px';
+  win.style.width = coords.width + 'px';
+  win.style.height = coords.height + 'px';
+
+  var frame = win.querySelector('iframe');
+  if (frame && frame.dataset.zoom) {
+    var z = parseFloat(frame.dataset.zoom) || 1;
+    frame.style.width = (100 / z) + '%';
+    frame.style.height = (100 / z) + '%';
+  }
+}
+
 function makeWindowDraggable(win) {
   var bar = win.querySelector('.window-header') || win.querySelector('h4, h5') || win;
 
@@ -1076,6 +1162,16 @@ function makeWindowDraggable(win) {
 
     function onMove(ev) {
           if (ev.cancelable) ev.preventDefault();
+
+          if (win.classList.contains('mini-web-modal') && win.dataset.preSnapW) {
+            win.style.width = win.dataset.preSnapW;
+            win.style.height = win.dataset.preSnapH;
+            delete win.dataset.preSnapW;
+            delete win.dataset.preSnapH;
+            var newR = win.getBoundingClientRect();
+            shiftX = Math.min(shiftX, newR.width / 2);
+          }
+
           var scale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
           var newLeft = ev.clientX - shiftX;
           var newTop = ev.clientY - shiftY;
@@ -1086,12 +1182,26 @@ function makeWindowDraggable(win) {
           win.style.transform = 'scale(' + scale + ')';
           win.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
           win.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
+
+          if (win.classList.contains('mini-web-modal')) {
+            activeSnapTarget = detectSnapZone(ev.clientX, ev.clientY);
+            updateSnapGuide(activeSnapTarget);
+          }
         }
 
     function onUp() {
           bar.removeEventListener('pointermove', onMove);
           bar.removeEventListener('pointerup', onUp);
           bar.removeEventListener('pointercancel', onUp);
+
+          if (win.classList.contains('mini-web-modal')) {
+            updateSnapGuide(null);
+            if (activeSnapTarget) {
+              applyWindowSnap(win, activeSnapTarget);
+              activeSnapTarget = null;
+            }
+          }
+
           var scale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
           win.style.transformOrigin = 'top left';
           win.style.transform = 'scale(' + scale + ')';
@@ -1247,6 +1357,17 @@ window.openMiniWeb = function(repoFullName, e) {
     const repoOwner = repoFullName.split('/')[0] || ghUser;
     const repoName = repoFullName.split('/')[1] || repoFullName;
     if (!repoName) { toast('❌ Invalid repo', 'warn'); return; }
+
+    const currentOrigin = window.location.origin.toLowerCase();
+    const currentPath = window.location.pathname.toLowerCase();
+    const targetPath = ('/' + repoName + '/').toLowerCase();
+    const isSelfReplicating = (currentOrigin.includes(repoOwner.toLowerCase() + '.github.io') && currentPath.includes(targetPath)) ||
+                             (ghRepo && ghRepo.toLowerCase() === repoFullName.toLowerCase() && (window.location.hostname === repoOwner.toLowerCase() + '.github.io'));
+
+    if (isSelfReplicating) {
+        toast('🛑 Infinite loop blocked: Cannot embed current CMP inside itself.', 'warn', 4000);
+        return;
+    }
 
     const url = `https://${repoOwner}.github.io/${repoName}/?t=${Date.now()}`;
     window.miniWebCount++;
