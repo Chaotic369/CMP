@@ -241,7 +241,9 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 .repo-item.active { background: rgba(255,255,255,0.15); color: #ffffff; font-weight: 600; }
 
 .repo-actions { display: none; align-items: center; gap: 3px; }
-.repo-item.active .repo-actions, .repo-item:hover .repo-actions { display: flex; }
+.repo-item.active .repo-actions { display: flex; }
+.repo-item .repo-web-btn { display: flex !important; color: #ffffff !important; opacity: 0.9; margin-left: auto; flex-shrink: 0; }
+.repo-item .repo-web-btn:hover { opacity: 1; color: #ffffff !important; }
 
 .mini-web-modal {
   position: fixed; width: 340px; height: 400px; min-width: 200px; min-height: 150px;
@@ -250,7 +252,21 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   border: 1px solid rgba(255,255,255,0.12); outline: none !important; border-radius: 8px; padding: 4px;
   color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
 }
-.mini-web-modal iframe { width: 100%; flex: 1; border: none; border-radius: 4px; background: #ffffff; }
+.mini-web-frame-wrap {
+  width: 100%; flex: 1; overflow: hidden; position: relative; border-radius: 4px; background: #ffffff;
+}
+.mini-web-modal iframe {
+  border: none; background: #ffffff; position: absolute; top: 0; left: 0;
+  transform-origin: 0 0;
+}
+.mini-zoom-pop {
+  display: none; align-items: center; gap: 6px; position: absolute; top: 26px; right: 26px;
+  background: rgba(22, 22, 22, 0.95); padding: 4px 8px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.15); z-index: 10002; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+.mini-zoom-pop.open { display: flex; }
+.mini-zoom-pop input[type="range"] { width: 80px; accent-color: var(--blue); cursor: pointer; }
+.mini-zoom-pop span { font-size: 9px; font-family: monospace; min-width: 30px; }
 
 .resize-handle { position: absolute; z-index: 10001; touch-action: none; }
 .resize-r { top: 0; right: -4px; width: 12px; height: 100%; cursor: e-resize; }
@@ -1114,8 +1130,15 @@ window.toggleFullTree = function() {
                 });
             }
         } else {
-            sc.classList.remove('full-tree-active');
-        }
+                                          const isBookmarked = typeof ghBookmarkedRepos !== 'undefined' && ghBookmarkedRepos.includes(r);
+                                          const starColor = isBookmarked ? 'color:var(--amber);' : 'color:rgba(255,255,255,0.4);';
+                                          actions.innerHTML = `
+                                              <button class="repo-btn repo-web-btn" style="color:#ffffff; font-size:12px;" title="Open Mini Site" onclick="event.stopPropagation(); window.openMiniWeb('${r}', event)"><i class="fa-solid fa-globe"></i></button>
+                                              <button class="repo-btn star" style="${starColor} font-size:12px;" title="Bookmark Repo" onclick="window.toggleBookmarkRepo('${r}', event); window.renderModalRepoList();"><i class="fa-solid fa-star"></i></button>
+                                              <button class="repo-btn" style="font-size:12px; color:#fff;" title="Rename Repo" onclick="window.renameRepo('${r}', event); setTimeout(()=>window.renderModalRepoList(), 2000);"><i class="fa-solid fa-pen"></i></button>
+                                              <button class="repo-btn del" style="font-size:12px; color:var(--red);" title="Delete Repo" onclick="window.deleteRepo('${r}', event); setTimeout(()=>window.renderModalRepoList(), 2000);"><i class="fa-solid fa-trash"></i></button>
+                                          `;
+                                      }
     }
     
     if (window.isFullTreeMode) currentDirectory = '';
@@ -1152,11 +1175,17 @@ function makeWindowDimensionalResizable(win) {
       try { handle.setPointerCapture(e.pointerId); } catch(err) {}
       
       function onMove(ev) {
-        ev.stopPropagation();
-        if (ev.cancelable) ev.preventDefault();
-        if (dir === 'r' || dir === 'br') win.style.width = Math.max(200, startW + (ev.clientX - startX)) + 'px';
-        if (dir === 'b' || dir === 'br') win.style.height = Math.max(150, startH + (ev.clientY - startY)) + 'px';
-      }
+              ev.stopPropagation();
+              if (ev.cancelable) ev.preventDefault();
+              if (dir === 'r' || dir === 'br') win.style.width = Math.max(200, startW + (ev.clientX - startX)) + 'px';
+              if (dir === 'b' || dir === 'br') win.style.height = Math.max(150, startH + (ev.clientY - startY)) + 'px';
+              const frame = win.querySelector('iframe');
+              if (frame && frame.dataset.zoom) {
+                const z = parseFloat(frame.dataset.zoom) || 1;
+                frame.style.width = (100 / z) + '%';
+                frame.style.height = (100 / z) + '%';
+              }
+            }
       function onUp(ev) {
         handle.removeEventListener('pointermove', onMove);
         handle.removeEventListener('pointerup', onUp);
@@ -1185,16 +1214,23 @@ window.openMiniWeb = function(repoFullName, e) {
     modal.id = winId;
     
     modal.innerHTML = `
-      <div class="window-header" style="margin-bottom:0px; padding-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:move;">
-        <div class="win-title" style="font-size:12px; pointer-events:none;"><i class="fa-solid fa-globe" style="color:var(--blue); margin-right:6px;"></i> ${repoName}</div>
-        <div style="display:flex; align-items:center; gap:6px;">
-          <button class="panel-close" title="Reload" onclick="document.getElementById('${winId}_frame').src = '${url.split('?')[0]}?t=' + Date.now()" style="padding:2px 6px;"><i class="fa-solid fa-rotate-right" style="font-size:10px;"></i></button>
-          <button class="panel-close" title="Open in New Tab" onclick="window.open('${url}', '_blank')" style="padding:2px 6px;"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px;"></i></button>
-          <button class="panel-close" onclick="this.closest('.mini-web-modal').remove()">✕</button>
-        </div>
-      </div>
-      <iframe id="${winId}_frame" src="${url}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
-    `;
+          <div class="window-header" style="margin-bottom:0px; padding-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:move;">
+            <div class="win-title" style="font-size:12px; pointer-events:none;"><i class="fa-solid fa-globe" style="color:var(--blue); margin-right:6px;"></i> ${repoName}</div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <button class="panel-close" title="Zoom In/Out" onclick="window.toggleMiniZoom('${winId}')" style="padding:2px 6px;"><i class="fa-solid fa-magnifying-glass" style="font-size:10px;"></i></button>
+              <button class="panel-close" title="Reload" onclick="document.getElementById('${winId}_frame').src = '${url.split('?')[0]}?t=' + Date.now()" style="padding:2px 6px;"><i class="fa-solid fa-rotate-right" style="font-size:10px;"></i></button>
+              <button class="panel-close" title="Open in New Tab" onclick="window.open('${url}', '_blank')" style="padding:2px 6px;"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px;"></i></button>
+              <button class="panel-close" onclick="this.closest('.mini-web-modal').remove()">✕</button>
+            </div>
+          </div>
+          <div class="mini-zoom-pop" id="${winId}_zoomPop">
+            <input type="range" min="0.3" max="2" step="0.05" value="1" oninput="window.setMiniWebZoom('${winId}', this.value)">
+            <span id="${winId}_zoomVal">100%</span>
+          </div>
+          <div class="mini-web-frame-wrap" id="${winId}_wrap">
+            <iframe id="${winId}_frame" src="${url}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
+          </div>
+        `;
     
     document.body.appendChild(modal);
     modal.style.transformOrigin = 'top left';
@@ -1210,9 +1246,29 @@ window.openMiniWeb = function(repoFullName, e) {
     modal.style.top = top + 'px';
     
     bringModalToFront(modal);
-    makeWindowDraggable(modal);
-    makeWindowDimensionalResizable(modal);
-};
+        makeWindowDraggable(modal);
+        makeWindowDimensionalResizable(modal);
+        window.setMiniWebZoom(winId, 1);
+    };
+
+    window.toggleMiniZoom = function(winId) {
+        const pop = document.getElementById(winId + '_zoomPop');
+        if (pop) pop.classList.toggle('open');
+    };
+
+    window.setMiniWebZoom = function(winId, scale) {
+        scale = parseFloat(scale) || 1;
+        const frame = document.getElementById(winId + '_frame');
+        const valSpan = document.getElementById(winId + '_zoomVal');
+        if (valSpan) valSpan.textContent = Math.round(scale * 100) + '%';
+        if (!frame) return;
+
+        frame.dataset.zoom = scale;
+        const pct = (100 / scale) + '%';
+        frame.style.width = pct;
+        frame.style.height = pct;
+        frame.style.transform = `scale(${scale})`;
+    };
 
 window.switchRepo = function(r) {
     if (ghRepo === r) return;
@@ -1269,16 +1325,15 @@ window.renderBookmarks = function() {
         nameSpan.textContent = name;
         
         const actions = document.createElement('div');
-                actions.className = 'repo-actions';
-                                actions.innerHTML = `
-                                  <button class="repo-btn" style="color:var(--blue);" title="Open Mini Site" onclick="window.openMiniWeb('${r}', event)"><i class="fa-solid fa-globe"></i></button>
-                                  <button class="repo-btn star" style="color:var(--amber);" title="Remove Bookmark" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
-                                  <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
-                                  <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
-                                `;
-        
-        rBtn.appendChild(nameSpan);
-        rBtn.appendChild(actions);
+                        actions.className = 'repo-actions';
+                        actions.innerHTML = `
+                          <button class="repo-btn star" style="color:var(--amber);" title="Remove Bookmark" onclick="window.toggleBookmarkRepo('${r}', event)"><i class="fa-solid fa-star"></i></button>
+                          <button class="repo-btn" title="Rename Repo" onclick="renameRepo('${r}', event)"><i class="fa-solid fa-pen"></i></button>
+                          <button class="repo-btn del" title="Delete Repo" onclick="deleteRepo('${r}', event)"><i class="fa-solid fa-trash"></i></button>
+                        `;
+
+                rBtn.appendChild(nameSpan);
+                rBtn.appendChild(actions);
         rBtn.onclick = (e) => { if (rBtn.dataset.dragReady === '1') return; e.stopPropagation(); window.switchRepo(r); };
 
         // --- Drag to sort / Drag to delete ---
@@ -1975,7 +2030,15 @@ function renderRepoTabs() {
                 }
 
                 btn.appendChild(nameSpan);
-            btn.appendChild(actions);
+                                if (!window.repoBulkMode) {
+                                    const webBtn = document.createElement('button');
+                                    webBtn.className = 'repo-btn repo-web-btn';
+                                    webBtn.title = 'Open Mini Site';
+                                    webBtn.innerHTML = '<i class="fa-solid fa-globe"></i>';
+                                    webBtn.onclick = (ev) => { ev.stopPropagation(); window.openMiniWeb(r, ev); };
+                                    btn.appendChild(webBtn);
+                                }
+                            btn.appendChild(actions);
             container.appendChild(btn);
           });
           if(window.renderBookmarks) window.renderBookmarks();
