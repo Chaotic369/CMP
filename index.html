@@ -260,10 +260,17 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #toastCopyBtn { display: none; background: rgba(255,255,255,0.12); border: none; color: inherit; border-radius: 8px; width: 18px; height: 18px; flex-shrink: 0; align-items: center; justify-content: center; cursor: pointer; font-size: 6px; }
 #toast.err #toastCopyBtn { display: flex; }
 
-#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal {
+#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal {
   position: fixed; z-index: 30000; background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important; border-radius: 24px;
   padding: 24px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
   max-height: calc(100vh - 40px); overflow-y: auto;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+#astPanel::-webkit-scrollbar, #logPanel::-webkit-scrollbar, #ghConfigPanel::-webkit-scrollbar,
+#commitModal::-webkit-scrollbar, #newRepoModal::-webkit-scrollbar, #wallpaperModal::-webkit-scrollbar,
+#buildModal::-webkit-scrollbar, #workflowsModal::-webkit-scrollbar, #fullTreeModal::-webkit-scrollbar,
+#bulkModal::-webkit-scrollbar, #errLogModal::-webkit-scrollbar {
+  display: none; width: 0; height: 0;
 }
 #astPanel, #logPanel { width: calc(100vw - 40px); max-width: 420px; max-height: 48vh; overflow-y: auto; display: none; line-height: 1.6; }
 #astPanel { top: 80px; left: calc(50vw - 210px); }
