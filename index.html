@@ -550,6 +550,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <div class="win-title"><i class="fa-solid fa-folder-plus"></i> New Repository</div>
     <button class="panel-close" id="nrCloseBtn">✕</button>
   </div>
+  <div class="gh-row" style="margin-bottom: 10px;">
+    <label for="nrName">Repo Name</label>
+    <input type="text" id="nrName" placeholder="my-new-repo" autocomplete="off" spellcheck="false">
+  </div>
   <div style="display:flex; gap:10px; margin: 10px 0; font-size: 11px; flex-wrap: wrap;">
             <label style="cursor:pointer;"><input type="radio" name="nrSource" value="upload" checked> <i class="fa-solid fa-upload"></i> Upload HTML</label>
             <label style="cursor:pointer;"><input type="radio" name="nrSource" value="paste"> <i class="fa-solid fa-code"></i> Paste HTML</label>
