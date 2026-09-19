@@ -1612,29 +1612,22 @@ window.toggleFullTree = function() {
     let sc = document.getElementById('sidebarContent');
     if (sc) {
         if (window.isFullTreeMode) {
-            sc.classList.add('full-tree-active');
-            // Auto-expand all nested folders so you see everything at a glance
-            if (currentTreeFiles) {
-                currentTreeFiles.forEach(f => {
-                    const parts = f.path.split('/');
-                    let currentPath = '';
-                    for (let i = 0; i < parts.length - 1; i++) {
-                        currentPath = currentPath ? currentPath + '/' + parts[i] : parts[i];
-                        window.nestedExpanded['dir_' + currentPath] = true;
+                    sc.classList.add('full-tree-active');
+                    // Auto-expand all nested folders so you see everything at a glance
+                    if (currentTreeFiles) {
+                        currentTreeFiles.forEach(f => {
+                            const parts = f.path.split('/');
+                            let currentPath = '';
+                            for (let i = 0; i < parts.length - 1; i++) {
+                                currentPath = currentPath ? currentPath + '/' + parts[i] : parts[i];
+                                window.nestedExpanded['dir_' + currentPath] = true;
+                            }
+                        });
                     }
-                });
+                } else {
+                    sc.classList.remove('full-tree-active');
+                }
             }
-        } else {
-                                          const isBookmarked = typeof ghBookmarkedRepos !== 'undefined' && ghBookmarkedRepos.includes(r);
-                                          const starColor = isBookmarked ? 'color:var(--amber);' : 'color:rgba(255,255,255,0.4);';
-                                          actions.innerHTML = `
-                                              <button class="repo-btn repo-web-btn" style="color:#ffffff; font-size:12px;" title="Open Mini Site" onclick="event.stopPropagation(); window.openMiniWeb('${r}', event)"><i class="fa-solid fa-globe"></i></button>
-                                              <button class="repo-btn star" style="${starColor} font-size:12px;" title="Bookmark Repo" onclick="window.toggleBookmarkRepo('${r}', event); window.renderModalRepoList();"><i class="fa-solid fa-star"></i></button>
-                                              <button class="repo-btn" style="font-size:12px; color:#fff;" title="Rename Repo" onclick="window.renameRepo('${r}', event); setTimeout(()=>window.renderModalRepoList(), 2000);"><i class="fa-solid fa-pen"></i></button>
-                                              <button class="repo-btn del" style="font-size:12px; color:var(--red);" title="Delete Repo" onclick="window.deleteRepo('${r}', event); setTimeout(()=>window.renderModalRepoList(), 2000);"><i class="fa-solid fa-trash"></i></button>
-                                          `;
-                                      }
-    }
     
     if (window.isFullTreeMode) currentDirectory = '';
     renderFileTreeUI();
@@ -1651,6 +1644,37 @@ window.toggleBookmarkRepo = function(r, e) {
     ghSaveConfig();
     renderRepoTabs();
     if(window.renderBookmarks) window.renderBookmarks();
+};
+
+window.checkFreezePreviewState = function() {
+  var anyOpen = document.querySelectorAll('.mini-web-modal').length > 0;
+  var pv = document.getElementById('preview');
+  var es = document.getElementById('emptyState');
+  if (!pv || !es) return;
+
+  if (anyOpen) {
+    if (!window._previewWasSuspended) {
+      window._previewWasSuspended = true;
+      window._savedPreviewSrc = pv.src;
+      window._savedPreviewSrcdoc = pv.srcdoc;
+      pv.style.display = 'none';
+      es.style.display = 'flex';
+      pv.srcdoc = '<!DOCTYPE html><html><body style="background:#000;"></body></html>';
+    }
+  } else {
+    if (window._previewWasSuspended) {
+      window._previewWasSuspended = false;
+      if (window._savedPreviewSrcdoc) {
+        pv.srcdoc = window._savedPreviewSrcdoc;
+      } else if (window._savedPreviewSrc) {
+        pv.src = window._savedPreviewSrc;
+      }
+      if (viewMode === 'preview' && (sourceContent || window._savedPreviewSrcdoc || window._savedPreviewSrc)) {
+        pv.style.display = 'block';
+        es.style.display = 'none';
+      }
+    }
+  }
 };
 
 function makeWindowDimensionalResizable(win) {
@@ -1698,8 +1722,21 @@ window.miniWebCount = 0;
 window.openMiniWeb = function(repoFullName, e) {
     if (e) e.stopPropagation();
     const repoOwner = repoFullName.split('/')[0] || ghUser;
-    const repoName = repoFullName.split('/')[1] || repoFullName;
+    const repoName = (repoFullName.split('/')[1] || repoFullName).trim();
     if (!repoName) { toast('❌ Invalid repo', 'warn'); return; }
+
+    const targetRepoLower = repoName.toLowerCase();
+    const currentPathLower = window.location.pathname.toLowerCase();
+    const currentRepoLower = (ghRepo ? (ghRepo.split('/')[1] || ghRepo) : '').toLowerCase();
+
+    const isSelfReplicating = targetRepoLower === 'cmp' ||
+                              (currentRepoLower && targetRepoLower === currentRepoLower) ||
+                              currentPathLower.includes('/' + targetRepoLower + '/');
+
+    if (isSelfReplicating) {
+        toast('🛑 Replication blocked: CMP cannot embed itself.', 'warn', 4000);
+        return;
+    }
 
     const url = `https://${repoOwner}.github.io/${repoName}/?t=${Date.now()}`;
     window.miniWebCount++;
@@ -1713,36 +1750,31 @@ window.openMiniWeb = function(repoFullName, e) {
           <div class="window-header" style="cursor:move;">
             <div class="win-title" style="font-size:10px; pointer-events:none;"><i class="fa-solid fa-globe" style="color:var(--blue); margin-right:4px;"></i> ${repoName}</div>
             <div style="display:flex; align-items:center; gap:3px;">
-                      <button class="panel-close" title="Tile Window" onclick="window.toggleMiniTile('${winId}')"><i class="fa-solid fa-table-cells-large" style="font-size:8px;"></i></button>
-                      <button class="panel-close" title="Zoom In/Out" onclick="window.toggleMiniZoom('${winId}')"><i class="fa-solid fa-magnifying-glass" style="font-size:8px;"></i></button>
-                      <button class="panel-close" title="Reload" onclick="document.getElementById('${winId}_frame').src = '${url.split('?')[0]}?t=' + Date.now()"><i class="fa-solid fa-rotate-right" style="font-size:8px;"></i></button>
-                      <button class="panel-close" title="Open in New Tab" onclick="window.open('${url}', '_blank')"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:8px;"></i></button>
-                      <button class="panel-close" onclick="this.closest('.mini-web-modal').remove(); window.checkFreezePreviewState(); if(window.updateTileSplitters) window.updateTileSplitters();">✕</button>
-                    </div>
-                  </div>
-                  <div class="mini-tile-pop" id="${winId}_tilePop">
-                    <button class="tile-preset-btn" title="Full Screen" onclick="window.applyTilePreset('${winId}', 'max')"><div style="flex:1; background:rgba(255,255,255,0.4); border-radius:1px;"></div></button>
-                    <button class="tile-preset-btn" title="Left Half" onclick="window.applyTilePreset('${winId}', 'left')"><div style="width:50%; height:100%; background:rgba(255,255,255,0.4); border-radius:1px 0 0 1px;"></div></button>
-                    <button class="tile-preset-btn" title="Right Half" onclick="window.applyTilePreset('${winId}', 'right')"><div style="width:50%; margin-left:auto; height:100%; background:rgba(255,255,255,0.4); border-radius:0 1px 1px 0;"></div></button>
-                    <button class="tile-preset-btn" title="Top Half" onclick="window.applyTilePreset('${winId}', 'top')"><div style="width:100%; height:50%; background:rgba(255,255,255,0.4); border-radius:1px 1px 0 0;"></div></button>
-                    <button class="tile-preset-btn" title="Bottom Half" onclick="window.applyTilePreset('${winId}', 'bottom')"><div style="width:100%; height:50%; margin-top:auto; background:rgba(255,255,255,0.4); border-radius:0 0 1px 1px;"></div></button>
-                    <button class="tile-preset-btn" title="Top Left Quarter" onclick="window.applyTilePreset('${winId}', 'tl')"><div style="width:50%; height:50%; background:rgba(255,255,255,0.4); border-radius:1px 0 0 0;"></div></button>
-                    <button class="tile-preset-btn" title="Top Right Quarter" onclick="window.applyTilePreset('${winId}', 'tr')"><div style="width:50%; height:50%; margin-left:auto; background:rgba(255,255,255,0.4); border-radius:0 1px 0 0;"></div></button>
-                    <button class="tile-preset-btn" title="Bottom Left Quarter" onclick="window.applyTilePreset('${winId}', 'bl')"><div style="width:50%; height:50%; margin-top:auto; background:rgba(255,255,255,0.4); border-radius:0 0 0 1px;"></div></button>
-                    <button class="tile-preset-btn" title="Bottom Right Quarter" onclick="window.applyTilePreset('${winId}', 'br')"><div style="width:50%; height:50%; margin-top:auto; margin-left:auto; background:rgba(255,255,255,0.4); border-radius:0 0 1px 0;"></div></button>
-                    <button class="tile-preset-btn" title="Left Third" onclick="window.applyTilePreset('${winId}', 'left-third')"><div style="width:33%; height:100%; background:rgba(255,255,255,0.4); border-radius:1px 0 0 1px;"></div></button>
-                    <button class="tile-preset-btn" title="Center Third" onclick="window.applyTilePreset('${winId}', 'center-third')"><div style="width:34%; height:100%; margin:auto; background:rgba(255,255,255,0.4);"></div></button>
-                    <button class="tile-preset-btn" title="Right Third" onclick="window.applyTilePreset('${winId}', 'right-third')"><div style="width:33%; height:100%; margin-left:auto; background:rgba(255,255,255,0.4); border-radius:0 1px 1px 0;"></div></button>
-                  </div>
-                  <div class="mini-zoom-pop" id="${winId}_zoomPop">
-                    <input type="range" min="0.3" max="2" step="0.05" value="0.7" oninput="window.setMiniWebZoom('${winId}', this.value)">
-                    <span id="${winId}_zoomVal">70%</span>
-                  </div>
+              <button class="panel-close" title="Tile Window" onclick="window.toggleMiniTile('${winId}')"><i class="fa-solid fa-table-cells-large" style="font-size:8px;"></i></button>
+              <button class="panel-close" title="Zoom In/Out" onclick="window.toggleMiniZoom('${winId}')"><i class="fa-solid fa-magnifying-glass" style="font-size:8px;"></i></button>
+              <button class="panel-close" title="Reload" onclick="document.getElementById('${winId}_frame').src = '${url.split('?')[0]}?t=' + Date.now()"><i class="fa-solid fa-rotate-right" style="font-size:8px;"></i></button>
+              <button class="panel-close" title="Open in New Tab" onclick="window.open('${url}', '_blank')"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:8px;"></i></button>
+              <button class="panel-close" onclick="this.closest('.mini-web-modal').remove(); window.checkFreezePreviewState(); if(window.updateTileSplitters) window.updateTileSplitters();">✕</button>
+            </div>
+          </div>
+          <div class="mini-tile-pop" id="${winId}_tilePop">
+            <button class="tile-preset-btn" title="Full Screen" onclick="window.applyTilePreset('${winId}', 'max')"><div style="flex:1; background:rgba(255,255,255,0.4); border-radius:1px;"></div></button>
+            <button class="tile-preset-btn" title="Left Half" onclick="window.applyTilePreset('${winId}', 'left')"><div style="width:50%; height:100%; background:rgba(255,255,255,0.4); border-radius:1px 0 0 1px;"></div></button>
+            <button class="tile-preset-btn" title="Right Half" onclick="window.applyTilePreset('${winId}', 'right')"><div style="width:50%; margin-left:auto; height:100%; background:rgba(255,255,255,0.4); border-radius:0 1px 1px 0;"></div></button>
+            <button class="tile-preset-btn" title="Top Half" onclick="window.applyTilePreset('${winId}', 'top')"><div style="width:100%; height:50%; background:rgba(255,255,255,0.4); border-radius:1px 1px 0 0;"></div></button>
+            <button class="tile-preset-btn" title="Bottom Half" onclick="window.applyTilePreset('${winId}', 'bottom')"><div style="width:100%; height:50%; margin-top:auto; background:rgba(255,255,255,0.4); border-radius:0 0 1px 1px;"></div></button>
+            <button class="tile-preset-btn" title="Top Left Quarter" onclick="window.applyTilePreset('${winId}', 'tl')"><div style="width:50%; height:50%; background:rgba(255,255,255,0.4); border-radius:1px 0 0 0;"></div></button>
+            <button class="tile-preset-btn" title="Top Right Quarter" onclick="window.applyTilePreset('${winId}', 'tr')"><div style="width:50%; height:50%; margin-left:auto; background:rgba(255,255,255,0.4); border-radius:0 1px 0 0;"></div></button>
+            <button class="tile-preset-btn" title="Bottom Left Quarter" onclick="window.applyTilePreset('${winId}', 'bl')"><div style="width:50%; height:50%; margin-top:auto; background:rgba(255,255,255,0.4); border-radius:0 0 0 1px;"></div></button>
+            <button class="tile-preset-btn" title="Bottom Right Quarter" onclick="window.applyTilePreset('${winId}', 'br')"><div style="width:50%; height:50%; margin-top:auto; margin-left:auto; background:rgba(255,255,255,0.4); border-radius:0 0 1px 0;"></div></button>
+            <button class="tile-preset-btn" title="Left Third" onclick="window.applyTilePreset('${winId}', 'left-third')"><div style="width:33%; height:100%; background:rgba(255,255,255,0.4); border-radius:1px 0 0 1px;"></div></button>
+            <button class="tile-preset-btn" title="Center Third" onclick="window.applyTilePreset('${winId}', 'center-third')"><div style="width:34%; height:100%; margin:auto; background:rgba(255,255,255,0.4);"></div></button>
+            <button class="tile-preset-btn" title="Right Third" onclick="window.applyTilePreset('${winId}', 'right-third')"><div style="width:33%; height:100%; margin-left:auto; background:rgba(255,255,255,0.4); border-radius:0 1px 1px 0;"></div></button>
           </div>
           <div class="mini-zoom-pop" id="${winId}_zoomPop">
-                  <input type="range" min="0.3" max="2" step="0.05" value="0.7" oninput="window.setMiniWebZoom('${winId}', this.value)">
-                  <span id="${winId}_zoomVal">70%</span>
-                </div>
+            <input type="range" min="0.3" max="2" step="0.05" value="0.7" oninput="window.setMiniWebZoom('${winId}', this.value)">
+            <span id="${winId}_zoomVal">70%</span>
+          </div>
           <div class="mini-web-frame-wrap" id="${winId}_wrap">
             <iframe id="${winId}_frame" src="${url}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
           </div>
@@ -1762,35 +1794,21 @@ window.openMiniWeb = function(repoFullName, e) {
     modal.style.top = top + 'px';
     
     ['pointerdown', 'mousedown', 'touchstart'].forEach(function(evt) {
-          modal.addEventListener(evt, function() {
-            bringModalToFront(modal);
-          }, { capture: true, passive: true });
-        });
-
-        // Create an overlay so tapping inside the embedded iframe also brings the window forward
-        var iframeShield = document.createElement('div');
-        iframeShield.style.cssText = 'position:absolute; inset:22px 0 0 0; z-index:2; cursor:default;';
-        modal.appendChild(iframeShield);
-
-        function deactivateShield() {
-          iframeShield.style.display = 'none';
-        }
-
-        iframeShield.addEventListener('pointerdown', function(e) {
-          bringModalToFront(modal);
-          deactivateShield();
-        });
-
-        modal.addEventListener('pointerleave', function() {
-          iframeShield.style.display = 'block';
-        });
-
+      modal.addEventListener(evt, function() {
         bringModalToFront(modal);
-        makeWindowDraggable(modal);
-        makeWindowDimensionalResizable(modal);
-        window.setMiniWebZoom(winId, 0.7);
-        window.checkFreezePreviewState();
-    };
+      }, { capture: true, passive: true });
+    });
+
+    modal.addEventListener('pointerenter', function() {
+      bringModalToFront(modal);
+    });
+
+    bringModalToFront(modal);
+    makeWindowDraggable(modal);
+    makeWindowDimensionalResizable(modal);
+    window.setMiniWebZoom(winId, 0.7);
+    window.checkFreezePreviewState();
+};
 
     window.toggleMiniZoom = function(winId) {
         const pop = document.getElementById(winId + '_zoomPop');
