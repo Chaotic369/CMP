@@ -314,6 +314,8 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   user-select: none;
+  touch-action: none;
+  cursor: move;
   flex-shrink: 0;
 }
 .win-title {
@@ -327,26 +329,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-.win-drag-handle {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
-  border-radius: 6px;
-  cursor: grab;
-  font-size: 11px;
-  touch-action: none;
-  flex-shrink: 0;
-}
-.win-drag-handle:active {
-  cursor: grabbing;
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  pointer-events: none;
 }
 .panel-close {
   cursor: pointer;
@@ -547,7 +530,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="wallpaperModal">
   <div class="window-header">
-    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
     <div class="win-title"><i class="fa-solid fa-image"></i> Workspace Wallpaper</div>
     <button class="panel-close" onclick="document.getElementById('wallpaperModal').classList.remove('open'); document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
@@ -564,8 +546,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </div>
 
 <div id="newRepoModal">
-  <h4><i class="fa-solid fa-folder-plus"></i> New Repository <span class="panel-close" id="nrCloseBtn">✕</span></h4>
-  <div class="gh-row"><label>Name</label><input type="text" id="nrName" placeholder=""></div>
+  <div class="window-header">
+    <div class="win-title"><i class="fa-solid fa-folder-plus"></i> New Repository</div>
+    <button class="panel-close" id="nrCloseBtn">✕</button>
+  </div>
   <div style="display:flex; gap:10px; margin: 10px 0; font-size: 11px; flex-wrap: wrap;">
             <label style="cursor:pointer;"><input type="radio" name="nrSource" value="upload" checked> <i class="fa-solid fa-upload"></i> Upload HTML</label>
             <label style="cursor:pointer;"><input type="radio" name="nrSource" value="paste"> <i class="fa-solid fa-code"></i> Paste HTML</label>
@@ -598,7 +582,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </style>
 <div id="bulkModal">
   <div class="window-header">
-    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
     <div class="win-title"><i class="fa-solid fa-cubes"></i> Bulk Create Files</div>
     <button class="panel-close" onclick="document.getElementById('bulkModal').classList.remove('open'); document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
@@ -619,7 +602,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </style>
   <div id="workflowsModal">
       <div class="window-header">
-        <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
         <div class="win-title"><i class="fa-solid fa-folder-tree"></i> Workflow Files</div>
         <button class="panel-close" id="wfModalCloseBtn">✕</button>
       </div>
@@ -638,9 +620,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </style>
 <div id="fullTreeModal">
   <div class="window-header">
-    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
     <div class="win-title">
-      <span id="modalRepoDropdownBtn" style="cursor:pointer; display:flex; align-items:center;" onclick="window.toggleModalRepoList()">
+      <span id="modalRepoDropdownBtn" style="cursor:pointer; pointer-events:auto; display:flex; align-items:center;" onclick="window.toggleModalRepoList()">
         <i class="fa-solid fa-sitemap" style="color:var(--teal); margin-right:8px;"></i> 
         <span id="modalRepoTitle">Repository Tree</span> 
         <i class="fa-solid fa-caret-down" id="modalRepoCaret" style="font-size:12px; margin-left:6px; color:rgba(255,255,255,0.6);"></i>
@@ -659,7 +640,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="ghConfigPanel">
   <div class="window-header">
-    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
     <div class="win-title"><i class="fa-brands fa-github"></i> GitHub Integration</div>
     <button class="panel-close" id="ghClosePanelTopBtn" onclick="document.getElementById('ghConfigPanel').classList.remove('open'); document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
@@ -676,7 +656,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="commitModal">
   <div class="window-header">
-    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
     <div class="win-title"><i class="fa-solid fa-arrow-up-from-bracket"></i> Commit & Push</div>
     <button class="panel-close" onclick="document.getElementById('commitModal').classList.remove('open'); document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
@@ -689,8 +668,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="buildModal">
   <div class="window-header">
-    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
     <div class="win-title"><i class="fa-solid fa-hammer"></i> Build App</div>
+    <button class="panel-close" id="bmCloseBtn">✕</button>
+  </div>
     <button class="panel-close" id="bmCloseBtn">✕</button>
   </div>
 
@@ -742,7 +722,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     </style>
 <div id="buildProgressOverlay" style="display:none; position:fixed; top:80px; left:calc(50vw - 210px); width:calc(100vw - 40px); max-width:420px; background:rgba(22, 22, 22, 0.85); backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border:none !important; outline:none !important; border-radius:20px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:0 16px 48px rgba(0,0,0,0.5);">
   <div class="window-header" style="margin-bottom:16px; padding-bottom:12px;">
-    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
     <div class="win-title" id="bpTitle" style="font-size:15px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</div>
     <div style="display:flex; gap:12px; align-items:center;">
       <i class="fa-regular fa-copy" id="bpCopyLogBtnIcon" style="cursor:pointer; color:rgba(255,255,255,0.7); font-size:13px;" title="Copy Error Logs"></i>
@@ -792,7 +771,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="astPanel">
   <div class="window-header">
-    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
     <div class="win-title">🧠 AST Health</div>
     <button class="panel-close" onclick="document.getElementById('astPanel').style.display='none'">✕</button>
   </div>
@@ -809,7 +787,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="logPanel">
   <div class="window-header">
-    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
     <div class="win-title">🪵 Patch Log</div>
     <button class="panel-close" onclick="document.getElementById('logPanel').style.display='none'">✕</button>
   </div>
@@ -825,7 +802,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </style>
 <div id="errLogModal">
   <div class="window-header">
-    <button class="win-drag-handle" title="Drag Window"><i class="fa-solid fa-grip-vertical"></i></button>
     <div class="win-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--red); margin-right:8px;"></i> Build Errors <span id="errLogCount" style="font-size:11px; font-weight:500; color:rgba(255,255,255,0.6); margin-left:8px;"></span></div>
     <button class="panel-close" id="errLogCloseBtnTop">✕</button>
   </div>
