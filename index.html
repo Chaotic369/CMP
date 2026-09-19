@@ -924,6 +924,7 @@ function restoreWindowState(win) {
       win.style.top = state.top;
       return true;
     }
+    return false;
   } catch(e) {}
   return false;
 }
@@ -941,16 +942,16 @@ function makeWindowResizable(win) {
   var startX, startY, startScale;
 
   handle.addEventListener('pointerdown', function(e) {
-    if (e.button !== 0 && e.pointerType === 'mouse') return;
-    e.stopPropagation();
-    isResizing = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    startScale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
-    win.style.transformOrigin = 'top right';
-    bringModalToFront(win);
-    try { handle.setPointerCapture(e.pointerId); } catch(err) {}
-  });
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      e.stopPropagation();
+      isResizing = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      startScale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
+      win.style.transformOrigin = 'top left';
+      bringModalToFront(win);
+      try { handle.setPointerCapture(e.pointerId); } catch(err) {}
+    });
 
   handle.addEventListener('pointermove', function(e) {
     if (!isResizing) return;
@@ -1515,43 +1516,55 @@ function applyWallpaper(url) {
 
 async function ghLoadConfigFromFirebase() {
   try {
+    var localBackup = null;
+    try { localBackup = JSON.parse(localStorage.getItem('gh_config_backup_v2') || 'null'); } catch(e) {}
+    if (localBackup) {
+      ghToken = localBackup.token || ghToken;
+      ghUser = localBackup.user || ghUser;
+      ghRepo = localBackup.repo || ghRepo;
+      ghBranch = localBackup.branch || ghBranch;
+      ghFilePath = localBackup.filePath || ghFilePath;
+      ghRepos = localBackup.repos || ghRepos;
+      ghBookmarkedRepos = localBackup.bookmarkedRepos || ghBookmarkedRepos;
+    }
+
     if (window._fbLoadConfig) {
       const cfg = await window._fbLoadConfig();
       console.log('[bookmarks] Firebase config loaded:', cfg);
       if (cfg) {
-        ghToken = cfg.token || '';
-        ghUser = cfg.user || '';
-        ghRepo = cfg.repo || '';
-        ghBranch = cfg.branch || 'main';
-                    ghFilePath = cfg.filePath || 'index.html';
-                    ghRepos = cfg.repos || [];
-                    ghBookmarkedRepos = cfg.bookmarkedRepos || [];
-                    console.log('[bookmarks] ghBookmarkedRepos set to:', ghBookmarkedRepos);
-                    if (cfg.wallpaper !== undefined) {
-                                                  settings.wallpaper = cfg.wallpaper;
-                                                  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-                                                  applyWallpaper(cfg.wallpaper);
-                                                }
-                                                if (cfg.menuScale !== undefined) {
-                                                  settings.menuScale = cfg.menuScale;
-                                                  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-                                                  document.getElementById('app-menu').style.setProperty('--user-scale', settings.menuScale);
-                                                }
-                                                if (window.self === window.top && cfg.toggleBtnPos && cfg.toggleBtnPos.left !== undefined && cfg.toggleBtnPos.top !== undefined) {
-                                                          settings.toggleBtnPos = cfg.toggleBtnPos;
-                                                          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-                                                          var margin = 15;
-                                                          var maxX = window.innerWidth - $toggleBtn.offsetWidth - margin;
-                                                          var maxY = window.innerHeight - $toggleBtn.offsetHeight - margin;
-                                                          var safeX = Math.max(margin, Math.min(cfg.toggleBtnPos.left, maxX));
-                                                          var safeY = Math.max(margin, Math.min(cfg.toggleBtnPos.top, maxY));
-                                                          $toggleBtn.style.left = safeX + 'px';
-                                                          $toggleBtn.style.top = safeY + 'px';
-                                                          $toggleBtn.style.right = 'auto';
-                                                          $toggleBtn.style.bottom = 'auto';
-                                                        }
-                            document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
-                            if (window.renderBookmarks) window.renderBookmarks();
+        ghToken = cfg.token || ghToken;
+        ghUser = cfg.user || ghUser;
+        ghRepo = cfg.repo || ghRepo;
+        ghBranch = cfg.branch || ghBranch;
+        ghFilePath = cfg.filePath || ghFilePath;
+        ghRepos = cfg.repos || ghRepos;
+        ghBookmarkedRepos = cfg.bookmarkedRepos || ghBookmarkedRepos;
+        console.log('[bookmarks] ghBookmarkedRepos set to:', ghBookmarkedRepos);
+        if (cfg.wallpaper !== undefined) {
+          settings.wallpaper = cfg.wallpaper;
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+          applyWallpaper(cfg.wallpaper);
+        }
+        if (cfg.menuScale !== undefined) {
+          settings.menuScale = cfg.menuScale;
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+          document.getElementById('app-menu').style.setProperty('--user-scale', settings.menuScale);
+        }
+        if (window.self === window.top && cfg.toggleBtnPos && cfg.toggleBtnPos.left !== undefined && cfg.toggleBtnPos.top !== undefined) {
+          settings.toggleBtnPos = cfg.toggleBtnPos;
+          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+          var margin = 15;
+          var maxX = window.innerWidth - $toggleBtn.offsetWidth - margin;
+          var maxY = window.innerHeight - $toggleBtn.offsetHeight - margin;
+          var safeX = Math.max(margin, Math.min(cfg.toggleBtnPos.left, maxX));
+          var safeY = Math.max(margin, Math.min(cfg.toggleBtnPos.top, maxY));
+          $toggleBtn.style.left = safeX + 'px';
+          $toggleBtn.style.top = safeY + 'px';
+          $toggleBtn.style.right = 'auto';
+          $toggleBtn.style.bottom = 'auto';
+        }
+        document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
+        if (window.renderBookmarks) window.renderBookmarks();
       }
       ghConfigLoaded = true;
     } else {
@@ -1578,8 +1591,9 @@ function ghSaveConfig() {
       toggleBtnPos: settings.toggleBtnPos || null,
       menuScale: settings.menuScale || 1
     };
+  try { localStorage.setItem('gh_config_backup_v2', JSON.stringify(cfg)); } catch(e) {}
   if (!ghConfigLoaded) {
-    console.warn('[ghSaveConfig] Blocked save — config has not finished loading from Firebase yet.');
+    console.warn('[ghSaveConfig] Blocked Firebase save — config has not finished loading from Firebase yet.');
     document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
     return;
   }
