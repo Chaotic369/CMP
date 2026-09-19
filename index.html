@@ -247,26 +247,34 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 .mini-web-modal {
   position: fixed; width: 340px; height: 400px; min-width: 200px; min-height: 150px;
-  display: flex; flex-direction: column; gap: 4px; z-index: 32500;
+  display: flex; flex-direction: column; gap: 0px; z-index: 32500;
   background: rgba(18, 18, 18, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255,255,255,0.12); outline: none !important; border-radius: 8px; padding: 4px;
+  border: none !important; outline: none !important; border-radius: 6px; padding: 0px;
   color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
 }
+.mini-web-modal .window-header {
+  height: 22px; min-height: 22px; padding: 0 6px !important; margin: 0 !important;
+  border: none !important; border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 6px 6px 0 0; background: rgba(255, 255, 255, 0.03);
+}
+.mini-web-modal .panel-close {
+  padding: 1px 4px !important; font-size: 8px !important; border-radius: 4px;
+}
 .mini-web-frame-wrap {
-  width: 100%; flex: 1; overflow: hidden; position: relative; border-radius: 4px; background: #ffffff;
+  width: 100%; flex: 1; overflow: hidden; position: relative; border-radius: 0 0 6px 6px; background: #ffffff;
 }
 .mini-web-modal iframe {
   border: none; background: #ffffff; position: absolute; top: 0; left: 0;
   transform-origin: 0 0;
 }
 .mini-zoom-pop {
-  display: none; align-items: center; gap: 6px; position: absolute; top: 26px; right: 26px;
-  background: rgba(22, 22, 22, 0.95); padding: 4px 8px; border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.15); z-index: 10002; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  display: none; align-items: center; gap: 6px; position: absolute; top: 22px; right: 6px;
+  background: rgba(22, 22, 22, 0.95); padding: 3px 6px; border-radius: 6px;
+  border: none !important; z-index: 10002; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
 }
 .mini-zoom-pop.open { display: flex; }
-.mini-zoom-pop input[type="range"] { width: 80px; accent-color: var(--blue); cursor: pointer; }
-.mini-zoom-pop span { font-size: 9px; font-family: monospace; min-width: 30px; }
+.mini-zoom-pop input[type="range"] { width: 70px; accent-color: var(--blue); cursor: pointer; }
+.mini-zoom-pop span { font-size: 8px; font-family: monospace; min-width: 28px; }
 
 .resize-handle { position: absolute; z-index: 10001; touch-action: none; }
 .resize-r { top: 0; right: -4px; width: 12px; height: 100%; cursor: e-resize; }
@@ -1214,12 +1222,12 @@ window.openMiniWeb = function(repoFullName, e) {
     modal.id = winId;
     
     modal.innerHTML = `
-          <div class="window-header" style="margin-bottom:0px; padding-bottom:4px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:move;">
-            <div class="win-title" style="font-size:12px; pointer-events:none;"><i class="fa-solid fa-globe" style="color:var(--blue); margin-right:6px;"></i> ${repoName}</div>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <button class="panel-close" title="Zoom In/Out" onclick="window.toggleMiniZoom('${winId}')" style="padding:2px 6px;"><i class="fa-solid fa-magnifying-glass" style="font-size:10px;"></i></button>
-              <button class="panel-close" title="Reload" onclick="document.getElementById('${winId}_frame').src = '${url.split('?')[0]}?t=' + Date.now()" style="padding:2px 6px;"><i class="fa-solid fa-rotate-right" style="font-size:10px;"></i></button>
-              <button class="panel-close" title="Open in New Tab" onclick="window.open('${url}', '_blank')" style="padding:2px 6px;"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px;"></i></button>
+          <div class="window-header" style="cursor:move;">
+            <div class="win-title" style="font-size:10px; pointer-events:none;"><i class="fa-solid fa-globe" style="color:var(--blue); margin-right:4px;"></i> ${repoName}</div>
+            <div style="display:flex; align-items:center; gap:3px;">
+              <button class="panel-close" title="Zoom In/Out" onclick="window.toggleMiniZoom('${winId}')"><i class="fa-solid fa-magnifying-glass" style="font-size:8px;"></i></button>
+              <button class="panel-close" title="Reload" onclick="document.getElementById('${winId}_frame').src = '${url.split('?')[0]}?t=' + Date.now()"><i class="fa-solid fa-rotate-right" style="font-size:8px;"></i></button>
+              <button class="panel-close" title="Open in New Tab" onclick="window.open('${url}', '_blank')"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:8px;"></i></button>
               <button class="panel-close" onclick="this.closest('.mini-web-modal').remove()">✕</button>
             </div>
           </div>
