@@ -2956,16 +2956,18 @@ async function fetchFileTree(autoLoad = false, silent = false) {
     if (!silent && window._treeCache[ghRepo]) {
         currentTreeFiles = window._treeCache[ghRepo];
         if (autoLoad) {
-            let targetFile = currentTreeFiles.find(f => f.path.toLowerCase() === 'index.html' || f.path.toLowerCase().endsWith('/index.html')) 
-                          || currentTreeFiles.find(f => f.path.toLowerCase().endsWith('.html')) 
-                          || currentTreeFiles[0];
-            if (targetFile) {
-                ghFilePath = targetFile.path;
-                document.getElementById('ghFilePath').value = ghFilePath;
-                ghSaveConfig();
-                syncCurrentFile();
-            }
-        }
+                    let targetFile = currentTreeFiles.find(f => f.path.toLowerCase() === 'index.html') 
+                                  || currentTreeFiles.find(f => !f.path.includes('/') && f.path.toLowerCase().endsWith('.html')) 
+                                  || currentTreeFiles.find(f => f.path.toLowerCase().endsWith('/index.html')) 
+                                  || currentTreeFiles.find(f => f.path.toLowerCase().endsWith('.html')) 
+                                  || currentTreeFiles[0];
+                    if (targetFile) {
+                        ghFilePath = targetFile.path;
+                        document.getElementById('ghFilePath').value = ghFilePath;
+                        ghSaveConfig();
+                        syncCurrentFile();
+                    }
+                }
         renderFileTreeUI();
         if (repoCollapsed) {
             ftc.style.display = 'none';
@@ -3008,16 +3010,18 @@ async function fetchFileTree(autoLoad = false, silent = false) {
         window._treeCache[ghRepo] = currentTreeFiles;
         
         if (autoLoad) {
-                    let targetFile = currentTreeFiles.find(f => f.path.toLowerCase() === 'index.html' || f.path.toLowerCase().endsWith('/index.html')) 
-                                  || currentTreeFiles.find(f => f.path.toLowerCase().endsWith('.html')) 
-                                  || currentTreeFiles[0];
-                    if (targetFile) {
-                        ghFilePath = targetFile.path;
-                        document.getElementById('ghFilePath').value = ghFilePath;
-                        ghSaveConfig();
-                        syncCurrentFile();
-                    }
-                }
+                            let targetFile = currentTreeFiles.find(f => f.path.toLowerCase() === 'index.html') 
+                                          || currentTreeFiles.find(f => !f.path.includes('/') && f.path.toLowerCase().endsWith('.html')) 
+                                          || currentTreeFiles.find(f => f.path.toLowerCase().endsWith('/index.html')) 
+                                          || currentTreeFiles.find(f => f.path.toLowerCase().endsWith('.html')) 
+                                          || currentTreeFiles[0];
+                            if (targetFile) {
+                                ghFilePath = targetFile.path;
+                                document.getElementById('ghFilePath').value = ghFilePath;
+                                ghSaveConfig();
+                                syncCurrentFile();
+                            }
+                        }
         
                 renderFileTreeUI();
         
