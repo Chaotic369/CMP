@@ -171,6 +171,16 @@ body.hide-btn-labels .btn-lbl {
 #repoSidebar > div:first-child > button.btn,
 #bookmarkSidebar > div:last-child > button.btn {
   background: transparent;
+  width: auto;
+  min-width: 18px;
+  height: auto;
+  min-height: 20px;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 2px;
+}
+#repoSidebar > div:first-child > button.btn .btn-lbl {
+  max-width: 24px;
 }
 #repoSidebar > div:first-child > button.btn:hover,
 #bookmarkSidebar > div:last-child > button.btn:hover {
@@ -550,12 +560,12 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         <span id="app-menu-loader-text" style="font-size: 6px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">Connecting...</span>
   </div>
   <div id="repoSidebar">
-        <div style="display:flex; flex-direction:column; gap:0px;">
-                <button id="repoToggleBtn" class="btn" title="Toggle Sidebar" style="width:24px; height:24px;"><</button>
-                <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:flex; width:18px; height:18px;"><i class="fa-solid fa-folder-plus"></i></button>
-                                                                  <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:flex; width:18px; height:18px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
-                                                                                                                                                                                                              <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; width:18px; height:18px; color:var(--amber);" onclick="openBulkModal()"><i class="fa-solid fa-file-circle-plus"></i></button>
-                                                                                                                                                                                                              <button id="fullTreeBtn" class="btn" title="Show Full Tree Popup" style="display:flex; width:18px; height:18px; color:var(--teal);" onclick="window.openFullTreeModal()"><i class="fa-solid fa-sitemap"></i></button>
+          <div style="display:flex; flex-direction:column; gap:0px;">
+                  <button id="repoToggleBtn" class="btn" title="Toggle Sidebar"><i class="fa-solid fa-chevron-left"></i><span class="btn-lbl">Hide</span></button>
+                  <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:flex;"><i class="fa-solid fa-folder-plus"></i><span class="btn-lbl">New</span></button>
+                  <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:flex;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i><span class="btn-lbl">Upload</span></button>
+                  <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; color:var(--amber);" onclick="openBulkModal()"><i class="fa-solid fa-file-circle-plus"></i><span class="btn-lbl">Bulk</span></button>
+                  <button id="fullTreeBtn" class="btn" title="Show Full Tree Popup" style="display:flex; color:var(--teal);" onclick="window.openFullTreeModal()"><i class="fa-solid fa-sitemap"></i><span class="btn-lbl">Tree</span></button>
                                                                                                                                                                                   <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
                                 <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                               </div>
@@ -2102,14 +2112,14 @@ function updateRepoSidebar() {
   if (fullTreeBtn) fullTreeBtn.style.display = 'flex';
 
       if (repoCollapsed) {
-      btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
-      container.classList.add('mini');
-      if (backToReposBtn) backToReposBtn.style.display = 'none';
-    } else {
-      btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
-      container.classList.remove('mini');
-      if (backToReposBtn) backToReposBtn.style.display = 'flex';
-  }
+            btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i><span class="btn-lbl">Hide</span>';
+            container.classList.add('mini');
+            if (backToReposBtn) backToReposBtn.style.display = 'none';
+          } else {
+            btn.innerHTML = '<i class="fa-solid fa-chevron-right"></i><span class="btn-lbl">Show</span>';
+            container.classList.remove('mini');
+            if (backToReposBtn) backToReposBtn.style.display = 'flex';
+        }
   if ($appMenu.classList.contains('open')) updateMenuPosition();
 }
 
