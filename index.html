@@ -994,15 +994,18 @@ function makeWindowDraggable(win) {
     var shiftY = e.clientY - rect.top;
 
     function onMove(ev) {
-      if (ev.cancelable) ev.preventDefault();
-      var newLeft = ev.clientX - shiftX;
-      var newTop = ev.clientY - shiftY;
-      var maxLeft = window.innerWidth - win.offsetWidth;
-      var maxTop = window.innerHeight - 40;
-      win.style.transform = 'none';
-      win.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
-      win.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
-    }
+          if (ev.cancelable) ev.preventDefault();
+          var scale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
+          var newLeft = ev.clientX - shiftX;
+          var newTop = ev.clientY - shiftY;
+          var scaledW = win.offsetWidth * scale;
+          var maxLeft = window.innerWidth - scaledW;
+          var maxTop = window.innerHeight - 40;
+          win.style.transformOrigin = 'top left';
+          win.style.transform = 'scale(' + scale + ')';
+          win.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
+          win.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
+        }
 
     function onUp() {
           bar.removeEventListener('pointermove', onMove);
