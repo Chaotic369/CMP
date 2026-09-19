@@ -2416,14 +2416,47 @@ window.deleteFile = async function(path, e) {
         };
 
 function extractErrorLines(fullLog) {
-  const rawLines = fullLog.split('\n');
-  const errRegex = /(##\[error\]|\berror\b|\bexception\b|\bfatal\b|\bfailed\b|\bfailure\b)/i;
   const tsStrip = /^\d{4}-\d{2}-\d{2}T[\d:.]+Z\s?/;
+  const ansiRx = /\x1b?\[[0-9;]*m/g;
+  const errRegex = /(##\[error\]|\berror\b|\bexception\b|\bfatal\b|\bfailed\b|\bfailure\b)/i;
+  const steps = [];
+  let cur = { name: '(setup)', lines: [], failed: false };
+  steps.push(cur);
+  fullLog.split('\n').forEach(function(rawLine) {
+    const noTs = rawLine.replace(tsStrip, '');
+    const isEcho = /^\x1b?\[36;1m/.test(noTs);
+    const clean = noTs.replace(ansiRx, '').trimEnd();
+    if (!clean) return;
+    if (/^##\[group\]/.test(clean)) {
+      cur = { name: clean.replace(/^##\[group\]/, ''), lines: [], failed: false };
+      steps.push(cur);
+      return;
+    }
+    if (isEcho || /^##\[endgroup\]/.test(clean)) return;
+    cur.lines.push(clean);
+    if (/^##\[error\]Process completed with exit code/i.test(clean)) cur.failed = true;
+  });
+
   const out = [];
-  for (let i = 0; i < rawLines.length; i++) {
-    const clean = rawLines[i].replace(tsStrip, '').trimEnd();
-    if (clean && errRegex.test(clean)) out.push(clean);
-  }
+  steps.filter(function(s) { return s.failed; }).forEach(function(s) {
+    const L = s.lines;
+    const keep = new Set();
+    L.forEach(function(l, i) {
+      if (errRegex.test(l)) {
+        for (let k = 0; k <= 3 && i + k < L.length; k++) keep.add(i + k);
+      }
+    });
+    for (let i = Math.max(0, L.length - 25); i < L.length; i++) keep.add(i);
+    let picked = Array.from(keep).sort(function(a, b) { return a - b; }).map(function(i) { return L[i]; });
+    if (picked.length > 300) picked = picked.slice(0, 150).concat(['... (trimmed) ...'], picked.slice(-150));
+    out.push('--- Failed step: ' + s.name + ' ---');
+    picked.forEach(function(l) { out.push(l); });
+  });
+  if (out.length > 0) return out;
+
+  steps.forEach(function(s) {
+    s.lines.forEach(function(l) { if (errRegex.test(l)) out.push(l); });
+  });
   return out;
 }
 
