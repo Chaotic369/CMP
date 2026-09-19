@@ -1142,15 +1142,20 @@ function getSnapCoordinates(type) {
     return null;
 }
 
-function updateSnapGuide(type) {
+var activeSnapTargetInfo = null;
+
+function updateSnapGuide(snapInfo) {
   var overlay = document.getElementById('snapGuideOverlay');
   var box = document.getElementById('snapGuideBox');
-  if (!type) {
+  if (!snapInfo) {
     if (overlay) overlay.style.display = 'none';
     return;
   }
-  var coords = getSnapCoordinates(type);
-  if (!coords) return;
+  var coords = snapInfo.coords || (typeof snapInfo === 'string' ? getSnapCoordinates(snapInfo) : null);
+  if (!coords) {
+    if (overlay) overlay.style.display = 'none';
+    return;
+  }
   box.style.left = coords.left + 'px';
   box.style.top = coords.top + 'px';
   box.style.width = coords.width + 'px';
@@ -1158,29 +1163,116 @@ function updateSnapGuide(type) {
   overlay.style.display = 'block';
 }
 
-function detectSnapZone(x, y) {
+function detectSnapZone(win, clientX, clientY) {
   var w = window.innerWidth;
-  var h = window.innerHeight;
+  var h = window.innerHeight - 24;
   var edge = 24;
   var corner = 80;
 
-  var atLeft = x <= edge;
-  var atRight = x >= w - edge;
-  var atTop = y <= edge;
-  var atBottom = y >= h - edge;
+  // Screen Edge Snapping
+  if (clientY <= edge && clientX <= corner) return { type: 'tl' };
+  if (clientY <= edge && clientX >= w - corner) return { type: 'tr' };
+  if (clientY >= h - edge && clientX <= corner) return { type: 'bl' };
+  if (clientY >= h - edge && clientX >= w - corner) return { type: 'br' };
+  if (clientY <= edge) return { type: 'max' };
+  if (clientX <= edge) return { type: 'left' };
+  if (clientX >= w - edge) return { type: 'right' };
 
-  if (atTop && x <= corner) return 'tl';
-  if (atTop && x >= w - corner) return 'tr';
-  if (atBottom && x <= corner) return 'bl';
-  if (atBottom && x >= w - corner) return 'br';
-  if (atTop) return 'max';
-  if (atLeft) return 'left';
-  if (atRight) return 'right';
+  // Window-to-Window Magnetic Touch Snapping
+  var curRect = win.getBoundingClientRect();
+  var otherWins = Array.from(document.querySelectorAll('.mini-web-modal')).filter(function(other) {
+    return other !== win && other.style.display !== 'none';
+  });
+
+  var SNAP_DIST = 40;
+
+  for (var i = 0; i < otherWins.length; i++) {
+    var other = otherWins[i];
+    var oRect = other.getBoundingClientRect();
+
+    // Check vertical overlap
+    var vOverlap = Math.min(curRect.bottom, oRect.bottom) - Math.max(curRect.top, oRect.top);
+    if (vOverlap > 30) {
+      // Dragging window right edge touching other left edge -> Tile Side-by-Side (Cur Left, Other Right)
+      if (Math.abs(curRect.right - oRect.left) < SNAP_DIST) {
+        var combLeft = Math.min(curRect.left, oRect.left);
+        var combRight = Math.max(curRect.right, oRect.right);
+        var halfWidth = Math.floor((combRight - combLeft) / 2);
+        return {
+          type: 'window-dock-h',
+          targetWin: other,
+          coords: { left: combLeft, top: oRect.top, width: halfWidth, height: oRect.height },
+          otherCoords: { left: combLeft + halfWidth, top: oRect.top, width: combRight - (combLeft + halfWidth), height: oRect.height }
+        };
+      }
+      // Dragging window left edge touching other right edge -> Tile Side-by-Side (Other Left, Cur Right)
+      if (Math.abs(curRect.left - oRect.right) < SNAP_DIST) {
+        var combLeft2 = Math.min(curRect.left, oRect.left);
+        var combRight2 = Math.max(curRect.right, oRect.right);
+        var halfWidth2 = Math.floor((combRight2 - combLeft2) / 2);
+        return {
+          type: 'window-dock-h',
+          targetWin: other,
+          coords: { left: combLeft2 + halfWidth2, top: oRect.top, width: combRight2 - (combLeft2 + halfWidth2), height: oRect.height },
+          otherCoords: { left: combLeft2, top: oRect.top, width: halfWidth2, height: oRect.height }
+        };
+      }
+    }
+
+    // Check horizontal overlap
+    var hOverlap = Math.min(curRect.right, oRect.right) - Math.max(curRect.left, oRect.left);
+    if (hOverlap > 30) {
+      // Dragging window bottom edge touching other top edge -> Tile Stacked (Cur Top, Other Bottom)
+      if (Math.abs(curRect.bottom - oRect.top) < SNAP_DIST) {
+        var combTop = Math.min(curRect.top, oRect.top);
+        var combBottom = Math.max(curRect.bottom, oRect.bottom);
+        var halfHeight = Math.floor((combBottom - combTop) / 2);
+        return {
+          type: 'window-dock-v',
+          targetWin: other,
+          coords: { left: oRect.left, top: combTop, width: oRect.width, height: halfHeight },
+          otherCoords: { left: oRect.left, top: combTop + halfHeight, width: oRect.width, height: combBottom - (combTop + halfHeight) }
+        };
+      }
+      // Dragging window top edge touching other bottom edge -> Tile Stacked (Other Top, Cur Bottom)
+      if (Math.abs(curRect.top - oRect.bottom) < SNAP_DIST) {
+        var combTop2 = Math.min(curRect.top, oRect.top);
+        var combBottom2 = Math.max(curRect.bottom, oRect.bottom);
+        var halfHeight2 = Math.floor((combBottom2 - combTop2) / 2);
+        return {
+          type: 'window-dock-v',
+          targetWin: other,
+          coords: { left: oRect.left, top: combTop2 + halfHeight2, width: oRect.width, height: combBottom2 - (combTop2 + halfHeight2) },
+          otherCoords: { left: oRect.left, top: combTop2, width: oRect.width, height: halfHeight2 }
+        };
+      }
+    }
+  }
+
   return null;
 }
 
-function applyWindowSnap(win, type) {
-  var coords = getSnapCoordinates(type);
+function applyWindowSnap(win, snapData) {
+  var coords = null;
+  if (typeof snapData === 'string') {
+    coords = getSnapCoordinates(snapData);
+  } else if (snapData && snapData.coords) {
+    coords = snapData.coords;
+    if (snapData.targetWin && snapData.otherCoords) {
+      var other = snapData.targetWin;
+      other.style.left = snapData.otherCoords.left + 'px';
+      other.style.top = snapData.otherCoords.top + 'px';
+      other.style.width = snapData.otherCoords.width + 'px';
+      other.style.height = snapData.otherCoords.height + 'px';
+      var oFrame = other.querySelector('iframe');
+      if (oFrame && oFrame.dataset.zoom) {
+        var oz = parseFloat(oFrame.dataset.zoom) || 1;
+        oFrame.style.width = (100 / oz) + '%';
+        oFrame.style.height = (100 / oz) + '%';
+      }
+    }
+  }
+
   if (!coords) return;
 
   if (!win.dataset.preSnapW) {
@@ -1443,21 +1535,21 @@ function makeWindowDraggable(win) {
           win.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
 
           if (win.classList.contains('mini-web-modal')) {
-            activeSnapTarget = detectSnapZone(ev.clientX, ev.clientY);
-            updateSnapGuide(activeSnapTarget);
-          }
-        }
+                      activeSnapTargetInfo = detectSnapZone(win, ev.clientX, ev.clientY);
+                      updateSnapGuide(activeSnapTargetInfo);
+                    }
+                  }
 
-    function onUp() {
-          bar.removeEventListener('pointermove', onMove);
-          bar.removeEventListener('pointerup', onUp);
-          bar.removeEventListener('pointercancel', onUp);
+              function onUp() {
+                    bar.removeEventListener('pointermove', onMove);
+                    bar.removeEventListener('pointerup', onUp);
+                    bar.removeEventListener('pointercancel', onUp);
 
-          if (win.classList.contains('mini-web-modal')) {
+                    if (win.classList.contains('mini-web-modal')) {
                       updateSnapGuide(null);
-                      if (activeSnapTarget) {
-                        applyWindowSnap(win, activeSnapTarget);
-                        activeSnapTarget = null;
+                      if (activeSnapTargetInfo) {
+                        applyWindowSnap(win, activeSnapTargetInfo);
+                        activeSnapTargetInfo = null;
                       }
                       if (window.updateTileSplitters) window.updateTileSplitters();
                     }
