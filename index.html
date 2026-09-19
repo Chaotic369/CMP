@@ -764,11 +764,12 @@ select.bm-select option { background: var(--elevated); color: #fff; }
       </span>
     </div>
     <div style="display:flex; align-items:center; gap:10px;">
-      <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.2); color:var(--amber); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
-      <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.2); color:var(--blue); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
-      <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
-      <button class="panel-close" onclick="window.closeFullTreeModal()">✕</button>
-    </div>
+          <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.2); color:var(--amber); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
+          <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.2); color:var(--blue); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
+          <button id="modalRepoBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.25); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteSelectedReposWithWarning()"><i class="fa-solid fa-trash"></i> Delete Repos (<span id="modalRepoBulkCount">0</span>)</button>
+          <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
+          <button class="panel-close" onclick="window.closeFullTreeModal()">✕</button>
+        </div>
   </div>
   <div id="fullTreeContent"></div>
   <div id="modalRepoList" style="display:none; flex-direction:column; gap:4px; overflow-y:auto; flex:1; padding-right:4px;"></div>
@@ -6698,97 +6699,178 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                     }
                 };
 
-                window.renderModalRepoList = function() {
-                          const list = document.getElementById('modalRepoList');
-                          list.innerHTML = '';
-                          ghRepos.forEach((r, index) => {
-                              const btn = document.createElement('div');
-                              btn.className = 'repo-item' + (r === ghRepo ? ' active' : '');
-                              btn.style.padding = '12px 14px';
-                              btn.style.fontSize = '13px';
-                              btn.style.borderRadius = '10px';
-                              btn.style.cursor = 'pointer';
-                              btn.style.display = 'flex';
-                              btn.style.alignItems = 'center';
-                              btn.style.justifyContent = 'space-between';
-              
-                              const nameSpan = document.createElement('span');
-                              nameSpan.style.flex = '1';
-                              nameSpan.style.overflow = 'hidden';
-                              nameSpan.style.textOverflow = 'ellipsis';
-                              nameSpan.style.whiteSpace = 'nowrap';
-                              nameSpan.textContent = (index + 1) + '. ' + (r.split('/')[1] || r);
-              
-                              const actions = document.createElement('div');
-                              actions.style.display = 'flex';
-                              actions.style.gap = '10px';
-                              actions.style.alignItems = 'center';
-              
-                              if (window.repoBulkMode) {
-                                  const isSel = window.selectedBulkRepos.has(r);
-                                  actions.innerHTML = `
-                                      <button class="repo-btn" style="color:${isSel ? 'var(--green)' : 'rgba(255,255,255,0.6)'}; font-size:14px;" title="Select Repo" onclick="event.stopPropagation(); if(window.selectedBulkRepos.has('${r}')) window.selectedBulkRepos.delete('${r}'); else window.selectedBulkRepos.add('${r}'); window.renderRepoTabs(); window.renderModalRepoList();"><i class="${isSel ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'}"></i></button>
-                                  `;
-                              } else {
-                                  const isBookmarked = typeof ghBookmarkedRepos !== 'undefined' && ghBookmarkedRepos.includes(r);
-                                  const starColor = isBookmarked ? 'color:var(--amber);' : 'color:rgba(255,255,255,0.4);';
-                                  actions.innerHTML = `
-                                                                        <button class="repo-btn star" style="${starColor} font-size:12px;" title="Bookmark Repo" onclick="window.toggleBookmarkRepo('${r}', event); window.renderModalRepoList();"><i class="fa-solid fa-star"></i></button>
-                                                                        <button class="repo-btn" style="font-size:12px; color:#fff;" title="Rename Repo" onclick="window.renameRepo('${r}', event); setTimeout(()=>window.renderModalRepoList(), 2000);"><i class="fa-solid fa-pen"></i></button>
-                                                                        <button class="repo-btn del" style="font-size:12px; color:var(--red);" title="Delete Repo" onclick="window.deleteRepo('${r}', event); setTimeout(()=>window.renderModalRepoList(), 2000);"><i class="fa-solid fa-trash"></i></button>
-                                                                    `;
-                              }
+                window.selectedRepoBulkSet = window.selectedRepoBulkSet || new Set();
 
-                              btn.onclick = async () => {
-                                  if (window.repoBulkMode) {
-                                      if(window.selectedBulkRepos.has(r)) window.selectedBulkRepos.delete(r);
-                                      else window.selectedBulkRepos.add(r);
-                                      window.renderRepoTabs();
-                                      window.renderModalRepoList();
-                                      return;
-                                  }
-                                  if (ghRepo !== r) {
-                                      ghRepo = r;
-                                      currentDirectory = '';
-                                      ghSaveConfig();
-                                      renderRepoTabs();
-                                      updateRepoSidebar();
-                      
-                                      document.getElementById('modalRepoTitle').textContent = ghRepo.split('/')[1] || ghRepo;
-                                      list.style.display = 'none';
-                                      document.getElementById('fullTreeContent').style.display = 'flex';
-                                      document.getElementById('modalRepoCaret').className = 'fa-solid fa-caret-down';
-                      
-                                      document.getElementById('fullTreeContent').innerHTML = '<div style="color:var(--tm); font-size:11px; padding:10px;">Loading tree...</div>';
-                                      await fetchFileTree(true, true);
-                      
-                                      window.modalTreeExpanded = {};
-                                      if (currentTreeFiles) {
-                                          currentTreeFiles.forEach(f => {
-                                              const parts = f.path.split('/');
-                                              let currentPath = '';
-                                              for (let i = 0; i < parts.length - 1; i++) {
-                                                  currentPath = currentPath ? currentPath + '/' + parts[i] : parts[i];
-                                                  window.modalTreeExpanded[currentPath] = true;
-                                              }
-                                          });
-                                      }
-                                      window.renderFullTreeModal();
-                                  } else {
-                                      window.toggleModalRepoList();
-                                  }
-                              };
+                                window.updateModalRepoBulkDeleteBtn = function() {
+                                    const btn = document.getElementById('modalRepoBulkDeleteBtn');
+                                    const countEl = document.getElementById('modalRepoBulkCount');
+                                    if (!btn) return;
+                                    const count = window.selectedRepoBulkSet.size;
+                                    if (count > 0) {
+                                        btn.style.display = 'block';
+                                        if (countEl) countEl.textContent = count;
+                                    } else {
+                                        btn.style.display = 'none';
+                                    }
+                                };
+
+                                window.toggleRepoSelectionFromModal = function(repoName, e) {
+                                    if (e) e.stopPropagation();
+                                    if (window.selectedRepoBulkSet.has(repoName)) {
+                                        window.selectedRepoBulkSet.delete(repoName);
+                                    } else {
+                                        window.selectedRepoBulkSet.add(repoName);
+                                    }
+                                    window.updateModalRepoBulkDeleteBtn();
+                                    window.renderModalRepoList();
+                                };
+
+                                window.bulkDeleteSelectedReposWithWarning = async function() {
+                                    if (window.selectedRepoBulkSet.size === 0) return;
+                                    const repoList = Array.from(window.selectedRepoBulkSet);
+                                    const formattedNames = repoList.map(r => '• ' + (r.split('/')[1] || r)).join('\n');
+                    
+                                    const warningMessage = `⚠️ CRITICAL ACTION WARNING ⚠️\n\n` +
+                                      `You are about to permanently delete ${repoList.length} repository(s) from GitHub:\n\n` +
+                                      `${formattedNames}\n\n` +
+                                      `This action destroys all branches, commit histories, and Pages deployments.\n\n` +
+                                      `Type 'DELETE' to confirm and proceed:`;
+
+                                    const confirmInput = prompt(warningMessage);
+                                    if (confirmInput !== 'DELETE') {
+                                        toast('❌ Deletion cancelled. Repositories were preserved.', 'warn', 4000);
+                                        return;
+                                    }
+
+                                    showProgress(10);
+                                    let deleted = 0;
+                                    let failed = 0;
+
+                                    for (let i = 0; i < repoList.length; i++) {
+                                        let r = repoList[i];
+                                        showProgress(10 + Math.round(((i + 1) / repoList.length) * 80));
+                                        try {
+                                            let res = await fetch(`https://api.github.com/repos/${r}`, {
+                                                method: 'DELETE',
+                                                headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+                                            });
+                                            if (!res.ok) {
+                                                if (res.status === 403) throw new Error("403 Forbidden (delete_repo permission missing)");
+                                                throw new Error(await res.text());
+                                            }
+                                            deleted++;
+                                            if (ghRepo === r) {
+                                                ghRepo = '';
+                                                currentDirectory = '';
+                                                ghSaveConfig();
+                                            }
+                                        } catch (err) {
+                                            failed++;
+                                            addLog('err', `Delete failed for repo ${r}: ` + err.message);
+                                        }
+                                    }
+
+                                    toast(`✅ Successfully deleted ${deleted} repository(s)` + (failed ? ` (${failed} failed)` : ''), failed ? 'warn' : 'ok', 4000);
+                                    window.selectedRepoBulkSet.clear();
+                                    window.updateModalRepoBulkDeleteBtn();
+
+                                    await ghFetchAllRepos();
+                                    window.renderModalRepoList();
+                                    hideProgress();
+                                };
+
+                                window.renderModalRepoList = function() {
+                                          const list = document.getElementById('modalRepoList');
+                                          list.innerHTML = '';
+                                          window.updateModalRepoBulkDeleteBtn();
+                                          ghRepos.forEach((r, index) => {
+                                              const btn = document.createElement('div');
+                                              btn.className = 'repo-item' + (r === ghRepo ? ' active' : '');
+                                              btn.style.padding = '12px 14px';
+                                              btn.style.fontSize = '13px';
+                                              btn.style.borderRadius = '10px';
+                                              btn.style.cursor = 'pointer';
+                                              btn.style.display = 'flex';
+                                              btn.style.alignItems = 'center';
+                                              btn.style.justifyContent = 'space-between';
               
-                              btn.appendChild(nameSpan);
-                              btn.appendChild(actions);
-                              list.appendChild(btn);
-                          });
-                      };
+                                              const nameSpan = document.createElement('span');
+                                              nameSpan.style.flex = '1';
+                                              nameSpan.style.overflow = 'hidden';
+                                              nameSpan.style.textOverflow = 'ellipsis';
+                                              nameSpan.style.whiteSpace = 'nowrap';
+                                              nameSpan.textContent = (index + 1) + '. ' + (r.split('/')[1] || r);
+              
+                                              const actions = document.createElement('div');
+                                              actions.style.display = 'flex';
+                                              actions.style.gap = '8px';
+                                              actions.style.alignItems = 'center';
+
+                                              const isSelected = window.selectedRepoBulkSet.has(r);
+                                              const selectIcon = isSelected ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle';
+                                              const selectColor = isSelected ? 'color:var(--green);' : 'color:rgba(255,255,255,0.4);';
+                                              const isBookmarked = typeof ghBookmarkedRepos !== 'undefined' && ghBookmarkedRepos.includes(r);
+                                              const starColor = isBookmarked ? 'color:var(--amber);' : 'color:rgba(255,255,255,0.4);';
+
+                                              actions.innerHTML = `
+                                                  <button class="repo-btn sel-chk" style="${selectColor} font-size:13px;" title="Select for deletion" onclick="window.toggleRepoSelectionFromModal('${r}', event)"><i class="${selectIcon}"></i></button>
+                                                  <button class="repo-btn star" style="${starColor} font-size:12px;" title="Bookmark Repo" onclick="window.toggleBookmarkRepo('${r}', event); window.renderModalRepoList();"><i class="fa-solid fa-star"></i></button>
+                                                  <button class="repo-btn" style="font-size:12px; color:#fff;" title="Rename Repo" onclick="window.renameRepo('${r}', event); setTimeout(()=>window.renderModalRepoList(), 2000);"><i class="fa-solid fa-pen"></i></button>
+                                                  <button class="repo-btn del" style="font-size:12px; color:var(--red);" title="Delete Repo" onclick="window.deleteRepo('${r}', event); setTimeout(()=>window.renderModalRepoList(), 2000);"><i class="fa-solid fa-trash"></i></button>
+                                              `;
+
+                                              btn.onclick = async () => {
+                                                  if (window.repoBulkMode) {
+                                                      if(window.selectedBulkRepos.has(r)) window.selectedBulkRepos.delete(r);
+                                                      else window.selectedBulkRepos.add(r);
+                                                      window.renderRepoTabs();
+                                                      window.renderModalRepoList();
+                                                      return;
+                                                  }
+                                                  if (ghRepo !== r) {
+                                                      ghRepo = r;
+                                                      currentDirectory = '';
+                                                      ghSaveConfig();
+                                                      renderRepoTabs();
+                                                      updateRepoSidebar();
+                      
+                                                      document.getElementById('modalRepoTitle').textContent = ghRepo.split('/')[1] || ghRepo;
+                                                      list.style.display = 'none';
+                                                      document.getElementById('fullTreeContent').style.display = 'flex';
+                                                      document.getElementById('modalRepoCaret').className = 'fa-solid fa-caret-down';
+                      
+                                                      document.getElementById('fullTreeContent').innerHTML = '<div style="color:var(--tm); font-size:11px; padding:10px;">Loading tree...</div>';
+                                                      await fetchFileTree(true, true);
+                      
+                                                      window.modalTreeExpanded = {};
+                                                      if (currentTreeFiles) {
+                                                          currentTreeFiles.forEach(f => {
+                                                              const parts = f.path.split('/');
+                                                              let currentPath = '';
+                                                              for (let i = 0; i < parts.length - 1; i++) {
+                                                                  currentPath = currentPath ? currentPath + '/' + parts[i] : parts[i];
+                                                                  window.modalTreeExpanded[currentPath] = true;
+                                                              }
+                                                          });
+                                                      }
+                                                      window.renderFullTreeModal();
+                                                  } else {
+                                                      window.toggleModalRepoList();
+                                                  }
+                                              };
+              
+                                              btn.appendChild(nameSpan);
+                                              btn.appendChild(actions);
+                                              list.appendChild(btn);
+                                          });
+                                      };
 
                                       window.closeFullTreeModal = function() {
-          document.getElementById('fullTreeModal').classList.remove('open');
-          document.getElementById('menu-backdrop').classList.remove('open');
-      };
+                          window.selectedRepoBulkSet.clear();
+                          window.updateModalRepoBulkDeleteBtn();
+                          document.getElementById('fullTreeModal').classList.remove('open');
+                          document.getElementById('menu-backdrop').classList.remove('open');
+                      };
 
       window.toggleModalNesting = function(path, e) {
           e.stopPropagation();
