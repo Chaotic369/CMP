@@ -1166,84 +1166,74 @@ function updateSnapGuide(snapInfo) {
 function detectSnapZone(win, clientX, clientY) {
   var w = window.innerWidth;
   var h = window.innerHeight - 24;
-  var edge = 24;
-  var corner = 80;
+  var edge = 30;
+  var corner = 100;
+  var halfW = Math.floor(w / 2);
+  var halfH = Math.floor(h / 2);
 
-  // Screen Edge Snapping
-  if (clientY <= edge && clientX <= corner) return { type: 'tl' };
-  if (clientY <= edge && clientX >= w - corner) return { type: 'tr' };
-  if (clientY >= h - edge && clientX <= corner) return { type: 'bl' };
-  if (clientY >= h - edge && clientX >= w - corner) return { type: 'br' };
-  if (clientY <= edge) return { type: 'max' };
-  if (clientX <= edge) return { type: 'left' };
-  if (clientX >= w - edge) return { type: 'right' };
+  // 1. Screen Corners (4-way Grid)
+  if (clientY <= corner && clientX <= corner) return { type: 'tl', coords: { left: 0, top: 0, width: halfW, height: halfH } };
+  if (clientY <= corner && clientX >= w - corner) return { type: 'tr', coords: { left: halfW, top: 0, width: w - halfW, height: halfH } };
+  if (clientY >= h - corner && clientX <= corner) return { type: 'bl', coords: { left: 0, top: halfH, width: halfW, height: h - halfH } };
+  if (clientY >= h - corner && clientX >= w - corner) return { type: 'br', coords: { left: halfW, top: halfH, width: w - halfW, height: h - halfH } };
 
-  // Window-to-Window Magnetic Touch Snapping
+  // 2. Screen Edges (Halves / Full)
+  if (clientY <= edge) return { type: 'max', coords: { left: 0, top: 0, width: w, height: h } };
+  if (clientX <= edge) return { type: 'left', coords: { left: 0, top: 0, width: halfW, height: h } };
+  if (clientX >= w - edge) return { type: 'right', coords: { left: halfW, top: 0, width: w - halfW, height: h } };
+
+  // 3. Dynamic Magnetic Snap & Remaining Space Fill
   var curRect = win.getBoundingClientRect();
   var otherWins = Array.from(document.querySelectorAll('.mini-web-modal')).filter(function(other) {
     return other !== win && other.style.display !== 'none';
   });
 
-  var SNAP_DIST = 40;
+  var SNAP_DIST = 45;
 
   for (var i = 0; i < otherWins.length; i++) {
     var other = otherWins[i];
     var oRect = other.getBoundingClientRect();
 
-    // Check vertical overlap
     var vOverlap = Math.min(curRect.bottom, oRect.bottom) - Math.max(curRect.top, oRect.top);
-    if (vOverlap > 30) {
-      // Dragging window right edge touching other left edge -> Tile Side-by-Side (Cur Left, Other Right)
-      if (Math.abs(curRect.right - oRect.left) < SNAP_DIST) {
-        var combLeft = Math.min(curRect.left, oRect.left);
-        var combRight = Math.max(curRect.right, oRect.right);
-        var halfWidth = Math.floor((combRight - combLeft) / 2);
+    if (vOverlap > 40) {
+      // Near Right of Other Window -> Snap to Fill Remaining Horizontal Space
+      if (Math.abs(curRect.left - oRect.right) < SNAP_DIST) {
+        var remainW = Math.max(160, w - oRect.right);
         return {
-          type: 'window-dock-h',
+          type: 'dock-fill-right',
           targetWin: other,
-          coords: { left: combLeft, top: oRect.top, width: halfWidth, height: oRect.height },
-          otherCoords: { left: combLeft + halfWidth, top: oRect.top, width: combRight - (combLeft + halfWidth), height: oRect.height }
+          coords: { left: oRect.right, top: oRect.top, width: remainW, height: oRect.height }
         };
       }
-      // Dragging window left edge touching other right edge -> Tile Side-by-Side (Other Left, Cur Right)
-      if (Math.abs(curRect.left - oRect.right) < SNAP_DIST) {
-        var combLeft2 = Math.min(curRect.left, oRect.left);
-        var combRight2 = Math.max(curRect.right, oRect.right);
-        var halfWidth2 = Math.floor((combRight2 - combLeft2) / 2);
+      // Near Left of Other Window -> Snap to Fill Remaining Left Space
+      if (Math.abs(curRect.right - oRect.left) < SNAP_DIST) {
+        var remainLeftW = Math.max(160, oRect.left);
         return {
-          type: 'window-dock-h',
+          type: 'dock-fill-left',
           targetWin: other,
-          coords: { left: combLeft2 + halfWidth2, top: oRect.top, width: combRight2 - (combLeft2 + halfWidth2), height: oRect.height },
-          otherCoords: { left: combLeft2, top: oRect.top, width: halfWidth2, height: oRect.height }
+          coords: { left: 0, top: oRect.top, width: remainLeftW, height: oRect.height }
         };
       }
     }
 
-    // Check horizontal overlap
     var hOverlap = Math.min(curRect.right, oRect.right) - Math.max(curRect.left, oRect.left);
-    if (hOverlap > 30) {
-      // Dragging window bottom edge touching other top edge -> Tile Stacked (Cur Top, Other Bottom)
-      if (Math.abs(curRect.bottom - oRect.top) < SNAP_DIST) {
-        var combTop = Math.min(curRect.top, oRect.top);
-        var combBottom = Math.max(curRect.bottom, oRect.bottom);
-        var halfHeight = Math.floor((combBottom - combTop) / 2);
+    if (hOverlap > 40) {
+      // Near Bottom of Other Window -> Snap to Fill Remaining Vertical Space
+      if (Math.abs(curRect.top - oRect.bottom) < SNAP_DIST) {
+        var remainH = Math.max(120, h - oRect.bottom);
         return {
-          type: 'window-dock-v',
+          type: 'dock-fill-bottom',
           targetWin: other,
-          coords: { left: oRect.left, top: combTop, width: oRect.width, height: halfHeight },
-          otherCoords: { left: oRect.left, top: combTop + halfHeight, width: oRect.width, height: combBottom - (combTop + halfHeight) }
+          coords: { left: oRect.left, top: oRect.bottom, width: oRect.width, height: remainH }
         };
       }
-      // Dragging window top edge touching other bottom edge -> Tile Stacked (Other Top, Cur Bottom)
-      if (Math.abs(curRect.top - oRect.bottom) < SNAP_DIST) {
-        var combTop2 = Math.min(curRect.top, oRect.top);
-        var combBottom2 = Math.max(curRect.bottom, oRect.bottom);
-        var halfHeight2 = Math.floor((combBottom2 - combTop2) / 2);
+      // Near Top of Other Window -> Snap to Fill Remaining Top Space
+      if (Math.abs(curRect.bottom - oRect.top) < SNAP_DIST) {
+        var remainTopH = Math.max(120, oRect.top);
         return {
-          type: 'window-dock-v',
+          type: 'dock-fill-top',
           targetWin: other,
-          coords: { left: oRect.left, top: combTop2 + halfHeight2, width: oRect.width, height: combBottom2 - (combTop2 + halfHeight2) },
-          otherCoords: { left: oRect.left, top: combTop2, width: oRect.width, height: halfHeight2 }
+          coords: { left: oRect.left, top: 0, width: oRect.width, height: remainTopH }
         };
       }
     }
