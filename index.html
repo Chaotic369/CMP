@@ -351,26 +351,27 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   background: rgba(248, 81, 73, 0.15);
 }
 
-.modal-resize-handle {
+.window-resize-handle {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 20px;
-  height: 20px;
-  cursor: se-resize;
+  bottom: -4px;
+  left: -4px;
+  width: 34px;
+  height: 34px;
+  cursor: sw-resize;
   z-index: 10001;
   pointer-events: auto;
   touch-action: none;
 }
-.modal-resize-handle::after {
-  content: '';
+.window-resize-handle .resize-corner {
   position: absolute;
-  right: 6px;
-  bottom: 6px;
-  width: 9px;
-  height: 9px;
-  border-right: 2px solid rgba(255, 255, 255, 0.4);
-  border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+  bottom: 10px;
+  left: 10px;
+  width: 14px;
+  height: 14px;
+  border-bottom: 3px solid rgba(160, 160, 160, 0.8);
+  border-left: 3px solid rgba(160, 160, 160, 0.8);
+  border-bottom-left-radius: 14px;
+  box-shadow: -2px 2px 4px rgba(0,0,0,0.2);
 }
 input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 0.8; }
 
@@ -882,7 +883,9 @@ function bringModalToFront(modal) {
 function centerModal(el) {
   if (!el) return;
   if (restoreWindowState(el)) return;
-  el.style.transform = 'none';
+  var scale = parseFloat(el.style.getPropertyValue('--modal-scale')) || 1;
+  el.style.transformOrigin = 'top left';
+  el.style.transform = 'scale(' + scale + ')';
   var w = el.offsetWidth || 360;
   var h = el.offsetHeight || 300;
   var left = Math.max(10, (window.innerWidth - w) / 2);
@@ -891,31 +894,32 @@ function centerModal(el) {
   el.style.top = top + 'px';
 }
 
-var WINDOW_STATE_PREFIX = 'win_state_';
+var WINDOW_SCALE_PREFIX = 'win_scale_state_';
 
 function saveWindowState(win) {
   if (!win || !win.id) return;
+  var scale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
   var state = {
     left: win.style.left,
     top: win.style.top,
-    width: win.style.width,
-    height: win.style.height
+    scale: scale
   };
   try {
-    localStorage.setItem(WINDOW_STATE_PREFIX + win.id, JSON.stringify(state));
+    localStorage.setItem(WINDOW_SCALE_PREFIX + win.id, JSON.stringify(state));
   } catch(e) {}
 }
 
 function restoreWindowState(win) {
   if (!win || !win.id) return false;
   try {
-    var raw = localStorage.getItem(WINDOW_STATE_PREFIX + win.id);
+    var raw = localStorage.getItem(WINDOW_SCALE_PREFIX + win.id);
     if (!raw) return false;
     var state = JSON.parse(raw);
-    if (state.width) win.style.width = state.width;
-    if (state.height) win.style.height = state.height;
+    var scale = state.scale || 1;
+    win.style.setProperty('--modal-scale', scale);
+    win.style.transformOrigin = 'top left';
+    win.style.transform = 'scale(' + scale + ')';
     if (state.left && state.top) {
-      win.style.transform = 'none';
       win.style.left = state.left;
       win.style.top = state.top;
       return true;
@@ -925,15 +929,16 @@ function restoreWindowState(win) {
 }
 
 function makeWindowResizable(win) {
-  if (!win || win.querySelector('.modal-resize-handle')) return;
+  if (!win || win.querySelector('.window-resize-handle')) return;
 
   var handle = document.createElement('div');
-  handle.className = 'modal-resize-handle';
+  handle.className = 'window-resize-handle';
   handle.title = 'Drag to Resize';
+  handle.innerHTML = '<div class="resize-corner"></div>';
   win.appendChild(handle);
 
   var isResizing = false;
-  var startX, startY, startW, startH;
+  var startX, startY, startScale;
 
   handle.addEventListener('pointerdown', function(e) {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
@@ -941,21 +946,22 @@ function makeWindowResizable(win) {
     isResizing = true;
     startX = e.clientX;
     startY = e.clientY;
-    startW = win.offsetWidth;
-    startH = win.offsetHeight;
-    win.style.transform = 'none';
+    startScale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
+    win.style.transformOrigin = 'top right';
     bringModalToFront(win);
-    try { if (handle.setPointerCapture) handle.setPointerCapture(e.pointerId); } catch(err) {}
+    try { handle.setPointerCapture(e.pointerId); } catch(err) {}
   });
 
   handle.addEventListener('pointermove', function(e) {
     if (!isResizing) return;
     e.stopPropagation();
     if (e.cancelable) e.preventDefault();
-    var newW = Math.max(200, Math.min(window.innerWidth - win.offsetLeft, startW + (e.clientX - startX)));
-    var newH = Math.max(120, Math.min(window.innerHeight - win.offsetTop, startH + (e.clientY - startY)));
-    win.style.width = newW + 'px';
-    win.style.height = newH + 'px';
+    var dx = e.clientX - startX;
+    var dy = e.clientY - startY;
+    var delta = (dy - dx) * 0.003;
+    var newScale = Math.max(0.5, Math.min(startScale + delta, 2.5));
+    win.style.setProperty('--modal-scale', newScale);
+    win.style.transform = 'scale(' + newScale + ')';
   });
 
   function stopResize(e) {
@@ -998,11 +1004,14 @@ function makeWindowDraggable(win) {
     }
 
     function onUp() {
-      bar.removeEventListener('pointermove', onMove);
-      bar.removeEventListener('pointerup', onUp);
-      bar.removeEventListener('pointercancel', onUp);
-      saveWindowState(win);
-    }
+          bar.removeEventListener('pointermove', onMove);
+          bar.removeEventListener('pointerup', onUp);
+          bar.removeEventListener('pointercancel', onUp);
+          var scale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
+          win.style.transformOrigin = 'top left';
+          win.style.transform = 'scale(' + scale + ')';
+          saveWindowState(win);
+        }
 
     bar.addEventListener('pointermove', onMove, { passive: false });
     bar.addEventListener('pointerup', onUp);
