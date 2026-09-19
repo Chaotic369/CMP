@@ -500,16 +500,15 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         <span id="app-menu-loader-text" style="font-size: 6px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">Connecting...</span>
   </div>
   <div id="repoSidebar">
-      <div style="display:flex; flex-direction:column; gap:0px;">
-              <button id="repoToggleBtn" class="btn" title="Toggle Sidebar" style="width:24px; height:24px;">&lt;</button>
-              <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:flex; width:18px; height:18px;"><i class="fa-solid fa-folder-plus"></i></button>
-                          <button id="fileAddBtn" class="btn" title="Create New File" style="display:flex; width:18px; height:18px;" onclick="createNewFile()"><i class="fa-solid fa-file-circle-plus"></i></button>
-                                                                <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:flex; width:18px; height:18px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
-                                                                                                                                                                                                            <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; width:18px; height:18px;" onclick="openBulkModal()"><i class="fa-solid fa-cubes"></i></button>
-                                                                                                                                                                                                            <button id="fullTreeBtn" class="btn" title="Show Full Tree Popup" style="display:flex; width:18px; height:18px; color:var(--teal);" onclick="window.openFullTreeModal()"><i class="fa-solid fa-sitemap"></i></button>
-                                                                                                                                                                                <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
-                              <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
-                            </div>
+        <div style="display:flex; flex-direction:column; gap:0px;">
+                <button id="repoToggleBtn" class="btn" title="Toggle Sidebar" style="width:24px; height:24px;"><</button>
+                <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:flex; width:18px; height:18px;"><i class="fa-solid fa-folder-plus"></i></button>
+                                                                  <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:flex; width:18px; height:18px;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i></button>
+                                                                                                                                                                                                              <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; width:18px; height:18px; color:var(--amber);" onclick="openBulkModal()"><i class="fa-solid fa-file-circle-plus"></i></button>
+                                                                                                                                                                                                              <button id="fullTreeBtn" class="btn" title="Show Full Tree Popup" style="display:flex; width:18px; height:18px; color:var(--teal);" onclick="window.openFullTreeModal()"><i class="fa-solid fa-sitemap"></i></button>
+                                                                                                                                                                                  <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
+                                <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
+                              </div>
     <div id="sidebarContent">
               <div id="repoTabsContainer" class="expanded"></div>
               <div id="directoryNav">
@@ -1887,7 +1886,6 @@ function updateRepoSidebar() {
   const btn = document.getElementById('repoToggleBtn');
   const backToReposBtn = document.getElementById('backToReposBtn');
   const addRepoBtn = document.getElementById('repoAddBtn');
-  const addFileBtn = document.getElementById('fileAddBtn');
   const uploadBtn = document.getElementById('fileUploadBtn');
   const bulkAddBtn = document.getElementById('bulkFileAddBtn');
   const container = document.getElementById('sidebarContent');
@@ -1897,12 +1895,11 @@ function updateRepoSidebar() {
   container.style.display = 'flex';
   if (bContainer) bContainer.classList.add('mini');
   
-  addRepoBtn.style.display = 'flex';
-      addFileBtn.style.display = 'flex';
-      uploadBtn.style.display = 'flex';
-      if(bulkAddBtn) bulkAddBtn.style.display = 'flex';
-      const fullTreeBtn = document.getElementById('fullTreeBtn');
-      if(fullTreeBtn) fullTreeBtn.style.display = 'flex';
+  if (addRepoBtn) addRepoBtn.style.display = 'flex';
+  if (uploadBtn) uploadBtn.style.display = 'flex';
+  if (bulkAddBtn) bulkAddBtn.style.display = 'flex';
+  const fullTreeBtn = document.getElementById('fullTreeBtn');
+  if (fullTreeBtn) fullTreeBtn.style.display = 'flex';
 
       if (repoCollapsed) {
       btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
