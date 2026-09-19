@@ -94,7 +94,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 #fring { position: fixed; inset: 0; z-index: 99; border: 3px solid var(--green); pointer-events: none; opacity: 0; }
 #fring.on { opacity: 1; }
-#menu-backdrop { position: fixed; inset: 0; z-index: 29990 !important; background: transparent; display: none; }
+#menu-backdrop { position: fixed; inset: 0; z-index: 999990 !important; background: transparent; display: none; }
 #menu-backdrop.open { display: block; }
 
 /* Action Pop Up Button */
@@ -133,7 +133,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 }
 
 #app-menu {
-      position: fixed; z-index: 999995 !important; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 6px;
+      position: fixed; z-index: 100000 !important; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 6px;
       background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 6px; border: none !important; outline: none !important; border-radius: 14px;
       box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); width: fit-content; height: fit-content;
       max-width: min(calc(100vw - 12px), calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 12px));
@@ -1000,8 +1000,8 @@ function applyLabelsState(show) {
   }
 }
 
-var topModalZ = 30000;
-var MAX_WINDOW_Z = 999900; // Ceiling stays strictly below the main menu (999995) and plus button (999999)
+var topModalZ = 200000;
+var MAX_WINDOW_Z = 999990;
 function bringModalToFront(modal) {
   if (!modal) return;
   topModalZ += 2;
@@ -1012,13 +1012,13 @@ function bringModalToFront(modal) {
       '#errLogModal, .mini-web-modal'
     ));
     allModals.sort(function(a, b) {
-      return (parseInt(window.getComputedStyle(a).zIndex) || 30000) - 
-             (parseInt(window.getComputedStyle(b).zIndex) || 30000);
+      return (parseInt(window.getComputedStyle(a).zIndex) || 200000) - 
+             (parseInt(window.getComputedStyle(b).zIndex) || 200000);
     });
     allModals.forEach(function(el, idx) {
-      el.style.zIndex = 30000 + (idx * 2);
+      el.style.zIndex = 200000 + (idx * 2);
     });
-    topModalZ = 30000 + (allModals.length * 2);
+    topModalZ = 200000 + (allModals.length * 2);
   }
   modal.style.zIndex = topModalZ;
 }
@@ -2718,7 +2718,6 @@ document.getElementById('nrFilesInput').addEventListener('change', function(e) {
 });
 
 document.getElementById('repoAddBtn').addEventListener('click', () => {
-    if ($appMenu.classList.contains('open')) toggleMenu();
     if (!ghToken) { toast('❌ Setup GitHub token first', 'warn'); return; }
     document.getElementById('nrName').value = '';
     document.getElementById('nrFileInput').value = '';
@@ -4596,7 +4595,6 @@ document.getElementById('liveSiteBtn').addEventListener('click', function() {
 
 // Wallpaper UI Triggers
 document.getElementById('wallpaperBtn').addEventListener('click', function() {
-  if ($appMenu.classList.contains('open')) toggleMenu();
   document.getElementById('wpUrlInput').value = settings.wallpaper || '';
   var wpModal = document.getElementById('wallpaperModal');
   wpModal.classList.add('open');
@@ -5594,7 +5592,6 @@ document.getElementById('pasteBtn').addEventListener('click', async function() {
 });
 
 document.getElementById('ghSettingsBtn').addEventListener('click', function() {
-  if ($appMenu.classList.contains('open')) toggleMenu();
   document.getElementById('ghToken').value = ghToken;
   document.getElementById('ghUser').value = ghUser;
   document.getElementById('ghBranch').value = ghBranch;
@@ -5605,6 +5602,7 @@ document.getElementById('ghSettingsBtn').addEventListener('click', function() {
   centerModal(ghPanel);
   bringModalToFront(ghPanel);
   $backdrop.classList.add('open');
+  $backdrop.style.zIndex = (parseInt(ghPanel.style.zIndex) - 1);
 });
 
 document.getElementById('ghClosePanelBtn').addEventListener('click', function() {
@@ -5931,7 +5929,6 @@ document.getElementById('ghSyncBtn').addEventListener('click', async function() 
 });
 
 document.getElementById('ghPushBtn').addEventListener('click', function() {
-  if ($appMenu.classList.contains('open')) toggleMenu();
   syncEditorToSource();
   if (!sourceContent) { toast('❌ Nothing to push.', 'warn'); return; }
   if (!ghToken || !ghRepo) { toast('❌ Configure GitHub first.', 'warn'); return; }
@@ -6112,9 +6109,8 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
 
             // === Dual Engine Build Modal Logic ===
                         document.getElementById('masterBuildBtn').addEventListener('click', () => {
-                                                        if ($appMenu.classList.contains('open')) toggleMenu();
-                                                        loadBuildConfig();
-                                                        var bModal = document.getElementById('buildModal');
+                                loadBuildConfig();
+                                var bModal = document.getElementById('buildModal');
                                 bModal.classList.add('open');
                                 centerModal(bModal);
                                 bringModalToFront(bModal);
@@ -6668,8 +6664,7 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
             window.modalSelectedPaths = new Set();
 
             window.openFullTreeModal = function() {
-                                  if ($appMenu.classList.contains('open')) toggleMenu();
-                                  if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+                      if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
           
                       document.getElementById('modalRepoTitle').textContent = ghRepo.split('/')[1] || ghRepo;
                       document.getElementById('modalRepoList').style.display = 'none';
@@ -6938,10 +6933,9 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       };
 
       window.openBulkModal = function() {
-                      if ($appMenu.classList.contains('open')) toggleMenu();
-                      if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
-                      document.getElementById('bulkPathsInput').value = '';
-                      var bModal = document.getElementById('bulkModal');
+                if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+                document.getElementById('bulkPathsInput').value = '';
+                var bModal = document.getElementById('bulkModal');
                 bModal.classList.add('open');
                 centerModal(bModal);
                 bringModalToFront(bModal);
