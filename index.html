@@ -1355,17 +1355,20 @@ window.miniWebCount = 0;
 window.openMiniWeb = function(repoFullName, e) {
     if (e) e.stopPropagation();
     const repoOwner = repoFullName.split('/')[0] || ghUser;
-    const repoName = repoFullName.split('/')[1] || repoFullName;
+    const repoName = (repoFullName.split('/')[1] || repoFullName).trim();
     if (!repoName) { toast('❌ Invalid repo', 'warn'); return; }
 
-    const currentOrigin = window.location.origin.toLowerCase();
-    const currentPath = window.location.pathname.toLowerCase();
-    const targetPath = ('/' + repoName + '/').toLowerCase();
-    const isSelfReplicating = (currentOrigin.includes(repoOwner.toLowerCase() + '.github.io') && currentPath.includes(targetPath)) ||
-                             (ghRepo && ghRepo.toLowerCase() === repoFullName.toLowerCase() && (window.location.hostname === repoOwner.toLowerCase() + '.github.io'));
+    const targetRepoLower = repoName.toLowerCase();
+    const currentPathLower = window.location.pathname.toLowerCase();
+    const currentRepoLower = (ghRepo ? (ghRepo.split('/')[1] || ghRepo) : '').toLowerCase();
+
+    // Block direct CMP-to-CMP nesting and identical repository self-replication
+    const isSelfReplicating = targetRepoLower === 'cmp' ||
+                              (currentRepoLower && targetRepoLower === currentRepoLower) ||
+                              currentPathLower.includes('/' + targetRepoLower + '/');
 
     if (isSelfReplicating) {
-        toast('🛑 Infinite loop blocked: Cannot embed current CMP inside itself.', 'warn', 4000);
+        toast('🛑 Replication blocked: CMP cannot embed itself.', 'warn', 4000);
         return;
     }
 
