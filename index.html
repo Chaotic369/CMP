@@ -7227,9 +7227,9 @@ updateMenuPosition();
   }
 
   const recognition = new SpeechRec();
-  recognition.continuous = true;
-  recognition.interimResults = true; // INSTANT LIVE FEEDBACK (नो डिले)
-  recognition.lang = 'hi-IN, en-US';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-IN';
 
   let isListening = false;
   let manualStop = false;
@@ -7414,11 +7414,11 @@ updateMenuPosition();
       // Realtime live caption update
       showHud('🗣️ ' + transcript, 'wake');
 
-      // WAKE WORD DETECTION
-      if (!/^(harry|हैरी)\b/i.test(transcript)) return;
+      // WAKE WORD DETECTION (Supports "Harry", "Hey Harry", "हैरी")
+          if (!/^(hey\s+)?(harry|हैरी)\b/i.test(transcript)) return;
 
-      let cmd = transcript.replace(/^(harry|हैरी)\s*/i, '').trim().toLowerCase();
-      if (!cmd) return;
+          let cmd = transcript.replace(/^(hey\s+)?(harry|हैरी)\s*/i, '').trim().toLowerCase();
+          if (!cmd) return;
 
       // Instant execution for crisp verbs
       if (cmd === 'paste' || cmd === 'undo' || cmd === 'redo' || cmd === 'view' || cmd === 'push' || cmd === 'sync' || isFinal) {
