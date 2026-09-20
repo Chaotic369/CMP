@@ -271,23 +271,23 @@ body.hide-btn-labels .btn-lbl {
   position: fixed; width: 340px; height: 400px; min-width: 200px; min-height: 150px;
   display: flex; flex-direction: column; gap: 0px; z-index: 32500;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-  border: none !important; outline: none !important; border-radius: 10px; padding: 0px;
-  color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 14px; padding: 0px;
+  color: #ffffff; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6); overflow: hidden;
 }
 .mini-web-modal .window-header {
-  height: 24px; min-height: 24px; padding: 0 8px !important; margin: 0 !important;
-  border: none !important; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 10px 10px 0 0; background: rgba(22, 22, 22, 0.65);
+  height: 28px; min-height: 28px; padding: 0 10px !important; margin: 0 !important;
+  border: none !important; border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 14px 14px 0 0; background: rgba(22, 22, 22, 0.65);
   backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
 }
 .mini-web-modal .panel-close {
-  padding: 1px 4px !important; font-size: 8px !important; border-radius: 4px;
+  padding: 2px 5px !important; font-size: 9px !important; border-radius: 4px;
 }
 .mini-web-frame-wrap {
-  width: 100%; flex: 1; overflow: hidden; position: relative; border-radius: 0 0 6px 6px; background: #ffffff;
+  width: 100%; flex: 1; overflow: hidden; position: relative; border-radius: 0 0 14px 14px; background: transparent;
 }
 .mini-web-modal iframe {
-  border: none; background: #ffffff; position: absolute; top: 0; left: 0;
+  border: none; background: transparent; position: absolute; top: 0; left: 0;
   transform-origin: 0 0;
 }
 .mini-zoom-pop {
@@ -1009,8 +1009,8 @@ function applyLabelsState(show) {
   }
 }
 
-var topModalZ = 200000;
-var MAX_WINDOW_Z = 999990;
+var topModalZ = 50000;
+var MAX_WINDOW_Z = 80000;
 function bringModalToFront(modal) {
   if (!modal) return;
   topModalZ += 2;
@@ -1021,13 +1021,13 @@ function bringModalToFront(modal) {
       '#errLogModal, .mini-web-modal'
     ));
     allModals.sort(function(a, b) {
-      return (parseInt(window.getComputedStyle(a).zIndex) || 200000) - 
-             (parseInt(window.getComputedStyle(b).zIndex) || 200000);
+      return (parseInt(window.getComputedStyle(a).zIndex) || 50000) - 
+             (parseInt(window.getComputedStyle(b).zIndex) || 50000);
     });
     allModals.forEach(function(el, idx) {
-      el.style.zIndex = 200000 + (idx * 2);
+      el.style.zIndex = 50000 + (idx * 2);
     });
-    topModalZ = 200000 + (allModals.length * 2);
+    topModalZ = 50000 + (allModals.length * 2);
   }
   modal.style.zIndex = topModalZ;
 }
