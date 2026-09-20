@@ -7324,16 +7324,66 @@ updateMenuPosition();
   }
 
   // CORE DISPATCHER
-  function executeHarryCommand(cmd) {
-    if (!cmd || cmd === lastDispatchedCmd) return;
-    lastDispatchedCmd = cmd;
-    clearTimeout(cmdCooldownTimer);
-    cmdCooldownTimer = setTimeout(() => { lastDispatchedCmd = ''; }, 1200);
+    function executeHarryCommand(cmd) {
+      if (!cmd || cmd === lastDispatchedCmd) return;
+      lastDispatchedCmd = cmd;
+      clearTimeout(cmdCooldownTimer);
+      cmdCooldownTimer = setTimeout(() => { lastDispatchedCmd = ''; }, 1500);
 
-    showHud('⚡ ' + cmd, 'action');
+      showHud('⚡ ' + cmd, 'action');
 
-    // 1. REPO SWITCHING: "open [name]"
-    if (cmd.startsWith('open ') || cmd.startsWith('switch to ') || cmd.startsWith('खोलो ')) {
+      // 1. CREATE REPO: "create repo [name]" / "new repo [name]"
+      if (cmd.includes('create repo') || cmd.includes('create a new repo') || cmd.includes('new repo') || cmd.includes('रेपो बनाओ')) {
+        let rawName = cmd
+          .replace(/(create\s+a\s+new\s+repo|create\s+repo|new\s+repo|रेपो\s+बनाओ)/gi, '')
+          .replace(/(repo\s+name|name\s+is|name|रेपो\s+नेम)/gi, '')
+          .trim();
+
+        let validName = slugify(rawName) || ('repo-' + Date.now().toString().slice(-4));
+        showHud('🛠️ Creating: ' + validName, 'action');
+        toast('🛠️ Creating repository: ' + validName, 'info', 3000);
+
+        const addBtn = document.getElementById('repoAddBtn');
+        if (!addBtn) {
+          toast('❌ Add Repo button missing', 'err');
+          return;
+        }
+        addBtn.click();
+
+        setTimeout(async () => {
+          const nameInput = document.getElementById('nrName');
+          if (nameInput) {
+            nameInput.value = validName;
+            nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+
+          // Paste code option if mentioned
+          if (cmd.includes('paste') || cmd.includes('code') || cmd.includes('कोड')) {
+            const pasteRadio = document.querySelector('input[name="nrSource"][value="paste"]');
+            if (pasteRadio) {
+              pasteRadio.checked = true;
+              pasteRadio.dispatchEvent(new Event('change'));
+            }
+
+            try {
+              const clipText = await navigator.clipboard.readText();
+              const pasteArea = document.getElementById('nrPasteInput');
+              if (pasteArea && clipText) {
+                pasteArea.value = clipText;
+              }
+            } catch (e) {}
+          }
+
+          setTimeout(() => {
+            const confirmBtn = document.getElementById('nrAddBtn');
+            if (confirmBtn) confirmBtn.click();
+          }, 600);
+        }, 400);
+        return;
+      }
+
+      // 2. REPO SWITCHING: "open [name]"
+      if (cmd.startsWith('open ') || cmd.startsWith('switch to ') || cmd.startsWith('खोलो ')) {
       const targetQuery = cmd.replace(/^(open|switch to|खोलो)\s+/, '').trim();
       if (typeof ghRepos !== 'undefined' && ghRepos.length > 0) {
         const found = ghRepos.find(r => {
@@ -7420,12 +7470,13 @@ updateMenuPosition();
           let cmd = transcript.replace(/^(hey\s+)?(harry|हैरी)\s*/i, '').trim().toLowerCase();
           if (!cmd) return;
 
-      // Instant execution for crisp verbs
-      if (cmd === 'paste' || cmd === 'undo' || cmd === 'redo' || cmd === 'view' || cmd === 'push' || cmd === 'sync' || isFinal) {
-        executeHarryCommand(cmd);
-      }
-    };
-  })();
+      // Fast verbs fire immediately; multi-word commands (like creating or opening repos) wait for final speech
+          const isSingleWordAction = /^(paste|undo|redo|view|push|sync|fullscreen|tree)$/i.test(cmd);
+          if (isSingleWordAction || isFinal) {
+            executeHarryCommand(cmd);
+          }
+        };
+      })();
 
 sourceContent = '';
 render('', false); 
