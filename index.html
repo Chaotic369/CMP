@@ -1756,8 +1756,8 @@ window.openMiniWeb = function(repoFullName, e) {
     modal.id = winId;
     
     modal.innerHTML = `
-          <div class="window-header" style="cursor:move;">
-            <div class="win-title" style="font-size:10px; pointer-events:none;"><i class="fa-solid fa-globe" style="color:var(--blue); margin-right:4px;"></i> ${repoName}</div>
+              <div class="window-header" style="cursor:move; margin:0 !important; background:rgba(22,22,22,0.65) !important; backdrop-filter:blur(24px) !important; -webkit-backdrop-filter:blur(24px) !important;">
+                <div class="win-title" style="font-size:10px; pointer-events:none;"><i class="fa-solid fa-globe" style="color:var(--blue); margin-right:4px;"></i> ${repoName}</div>
             <div style="display:flex; align-items:center; gap:3px;">
               <button class="panel-close" title="Tile Window" onclick="window.toggleMiniTile('${winId}')"><i class="fa-solid fa-table-cells-large" style="font-size:8px;"></i></button>
               <button class="panel-close" title="Zoom In/Out" onclick="window.toggleMiniZoom('${winId}')"><i class="fa-solid fa-magnifying-glass" style="font-size:8px;"></i></button>
