@@ -586,6 +586,12 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="fring"></div>
 <div id="snapGuideOverlay"><div id="snapGuideBox"></div></div>
+
+<!-- HARRY LIVE CAPTION HUD -->
+<div id="harryCaptionHud" style="position:fixed; top:calc(42px + env(safe-area-inset-top, 0px)); right:16px; z-index:99999; display:none; align-items:center; gap:8px; background:rgba(18, 18, 24, 0.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(188, 140, 255, 0.35); padding:6px 12px; border-radius:20px; font-family:'JetBrains Mono', monospace; font-size:10px; color:#fff; box-shadow:0 8px 32px rgba(0,0,0,0.5); pointer-events:none; transition:all 0.2s cubic-bezier(0.2, 0, 0.2, 1); max-width:85vw;">
+  <div id="harryHudDot" style="width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 8px var(--purple); flex-shrink:0;"></div>
+  <span id="harryHudText" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:0.95;">Harry listening...</span>
+</div>
 <div id="tileSplittersContainer"></div>
 <div id="menu-backdrop"></div>
 
@@ -7204,34 +7210,77 @@ updateMenuPosition();
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// HARRY — SOVEREIGN IDE VOICE ASSISTANT
+// HARRY — SOVEREIGN IDE VOICE ASSISTANT (INSTANT ZERO-LATENCY + LIVE HUD)
 // ═══════════════════════════════════════════════════════════════════════════
 (function initHarryVoiceAssistant() {
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   const voiceBtn = document.getElementById('voiceCtrlBtn');
+  const hud = document.getElementById('harryCaptionHud');
+  const hudText = document.getElementById('harryHudText');
+  const hudDot = document.getElementById('harryHudDot');
   if (!voiceBtn) return;
 
   if (!SpeechRec) {
     voiceBtn.style.opacity = '0.35';
-    voiceBtn.title = 'Speech recognition not supported in this browser';
-    voiceBtn.onclick = () => toast('Speech Recognition API not supported here.', 'warn');
+    voiceBtn.title = 'Speech recognition not supported';
     return;
   }
 
   const recognition = new SpeechRec();
   recognition.continuous = true;
-  recognition.interimResults = false;
+  recognition.interimResults = true; // INSTANT LIVE FEEDBACK (नो डिले)
   recognition.lang = 'hi-IN, en-US';
 
   let isListening = false;
   let manualStop = false;
+  let hudTimer = null;
+  let lastDispatchedCmd = '';
+  let cmdCooldownTimer = null;
+
+  function showHud(msg, status = 'listen') {
+    if (!hud || !hudText) return;
+    hud.style.display = 'flex';
+    hudText.textContent = msg;
+    
+    if (status === 'action') {
+      hudDot.style.background = 'var(--green)';
+      hudDot.style.boxShadow = '0 0 10px var(--green)';
+      hud.style.borderColor = 'var(--green)';
+    } else if (status === 'wake') {
+      hudDot.style.background = 'var(--amber)';
+      hudDot.style.boxShadow = '0 0 10px var(--amber)';
+      hud.style.borderColor = 'var(--amber)';
+    } else {
+      hudDot.style.background = 'var(--purple)';
+      hudDot.style.boxShadow = '0 0 8px var(--purple)';
+      hud.style.borderColor = 'rgba(188, 140, 255, 0.35)';
+    }
+
+    clearTimeout(hudTimer);
+    hudTimer = setTimeout(() => {
+      if (isListening) {
+        hudText.textContent = 'Listening...';
+        hudDot.style.background = 'var(--purple)';
+        hudDot.style.boxShadow = '0 0 8px var(--purple)';
+        hud.style.borderColor = 'rgba(188, 140, 255, 0.2)';
+      } else {
+        hud.style.display = 'none';
+      }
+    }, 2800);
+  }
 
   function setVoiceUI(active) {
     isListening = active;
     voiceBtn.style.color = active ? 'var(--red)' : 'var(--purple)';
     voiceBtn.innerHTML = active
-      ? '<i class="fa-solid fa-microphone-lines fa-fade"></i><span class="btn-lbl">Harry</span>'
+      ? '<i class="fa-solid fa-microphone-lines fa-fade"></i><span class="btn-lbl">Live</span>'
       : '<i class="fa-solid fa-microphone"></i><span class="btn-lbl">Harry</span>';
+    
+    if (active) {
+      showHud('Harry ready! Speak anytime...');
+    } else if (hud) {
+      hud.style.display = 'none';
+    }
   }
 
   voiceBtn.addEventListener('click', () => {
@@ -7240,8 +7289,6 @@ updateMenuPosition();
         manualStop = false;
         recognition.start();
         setVoiceUI(true);
-        toast('⚡ Harry सुन रहा है! बोलिए "Harry..."');
-        addLog('info', 'Voice assistant active. Wake word: "Harry"');
       } catch (err) {
         toast('Mic error: ' + err.message, 'err');
       }
@@ -7276,106 +7323,67 @@ updateMenuPosition();
       .substring(0, 35);
   }
 
-  recognition.onresult = async (event) => {
-    let raw = event.results[event.results.length - 1][0].transcript.trim();
-    
-    // वेक-वर्ड "Harry" या "हैरी"
-    if (!/^(harry|हैरी)\b/i.test(raw)) return;
+  // CORE DISPATCHER
+  function executeHarryCommand(cmd) {
+    if (!cmd || cmd === lastDispatchedCmd) return;
+    lastDispatchedCmd = cmd;
+    clearTimeout(cmdCooldownTimer);
+    cmdCooldownTimer = setTimeout(() => { lastDispatchedCmd = ''; }, 1200);
 
-    let cmd = raw.replace(/^(harry|हैरी)\s*/i, '').trim().toLowerCase();
-    if (!cmd) return;
+    showHud('⚡ ' + cmd, 'action');
 
-    toast(`⚡ Harry: "${cmd}"`, 'info', 2200);
-
-    // 1. रिपॉजिटरी बनाना: "Harry create repo [name]"
-    if (cmd.includes('create a new repo') || cmd.includes('create repo') || cmd.includes('new repo') || cmd.includes('रेपो बनाओ')) {
-      let rawName = cmd
-        .replace(/create a new repo|create repo|new repo|रेपो बनाओ/g, '')
-        .replace(/repo name|रेपो नेम/g, '')
-        .trim();
-
-      let validName = slugify(rawName) || ('repo-' + Date.now().toString().slice(-4));
-      
-      toast(`🛠️ नई रेपो बना रहा हूँ: "${validName}"...`);
-      document.getElementById('repoAddBtn')?.click();
-
-      setTimeout(async () => {
-        const nameInput = document.getElementById('nrName');
-        if (nameInput) nameInput.value = validName;
-
-        if (cmd.includes('paste') || cmd.includes('कोड') || cmd.includes('code')) {
-          const pasteRadio = document.querySelector('input[name="nrSource"][value="paste"]');
-          if (pasteRadio) {
-            pasteRadio.checked = true;
-            pasteRadio.dispatchEvent(new Event('change'));
-          }
-
-          try {
-            const clipText = await navigator.clipboard.readText();
-            const pasteArea = document.getElementById('nrPasteInput');
-            if (pasteArea && clipText) {
-              pasteArea.value = clipText;
-            }
-          } catch (e) {}
-        }
-
-        setTimeout(() => {
-          document.getElementById('nrAddBtn')?.click();
-        }, 800);
-      }, 300);
-      return;
-    }
-
-    // 2. रिपॉजिटरी खोलना: "Harry open [repo]"
+    // 1. REPO SWITCHING: "open [name]"
     if (cmd.startsWith('open ') || cmd.startsWith('switch to ') || cmd.startsWith('खोलो ')) {
       const targetQuery = cmd.replace(/^(open|switch to|खोलो)\s+/, '').trim();
       if (typeof ghRepos !== 'undefined' && ghRepos.length > 0) {
         const found = ghRepos.find(r => {
-          const shortName = (r.split('/')[1] || r).toLowerCase();
-          return shortName === targetQuery || shortName.replace(/[-_]/g, ' ') === targetQuery || shortName.includes(targetQuery);
+          const s = (r.split('/')[1] || r).toLowerCase();
+          return s === targetQuery || s.replace(/[-_]/g, ' ') === targetQuery || s.includes(targetQuery);
         });
-
         if (found) {
-          toast(`📂 रिपॉजिटरी खुल रही है: ${found.split('/')[1] || found}`);
+          showHud('📂 Opening ' + (found.split('/')[1] || found), 'action');
           window.switchRepo(found);
-          return;
-        } else {
-          toast(`❌ रेपो "${targetQuery}" नहीं मिली`, 'warn');
           return;
         }
       }
     }
 
-    // 3. पेस्ट और अप्लाई: "Harry paste"
+    // 2. PASTE & APPLY
     if (cmd === 'paste' || cmd.includes('paste') || cmd.includes('पेस्ट')) {
       document.getElementById('pasteBtn')?.click();
       return;
     }
 
-    // 4. अनडू और रिडू
-    if (cmd === 'undo' || cmd.includes('वापस')) {
+    // 3. EDIT HISTORY
+    if (cmd === 'undo' || cmd.includes('undo') || cmd.includes('वापस')) {
       document.getElementById('undoBtn')?.click();
       return;
     }
-    if (cmd === 'redo') {
+    if (cmd === 'redo' || cmd.includes('redo')) {
       document.getElementById('redoBtn')?.click();
       return;
     }
 
-    // 5. व्यू टॉगल: "Harry view" / "Harry code"
+    // 4. VIEWS & PANELS
     if (cmd.includes('view') || cmd.includes('code') || cmd.includes('preview')) {
       document.getElementById('viewBtn')?.click();
       return;
     }
-
-    // 6. फुलस्क्रीन
     if (cmd.includes('full') || cmd.includes('screen')) {
       document.getElementById('fullScreenBtn')?.click();
       return;
     }
+    if (cmd.includes('find') || cmd.includes('search')) {
+      if (viewMode === 'code') document.getElementById('searchCodeBtn')?.click();
+      return;
+    }
+    if (cmd.includes('tree') || cmd.includes('files')) {
+      document.getElementById('fullTreeBtn')?.click();
+      return;
+    }
 
-    // 7. पुश और सिंक
-    if (cmd.includes('push') || cmd.includes('commit') || cmd.includes('पुश')) {
+    // 5. GITHUB OPS
+    if (cmd.includes('push') || cmd.includes('commit')) {
       document.getElementById('ghPushBtn')?.click();
       return;
     }
@@ -7384,13 +7392,40 @@ updateMenuPosition();
       return;
     }
 
-    // 8. फ़ाइल ट्री खोलना
-    if (cmd.includes('tree') || cmd.includes('files')) {
-      document.getElementById('fullTreeBtn')?.click();
+    // 6. BUILD
+    if (cmd.includes('build') || cmd.includes('apk')) {
+      document.getElementById('masterBuildBtn')?.click();
       return;
     }
-  };
-})();
+  }
+
+  recognition.onresult = (event) => {
+      let transcript = '';
+      let isFinal = false;
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        transcript += event.results[i][0].transcript;
+        if (event.results[i].isFinal) isFinal = true;
+      }
+
+      transcript = transcript.trim();
+      if (!transcript) return;
+
+      // Realtime live caption update
+      showHud('🗣️ ' + transcript, 'wake');
+
+      // WAKE WORD DETECTION
+      if (!/^(harry|हैरी)\b/i.test(transcript)) return;
+
+      let cmd = transcript.replace(/^(harry|हैरी)\s*/i, '').trim().toLowerCase();
+      if (!cmd) return;
+
+      // Instant execution for crisp verbs
+      if (cmd === 'paste' || cmd === 'undo' || cmd === 'redo' || cmd === 'view' || cmd === 'push' || cmd === 'sync' || isFinal) {
+        executeHarryCommand(cmd);
+      }
+    };
+  })();
 
 sourceContent = '';
 render('', false); 
