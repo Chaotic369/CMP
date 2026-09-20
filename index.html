@@ -6233,9 +6233,9 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                   "          distribution: 'temurin'",
                                   "          java-version: '17'",
                                                                     "      - name: Setup Android SDK",
-                                                                    "        uses: android-actions/setup-android@v3",
-                                                                    "        with:",
-                                                                    "          packages: 'platform-tools'",
+                                                                                                                                        "        uses: android-actions/setup-android@v3",
+                                                                                                                                        "        with:",
+                                                                                                                                        "          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'",
                                                                     "      - name: Accept SDK licenses",
                                                                     "        run: yes | sdkmanager --licenses > /dev/null || true",
                                                                     "      - name: Setup Node.js",
@@ -6258,10 +6258,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                   "          cd /tmp",
                                   "          cordova create app \"$APP_ID\" \"$SAFE_NAME\" --no-telemetry",
                                   "          rm -rf app/www/*",
-                                  "          cp -R $GITHUB_WORKSPACE/* app/www/ || true",
+                                  "          rsync -a --exclude='.git' --exclude='.github' --exclude='build-icon.png' \"$GITHUB_WORKSPACE/\" app/www/ || true",
                                   "          if [ -f \"$GITHUB_WORKSPACE/build-icon.png\" ]; then cp \"$GITHUB_WORKSPACE/build-icon.png\" app/icon.png || true; fi",
                                   "          cd app",
-                                  "          sed -i \"s/version=\\\"1.0.0\\\"/version=\\\"$SAFE_VERSION\\\"/g\" config.xml",
+                                  "          sed -i -E \"s/(<widget[^>]*version=)\\\"[^\\\"]*\\\"/\\1\\\"$SAFE_VERSION\\\"/\" config.xml",
                                   "          sed -i 's/<\\/widget>/\\n    <allow-navigation href=\"*\" \\/>\\n    <allow-intent href=\"*\" \\/>\\n<\\/widget>/g' config.xml",
                                   "          if [ -f icon.png ]; then sed -i 's/<\\/widget>/\\n    <icon src=\"icon.png\" \\/>\\n<\\/widget>/g' config.xml; fi",
                                   "          cordova plugin add cordova-plugin-inappbrowser --no-telemetry || true",
@@ -6550,9 +6550,9 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
 
                 appendBuildLog('Workflow synced. Triggering build dispatch...');
                 updateBuildOverlay('Triggering GitHub Actions...', 25);
-                await new Promise(r => setTimeout(r, 4000));
+                await new Promise(r => setTimeout(r, 8000));
 
-                let dispatchSuccess = false;
+                                let dispatchSuccess = false;
                 for (let retry = 1; retry <= 5; retry++) {
                   const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${filename}/dispatches`, {
                     method: 'POST',
