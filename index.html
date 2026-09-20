@@ -6291,16 +6291,22 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                           var repoContext = ghRepo ? ghRepo : '(my GitHub repo)';
 
                           var prompt = 'Write a complete GitHub Actions workflow YAML file for me.\n\n' +
-                            'Context:\n' +
-                            '- Repo: ' + repoContext + '\n' +
-                            '- The YAML will be saved as .github/workflows/' + filename + '\n' +
-                            '- It must be triggered by "on: workflow_dispatch:" so it can be dispatched via the GitHub REST API.\n' +
-                            '- If it needs app name / version at build time, declare them as workflow_dispatch inputs named exactly "app_name" and "app_version" (defaults "' + appName + '" and "' + appVersion + '") — my app dispatches these two inputs on every run, but GitHub silently drops them if the YAML does not declare matching input names under "on: workflow_dispatch: inputs:".\n' +
-                            '- If the build needs a custom icon, know that before dispatch my app PUTs an icon file to "build-icon.png" at the repo root (only if I chose one) — reference that path in a build step if relevant, but do not fail the build if it is missing.\n' +
-                            '- The final build output MUST be uploaded with "actions/upload-artifact@v4" and the artifact "name:" must be exactly: ' + artifactName + ' — my app polls for an artifact with this exact name to auto-download it, so do not change or invent a different name.\n' +
-                            '- Use "runs-on: ubuntu-latest" unless I say otherwise.\n' +
-                            '- Keep it a single valid YAML file, spaces only (no tabs), with "name:", "on:", and "jobs:" top-level keys.\n\n' +
-                            'Give me ONLY the final YAML content, no explanation, no markdown code fences.';
+                                                      'Context:\n' +
+                                                      '- Repo: ' + repoContext + '\n' +
+                                                      '- The YAML will be saved as .github/workflows/' + filename + '\n' +
+                                                      '- It must be triggered by "on: workflow_dispatch:" so it can be dispatched via the GitHub REST API.\n' +
+                                                      '- If it needs app name / version at build time, declare them as workflow_dispatch inputs named exactly "app_name" and "app_version" (defaults "' + appName + '" and "' + appVersion + '") — my app dispatches these two inputs on every run, but GitHub silently drops them if the YAML does not declare matching input names under "on: workflow_dispatch: inputs:".\n' +
+                                                      '- If the build needs a custom icon, know that before dispatch my app PUTs an icon file to "build-icon.png" at the repo root (only if I chose one) — reference that path in a build step if relevant, but do not fail the build if it is missing.\n' +
+                                                      '- The final build output MUST be uploaded with "actions/upload-artifact@v4" and the artifact "name:" must be exactly: ' + artifactName + ' — my app polls for an artifact with this exact name to auto-download it, so do not change or invent a different name.\n' +
+                                                      '- Use "runs-on: ubuntu-latest" unless I say otherwise.\n' +
+                                                      '- Keep it a single valid YAML file, spaces only (no tabs), with "name:", "on:", and "jobs:" top-level keys.\n\n' +
+                                                      'If my repo is a native Android project (Kotlin/Gradle with app/build.gradle.kts and app/src/main/AndroidManifest.xml already in the repo), follow these extra rules:\n' +
+                                                      '- Do NOT scaffold or generate a new project (no Cordova, no npm). Build the project that already exists in the repo.\n' +
+                                                      '- Use actions/setup-java@v4 with temurin Java 17, then gradle/actions/setup-gradle@v4 with gradle-version 8.7. There is no gradlew wrapper, so run "gradle assembleDebug --no-daemon".\n' +
+                                                      '- Upload exactly this path: app/build/outputs/apk/debug/app-debug.apk with if-no-files-found: error.\n' +
+                                                      '- Patch the app name into android:label in app/src/main/AndroidManifest.xml and the version into versionName / versionCode in app/build.gradle.kts before building (versionCode = date +%s). Use an inline python3 script with re.sub and a lambda replacement for this, not sed, so special characters in the app name cannot break it. XML-escape & < > " in the app name first.\n' +
+                                                      '- If build-icon.png exists at the repo root, copy it to app/src/main/res/mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/ic_launcher.png and ic_launcher_round.png, and add android:icon and android:roundIcon to the <application> tag only if android:icon is not already present. If the file is missing, print a message and continue.\n\n' +
+                                                      'Give me ONLY the final YAML content, no explanation, no markdown code fences.';
 
                           navigator.clipboard.writeText(prompt).then(function() {
                             toast('🚀 AI prompt for YAML copied!');
