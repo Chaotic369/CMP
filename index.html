@@ -7222,11 +7222,10 @@ updateMenuPosition();
 
   if (!SpeechRec) {
     voiceBtn.style.opacity = '0.35';
-    voiceBtn.title = 'Speech recognition not supported';
+    voiceBtn.title = 'Speech recognition not supported in this browser';
     return;
   }
 
-  // Audio synthesizer for audio feedback
   const playTone = (freq = 600, duration = 0.08) => {
     try {
       const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -7254,7 +7253,6 @@ updateMenuPosition();
   let cmdCooldownTimer = null;
   let speechDebounceTimer = null;
 
-  // Levenshtein distance for fuzzy repo/command matching
   function levenshtein(a, b) {
     const m = a.length, n = b.length;
     const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
@@ -7280,12 +7278,10 @@ updateMenuPosition();
       const short = (fullRepo.split('/')[1] || fullRepo).toLowerCase();
       const cleanShort = short.replace(/[^a-z0-9]/g, '');
 
-      // Direct exact or substring hits
       if (cleanShort === cleanQ || cleanShort.includes(cleanQ) || cleanQ.includes(cleanShort)) {
         return fullRepo;
       }
 
-      // Phonetic edge case: "CMP" transcribed as "see mp" or "c m p"
       if (cleanQ === 'seemp' || cleanQ === 'camp' || cleanQ === 'cmp') {
         if (cleanShort === 'cmp') return fullRepo;
       }
@@ -7297,7 +7293,6 @@ updateMenuPosition();
       }
     }
 
-    // Allow fuzzy match if within reasonable distance
     return lowestDistance <= Math.max(2, Math.floor(cleanQ.length * 0.4)) ? bestMatch : null;
   }
 
@@ -7394,7 +7389,6 @@ updateMenuPosition();
       .substring(0, 35);
   }
 
-  // DISPATCH ENGINE WITH INTENT RECOGNITION
   function executeHarryCommand(rawCmd) {
     if (!rawCmd) return;
     const cmd = rawCmd.trim().toLowerCase();
@@ -7404,7 +7398,7 @@ updateMenuPosition();
     clearTimeout(cmdCooldownTimer);
     cmdCooldownTimer = setTimeout(() => { lastDispatchedCmd = ''; }, 1200);
 
-    // Intent 1: Create Repository
+    // 1. Create Repository
     if (/^(create|make|start|new|initialize)\s+(a\s+)?(new\s+)?repo(sitory)?/i.test(cmd)) {
       let rawName = cmd
         .replace(/^(create|make|start|new|initialize)\s+(a\s+)?(new\s+)?repo(sitory)?/gi, '')
@@ -7444,7 +7438,7 @@ updateMenuPosition();
       return;
     }
 
-    // Intent 2: Switch / Open Repository
+    // 2. Open / Switch Repository
     if (/^(open|switch\s+to|load|go\s+to)\s+/i.test(cmd)) {
       const targetQuery = cmd.replace(/^(open|switch\s+to|load|go\s+to)\s+/i, '').replace(/repo(sitory)?/gi, '').trim();
       const found = findClosestRepo(targetQuery);
@@ -7458,7 +7452,7 @@ updateMenuPosition();
       return;
     }
 
-    // Intent 3: Clipboard & History
+    // 3. Edit & History
     if (/^(paste|apply|patch)/i.test(cmd)) {
       showHud('⚡ Paste & Apply', 'action');
       document.getElementById('pasteBtn')?.click();
@@ -7475,7 +7469,7 @@ updateMenuPosition();
       return;
     }
 
-    // Intent 4: Layout & Code Navigation
+    // 4. View Modes & Fullscreen
     if (/^(view|preview|show\s+code|toggle\s+view)/i.test(cmd)) {
       showHud('👁 Toggle View', 'action');
       document.getElementById('viewBtn')?.click();
@@ -7497,7 +7491,7 @@ updateMenuPosition();
       return;
     }
 
-    // Intent 5: GitHub Operations
+    // 5. GitHub Operations
     if (/^(push|commit|save\s+online)/i.test(cmd)) {
       showHud('⬆ Push to GitHub', 'action');
       document.getElementById('ghPushBtn')?.click();
@@ -7514,7 +7508,7 @@ updateMenuPosition();
       return;
     }
 
-    // Intent 6: Prompt & Payload
+    // 6. AI Prompt & Payload
     if (/^(instruction|prompt)\s+/i.test(cmd)) {
       const text = cmd.replace(/^(instruction|prompt)\s+/i, '');
       const input = document.getElementById('aiInstruction');
@@ -7530,7 +7524,7 @@ updateMenuPosition();
       return;
     }
 
-    // Intent 7: Build Engine
+    // 7. Builder
     if (/^(build|compile|make\s+apk)/i.test(cmd)) {
       showHud('🔨 Build Modal', 'action');
       document.getElementById('masterBuildBtn')?.click();
@@ -7552,21 +7546,18 @@ updateMenuPosition();
 
     showHud('🗣️ ' + transcript, 'wake');
 
-    // Flexible Wake Word ("Harry", "Hey Harry", "Ok Harry")
-    const wakeMatch = transcript.match(/^(?:hey\s+|ok\s+)?harry\b/i);
+    const wakeMatch = transcript.match(/^(?:hey\s+|ok\s+)?(harry|हैरी)\b/i);
     if (!wakeMatch) return;
 
     const cmd = transcript.slice(wakeMatch[0].length).trim();
     if (!cmd) return;
 
-    // Instant actions fire right away
     const isFastAction = /^(paste|undo|redo|view|push|sync|fullscreen|tree|find|export)$/i.test(cmd);
     if (isFastAction) {
       executeHarryCommand(cmd);
       return;
     }
 
-    // Multi-word actions (open repo, create repo, instruction) wait for completion
     clearTimeout(speechDebounceTimer);
     if (isFinal) {
       executeHarryCommand(cmd);
@@ -7577,270 +7568,6 @@ updateMenuPosition();
     }
   };
 })();
-  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const voiceBtn = document.getElementById('voiceCtrlBtn');
-  const hud = document.getElementById('harryCaptionHud');
-  const hudText = document.getElementById('harryHudText');
-  const hudDot = document.getElementById('harryHudDot');
-  if (!voiceBtn) return;
-
-  if (!SpeechRec) {
-    voiceBtn.style.opacity = '0.35';
-    voiceBtn.title = 'Speech recognition not supported';
-    return;
-  }
-
-  const recognition = new SpeechRec();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-IN';
-
-  let isListening = false;
-  let manualStop = false;
-  let hudTimer = null;
-  let lastDispatchedCmd = '';
-  let cmdCooldownTimer = null;
-
-  function showHud(msg, status = 'listen') {
-    if (!hud || !hudText) return;
-    hud.style.display = 'flex';
-    hudText.textContent = msg;
-    
-    if (status === 'action') {
-      hudDot.style.background = 'var(--green)';
-      hudDot.style.boxShadow = '0 0 10px var(--green)';
-      hud.style.borderColor = 'var(--green)';
-    } else if (status === 'wake') {
-      hudDot.style.background = 'var(--amber)';
-      hudDot.style.boxShadow = '0 0 10px var(--amber)';
-      hud.style.borderColor = 'var(--amber)';
-    } else {
-      hudDot.style.background = 'var(--purple)';
-      hudDot.style.boxShadow = '0 0 8px var(--purple)';
-      hud.style.borderColor = 'rgba(188, 140, 255, 0.35)';
-    }
-
-    clearTimeout(hudTimer);
-    hudTimer = setTimeout(() => {
-      if (isListening) {
-        hudText.textContent = 'Listening...';
-        hudDot.style.background = 'var(--purple)';
-        hudDot.style.boxShadow = '0 0 8px var(--purple)';
-        hud.style.borderColor = 'rgba(188, 140, 255, 0.2)';
-      } else {
-        hud.style.display = 'none';
-      }
-    }, 2800);
-  }
-
-  function setVoiceUI(active) {
-    isListening = active;
-    voiceBtn.style.color = active ? 'var(--red)' : 'var(--purple)';
-    voiceBtn.innerHTML = active
-      ? '<i class="fa-solid fa-microphone-lines fa-fade"></i><span class="btn-lbl">Live</span>'
-      : '<i class="fa-solid fa-microphone"></i><span class="btn-lbl">Harry</span>';
-    
-    if (active) {
-      showHud('Harry ready! Speak anytime...');
-    } else if (hud) {
-      hud.style.display = 'none';
-    }
-  }
-
-  voiceBtn.addEventListener('click', () => {
-    if (!isListening) {
-      try {
-        manualStop = false;
-        recognition.start();
-        setVoiceUI(true);
-      } catch (err) {
-        toast('Mic error: ' + err.message, 'err');
-      }
-    } else {
-      manualStop = true;
-      recognition.stop();
-      setVoiceUI(false);
-      toast('💤 Harry विश्राम पर है');
-    }
-  });
-
-  recognition.onend = () => {
-    if (isListening && !manualStop) {
-      try { recognition.start(); } catch (e) { setVoiceUI(false); }
-    }
-  };
-
-  recognition.onerror = (e) => {
-    if (e.error === 'not-allowed') {
-      toast('Microphone अनुमति नहीं मिली', 'err');
-      setVoiceUI(false);
-      manualStop = true;
-    }
-  };
-
-  function slugify(text) {
-    return text.toString().toLowerCase()
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/[^\w\-]+/g, '')
-      .replace(/\-\-+/g, '-')
-      .substring(0, 35);
-  }
-
-  // CORE DISPATCHER
-    function executeHarryCommand(cmd) {
-      if (!cmd || cmd === lastDispatchedCmd) return;
-      lastDispatchedCmd = cmd;
-      clearTimeout(cmdCooldownTimer);
-      cmdCooldownTimer = setTimeout(() => { lastDispatchedCmd = ''; }, 1500);
-
-      showHud('⚡ ' + cmd, 'action');
-
-      // 1. CREATE REPO: "create repo [name]" / "new repo [name]"
-      if (cmd.includes('create repo') || cmd.includes('create a new repo') || cmd.includes('new repo') || cmd.includes('रेपो बनाओ')) {
-        let rawName = cmd
-          .replace(/(create\s+a\s+new\s+repo|create\s+repo|new\s+repo|रेपो\s+बनाओ)/gi, '')
-          .replace(/(repo\s+name|name\s+is|name|रेपो\s+नेम)/gi, '')
-          .trim();
-
-        let validName = slugify(rawName) || ('repo-' + Date.now().toString().slice(-4));
-        showHud('🛠️ Creating: ' + validName, 'action');
-        toast('🛠️ Creating repository: ' + validName, 'info', 3000);
-
-        const addBtn = document.getElementById('repoAddBtn');
-        if (!addBtn) {
-          toast('❌ Add Repo button missing', 'err');
-          return;
-        }
-        addBtn.click();
-
-        setTimeout(async () => {
-          const nameInput = document.getElementById('nrName');
-          if (nameInput) {
-            nameInput.value = validName;
-            nameInput.dispatchEvent(new Event('input', { bubbles: true }));
-          }
-
-          // Paste code option if mentioned
-          if (cmd.includes('paste') || cmd.includes('code') || cmd.includes('कोड')) {
-            const pasteRadio = document.querySelector('input[name="nrSource"][value="paste"]');
-            if (pasteRadio) {
-              pasteRadio.checked = true;
-              pasteRadio.dispatchEvent(new Event('change'));
-            }
-
-            try {
-              const clipText = await navigator.clipboard.readText();
-              const pasteArea = document.getElementById('nrPasteInput');
-              if (pasteArea && clipText) {
-                pasteArea.value = clipText;
-              }
-            } catch (e) {}
-          }
-
-          setTimeout(() => {
-            const confirmBtn = document.getElementById('nrAddBtn');
-            if (confirmBtn) confirmBtn.click();
-          }, 600);
-        }, 400);
-        return;
-      }
-
-      // 2. REPO SWITCHING: "open [name]"
-      if (cmd.startsWith('open ') || cmd.startsWith('switch to ') || cmd.startsWith('खोलो ')) {
-      const targetQuery = cmd.replace(/^(open|switch to|खोलो)\s+/, '').trim();
-      if (typeof ghRepos !== 'undefined' && ghRepos.length > 0) {
-        const found = ghRepos.find(r => {
-          const s = (r.split('/')[1] || r).toLowerCase();
-          return s === targetQuery || s.replace(/[-_]/g, ' ') === targetQuery || s.includes(targetQuery);
-        });
-        if (found) {
-          showHud('📂 Opening ' + (found.split('/')[1] || found), 'action');
-          window.switchRepo(found);
-          return;
-        }
-      }
-    }
-
-    // 2. PASTE & APPLY
-    if (cmd === 'paste' || cmd.includes('paste') || cmd.includes('पेस्ट')) {
-      document.getElementById('pasteBtn')?.click();
-      return;
-    }
-
-    // 3. EDIT HISTORY
-    if (cmd === 'undo' || cmd.includes('undo') || cmd.includes('वापस')) {
-      document.getElementById('undoBtn')?.click();
-      return;
-    }
-    if (cmd === 'redo' || cmd.includes('redo')) {
-      document.getElementById('redoBtn')?.click();
-      return;
-    }
-
-    // 4. VIEWS & PANELS
-    if (cmd.includes('view') || cmd.includes('code') || cmd.includes('preview')) {
-      document.getElementById('viewBtn')?.click();
-      return;
-    }
-    if (cmd.includes('full') || cmd.includes('screen')) {
-      document.getElementById('fullScreenBtn')?.click();
-      return;
-    }
-    if (cmd.includes('find') || cmd.includes('search')) {
-      if (viewMode === 'code') document.getElementById('searchCodeBtn')?.click();
-      return;
-    }
-    if (cmd.includes('tree') || cmd.includes('files')) {
-      document.getElementById('fullTreeBtn')?.click();
-      return;
-    }
-
-    // 5. GITHUB OPS
-    if (cmd.includes('push') || cmd.includes('commit')) {
-      document.getElementById('ghPushBtn')?.click();
-      return;
-    }
-    if (cmd.includes('sync')) {
-      document.getElementById('ghSyncBtn')?.click();
-      return;
-    }
-
-    // 6. BUILD
-    if (cmd.includes('build') || cmd.includes('apk')) {
-      document.getElementById('masterBuildBtn')?.click();
-      return;
-    }
-  }
-
-  recognition.onresult = (event) => {
-      let transcript = '';
-      let isFinal = false;
-
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        transcript += event.results[i][0].transcript;
-        if (event.results[i].isFinal) isFinal = true;
-      }
-
-      transcript = transcript.trim();
-      if (!transcript) return;
-
-      // Realtime live caption update
-      showHud('🗣️ ' + transcript, 'wake');
-
-      // WAKE WORD DETECTION (Supports "Harry", "Hey Harry", "हैरी")
-          if (!/^(hey\s+)?(harry|हैरी)\b/i.test(transcript)) return;
-
-          let cmd = transcript.replace(/^(hey\s+)?(harry|हैरी)\s*/i, '').trim().toLowerCase();
-          if (!cmd) return;
-
-      // Fast verbs fire immediately; multi-word commands (like creating or opening repos) wait for final speech
-          const isSingleWordAction = /^(paste|undo|redo|view|push|sync|fullscreen|tree)$/i.test(cmd);
-          if (isSingleWordAction || isFinal) {
-            executeHarryCommand(cmd);
-          }
-        };
-      })();
 
 sourceContent = '';
 render('', false); 
