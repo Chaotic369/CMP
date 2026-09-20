@@ -643,6 +643,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                               <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i><span class="btn-lbl">Wall</span></button>
                                                                                   <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i><span class="btn-lbl">Get</span></button>
                               <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i><span class="btn-lbl">Build</span></button>
+                                    <button id="voiceCtrlBtn" class="btn" title="Voice Control (Harry)" style="color:var(--purple);"><i class="fa-solid fa-microphone"></i><span class="btn-lbl">Harry</span></button>
                                                           <button id="buildApkBtn" class="btn" style="display:none;"></button>
                                                                                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                                     <div style="grid-column: 1 / -1; grid-row: 3; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05);">
@@ -7201,6 +7202,195 @@ updateMenuPosition();
     restoreWindowState(el);
   }
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// HARRY — SOVEREIGN IDE VOICE ASSISTANT
+// ═══════════════════════════════════════════════════════════════════════════
+(function initHarryVoiceAssistant() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const voiceBtn = document.getElementById('voiceCtrlBtn');
+  if (!voiceBtn) return;
+
+  if (!SpeechRec) {
+    voiceBtn.style.opacity = '0.35';
+    voiceBtn.title = 'Speech recognition not supported in this browser';
+    voiceBtn.onclick = () => toast('Speech Recognition API not supported here.', 'warn');
+    return;
+  }
+
+  const recognition = new SpeechRec();
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.lang = 'hi-IN, en-US';
+
+  let isListening = false;
+  let manualStop = false;
+
+  function setVoiceUI(active) {
+    isListening = active;
+    voiceBtn.style.color = active ? 'var(--red)' : 'var(--purple)';
+    voiceBtn.innerHTML = active
+      ? '<i class="fa-solid fa-microphone-lines fa-fade"></i><span class="btn-lbl">Harry</span>'
+      : '<i class="fa-solid fa-microphone"></i><span class="btn-lbl">Harry</span>';
+  }
+
+  voiceBtn.addEventListener('click', () => {
+    if (!isListening) {
+      try {
+        manualStop = false;
+        recognition.start();
+        setVoiceUI(true);
+        toast('⚡ Harry सुन रहा है! बोलिए "Harry..."');
+        addLog('info', 'Voice assistant active. Wake word: "Harry"');
+      } catch (err) {
+        toast('Mic error: ' + err.message, 'err');
+      }
+    } else {
+      manualStop = true;
+      recognition.stop();
+      setVoiceUI(false);
+      toast('💤 Harry विश्राम पर है');
+    }
+  });
+
+  recognition.onend = () => {
+    if (isListening && !manualStop) {
+      try { recognition.start(); } catch (e) { setVoiceUI(false); }
+    }
+  };
+
+  recognition.onerror = (e) => {
+    if (e.error === 'not-allowed') {
+      toast('Microphone अनुमति नहीं मिली', 'err');
+      setVoiceUI(false);
+      manualStop = true;
+    }
+  };
+
+  function slugify(text) {
+    return text.toString().toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .substring(0, 35);
+  }
+
+  recognition.onresult = async (event) => {
+    let raw = event.results[event.results.length - 1][0].transcript.trim();
+    
+    // वेक-वर्ड "Harry" या "हैरी"
+    if (!/^(harry|हैरी)\b/i.test(raw)) return;
+
+    let cmd = raw.replace(/^(harry|हैरी)\s*/i, '').trim().toLowerCase();
+    if (!cmd) return;
+
+    toast(`⚡ Harry: "${cmd}"`, 'info', 2200);
+
+    // 1. रिपॉजिटरी बनाना: "Harry create repo [name]"
+    if (cmd.includes('create a new repo') || cmd.includes('create repo') || cmd.includes('new repo') || cmd.includes('रेपो बनाओ')) {
+      let rawName = cmd
+        .replace(/create a new repo|create repo|new repo|रेपो बनाओ/g, '')
+        .replace(/repo name|रेपो नेम/g, '')
+        .trim();
+
+      let validName = slugify(rawName) || ('repo-' + Date.now().toString().slice(-4));
+      
+      toast(`🛠️ नई रेपो बना रहा हूँ: "${validName}"...`);
+      document.getElementById('repoAddBtn')?.click();
+
+      setTimeout(async () => {
+        const nameInput = document.getElementById('nrName');
+        if (nameInput) nameInput.value = validName;
+
+        if (cmd.includes('paste') || cmd.includes('कोड') || cmd.includes('code')) {
+          const pasteRadio = document.querySelector('input[name="nrSource"][value="paste"]');
+          if (pasteRadio) {
+            pasteRadio.checked = true;
+            pasteRadio.dispatchEvent(new Event('change'));
+          }
+
+          try {
+            const clipText = await navigator.clipboard.readText();
+            const pasteArea = document.getElementById('nrPasteInput');
+            if (pasteArea && clipText) {
+              pasteArea.value = clipText;
+            }
+          } catch (e) {}
+        }
+
+        setTimeout(() => {
+          document.getElementById('nrAddBtn')?.click();
+        }, 800);
+      }, 300);
+      return;
+    }
+
+    // 2. रिपॉजिटरी खोलना: "Harry open [repo]"
+    if (cmd.startsWith('open ') || cmd.startsWith('switch to ') || cmd.startsWith('खोलो ')) {
+      const targetQuery = cmd.replace(/^(open|switch to|खोलो)\s+/, '').trim();
+      if (typeof ghRepos !== 'undefined' && ghRepos.length > 0) {
+        const found = ghRepos.find(r => {
+          const shortName = (r.split('/')[1] || r).toLowerCase();
+          return shortName === targetQuery || shortName.replace(/[-_]/g, ' ') === targetQuery || shortName.includes(targetQuery);
+        });
+
+        if (found) {
+          toast(`📂 रिपॉजिटरी खुल रही है: ${found.split('/')[1] || found}`);
+          window.switchRepo(found);
+          return;
+        } else {
+          toast(`❌ रेपो "${targetQuery}" नहीं मिली`, 'warn');
+          return;
+        }
+      }
+    }
+
+    // 3. पेस्ट और अप्लाई: "Harry paste"
+    if (cmd === 'paste' || cmd.includes('paste') || cmd.includes('पेस्ट')) {
+      document.getElementById('pasteBtn')?.click();
+      return;
+    }
+
+    // 4. अनडू और रिडू
+    if (cmd === 'undo' || cmd.includes('वापस')) {
+      document.getElementById('undoBtn')?.click();
+      return;
+    }
+    if (cmd === 'redo') {
+      document.getElementById('redoBtn')?.click();
+      return;
+    }
+
+    // 5. व्यू टॉगल: "Harry view" / "Harry code"
+    if (cmd.includes('view') || cmd.includes('code') || cmd.includes('preview')) {
+      document.getElementById('viewBtn')?.click();
+      return;
+    }
+
+    // 6. फुलस्क्रीन
+    if (cmd.includes('full') || cmd.includes('screen')) {
+      document.getElementById('fullScreenBtn')?.click();
+      return;
+    }
+
+    // 7. पुश और सिंक
+    if (cmd.includes('push') || cmd.includes('commit') || cmd.includes('पुश')) {
+      document.getElementById('ghPushBtn')?.click();
+      return;
+    }
+    if (cmd.includes('sync')) {
+      document.getElementById('ghSyncBtn')?.click();
+      return;
+    }
+
+    // 8. फ़ाइल ट्री खोलना
+    if (cmd.includes('tree') || cmd.includes('files')) {
+      document.getElementById('fullTreeBtn')?.click();
+      return;
+    }
+  };
+})();
 
 sourceContent = '';
 render('', false); 
