@@ -7210,9 +7210,373 @@ updateMenuPosition();
 });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// HARRY — SOVEREIGN IDE VOICE ASSISTANT (INSTANT ZERO-LATENCY + LIVE HUD)
+// HARRY V3 — SOVEREIGN IDE INTELLIGENT VOICE ENGINE
 // ═══════════════════════════════════════════════════════════════════════════
 (function initHarryVoiceAssistant() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const voiceBtn = document.getElementById('voiceCtrlBtn');
+  const hud = document.getElementById('harryCaptionHud');
+  const hudText = document.getElementById('harryHudText');
+  const hudDot = document.getElementById('harryHudDot');
+  if (!voiceBtn) return;
+
+  if (!SpeechRec) {
+    voiceBtn.style.opacity = '0.35';
+    voiceBtn.title = 'Speech recognition not supported';
+    return;
+  }
+
+  // Audio synthesizer for audio feedback
+  const playTone = (freq = 600, duration = 0.08) => {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.04, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+  };
+
+  const recognition = new SpeechRec();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-IN';
+
+  let isListening = false;
+  let manualStop = false;
+  let hudTimer = null;
+  let lastDispatchedCmd = '';
+  let cmdCooldownTimer = null;
+  let speechDebounceTimer = null;
+
+  // Levenshtein distance for fuzzy repo/command matching
+  function levenshtein(a, b) {
+    const m = a.length, n = b.length;
+    const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        dp[i][j] = a[i - 1] === b[j - 1]
+          ? dp[i - 1][j - 1]
+          : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+      }
+    }
+    return dp[m][n];
+  }
+
+  function findClosestRepo(query) {
+    if (!ghRepos || ghRepos.length === 0) return null;
+    const cleanQ = query.toLowerCase().replace(/[^a-z0-9]/g, '');
+    let bestMatch = null;
+    let lowestDistance = Infinity;
+
+    for (const fullRepo of ghRepos) {
+      const short = (fullRepo.split('/')[1] || fullRepo).toLowerCase();
+      const cleanShort = short.replace(/[^a-z0-9]/g, '');
+
+      // Direct exact or substring hits
+      if (cleanShort === cleanQ || cleanShort.includes(cleanQ) || cleanQ.includes(cleanShort)) {
+        return fullRepo;
+      }
+
+      // Phonetic edge case: "CMP" transcribed as "see mp" or "c m p"
+      if (cleanQ === 'seemp' || cleanQ === 'camp' || cleanQ === 'cmp') {
+        if (cleanShort === 'cmp') return fullRepo;
+      }
+
+      const dist = levenshtein(cleanQ, cleanShort);
+      if (dist < lowestDistance) {
+        lowestDistance = dist;
+        bestMatch = fullRepo;
+      }
+    }
+
+    // Allow fuzzy match if within reasonable distance
+    return lowestDistance <= Math.max(2, Math.floor(cleanQ.length * 0.4)) ? bestMatch : null;
+  }
+
+  function showHud(msg, status = 'listen') {
+    if (!hud || !hudText) return;
+    hud.style.display = 'flex';
+    hudText.textContent = msg;
+
+    if (status === 'action') {
+      hudDot.style.background = 'var(--green)';
+      hudDot.style.boxShadow = '0 0 10px var(--green)';
+      hud.style.borderColor = 'var(--green)';
+      playTone(880, 0.06);
+    } else if (status === 'wake') {
+      hudDot.style.background = 'var(--amber)';
+      hudDot.style.boxShadow = '0 0 10px var(--amber)';
+      hud.style.borderColor = 'var(--amber)';
+    } else if (status === 'err') {
+      hudDot.style.background = 'var(--red)';
+      hudDot.style.boxShadow = '0 0 10px var(--red)';
+      hud.style.borderColor = 'var(--red)';
+      playTone(300, 0.12);
+    } else {
+      hudDot.style.background = 'var(--purple)';
+      hudDot.style.boxShadow = '0 0 8px var(--purple)';
+      hud.style.borderColor = 'rgba(188, 140, 255, 0.35)';
+    }
+
+    clearTimeout(hudTimer);
+    hudTimer = setTimeout(() => {
+      if (isListening) {
+        hudText.textContent = 'Listening...';
+        hudDot.style.background = 'var(--purple)';
+        hudDot.style.boxShadow = '0 0 8px var(--purple)';
+        hud.style.borderColor = 'rgba(188, 140, 255, 0.2)';
+      } else {
+        hud.style.display = 'none';
+      }
+    }, 2800);
+  }
+
+  function setVoiceUI(active) {
+    isListening = active;
+    voiceBtn.style.color = active ? 'var(--red)' : 'var(--purple)';
+    voiceBtn.innerHTML = active
+      ? '<i class="fa-solid fa-microphone-lines fa-fade"></i><span class="btn-lbl">Live</span>'
+      : '<i class="fa-solid fa-microphone"></i><span class="btn-lbl">Harry</span>';
+
+    if (active) {
+      showHud('Harry ready! Say "Harry..."');
+      playTone(520, 0.1);
+    } else if (hud) {
+      hud.style.display = 'none';
+    }
+  }
+
+  voiceBtn.addEventListener('click', () => {
+    if (!isListening) {
+      try {
+        manualStop = false;
+        recognition.start();
+        setVoiceUI(true);
+      } catch (err) {
+        toast('Mic error: ' + err.message, 'err');
+      }
+    } else {
+      manualStop = true;
+      recognition.stop();
+      setVoiceUI(false);
+      toast('💤 Harry paused');
+    }
+  });
+
+  recognition.onend = () => {
+    if (isListening && !manualStop) {
+      try { recognition.start(); } catch (e) { setVoiceUI(false); }
+    }
+  };
+
+  recognition.onerror = (e) => {
+    if (e.error === 'not-allowed') {
+      toast('Microphone permission denied', 'err');
+      setVoiceUI(false);
+      manualStop = true;
+    }
+  };
+
+  function slugify(text) {
+    return text.toString().toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^\w\-]+/g, '')
+      .replace(/\-\-+/g, '-')
+      .substring(0, 35);
+  }
+
+  // DISPATCH ENGINE WITH INTENT RECOGNITION
+  function executeHarryCommand(rawCmd) {
+    if (!rawCmd) return;
+    const cmd = rawCmd.trim().toLowerCase();
+
+    if (cmd === lastDispatchedCmd) return;
+    lastDispatchedCmd = cmd;
+    clearTimeout(cmdCooldownTimer);
+    cmdCooldownTimer = setTimeout(() => { lastDispatchedCmd = ''; }, 1200);
+
+    // Intent 1: Create Repository
+    if (/^(create|make|start|new|initialize)\s+(a\s+)?(new\s+)?repo(sitory)?/i.test(cmd)) {
+      let rawName = cmd
+        .replace(/^(create|make|start|new|initialize)\s+(a\s+)?(new\s+)?repo(sitory)?/gi, '')
+        .replace(/^(called|named|with\s+name|name\s+is|name)\s*/gi, '')
+        .trim();
+
+      let validName = slugify(rawName) || ('repo-' + Date.now().toString().slice(-4));
+      showHud('🛠️ New Repo: ' + validName, 'action');
+
+      const addBtn = document.getElementById('repoAddBtn');
+      if (addBtn) addBtn.click();
+
+      setTimeout(async () => {
+        const nameInput = document.getElementById('nrName');
+        if (nameInput) {
+          nameInput.value = validName;
+          nameInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+
+        if (cmd.includes('paste') || cmd.includes('code')) {
+          const pasteRadio = document.querySelector('input[name="nrSource"][value="paste"]');
+          if (pasteRadio) {
+            pasteRadio.checked = true;
+            pasteRadio.dispatchEvent(new Event('change'));
+          }
+          try {
+            const clipText = await navigator.clipboard.readText();
+            const pasteArea = document.getElementById('nrPasteInput');
+            if (pasteArea && clipText) pasteArea.value = clipText;
+          } catch(e) {}
+        }
+
+        setTimeout(() => {
+          document.getElementById('nrAddBtn')?.click();
+        }, 500);
+      }, 350);
+      return;
+    }
+
+    // Intent 2: Switch / Open Repository
+    if (/^(open|switch\s+to|load|go\s+to)\s+/i.test(cmd)) {
+      const targetQuery = cmd.replace(/^(open|switch\s+to|load|go\s+to)\s+/i, '').replace(/repo(sitory)?/gi, '').trim();
+      const found = findClosestRepo(targetQuery);
+      if (found) {
+        showHud('📂 Opening ' + (found.split('/')[1] || found), 'action');
+        window.switchRepo(found);
+      } else {
+        showHud('❌ Repo "' + targetQuery + '" not found', 'err');
+        toast(`Repo "${targetQuery}" not found in your GitHub list.`, 'warn');
+      }
+      return;
+    }
+
+    // Intent 3: Clipboard & History
+    if (/^(paste|apply|patch)/i.test(cmd)) {
+      showHud('⚡ Paste & Apply', 'action');
+      document.getElementById('pasteBtn')?.click();
+      return;
+    }
+    if (/^(undo|revert|step\s+back)/i.test(cmd)) {
+      showHud('↩ Undo', 'action');
+      document.getElementById('undoBtn')?.click();
+      return;
+    }
+    if (/^(redo|step\s+forward)/i.test(cmd)) {
+      showHud('↪ Redo', 'action');
+      document.getElementById('redoBtn')?.click();
+      return;
+    }
+
+    // Intent 4: Layout & Code Navigation
+    if (/^(view|preview|show\s+code|toggle\s+view)/i.test(cmd)) {
+      showHud('👁 Toggle View', 'action');
+      document.getElementById('viewBtn')?.click();
+      return;
+    }
+    if (cmd.includes('full screen') || cmd === 'fullscreen') {
+      showHud('⛶ Fullscreen', 'action');
+      document.getElementById('fullScreenBtn')?.click();
+      return;
+    }
+    if (/^(find|search)/i.test(cmd)) {
+      showHud('🔍 Find & Replace', 'action');
+      if (viewMode === 'code') document.getElementById('searchCodeBtn')?.click();
+      return;
+    }
+    if (/^(tree|show\s+files|file\s+tree)/i.test(cmd)) {
+      showHud('🌳 File Tree', 'action');
+      document.getElementById('fullTreeBtn')?.click();
+      return;
+    }
+
+    // Intent 5: GitHub Operations
+    if (/^(push|commit|save\s+online)/i.test(cmd)) {
+      showHud('⬆ Push to GitHub', 'action');
+      document.getElementById('ghPushBtn')?.click();
+      return;
+    }
+    if (/^(sync|fetch|refresh)/i.test(cmd)) {
+      showHud('🔄 Sync Repos', 'action');
+      document.getElementById('ghSyncBtn')?.click();
+      return;
+    }
+    if (/^(export|download)/i.test(cmd)) {
+      showHud('💾 Export File', 'action');
+      document.getElementById('exportBtn')?.click();
+      return;
+    }
+
+    // Intent 6: Prompt & Payload
+    if (/^(instruction|prompt)\s+/i.test(cmd)) {
+      const text = cmd.replace(/^(instruction|prompt)\s+/i, '');
+      const input = document.getElementById('aiInstruction');
+      if (input) {
+        input.value = text;
+        showHud('📝 Prompt set', 'action');
+      }
+      return;
+    }
+    if (cmd.includes('payload') || cmd.includes('copy prompt')) {
+      showHud('🚀 Copied Payload', 'action');
+      document.getElementById('payloadBtn')?.click();
+      return;
+    }
+
+    // Intent 7: Build Engine
+    if (/^(build|compile|make\s+apk)/i.test(cmd)) {
+      showHud('🔨 Build Modal', 'action');
+      document.getElementById('masterBuildBtn')?.click();
+      return;
+    }
+  }
+
+  recognition.onresult = (event) => {
+    let transcript = '';
+    let isFinal = false;
+
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      transcript += event.results[i][0].transcript;
+      if (event.results[i].isFinal) isFinal = true;
+    }
+
+    transcript = transcript.trim();
+    if (!transcript) return;
+
+    showHud('🗣️ ' + transcript, 'wake');
+
+    // Flexible Wake Word ("Harry", "Hey Harry", "Ok Harry")
+    const wakeMatch = transcript.match(/^(?:hey\s+|ok\s+)?harry\b/i);
+    if (!wakeMatch) return;
+
+    const cmd = transcript.slice(wakeMatch[0].length).trim();
+    if (!cmd) return;
+
+    // Instant actions fire right away
+    const isFastAction = /^(paste|undo|redo|view|push|sync|fullscreen|tree|find|export)$/i.test(cmd);
+    if (isFastAction) {
+      executeHarryCommand(cmd);
+      return;
+    }
+
+    // Multi-word actions (open repo, create repo, instruction) wait for completion
+    clearTimeout(speechDebounceTimer);
+    if (isFinal) {
+      executeHarryCommand(cmd);
+    } else {
+      speechDebounceTimer = setTimeout(() => {
+        executeHarryCommand(cmd);
+      }, 700);
+    }
+  };
+})();
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   const voiceBtn = document.getElementById('voiceCtrlBtn');
   const hud = document.getElementById('harryCaptionHud');
