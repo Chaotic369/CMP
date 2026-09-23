@@ -5944,10 +5944,18 @@ document.getElementById('ghSyncBtn').addEventListener('click', async function() 
 
 document.getElementById('ghPushBtn').addEventListener('click', function() {
   syncEditorToSource();
-  if (!sourceContent) { toast('❌ Nothing to push.', 'warn'); return; }
-  if (!ghToken || !ghRepo) { toast('❌ Configure GitHub first.', 'warn'); return; }
+  if (!ghToken || !ghRepo) {
+    toast('❌ Configure GitHub Token and select a Repo first.', 'warn');
+    document.getElementById('ghSettingsBtn').click();
+    return;
+  }
+  const currentText = (viewMode === 'code') ? $codeView.value : sourceContent;
+  if (!currentText && (!window.workspaceFiles || Object.keys(window.workspaceFiles).length === 0)) {
+    toast('❌ Nothing to push.', 'warn');
+    return;
+  }
   const ts = new Date().toISOString().replace('T',' ').slice(0,19);
-  document.getElementById('commitMsgInput').value = `Update ${ghFilePath} via AI Compile – ${ts}`;
+  document.getElementById('commitMsgInput').value = `Update ${ghFilePath || 'workspace'} via AI Compile – ${ts}`;
   var cmModal = document.getElementById('commitModal');
   cmModal.classList.add('open');
   centerModal(cmModal);
