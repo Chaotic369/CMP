@@ -687,26 +687,26 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <div id="workflowsModalList">Loading...</div>
   </div>
 
-  <div id="fullTreeModal" style="width: 95vw; max-width: 650px; height: 85vh;">
-  <div class="window-header">
-    <div class="win-title">
-      <span id="modalRepoDropdownBtn" style="cursor:pointer; pointer-events:auto; display:flex; align-items:center;" onclick="window.toggleModalRepoList()">
-        <i class="fa-solid fa-sitemap" style="color:var(--teal); margin-right:8px;"></i> 
-        <span id="modalRepoTitle">Repository Tree</span> 
-        <i class="fa-solid fa-caret-down" id="modalRepoCaret" style="font-size:12px; margin-left:6px; color:rgba(255,255,255,0.6);"></i>
-      </span>
+  <div id="fullTreeModal" style="width: 95vw; max-width: 650px; height: 85vh; display: flex; flex-direction: column;">
+    <div class="window-header">
+      <div class="win-title">
+        <span id="modalRepoDropdownBtn" style="cursor:pointer; pointer-events:auto; display:flex; align-items:center;" onclick="window.toggleModalRepoList()">
+          <i class="fa-solid fa-sitemap" style="color:var(--teal); margin-right:8px;"></i> 
+          <span id="modalRepoTitle">Repository Tree</span> 
+          <i class="fa-solid fa-caret-down" id="modalRepoCaret" style="font-size:12px; margin-left:6px; color:rgba(255,255,255,0.6);"></i>
+        </span>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+            <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.2); color:var(--amber); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
+            <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.2); color:var(--blue); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
+            <button id="modalRepoBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.25); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteSelectedReposWithWarning()"><i class="fa-solid fa-trash"></i> Delete Repos (<span id="modalRepoBulkCount">0</span>)</button>
+            <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
+            <button class="panel-close" onclick="window.closeFullTreeModal()">✕</button>
+          </div>
     </div>
-    <div style="display:flex; align-items:center; gap:10px;">
-          <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.2); color:var(--amber); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
-          <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.2); color:var(--blue); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
-          <button id="modalRepoBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.25); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteSelectedReposWithWarning()"><i class="fa-solid fa-trash"></i> Delete Repos (<span id="modalRepoBulkCount">0</span>)</button>
-          <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
-          <button class="panel-close" onclick="window.closeFullTreeModal()">✕</button>
-        </div>
+    <div id="fullTreeContent" style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; overflow-x: hidden;"></div>
+    <div id="modalRepoList" style="display:none; flex-direction:column; gap:4px; overflow-y:auto; flex:1; padding-right:4px;"></div>
   </div>
-  <div id="fullTreeContent"></div>
-  <div id="modalRepoList" style="display:none; flex-direction:column; gap:4px; overflow-y:auto; flex:1; padding-right:4px;"></div>
-</div>
 
 <div id="ghConfigPanel">
   <div class="window-header">
