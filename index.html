@@ -94,7 +94,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 #fring { position: fixed; inset: 0; z-index: 99; border: 3px solid var(--green); pointer-events: none; opacity: 0; }
 #fring.on { opacity: 1; }
-#menu-backdrop { position: fixed; inset: 0; z-index: 29990 !important; background: transparent; display: none; }
+#menu-backdrop { position: fixed; inset: 0; z-index: 29990; background: transparent; display: none; }
 #menu-backdrop.open { display: block; }
 
 /* Action Pop Up Button */
@@ -336,7 +336,9 @@ body.hide-btn-labels .btn-lbl {
 #logPanel { z-index: 30005; }
 
 #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal { width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; }
-#ghConfigPanel.open, #commitModal.open, #newRepoModal.open, #wallpaperModal.open { display: flex; }
+#ghConfigPanel.open, #commitModal.open, #newRepoModal.open, #wallpaperModal.open,
+#buildModal.open, #workflowsModal.open, #fullTreeModal.open, #bulkModal.open, #errLogModal.open { display: flex !important; }
+#astPanel.open, #logPanel.open { display: block !important; }
 
 #astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
 .ast-ok { color: var(--green); } .ast-warn { color: var(--amber); } .ast-err { color: var(--red); font-weight: bold; }
@@ -943,6 +945,8 @@ var topModalZ = 50000;
 var MAX_WINDOW_Z = 80000;
 function bringModalToFront(modal) {
   if (!modal) return;
+  modal.style.display = (modal.id === 'astPanel' || modal.id === 'logPanel') ? 'block' : 'flex';
+  modal.classList.add('open');
   topModalZ += 2;
   if (topModalZ >= MAX_WINDOW_Z) {
     var allModals = Array.from(document.querySelectorAll(
@@ -951,19 +955,15 @@ function bringModalToFront(modal) {
       '#errLogModal, #buildProgressOverlay, .mini-web-modal'
     ));
     allModals.sort(function(a, b) {
-      return (parseInt(window.getComputedStyle(a).zIndex) || 50000) - 
-             (parseInt(window.getComputedStyle(b).zIndex) || 50000);
+      return (parseInt(window.getComputedStyle(a).zIndex) || 30000) - 
+             (parseInt(window.getComputedStyle(b).zIndex) || 30000);
     });
     allModals.forEach(function(el, idx) {
-      el.style.zIndex = 50000 + (idx * 2);
+      el.style.zIndex = 30000 + (idx * 2);
     });
-    topModalZ = 50000 + (allModals.length * 2);
+    topModalZ = 30000 + (allModals.length * 2);
   }
   modal.style.zIndex = topModalZ;
-  var bd = document.getElementById('menu-backdrop');
-  if (bd && bd.classList.contains('open')) {
-    bd.style.zIndex = (topModalZ - 1);
-  }
 }
 
 function centerModal(el) {
@@ -3938,7 +3938,7 @@ function closeTopmostModal() {
     '#errLogModal', '#buildProgressOverlay', '.mini-web-modal'
   ];
   var openModals = Array.from(document.querySelectorAll(modalSelectors.join(', '))).filter(function(m) {
-    return m.classList.contains('open') || window.getComputedStyle(m).display !== 'none';
+    return m.classList.contains('open') || (m.style.display !== 'none' && window.getComputedStyle(m).display !== 'none');
   });
 
   if (openModals.length > 0) {
@@ -3948,33 +3948,27 @@ function closeTopmostModal() {
     var topModal = openModals[0];
     if (topModal.id === 'fullTreeModal' && typeof window.closeFullTreeModal === 'function') {
       window.closeFullTreeModal();
+    } else if (topModal.id === 'buildProgressOverlay') {
+      topModal.style.display = 'none';
+      topModal.classList.remove('open');
+    } else if (topModal.classList.contains('mini-web-modal')) {
+      topModal.remove();
+      if (typeof window.checkFreezePreviewState === 'function') window.checkFreezePreviewState();
     } else {
       topModal.classList.remove('open');
       topModal.style.display = 'none';
-      if (topModal.classList.contains('mini-web-modal')) {
-        topModal.remove();
-        if (typeof window.checkFreezePreviewState === 'function') window.checkFreezePreviewState();
-      }
     }
 
     var remaining = Array.from(document.querySelectorAll(modalSelectors.join(', '))).filter(function(m) {
-      return m.classList.contains('open') || window.getComputedStyle(m).display !== 'none';
+      return m.classList.contains('open') || (m.style.display !== 'none' && window.getComputedStyle(m).display !== 'none');
     });
-    if (remaining.length > 0) {
-      remaining.sort(function(a, b) {
-        return (parseInt(window.getComputedStyle(b).zIndex) || 0) - (parseInt(window.getComputedStyle(a).zIndex) || 0);
-      });
-      var nextTopZ = parseInt(window.getComputedStyle(remaining[0]).zIndex) || 50000;
-      $backdrop.style.zIndex = (nextTopZ - 1);
-    } else if (!$appMenu.classList.contains('open')) {
+    if (remaining.length === 0 && !$appMenu.classList.contains('open')) {
       $backdrop.classList.remove('open');
-      $backdrop.style.zIndex = '';
     }
   } else if ($appMenu.classList.contains('open')) {
     toggleMenu();
   } else {
     $backdrop.classList.remove('open');
-    $backdrop.style.zIndex = '';
   }
 }
 
