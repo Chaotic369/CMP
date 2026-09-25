@@ -337,7 +337,7 @@ body.hide-btn-labels .btn-lbl {
 
 #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal { width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; }
 #ghConfigPanel.open, #commitModal.open, #newRepoModal.open, #wallpaperModal.open,
-#buildModal.open, #workflowsModal.open, #fullTreeModal.open, #bulkModal.open, #errLogModal.open { display: flex !important; }
+#buildModal.open, #workflowsModal.open, #fullTreeModal.open, #bulkModal.open, #errLogModal.open { display: flex !important; flex-direction: column !important; }
 #astPanel.open, #logPanel.open { display: block !important; }
 
 #astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
@@ -673,7 +673,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
 </div>
 
-<div id="bulkModal" style="width: 90vw; max-width: 400px;">
+<div id="bulkModal" style="width: 90vw; max-width: 400px; display: none; flex-direction: column;">
   <div class="window-header">
     <div class="win-title"><i class="fa-solid fa-cubes"></i> Bulk Create Files</div>
     <button class="panel-close" onclick="document.getElementById('bulkModal').classList.remove('open'); document.getElementById('bulkModal').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
