@@ -6498,11 +6498,12 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                       };
 
                                       window.closeFullTreeModal = function() {
-                          window.selectedRepoBulkSet.clear();
-                          window.updateModalRepoBulkDeleteBtn();
-                          document.getElementById('fullTreeModal').classList.remove('open');
-                          document.getElementById('menu-backdrop').classList.remove('open');
-                      };
+                                          window.selectedRepoBulkSet.clear();
+                                          window.updateModalRepoBulkDeleteBtn();
+                                          document.getElementById('fullTreeModal').classList.remove('open');
+                                          document.getElementById('fullTreeModal').style.display = 'none';
+                                          document.getElementById('menu-backdrop').classList.remove('open');
+                                      };
 
       window.toggleModalNesting = function(path, e) {
           e.stopPropagation();
@@ -6648,6 +6649,7 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
 
 document.getElementById('bulkCancelBtn').addEventListener('click', () => {
     document.getElementById('bulkModal').classList.remove('open');
+    document.getElementById('bulkModal').style.display = 'none';
     document.getElementById('menu-backdrop').classList.remove('open');
 });
 
