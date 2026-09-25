@@ -669,7 +669,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <div id="bulkModal" style="width: 90vw; max-width: 400px;">
   <div class="window-header">
     <div class="win-title"><i class="fa-solid fa-cubes"></i> Bulk Create Files</div>
-    <button class="panel-close" onclick="document.getElementById('bulkModal').classList.remove('open'); document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
+    <button class="panel-close" onclick="document.getElementById('bulkModal').classList.remove('open'); document.getElementById('bulkModal').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
   <p style="font-size:11px; margin-bottom:8px; color:#a0a0a0;">Paste file paths (one per line). Folders are auto-created.</p>
   <textarea id="bulkPathsInput" placeholder="app/build.gradle&#10;app/src/main/AndroidManifest.xml&#10;.github/workflows/build.yml" style="width:100%; height:150px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:12px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:11px;"></textarea>
