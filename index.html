@@ -2346,12 +2346,16 @@ document.getElementById('repoAddBtn').addEventListener('click', () => {
 });
 
 document.getElementById('nrCancelBtn').addEventListener('click', () => {
-    document.getElementById('newRepoModal').classList.remove('open');
+    const modal = document.getElementById('newRepoModal');
+    modal.classList.remove('open');
+    modal.style.display = 'none';
     document.getElementById('menu-backdrop').classList.remove('open');
 });
 
 document.getElementById('nrCloseBtn').addEventListener('click', () => {
-    document.getElementById('newRepoModal').classList.remove('open');
+    const modal = document.getElementById('newRepoModal');
+    modal.classList.remove('open');
+    modal.style.display = 'none';
     document.getElementById('menu-backdrop').classList.remove('open');
 });
 
