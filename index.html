@@ -4309,15 +4309,7 @@ window.addEventListener('DOMContentLoaded', async function() {
                   renderRepoTabs();
 
               if (ghRepo && ghToken) {
-                          try {
-                            let activeBuild = JSON.parse(localStorage.getItem('active_build_v1'));
-                            if (activeBuild && activeBuild.workflowFile && activeBuild.artifactName) {
-                              showBuildOverlay(activeBuild.title || 'Resuming Build...');
-                              pollOverlayStatus(activeBuild.workflowFile, activeBuild.artifactName);
-                            }
-                          } catch(e) {}
-            
-                          showMenuLoader('Loading Repository...');
+                                        showMenuLoader('Loading Repository...');
                 await syncCurrentFile();
       await fetchFileTree(false, true);
     } else if (ghRepos.length === 0 && ghToken) {
@@ -6032,18 +6024,20 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       }
 
       const closeOverlay = () => {
-        document.getElementById('buildProgressOverlay').style.display = 'none';
-        localStorage.removeItem('active_build_v1');
-      };
-      document.getElementById('bpCloseBtn').addEventListener('click', closeOverlay);
-      if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').addEventListener('click', closeOverlay);
+              document.getElementById('buildProgressOverlay').style.display = 'none';
+              document.getElementById('menu-backdrop').classList.remove('open');
+              localStorage.removeItem('active_build_v1');
+            };
+            document.getElementById('bpCloseBtn').addEventListener('click', closeOverlay);
+            if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').addEventListener('click', closeOverlay);
 
-      if(document.getElementById('bpCancelBtn')) {
-        document.getElementById('bpCancelBtn').addEventListener('click', async (e) => {
-          e.stopPropagation();
-          clearTimeout(currentOverlayPollTimer);
-          localStorage.removeItem('active_build_v1');
-          document.getElementById('buildProgressOverlay').style.display = 'none';
+            if(document.getElementById('bpCancelBtn')) {
+              document.getElementById('bpCancelBtn').addEventListener('click', async (e) => {
+                e.stopPropagation();
+                clearTimeout(currentOverlayPollTimer);
+                localStorage.removeItem('active_build_v1');
+                document.getElementById('buildProgressOverlay').style.display = 'none';
+                document.getElementById('menu-backdrop').classList.remove('open');
     
           if (currentBuildRunId && ghRepo && ghToken) {
                 toast('⏳ Cancelling build workflow...', 'info');
@@ -6836,8 +6830,10 @@ updateMenuPosition();
     makeWindowDraggable(el);
     makeWindowResizable(el);
     restoreWindowState(el);
+    el.style.display = 'none';
   }
 });
+document.getElementById('menu-backdrop').classList.remove('open');
 
 
 
