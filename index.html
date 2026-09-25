@@ -983,16 +983,75 @@ function bringModalToFront(modal) {
 
 function centerModal(el) {
   if (!el) return;
-  if (restoreWindowState(el)) return;
+  
+  var hasRestored = restoreWindowState(el);
   var scale = parseFloat(el.style.getPropertyValue('--modal-scale')) || 1;
   el.style.transformOrigin = 'top left';
   el.style.transform = 'scale(' + scale + ')';
-  var w = el.offsetWidth || 360;
-  var h = el.offsetHeight || 300;
-  var left = Math.max(10, (window.innerWidth - w) / 2);
-  var top = Math.max(10, (window.innerHeight - h) / 2);
-  el.style.left = left + 'px';
-  el.style.top = top + 'px';
+  
+  var w = (el.offsetWidth || 360) * scale;
+  var h = (el.offsetHeight || 300) * scale;
+  
+  var openModals = Array.from(document.querySelectorAll(
+    '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
+    '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
+    '#errLogModal, .mini-web-modal'
+  )).filter(function(m) {
+    return m !== el && window.getComputedStyle(m).display !== 'none' && m.offsetWidth > 0;
+  }).map(function(m) {
+    return m.getBoundingClientRect();
+  });
+
+  function isColliding(x, y) {
+    var gap = 16;
+    for (var i = 0; i < openModals.length; i++) {
+      var o = openModals[i];
+      if (!(x + w + gap <= o.left || x - gap >= o.right || y + h + gap <= o.top || y - gap >= o.bottom)) return true;
+    }
+    return false;
+  }
+
+  var cx = Math.max(10, (window.innerWidth - w) / 2);
+  var cy = Math.max(40, (window.innerHeight - h) / 2);
+  var bestX = cx, bestY = cy;
+  
+  if (hasRestored) {
+    bestX = parseFloat(el.style.left) || cx;
+    bestY = parseFloat(el.style.top) || cy;
+  }
+
+  if (isColliding(bestX, bestY)) {
+    var found = false;
+    var step = 40;
+    var maxSteps = Math.ceil(Math.max(window.innerWidth, window.innerHeight) / step);
+    
+    for (var radius = 1; radius <= maxSteps; radius++) {
+      for (var dx = -radius; dx <= radius; dx++) {
+        for (var dy = -radius; dy <= radius; dy++) {
+          if (Math.abs(dx) !== radius && Math.abs(dy) !== radius) continue;
+          var x = cx + dx * step;
+          var y = cy + dy * step;
+          
+          if (x >= 10 && x <= window.innerWidth - w - 10 && y >= 40 && y <= window.innerHeight - h - 10) {
+            if (!isColliding(x, y)) {
+              bestX = x; bestY = y;
+              found = true;
+              break;
+            }
+          }
+        }
+        if (found) break;
+      }
+      if (found) break;
+    }
+    if (!found) {
+      bestX = cx + ((openModals.length % 10) * 25);
+      bestY = cy + ((openModals.length % 10) * 25);
+    }
+  }
+
+  el.style.left = bestX + 'px';
+  el.style.top = bestY + 'px';
 }
 
 var WINDOW_SCALE_PREFIX = 'win_scale_state_';
@@ -1339,19 +1398,12 @@ window.openMiniWeb = function(repoFullName, e) {
         `;
     
     document.body.appendChild(modal);
-    modal.style.transformOrigin = 'top left';
-    modal.style.transform = 'scale(1)';
+        modal.style.transformOrigin = 'top left';
+        modal.style.transform = 'scale(1)';
     
-    // Offset overlapping windows
-    const w = 340; const h = 400;
-    const offset = ((window.miniWebCount - 1) % 10) * 20;
-    const left = Math.max(10, (window.innerWidth - w) / 2) + offset;
-    const top = Math.max(10, (window.innerHeight - h) / 2) + offset;
+        centerModal(modal);
     
-    modal.style.left = left + 'px';
-    modal.style.top = top + 'px';
-    
-    ['pointerdown', 'mousedown', 'touchstart'].forEach(function(evt) {
+        ['pointerdown', 'mousedown', 'touchstart'].forEach(function(evt) {
       modal.addEventListener(evt, function() {
         bringModalToFront(modal);
       }, { capture: true, passive: true });
