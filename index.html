@@ -548,7 +548,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <button id="toggleUiBtn" title="Toggle Menu">
   <i class="fa-solid fa-plus"></i>
 </button>
-<button id="floatingPushBtn" title="Push Changes to GitHub" style="display:none;" onclick="document.getElementById('ghPushBtn').click()">
+<button id="floatingPushBtn" title="Push Changes to GitHub" style="display:none;">
   <i class="fa-solid fa-arrow-up-from-bracket"></i>
 </button>
 
@@ -3683,6 +3683,10 @@ window.updateFloatingPushPosition = function() {
     fpb.style.display = 'none';
     return;
   }
+  
+  var mainPushBtn = document.getElementById('ghPushBtn');
+  if (mainPushBtn) mainPushBtn.disabled = false;
+  
   fpb.style.display = 'flex';
   var rect = $toggleBtn.getBoundingClientRect();
   if (rect.right + 30 > window.innerWidth) {
@@ -5472,6 +5476,15 @@ document.getElementById('ghSyncBtn').addEventListener('click', async function() 
     toast('❌ Sync error: ' + e.message, 'err');
   }
   hideProgress();
+});
+
+document.getElementById('floatingPushBtn').addEventListener('click', function(e) {
+  e.stopPropagation();
+  var mainBtn = document.getElementById('ghPushBtn');
+  if (mainBtn) {
+    mainBtn.disabled = false;
+    mainBtn.click();
+  }
 });
 
 document.getElementById('ghPushBtn').addEventListener('click', function() {
