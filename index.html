@@ -291,8 +291,8 @@ body.hide-btn-labels .btn-lbl {
 }
 .mini-zoom-pop {
   display: none; align-items: center; gap: 6px; position: absolute; top: 22px; right: 6px;
-  background: rgba(22, 22, 22, 0.95); padding: 3px 6px; border-radius: 6px;
-  border: none !important; z-index: 10002; box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  background: #000000; padding: 3px 6px; border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important; z-index: 10002; box-shadow: 0 4px 16px rgba(0,0,0,0.8);
 }
 .mini-zoom-pop.open { display: flex; }
 .mini-zoom-pop input[type="range"] { width: 70px; accent-color: var(--blue); cursor: pointer; }
@@ -333,8 +333,7 @@ body.hide-btn-labels .btn-lbl {
   display: none; width: 0; height: 0;
 }
 #astPanel, #logPanel { width: calc(100vw - 40px); max-width: 420px; max-height: 48vh; overflow-y: auto; display: none; line-height: 1.6; }
-#astPanel { top: 80px; left: calc(50vw - 210px); }
-#logPanel { top: 80px; left: calc(50vw - 210px); z-index: 30005; }
+#logPanel { z-index: 30005; }
 
 #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal { width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; }
 #ghConfigPanel.open, #commitModal.open, #newRepoModal.open, #wallpaperModal.open { display: flex; }
@@ -486,7 +485,7 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 .fnr-btn:hover { background: rgba(255,255,255,0.2); }
 
 /* Dual-Engine Build Modal */
-#buildModal { width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px; padding: 24px; color: #ffffff; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8); max-height: 85vh; overflow-y: auto; }
+#buildModal { width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px; padding: 24px; color: #ffffff; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8); max-height: 85vh; overflow-y: auto; }
 #buildModal.open { display: flex; }
 #buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
 .bm-step label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--blue); }
@@ -667,12 +666,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
 </div>
 
-<style>
-#bulkModal { position: fixed; width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; z-index: 30000; background: #000000; border: 1px solid rgba(255,255,255,0.1) !important; outline: none !important; border-radius: 12px; padding: 24px; color: #ffffff; font-size: 11px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8); max-height: calc(100vh - 40px); overflow-y: auto; }
-#bulkModal.open { display: flex; }
-#bulkModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
-</style>
-<div id="bulkModal">
+<div id="bulkModal" style="width: 90vw; max-width: 400px;">
   <div class="window-header">
     <div class="win-title"><i class="fa-solid fa-cubes"></i> Bulk Create Files</div>
     <button class="panel-close" onclick="document.getElementById('bulkModal').classList.remove('open'); document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
@@ -685,14 +679,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     </div>
   </div>
 
-  <style>
-    #workflowsModal { position: fixed; width: 90vw; max-width: 420px; display: none; flex-direction: column; gap: 12px; z-index: 31000; background: #000000; border: 1px solid rgba(255,255,255,0.1) !important; outline: none !important; border-radius: 12px; padding: 24px; color: #ffffff; font-size: 11px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8); max-height: calc(100vh - 40px); overflow-y: auto; }
-    #workflowsModal.open { display: flex; }
-  #workflowsModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
-  #workflowsModalList { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; }
-  #workflowsModalList .repo-item { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,0.05); }
-  </style>
-  <div id="workflowsModal">
+  <div id="workflowsModal" style="width: 90vw; max-width: 420px;">
       <div class="window-header">
         <div class="win-title"><i class="fa-solid fa-folder-tree"></i> Workflow Files</div>
         <button class="panel-close" id="wfModalCloseBtn">✕</button>
@@ -700,17 +687,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <div id="workflowsModalList">Loading...</div>
   </div>
 
-  <style>
-    #fullTreeModal { position: fixed; width: 95vw; max-width: 650px; height: 85vh; display: none; flex-direction: column; gap: 12px; z-index: 30000; background: #000000; border: 1px solid rgba(255,255,255,0.1); outline: none !important; border-radius: 12px; padding: 20px; color: #ffffff; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8); }
-  #fullTreeModal.open { display: flex; }
-#fullTreeModal h4 { color: #ffffff; margin-bottom: 8px; font-size: 15px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; flex-shrink:0; display:flex; justify-content:space-between; align-items:center; }
-#fullTreeContent { flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 4px; display: flex; flex-direction: column; gap: 4px; }
-#fullTreeContent .repo-item { padding: 10px 14px; border-radius: 10px; transition: background 0.1s; }
-#fullTreeContent .repo-item:hover { background: rgba(255, 255, 255, 0.08); }
-#fullTreeContent .repo-item.active { background: rgba(255, 255, 255, 0.15); }
-#fullTreeContent .repo-actions { display: flex; align-items: center; gap: 10px; }
-</style>
-<div id="fullTreeModal">
+  <div id="fullTreeModal" style="width: 95vw; max-width: 650px; height: 85vh;">
   <div class="window-header">
     <div class="win-title">
       <span id="modalRepoDropdownBtn" style="cursor:pointer; pointer-events:auto; display:flex; align-items:center;" onclick="window.toggleModalRepoList()">
@@ -818,7 +795,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     #buildProgressOverlay.minimized #bpStepper { margin: 0 !important; }
     #buildProgressOverlay.minimized:hover { background: transparent !important; opacity: 0.8; }
     </style>
-<div id="buildProgressOverlay" style="display:none; position:fixed; top:80px; left:calc(50vw - 210px); width:calc(100vw - 40px); max-width:420px; background:#000000; border:1px solid rgba(255,255,255,0.1) !important; outline:none !important; border-radius:12px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:0 8px 32px rgba(0,0,0,0.8);">
+<div id="buildProgressOverlay" style="display:none; position:fixed; width:calc(100vw - 40px); max-width:420px; background:#000000; border:1px solid rgba(255,255,255,0.1) !important; outline:none !important; border-radius:12px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:0 8px 32px rgba(0,0,0,0.8);">
   <div class="window-header" style="margin-bottom:16px; padding-bottom:12px;">
     <div class="win-title" id="bpTitle" style="font-size:15px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</div>
     <div style="display:flex; gap:12px; align-items:center;">
@@ -988,13 +965,15 @@ function centerModal(el) {
   el.style.transformOrigin = 'top left';
   el.style.transform = 'scale(' + scale + ')';
   
-  var w = (el.offsetWidth || 360) * scale;
-  var h = (el.offsetHeight || 300) * scale;
+  // Measure accurate dimensions even when element was just switched to display
+  var rect = el.getBoundingClientRect();
+  var w = (rect.width > 50 ? rect.width : (el.offsetWidth || 360)) * (rect.width > 50 ? 1 : scale);
+  var h = (rect.height > 50 ? rect.height : (el.offsetHeight || 300)) * (rect.height > 50 ? 1 : scale);
   
   var openModals = Array.from(document.querySelectorAll(
     '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
     '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
-    '#errLogModal, .mini-web-modal'
+    '#errLogModal, #buildProgressOverlay, .mini-web-modal'
   )).filter(function(m) {
     return m !== el && window.getComputedStyle(m).display !== 'none' && m.offsetWidth > 0;
   }).map(function(m) {
@@ -1010,8 +989,8 @@ function centerModal(el) {
     return false;
   }
 
-  var cx = Math.max(10, (window.innerWidth - w) / 2);
-  var cy = Math.max(40, (window.innerHeight - h) / 2);
+  var cx = Math.max(10, Math.floor((window.innerWidth - w) / 2));
+  var cy = Math.max(40, Math.floor((window.innerHeight - h) / 2));
   var bestX = cx, bestY = cy;
   
   if (hasRestored) {
@@ -1044,13 +1023,15 @@ function centerModal(el) {
       if (found) break;
     }
     if (!found) {
-      bestX = cx + ((openModals.length % 10) * 25);
-      bestY = cy + ((openModals.length % 10) * 25);
+      bestX = Math.max(10, cx + ((openModals.length % 8) * 24));
+      bestY = Math.max(40, cy + ((openModals.length % 8) * 24));
     }
   }
 
   el.style.left = bestX + 'px';
   el.style.top = bestY + 'px';
+  el.style.right = 'auto';
+  el.style.bottom = 'auto';
 }
 
 var WINDOW_SCALE_PREFIX = 'win_scale_state_';
