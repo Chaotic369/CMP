@@ -1150,23 +1150,33 @@ function makeWindowDraggable(win) {
     try { if (bar.setPointerCapture) bar.setPointerCapture(e.pointerId); } catch(err) {}
 
     var rect = win.getBoundingClientRect();
-    var shiftX = e.clientX - rect.left;
-    var shiftY = e.clientY - rect.top;
+        var shiftX = e.clientX - rect.left;
+        var shiftY = e.clientY - rect.top;
+        var startClientX = e.clientX;
+        var startClientY = e.clientY;
+        var dragThresholdMet = false;
+        var DRAG_THRESHOLD = 8;
 
-    function onMove(ev) {
-              if (ev.cancelable) ev.preventDefault();
+        function onMove(ev) {
+                  if (!dragThresholdMet) {
+                    var moveDx = ev.clientX - startClientX;
+                    var moveDy = ev.clientY - startClientY;
+                    if (Math.sqrt(moveDx * moveDx + moveDy * moveDy) < DRAG_THRESHOLD) return;
+                    dragThresholdMet = true;
+                  }
+                  if (ev.cancelable) ev.preventDefault();
 
-              var scale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
-              var newLeft = ev.clientX - shiftX;
-              var newTop = ev.clientY - shiftY;
-              var scaledW = win.offsetWidth * scale;
-              var maxLeft = window.innerWidth - scaledW;
-              var maxTop = window.innerHeight - 40;
-              win.style.transformOrigin = 'top left';
-              win.style.transform = 'scale(' + scale + ')';
-              win.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
-              win.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
-            }
+                  var scale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
+                  var newLeft = ev.clientX - shiftX;
+                  var newTop = ev.clientY - shiftY;
+                  var scaledW = win.offsetWidth * scale;
+                  var maxLeft = window.innerWidth - scaledW;
+                  var maxTop = window.innerHeight - 40;
+                  win.style.transformOrigin = 'top left';
+                  win.style.transform = 'scale(' + scale + ')';
+                  win.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
+                  win.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
+                }
 
                   function onUp() {
                         bar.removeEventListener('pointermove', onMove);
