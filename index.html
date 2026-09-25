@@ -94,7 +94,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 #fring { position: fixed; inset: 0; z-index: 99; border: 3px solid var(--green); pointer-events: none; opacity: 0; }
 #fring.on { opacity: 1; }
-#menu-backdrop { position: fixed; inset: 0; z-index: 99990 !important; background: transparent; display: none; }
+#menu-backdrop { position: fixed; inset: 0; z-index: 49990 !important; background: transparent; display: none; }
 #menu-backdrop.open { display: block; }
 
 /* Action Pop Up Button */
@@ -965,10 +965,28 @@ function centerModal(el) {
   el.style.transformOrigin = 'top left';
   el.style.transform = 'scale(' + scale + ')';
   
-  // Measure accurate dimensions even when element was just switched to display
+  // Force layout flush to get actual rendered dimensions
+  if (!hasRestored) {
+    el.style.left = '0px';
+    el.style.top = '0px';
+  }
+  
   var rect = el.getBoundingClientRect();
-  var w = (rect.width > 50 ? rect.width : (el.offsetWidth || 360)) * (rect.width > 50 ? 1 : scale);
-  var h = (rect.height > 50 ? rect.height : (el.offsetHeight || 300)) * (rect.height > 50 ? 1 : scale);
+  var w = (rect.width > 20 ? rect.width : (el.offsetWidth || 360));
+  var h = (rect.height > 20 ? rect.height : (el.offsetHeight || 300));
+  var maxW = window.innerWidth;
+  var maxH = window.innerHeight;
+  
+  var cx = Math.max(10, Math.floor((maxW - w) / 2));
+  var cy = Math.max(40, Math.floor((maxH - h) / 2));
+  
+  if (hasRestored) {
+    el.style.left = (parseFloat(el.style.left) || cx) + 'px';
+    el.style.top = (parseFloat(el.style.top) || cy) + 'px';
+    el.style.right = 'auto';
+    el.style.bottom = 'auto';
+    return;
+  }
   
   var openModals = Array.from(document.querySelectorAll(
     '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
@@ -977,57 +995,54 @@ function centerModal(el) {
   )).filter(function(m) {
     return m !== el && window.getComputedStyle(m).display !== 'none' && m.offsetWidth > 0;
   }).map(function(m) {
-    return m.getBoundingClientRect();
+    var r = m.getBoundingClientRect();
+    return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
   });
-
-  function isColliding(x, y) {
-    var gap = 16;
-    for (var i = 0; i < openModals.length; i++) {
-      var o = openModals[i];
-      if (!(x + w + gap <= o.left || x - gap >= o.right || y + h + gap <= o.top || y - gap >= o.bottom)) return true;
-    }
-    return false;
-  }
-
-  var cx = Math.max(10, Math.floor((window.innerWidth - w) / 2));
-  var cy = Math.max(40, Math.floor((window.innerHeight - h) / 2));
+  
   var bestX = cx, bestY = cy;
   
-  if (hasRestored) {
-    bestX = parseFloat(el.style.left) || cx;
-    bestY = parseFloat(el.style.top) || cy;
-  }
-
-  if (isColliding(bestX, bestY)) {
-    var found = false;
-    var step = 40;
-    var maxSteps = Math.ceil(Math.max(window.innerWidth, window.innerHeight) / step);
-    
-    for (var radius = 1; radius <= maxSteps; radius++) {
-      for (var dx = -radius; dx <= radius; dx++) {
-        for (var dy = -radius; dy <= radius; dy++) {
-          if (Math.abs(dx) !== radius && Math.abs(dy) !== radius) continue;
-          var x = cx + dx * step;
-          var y = cy + dy * step;
-          
-          if (x >= 10 && x <= window.innerWidth - w - 10 && y >= 40 && y <= window.innerHeight - h - 10) {
-            if (!isColliding(x, y)) {
-              bestX = x; bestY = y;
-              found = true;
-              break;
-            }
-          }
-        }
-        if (found) break;
+  if (openModals.length > 0) {
+    function getOverlapArea(x, y) {
+      var area = 0;
+      var r1 = { left: x, right: x + w, top: y, bottom: y + h };
+      for (var i = 0; i < openModals.length; i++) {
+        var r2 = openModals[i];
+        var ox = Math.max(0, Math.min(r1.right, r2.right) - Math.max(r1.left, r2.left));
+        var oy = Math.max(0, Math.min(r1.bottom, r2.bottom) - Math.max(r1.top, r2.top));
+        area += (ox * oy);
       }
-      if (found) break;
+      return area;
     }
-    if (!found) {
-      bestX = Math.max(10, cx + ((openModals.length % 8) * 24));
-      bestY = Math.max(40, cy + ((openModals.length % 8) * 24));
+
+    var minOverlap = getOverlapArea(cx, cy);
+    if (minOverlap > 0) {
+      var stepX = Math.max(20, Math.floor(maxW / 15));
+      var stepY = Math.max(20, Math.floor(maxH / 15));
+      var limitX = Math.max(10, maxW - w - 10);
+      var limitY = Math.max(40, maxH - h - 10);
+      
+      for (var y = 40; y <= limitY; y += stepY) {
+        for (var x = 10; x <= limitX; x += stepX) {
+          var overlap = getOverlapArea(x, y);
+          if (overlap < minOverlap) {
+            minOverlap = overlap;
+            bestX = x;
+            bestY = y;
+          }
+          if (overlap === 0) break;
+        }
+        if (minOverlap === 0) break;
+      }
+      
+      // If overlap is completely unavoidable (e.g. mobile), cascade offset to keep headers visible
+      if (minOverlap > 0 && maxW < 768) {
+         var offset = (openModals.length * 30) % 120;
+         bestX = Math.max(10, Math.min(cx + offset, maxW - w - 10));
+         bestY = Math.max(40, Math.min(cy + offset, maxH - h - 10));
+      }
     }
   }
-
+  
   el.style.left = bestX + 'px';
   el.style.top = bestY + 'px';
   el.style.right = 'auto';
