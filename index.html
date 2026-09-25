@@ -94,7 +94,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 #fring { position: fixed; inset: 0; z-index: 99; border: 3px solid var(--green); pointer-events: none; opacity: 0; }
 #fring.on { opacity: 1; }
-#menu-backdrop { position: fixed; inset: 0; z-index: 49990 !important; background: transparent; display: none; }
+#menu-backdrop { position: fixed; inset: 0; z-index: 29990 !important; background: transparent; display: none; }
 #menu-backdrop.open { display: block; }
 
 /* Action Pop Up Button */
@@ -943,13 +943,12 @@ var topModalZ = 50000;
 var MAX_WINDOW_Z = 80000;
 function bringModalToFront(modal) {
   if (!modal) return;
-  modal.style.display = '';
   topModalZ += 2;
   if (topModalZ >= MAX_WINDOW_Z) {
     var allModals = Array.from(document.querySelectorAll(
       '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
       '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
-      '#errLogModal, .mini-web-modal'
+      '#errLogModal, #buildProgressOverlay, .mini-web-modal'
     ));
     allModals.sort(function(a, b) {
       return (parseInt(window.getComputedStyle(a).zIndex) || 50000) - 
@@ -961,6 +960,10 @@ function bringModalToFront(modal) {
     topModalZ = 50000 + (allModals.length * 2);
   }
   modal.style.zIndex = topModalZ;
+  var bd = document.getElementById('menu-backdrop');
+  if (bd && bd.classList.contains('open')) {
+    bd.style.zIndex = (topModalZ - 1);
+  }
 }
 
 function centerModal(el) {
@@ -1142,7 +1145,7 @@ function makeWindowResizable(win) {
 function makeWindowDraggable(win) {
   var bar = win.querySelector('.window-header') || win.querySelector('h4, h5') || win;
 
-  ['pointerdown', 'mousedown', 'touchstart'].forEach(function(evt) {
+  ['pointerdown', 'mousedown', 'touchstart', 'click'].forEach(function(evt) {
     win.addEventListener(evt, function() {
       bringModalToFront(win);
     }, { capture: true, passive: true });
@@ -3928,9 +3931,56 @@ function toggleMenu() {
   }
 }
 $toggleBtn.addEventListener('click', function(e) { if (isDragging) return; toggleMenu(); });
+function closeTopmostModal() {
+  var modalSelectors = [
+    '#astPanel', '#logPanel', '#ghConfigPanel', '#commitModal', '#newRepoModal',
+    '#wallpaperModal', '#buildModal', '#workflowsModal', '#fullTreeModal', '#bulkModal',
+    '#errLogModal', '#buildProgressOverlay', '.mini-web-modal'
+  ];
+  var openModals = Array.from(document.querySelectorAll(modalSelectors.join(', '))).filter(function(m) {
+    return m.classList.contains('open') || window.getComputedStyle(m).display !== 'none';
+  });
+
+  if (openModals.length > 0) {
+    openModals.sort(function(a, b) {
+      return (parseInt(window.getComputedStyle(b).zIndex) || 0) - (parseInt(window.getComputedStyle(a).zIndex) || 0);
+    });
+    var topModal = openModals[0];
+    if (topModal.id === 'fullTreeModal' && typeof window.closeFullTreeModal === 'function') {
+      window.closeFullTreeModal();
+    } else {
+      topModal.classList.remove('open');
+      topModal.style.display = 'none';
+      if (topModal.classList.contains('mini-web-modal')) {
+        topModal.remove();
+        if (typeof window.checkFreezePreviewState === 'function') window.checkFreezePreviewState();
+      }
+    }
+
+    var remaining = Array.from(document.querySelectorAll(modalSelectors.join(', '))).filter(function(m) {
+      return m.classList.contains('open') || window.getComputedStyle(m).display !== 'none';
+    });
+    if (remaining.length > 0) {
+      remaining.sort(function(a, b) {
+        return (parseInt(window.getComputedStyle(b).zIndex) || 0) - (parseInt(window.getComputedStyle(a).zIndex) || 0);
+      });
+      var nextTopZ = parseInt(window.getComputedStyle(remaining[0]).zIndex) || 50000;
+      $backdrop.style.zIndex = (nextTopZ - 1);
+    } else if (!$appMenu.classList.contains('open')) {
+      $backdrop.classList.remove('open');
+      $backdrop.style.zIndex = '';
+    }
+  } else if ($appMenu.classList.contains('open')) {
+    toggleMenu();
+  } else {
+    $backdrop.classList.remove('open');
+    $backdrop.style.zIndex = '';
+  }
+}
+
 $backdrop.addEventListener('click', function(e) {
   if (e.target !== $backdrop) return;
-  if ($appMenu.classList.contains('open')) toggleMenu();
+  closeTopmostModal();
 });
 
 (function initMenuResize() {
