@@ -272,7 +272,7 @@ body.hide-btn-labels .btn-lbl {
   display: flex; flex-direction: column; gap: 0px; z-index: 32500;
   background: #000000 !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important; outline: none !important; border-radius: 12px; padding: 0px;
-  color: #ffffff; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8); overflow: hidden;
+  color: #ffffff; box-shadow: none; overflow: hidden;
 }
 .mini-web-modal .window-header {
   height: 28px !important; min-height: 28px !important; padding: 0 10px !important; margin: 0 !important;
@@ -292,7 +292,7 @@ body.hide-btn-labels .btn-lbl {
 .mini-zoom-pop {
   display: none; align-items: center; gap: 6px; position: absolute; top: 22px; right: 6px;
   background: #000000; padding: 3px 6px; border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important; z-index: 10002; box-shadow: 0 4px 16px rgba(0,0,0,0.8);
+  border: 1px solid rgba(255, 255, 255, 0.15) !important; z-index: 10002; box-shadow: none;
 }
 .mini-zoom-pop.open { display: flex; }
 .mini-zoom-pop input[type="range"] { width: 70px; accent-color: var(--blue); cursor: pointer; }
@@ -311,7 +311,7 @@ body.hide-btn-labels .btn-lbl {
   position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 12px; font-size: 6px; font-weight: 500;
   background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; color: var(--green);
   z-index: 40000; display: none; max-width: 90vw; text-align: center; white-space: pre-line;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  box-shadow: none;
 }
 #toast.show { display: flex; align-items: center; justify-content: center; gap: 10px; }
 #toast.warn { color: var(--amber); }
@@ -322,7 +322,7 @@ body.hide-btn-labels .btn-lbl {
 
 #astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal {
   position: fixed; z-index: 30000; background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px;
-  padding: 24px; color: #ffffff; font-size: 11px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  padding: 24px; color: #ffffff; font-size: 11px; box-shadow: none;
   max-height: calc(100vh - 40px); overflow-y: auto;
   scrollbar-width: none; -ms-overflow-style: none;
 }
@@ -347,7 +347,7 @@ body.hide-btn-labels .btn-lbl {
   background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px;
   padding: 16px; color: var(--red); font-size: 6px; font-weight: 500; z-index: 25000;
   width: 90vw; max-width: 480px; display: none; white-space: pre-wrap; max-height: 40vh; overflow-y: auto;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  box-shadow: none;
 }
 
 #statusBar {
@@ -360,7 +360,7 @@ body.hide-btn-labels .btn-lbl {
 
 #progressBar {
   position: fixed; top: 0; left: 0; height: 3px; background: var(--blue); z-index: 30000;
-  width: 0%; display: none; box-shadow: 0 0 10px var(--blue);
+  width: 0%; display: none; box-shadow: none;
 }
 #progressBar.active { display: block; }
 
@@ -437,7 +437,7 @@ body.hide-btn-labels .btn-lbl {
   border-bottom: 3px solid rgba(160, 160, 160, 0.8);
   border-left: 3px solid rgba(160, 160, 160, 0.8);
   border-bottom-left-radius: 14px;
-  box-shadow: -2px 2px 4px rgba(0,0,0,0.2);
+  box-shadow: none;
 }
 input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 0.8; }
 
@@ -476,7 +476,7 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
   position: fixed; top: calc(36px + env(safe-area-inset-top, 0px)); left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px); z-index: 10001;
   background: #000000; border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important;
   padding: 16px 20px; display: none; flex-direction: column; gap: 10px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+  box-shadow: none;
 }
 .fnr-row { display: flex; gap: 10px; align-items: center; }
 .fnr-row input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); color: #fff; padding: 10px 14px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
@@ -485,7 +485,7 @@ input::placeholder, textarea::placeholder { color: #ffffff !important; opacity: 
 .fnr-btn:hover { background: rgba(255,255,255,0.2); }
 
 /* Dual-Engine Build Modal */
-#buildModal { width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px; padding: 24px; color: #ffffff; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8); max-height: 85vh; overflow-y: auto; }
+#buildModal { width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px; padding: 24px; color: #ffffff; box-shadow: none; max-height: 85vh; overflow-y: auto; }
 #buildModal.open { display: flex; }
 #buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
 .bm-step label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--blue); }
@@ -552,7 +552,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="app-menu">
       <div id="menu-resize-handle" style="position: absolute; bottom: 0; left: 0; width: 20px; height: 20px; cursor: sw-resize; z-index: 10001; pointer-events: auto; touch-action: none;" title="Drag to Resize">
-              <div style="position: absolute; bottom: 4px; left: 4px; width: 12px; height: 12px; border-bottom: 2.5px solid rgba(160, 160, 160, 0.8); border-left: 2.5px solid rgba(160, 160, 160, 0.8); border-bottom-left-radius: 8px; box-shadow: -2px 2px 4px rgba(0,0,0,0.2);"></div>
+              <div style="position: absolute; bottom: 4px; left: 4px; width: 12px; height: 12px; border-bottom: 2.5px solid rgba(160, 160, 160, 0.8); border-left: 2.5px solid rgba(160, 160, 160, 0.8); border-bottom-left-radius: 8px; box-shadow: none;"></div>
             </div>
             <div id="app-menu-loader" style="display: none; position: absolute; inset: 0; z-index: 10000; background: #000000; border-radius: 12px; align-items: center; justify-content: center; flex-direction: column; gap: 10px;">
           <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 6px; color: var(--blue);"></i>
@@ -795,7 +795,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     #buildProgressOverlay.minimized #bpStepper { margin: 0 !important; }
     #buildProgressOverlay.minimized:hover { background: transparent !important; opacity: 0.8; }
     </style>
-<div id="buildProgressOverlay" style="display:none; position:fixed; width:calc(100vw - 40px); max-width:420px; background:#000000; border:1px solid rgba(255,255,255,0.1) !important; outline:none !important; border-radius:12px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:0 8px 32px rgba(0,0,0,0.8);">
+<div id="buildProgressOverlay" style="display:none; position:fixed; width:calc(100vw - 40px); max-width:420px; background:#000000; border:1px solid rgba(255,255,255,0.1) !important; outline:none !important; border-radius:12px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:none;">
   <div class="window-header" style="margin-bottom:16px; padding-bottom:12px;">
     <div class="win-title" id="bpTitle" style="font-size:15px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</div>
     <div style="display:flex; gap:12px; align-items:center;">
@@ -869,7 +869,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </div>
 
 <style>
-#errLogModal { position: fixed; width: 92vw; max-width: 560px; height: 70vh; display: none; flex-direction: column; gap: 12px; z-index: 32000; background: #000000; border: 1px solid rgba(255,255,255,0.15); outline: none !important; border-radius: 12px; padding: 20px; color: #ffffff; font-size: 11px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8); }
+#errLogModal { position: fixed; width: 92vw; max-width: 560px; height: 70vh; display: none; flex-direction: column; gap: 12px; z-index: 32000; background: #000000; border: 1px solid rgba(255,255,255,0.15); outline: none !important; border-radius: 12px; padding: 20px; color: #ffffff; font-size: 11px; box-shadow: none; }
 #errLogModal.open { display: flex; }
 #errLogModal h4 { color: #ffffff; margin: 0 0 4px 0; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; display: flex; align-items: center; flex-shrink: 0; }
 #errLogModal h4 .panel-close { margin-left: auto; }
@@ -1541,8 +1541,8 @@ window.renderBookmarks = function() {
             clone.style.zIndex = '99999';
             clone.style.pointerEvents = 'none';
             clone.style.opacity = '0.9';
-            clone.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
-            clone.style.background = 'rgba(255,255,255,0.15)';
+            clone.style.boxShadow = 'none';
+                        clone.style.background = 'rgba(255,255,255,0.15)';
             clone.style.transform = 'scale(1.05)';
             document.body.appendChild(clone);
 
@@ -2005,43 +2005,43 @@ function renderRepoTabs() {
                 clone.style.zIndex = '99999';
                 clone.style.pointerEvents = 'none';
                 clone.style.opacity = '0.9';
-                clone.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
-                clone.style.background = 'rgba(255,255,255,0.15)';
-                clone.style.transform = 'scale(1.05)';
-                document.body.appendChild(clone);
+                clone.style.boxShadow = 'none';
+                                clone.style.background = 'rgba(255,255,255,0.15)';
+                                clone.style.transform = 'scale(1.05)';
+                                document.body.appendChild(clone);
         
-                btn.style.opacity = '0.3';
-              }
-
-              if (isDragging && clone) {
-                              clone.style.top = (e.clientY - clone.offsetHeight / 2) + 'px';
-                              clone.style.left = (e.clientX - clone.offsetWidth / 2) + 'px';
-                              clone.style.pointerEvents = 'none';
-
-                              const prevVis = clone.style.visibility;
-                              clone.style.visibility = 'hidden';
-                              let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
-                              clone.style.visibility = prevVis;
-
-                              const bSidebarEl = document.getElementById('bookmarkSidebar');
-                              let overBookmarkZone = false;
-                              if (bSidebarEl && bSidebarEl.offsetParent !== null) {
-                                overBookmarkZone = !!(elemBelow && elemBelow.closest('#bookmarkSidebar'));
-                                if (!overBookmarkZone) {
-                                  const bRect = bSidebarEl.getBoundingClientRect();
-                                  if (bRect.width > 0 && bRect.height > 0) {
-                                    overBookmarkZone = e.clientX >= bRect.left - 30 && e.clientX <= bRect.right + 30 &&
-                                                        e.clientY >= bRect.top - 30 && e.clientY <= bRect.bottom + 30;
-                                  }
-                                }
+                                btn.style.opacity = '0.3';
                               }
-                              if (!overBookmarkZone) {
-                                overBookmarkZone = e.clientX > window.innerWidth - 70;
-                              }
-                              bookmarkArmed = overBookmarkZone;
-                              clone.style.background = bookmarkArmed ? 'rgba(227,179,65,0.35)' : 'rgba(255,255,255,0.15)';
-                              clone.style.borderColor = bookmarkArmed ? 'var(--amber)' : '';
-                              clone.style.boxShadow = bookmarkArmed ? '0 0 0 3px var(--amber), 0 10px 20px rgba(0,0,0,0.5)' : '0 10px 20px rgba(0,0,0,0.5)';
+
+                              if (isDragging && clone) {
+                                              clone.style.top = (e.clientY - clone.offsetHeight / 2) + 'px';
+                                              clone.style.left = (e.clientX - clone.offsetWidth / 2) + 'px';
+                                              clone.style.pointerEvents = 'none';
+
+                                              const prevVis = clone.style.visibility;
+                                              clone.style.visibility = 'hidden';
+                                              let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+                                              clone.style.visibility = prevVis;
+
+                                              const bSidebarEl = document.getElementById('bookmarkSidebar');
+                                              let overBookmarkZone = false;
+                                              if (bSidebarEl && bSidebarEl.offsetParent !== null) {
+                                                overBookmarkZone = !!(elemBelow && elemBelow.closest('#bookmarkSidebar'));
+                                                if (!overBookmarkZone) {
+                                                  const bRect = bSidebarEl.getBoundingClientRect();
+                                                  if (bRect.width > 0 && bRect.height > 0) {
+                                                    overBookmarkZone = e.clientX >= bRect.left - 30 && e.clientX <= bRect.right + 30 &&
+                                                                        e.clientY >= bRect.top - 30 && e.clientY <= bRect.bottom + 30;
+                                                  }
+                                                }
+                                              }
+                                              if (!overBookmarkZone) {
+                                                overBookmarkZone = e.clientX > window.innerWidth - 70;
+                                              }
+                                              bookmarkArmed = overBookmarkZone;
+                                              clone.style.background = bookmarkArmed ? 'rgba(227,179,65,0.35)' : 'rgba(255,255,255,0.15)';
+                                              clone.style.borderColor = bookmarkArmed ? 'var(--amber)' : '';
+                                              clone.style.boxShadow = bookmarkArmed ? '0 0 0 3px var(--amber)' : 'none';
 
                               if (!bookmarkArmed) {
                                 let targetRepo = elemBelow ? elemBelow.closest('.repo-item') : null;
@@ -4533,8 +4533,8 @@ document.getElementById('exportBtn').addEventListener('click', function() {
         clone.style.zIndex = '99999';
         clone.style.pointerEvents = 'none';
         clone.style.opacity = '0.9';
-        clone.style.boxShadow = '0 10px 20px rgba(0,0,0,0.5)';
-        clone.style.transform = 'scale(1.1)';
+        clone.style.boxShadow = 'none';
+                clone.style.transform = 'scale(1.1)';
         document.body.appendChild(clone);
         btn.style.opacity = '0.3';
       }
