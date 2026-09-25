@@ -299,49 +299,6 @@ body.hide-btn-labels .btn-lbl {
 .mini-zoom-pop input[type="range"] { width: 70px; accent-color: var(--blue); cursor: pointer; }
 .mini-zoom-pop span { font-size: 8px; font-family: monospace; min-width: 28px; }
 
-.mini-tile-pop {
-  display: none; grid-template-columns: repeat(4, 18px); gap: 4px; position: absolute;
-  top: 22px; right: 28px; background: rgba(22, 22, 22, 0.95); padding: 5px; border-radius: 6px;
-  border: none !important; z-index: 10002; box-shadow: 0 4px 16px rgba(0,0,0,0.6);
-}
-.mini-tile-pop.open { display: grid; }
-.tile-preset-btn {
-  width: 18px; height: 18px; border: 1px solid rgba(255,255,255,0.2); border-radius: 3px;
-  background: rgba(255,255,255,0.06); cursor: pointer; display: flex; padding: 1px;
-}
-.tile-preset-btn:hover { border-color: var(--blue); background: rgba(92,157,255,0.2); }
-
-#snapGuideOverlay {
-  position: fixed; inset: 0; pointer-events: none; z-index: 32490; display: none;
-}
-#snapGuideBox {
-  position: absolute; border: 2px dashed rgba(92, 157, 255, 0.85); background: rgba(92, 157, 255, 0.18);
-  border-radius: 8px; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
-  transition: all 0.1s cubic-bezier(0.2, 0, 0.2, 1);
-}
-
-.tile-splitter-v, .tile-splitter-h {
-  position: fixed; z-index: 32495; touch-action: none; user-select: none;
-}
-.tile-splitter-v {
-  top: 0; width: 10px; cursor: col-resize; margin-left: -5px;
-}
-.tile-splitter-v::after {
-  content: ''; position: absolute; left: 4px; top: 0; bottom: 0; width: 2px;
-  background: rgba(255, 255, 255, 0.15); transition: background 0.15s;
-}
-.tile-splitter-h {
-  left: 0; height: 10px; cursor: row-resize; margin-top: -5px;
-}
-.tile-splitter-h::after {
-  content: ''; position: absolute; top: 4px; left: 0; right: 0; height: 2px;
-  background: rgba(255, 255, 255, 0.15); transition: background 0.15s;
-}
-.tile-splitter-v:hover::after, .tile-splitter-h:hover::after,
-.tile-splitter-v.active::after, .tile-splitter-h.active::after {
-  background: var(--blue);
-}
-
 .resize-handle { position: absolute; z-index: 10001; touch-action: none; }
 .resize-r { top: 0; right: -4px; width: 12px; height: 100%; cursor: e-resize; }
 .resize-b { bottom: -4px; left: 0; width: 100%; height: 12px; cursor: s-resize; }
@@ -586,14 +543,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </div>
 
 <div id="fring"></div>
-<div id="snapGuideOverlay"><div id="snapGuideBox"></div></div>
-
-<!-- HARRY LIVE CAPTION HUD -->
-<div id="harryCaptionHud" style="position:fixed; top:calc(42px + env(safe-area-inset-top, 0px)); right:16px; z-index:99999; display:none; align-items:center; gap:8px; background:rgba(18, 18, 24, 0.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(188, 140, 255, 0.35); padding:6px 12px; border-radius:20px; font-family:'JetBrains Mono', monospace; font-size:10px; color:#fff; box-shadow:0 8px 32px rgba(0,0,0,0.5); pointer-events:none; transition:all 0.2s cubic-bezier(0.2, 0, 0.2, 1); max-width:85vw;">
-  <div id="harryHudDot" style="width:6px; height:6px; border-radius:50%; background:var(--purple); box-shadow:0 0 8px var(--purple); flex-shrink:0;"></div>
-  <span id="harryHudText" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; opacity:0.95;">Harry listening...</span>
-</div>
-<div id="tileSplittersContainer"></div>
 <div id="menu-backdrop"></div>
 
 <button id="toggleUiBtn" title="Toggle Menu">
@@ -650,7 +599,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                               <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i><span class="btn-lbl">Wall</span></button>
                                                                                   <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i><span class="btn-lbl">Get</span></button>
                               <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i><span class="btn-lbl">Build</span></button>
-                                    <button id="voiceCtrlBtn" class="btn" title="Voice Control (Harry)" style="color:var(--purple);"><i class="fa-solid fa-microphone"></i><span class="btn-lbl">Harry</span></button>
+                                    
                                                           <button id="buildApkBtn" class="btn" style="display:none;"></button>
                                                                                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                                     <div style="grid-column: 1 / -1; grid-row: 3; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05);">
@@ -1128,368 +1077,7 @@ function makeWindowResizable(win) {
   handle.addEventListener('pointercancel', stopResize);
 }
 
-var activeSnapTarget = null;
-function getSnapCoordinates(type) {
-  var w = window.innerWidth;
-  var h = window.innerHeight - 24; // Keep status bar clear
-  var halfW = Math.floor(w / 2);
-  var halfH = Math.floor(h / 2);
 
-  var thirdW = Math.floor(w / 3);
-    if (type === 'max') return { left: 0, top: 0, width: w, height: h };
-    if (type === 'left') return { left: 0, top: 0, width: halfW, height: h };
-    if (type === 'right') return { left: halfW, top: 0, width: halfW, height: h };
-    if (type === 'top') return { left: 0, top: 0, width: w, height: halfH };
-    if (type === 'bottom') return { left: 0, top: halfH, width: w, height: halfH };
-    if (type === 'tl') return { left: 0, top: 0, width: halfW, height: halfH };
-    if (type === 'bl') return { left: 0, top: halfH, width: halfW, height: halfH };
-    if (type === 'tr') return { left: halfW, top: 0, width: halfW, height: halfH };
-    if (type === 'br') return { left: halfW, top: halfH, width: halfW, height: halfH };
-    if (type === 'left-third') return { left: 0, top: 0, width: thirdW, height: h };
-    if (type === 'center-third') return { left: thirdW, top: 0, width: thirdW, height: h };
-    if (type === 'right-third') return { left: thirdW * 2, top: 0, width: w - thirdW * 2, height: h };
-    return null;
-}
-
-var activeSnapTargetInfo = null;
-
-function updateSnapGuide(snapInfo) {
-  var overlay = document.getElementById('snapGuideOverlay');
-  var box = document.getElementById('snapGuideBox');
-  if (!snapInfo) {
-    if (overlay) overlay.style.display = 'none';
-    return;
-  }
-  var coords = snapInfo.coords || (typeof snapInfo === 'string' ? getSnapCoordinates(snapInfo) : null);
-  if (!coords) {
-    if (overlay) overlay.style.display = 'none';
-    return;
-  }
-  box.style.left = coords.left + 'px';
-  box.style.top = coords.top + 'px';
-  box.style.width = coords.width + 'px';
-  box.style.height = coords.height + 'px';
-  overlay.style.display = 'block';
-}
-
-function detectSnapZone(win, clientX, clientY) {
-  var w = window.innerWidth;
-  var h = window.innerHeight - 24;
-  var edge = 30;
-  var corner = 100;
-  var halfW = Math.floor(w / 2);
-  var halfH = Math.floor(h / 2);
-
-  // 1. Screen Corners (4-way Grid)
-  if (clientY <= corner && clientX <= corner) return { type: 'tl', coords: { left: 0, top: 0, width: halfW, height: halfH } };
-  if (clientY <= corner && clientX >= w - corner) return { type: 'tr', coords: { left: halfW, top: 0, width: w - halfW, height: halfH } };
-  if (clientY >= h - corner && clientX <= corner) return { type: 'bl', coords: { left: 0, top: halfH, width: halfW, height: h - halfH } };
-  if (clientY >= h - corner && clientX >= w - corner) return { type: 'br', coords: { left: halfW, top: halfH, width: w - halfW, height: h - halfH } };
-
-  // 2. Screen Edges (Halves / Full)
-  if (clientY <= edge) return { type: 'max', coords: { left: 0, top: 0, width: w, height: h } };
-  if (clientX <= edge) return { type: 'left', coords: { left: 0, top: 0, width: halfW, height: h } };
-  if (clientX >= w - edge) return { type: 'right', coords: { left: halfW, top: 0, width: w - halfW, height: h } };
-
-  // 3. Dynamic Magnetic Snap & Remaining Space Fill
-  var curRect = win.getBoundingClientRect();
-  var otherWins = Array.from(document.querySelectorAll('.mini-web-modal')).filter(function(other) {
-    return other !== win && other.style.display !== 'none';
-  });
-
-  var SNAP_DIST = 45;
-
-  for (var i = 0; i < otherWins.length; i++) {
-    var other = otherWins[i];
-    var oRect = other.getBoundingClientRect();
-
-    var vOverlap = Math.min(curRect.bottom, oRect.bottom) - Math.max(curRect.top, oRect.top);
-    if (vOverlap > 40) {
-      // Near Right of Other Window -> Snap to Fill Remaining Horizontal Space
-      if (Math.abs(curRect.left - oRect.right) < SNAP_DIST) {
-        var remainW = Math.max(160, w - oRect.right);
-        return {
-          type: 'dock-fill-right',
-          targetWin: other,
-          coords: { left: oRect.right, top: oRect.top, width: remainW, height: oRect.height }
-        };
-      }
-      // Near Left of Other Window -> Snap to Fill Remaining Left Space
-      if (Math.abs(curRect.right - oRect.left) < SNAP_DIST) {
-        var remainLeftW = Math.max(160, oRect.left);
-        return {
-          type: 'dock-fill-left',
-          targetWin: other,
-          coords: { left: 0, top: oRect.top, width: remainLeftW, height: oRect.height }
-        };
-      }
-    }
-
-    var hOverlap = Math.min(curRect.right, oRect.right) - Math.max(curRect.left, oRect.left);
-    if (hOverlap > 40) {
-      // Near Bottom of Other Window -> Snap to Fill Remaining Vertical Space
-      if (Math.abs(curRect.top - oRect.bottom) < SNAP_DIST) {
-        var remainH = Math.max(120, h - oRect.bottom);
-        return {
-          type: 'dock-fill-bottom',
-          targetWin: other,
-          coords: { left: oRect.left, top: oRect.bottom, width: oRect.width, height: remainH }
-        };
-      }
-      // Near Top of Other Window -> Snap to Fill Remaining Top Space
-      if (Math.abs(curRect.bottom - oRect.top) < SNAP_DIST) {
-        var remainTopH = Math.max(120, oRect.top);
-        return {
-          type: 'dock-fill-top',
-          targetWin: other,
-          coords: { left: oRect.left, top: 0, width: oRect.width, height: remainTopH }
-        };
-      }
-    }
-  }
-
-  return null;
-}
-
-function applyWindowSnap(win, snapData) {
-  var coords = null;
-  if (typeof snapData === 'string') {
-    coords = getSnapCoordinates(snapData);
-  } else if (snapData && snapData.coords) {
-    coords = snapData.coords;
-    if (snapData.targetWin && snapData.otherCoords) {
-      var other = snapData.targetWin;
-      other.style.left = snapData.otherCoords.left + 'px';
-      other.style.top = snapData.otherCoords.top + 'px';
-      other.style.width = snapData.otherCoords.width + 'px';
-      other.style.height = snapData.otherCoords.height + 'px';
-      var oFrame = other.querySelector('iframe');
-      if (oFrame && oFrame.dataset.zoom) {
-        var oz = parseFloat(oFrame.dataset.zoom) || 1;
-        oFrame.style.width = (100 / oz) + '%';
-        oFrame.style.height = (100 / oz) + '%';
-      }
-    }
-  }
-
-  if (!coords) return;
-
-  if (!win.dataset.preSnapW) {
-    win.dataset.preSnapW = win.style.width || (win.offsetWidth + 'px');
-    win.dataset.preSnapH = win.style.height || (win.offsetHeight + 'px');
-  }
-
-  win.style.left = coords.left + 'px';
-  win.style.top = coords.top + 'px';
-  win.style.width = coords.width + 'px';
-  win.style.height = coords.height + 'px';
-
-  var frame = win.querySelector('iframe');
-  if (frame && frame.dataset.zoom) {
-    var z = parseFloat(frame.dataset.zoom) || 1;
-    frame.style.width = (100 / z) + '%';
-    frame.style.height = (100 / z) + '%';
-  }
-
-  if (window.updateTileSplitters) window.updateTileSplitters();
-}
-
-window.updateTileSplitters = function() {
-  var container = document.getElementById('tileSplittersContainer');
-  if (!container) return;
-  container.innerHTML = '';
-
-  var wins = Array.from(document.querySelectorAll('.mini-web-modal')).filter(function(w) {
-    return w.style.display !== 'none';
-  });
-  if (wins.length < 2) return;
-
-  var rects = wins.map(function(w) {
-    var r = w.getBoundingClientRect();
-    return { el: w, left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
-  });
-
-  var TOL = 16;
-  var vGroups = [];
-  rects.forEach(function(r1) {
-    rects.forEach(function(r2) {
-      if (r1 === r2) return;
-      if (Math.abs(r1.right - r2.left) <= TOL) {
-        var overlapTop = Math.max(r1.top, r2.top);
-        var overlapBottom = Math.min(r1.bottom, r2.bottom);
-        if (overlapBottom - overlapTop >= 50) {
-          var splitX = (r1.right + r2.left) / 2;
-          var found = vGroups.find(function(g) { return Math.abs(g.x - splitX) <= TOL; });
-          if (!found) {
-            vGroups.push({ x: splitX, top: overlapTop, bottom: overlapBottom, leftWins: [r1.el], rightWins: [r2.el] });
-          } else {
-            found.top = Math.min(found.top, overlapTop);
-            found.bottom = Math.max(found.bottom, overlapBottom);
-            if (!found.leftWins.includes(r1.el)) found.leftWins.push(r1.el);
-            if (!found.rightWins.includes(r2.el)) found.rightWins.push(r2.el);
-          }
-        }
-      }
-    });
-  });
-
-  var hGroups = [];
-  rects.forEach(function(r1) {
-    rects.forEach(function(r2) {
-      if (r1 === r2) return;
-      if (Math.abs(r1.bottom - r2.top) <= TOL) {
-        var overlapLeft = Math.max(r1.left, r2.left);
-        var overlapRight = Math.min(r1.right, r2.right);
-        if (overlapRight - overlapLeft >= 50) {
-          var splitY = (r1.bottom + r2.top) / 2;
-          var found = hGroups.find(function(g) { return Math.abs(g.y - splitY) <= TOL; });
-          if (!found) {
-            hGroups.push({ y: splitY, left: overlapLeft, right: overlapRight, topWins: [r1.el], bottomWins: [r2.el] });
-          } else {
-            found.left = Math.min(found.left, overlapLeft);
-            found.right = Math.max(found.right, overlapRight);
-            if (!found.topWins.includes(r1.el)) found.topWins.push(r1.el);
-            if (!found.bottomWins.includes(r2.el)) found.bottomWins.push(r2.el);
-          }
-        }
-      }
-    });
-  });
-
-  vGroups.forEach(function(g) {
-    var d = document.createElement('div');
-    d.className = 'tile-splitter-v';
-    d.style.left = g.x + 'px';
-    d.style.top = g.top + 'px';
-    d.style.height = (g.bottom - g.top) + 'px';
-
-    d.addEventListener('pointerdown', function(e) {
-      if (e.button !== 0 && e.pointerType === 'mouse') return;
-      e.stopPropagation();
-      try { d.setPointerCapture(e.pointerId); } catch(err) {}
-      d.classList.add('active');
-
-      var startX = e.clientX;
-      var leftStates = g.leftWins.map(function(w) { return { el: w, rect: w.getBoundingClientRect() }; });
-      var rightStates = g.rightWins.map(function(w) { return { el: w, rect: w.getBoundingClientRect() }; });
-
-      function onMove(ev) {
-        ev.stopPropagation();
-        if (ev.cancelable) ev.preventDefault();
-        var delta = ev.clientX - startX;
-
-        var canLeft = leftStates.every(function(s) { return s.rect.width + delta >= 120; });
-        var canRight = rightStates.every(function(s) { return s.rect.width - delta >= 120; });
-        if (!canLeft || !canRight) return;
-
-        leftStates.forEach(function(s) {
-          s.el.style.width = (s.rect.width + delta) + 'px';
-          var f = s.el.querySelector('iframe');
-          if (f && f.dataset.zoom) {
-            var z = parseFloat(f.dataset.zoom) || 1;
-            f.style.width = (100 / z) + '%';
-            f.style.height = (100 / z) + '%';
-          }
-        });
-
-        rightStates.forEach(function(s) {
-          s.el.style.left = (s.rect.left + delta) + 'px';
-          s.el.style.width = (s.rect.width - delta) + 'px';
-          var f = s.el.querySelector('iframe');
-          if (f && f.dataset.zoom) {
-            var z = parseFloat(f.dataset.zoom) || 1;
-            f.style.width = (100 / z) + '%';
-            f.style.height = (100 / z) + '%';
-          }
-        });
-
-        d.style.left = (g.x + delta) + 'px';
-      }
-
-      function onUp(ev) {
-        d.releasePointerCapture(ev.pointerId);
-        d.classList.remove('active');
-        window.removeEventListener('pointermove', onMove);
-        window.removeEventListener('pointerup', onUp);
-        window.removeEventListener('pointercancel', onUp);
-        window.updateTileSplitters();
-      }
-
-      window.addEventListener('pointermove', onMove);
-      window.addEventListener('pointerup', onUp);
-      window.addEventListener('pointercancel', onUp);
-    });
-
-    container.appendChild(d);
-  });
-
-  hGroups.forEach(function(g) {
-    var d = document.createElement('div');
-    d.className = 'tile-splitter-h';
-    d.style.top = g.y + 'px';
-    d.style.left = g.left + 'px';
-    d.style.width = (g.right - g.left) + 'px';
-
-    d.addEventListener('pointerdown', function(e) {
-      if (e.button !== 0 && e.pointerType === 'mouse') return;
-      e.stopPropagation();
-      try { d.setPointerCapture(e.pointerId); } catch(err) {}
-      d.classList.add('active');
-
-      var startY = e.clientY;
-      var topStates = g.topWins.map(function(w) { return { el: w, rect: w.getBoundingClientRect() }; });
-      var bottomStates = g.bottomWins.map(function(w) { return { el: w, rect: w.getBoundingClientRect() }; });
-
-      function onMove(ev) {
-        ev.stopPropagation();
-        if (ev.cancelable) ev.preventDefault();
-        var delta = ev.clientY - startY;
-
-        var canTop = topStates.every(function(s) { return s.rect.height + delta >= 100; });
-        var canBottom = bottomStates.every(function(s) { return s.rect.height - delta >= 100; });
-        if (!canTop || !canBottom) return;
-
-        topStates.forEach(function(s) {
-          s.el.style.height = (s.rect.height + delta) + 'px';
-          var f = s.el.querySelector('iframe');
-          if (f && f.dataset.zoom) {
-            var z = parseFloat(f.dataset.zoom) || 1;
-            f.style.width = (100 / z) + '%';
-            f.style.height = (100 / z) + '%';
-          }
-        });
-
-        bottomStates.forEach(function(s) {
-          s.el.style.top = (s.rect.top + delta) + 'px';
-          s.el.style.height = (s.rect.height - delta) + 'px';
-          var f = s.el.querySelector('iframe');
-          if (f && f.dataset.zoom) {
-            var z = parseFloat(f.dataset.zoom) || 1;
-            f.style.width = (100 / z) + '%';
-            f.style.height = (100 / z) + '%';
-          }
-        });
-
-        d.style.top = (g.y + delta) + 'px';
-      }
-
-      function onUp(ev) {
-        d.releasePointerCapture(ev.pointerId);
-        d.classList.remove('active');
-        window.removeEventListener('pointermove', onMove);
-        window.removeEventListener('pointerup', onUp);
-        window.removeEventListener('pointercancel', onUp);
-        window.updateTileSplitters();
-      }
-
-      window.addEventListener('pointermove', onMove);
-      window.addEventListener('pointerup', onUp);
-      window.addEventListener('pointercancel', onUp);
-    });
-
-    container.appendChild(d);
-  });
-};
 
 function makeWindowDraggable(win) {
   var bar = win.querySelector('.window-header') || win.querySelector('h4, h5') || win;
@@ -1511,49 +1099,26 @@ function makeWindowDraggable(win) {
     var shiftY = e.clientY - rect.top;
 
     function onMove(ev) {
-          if (ev.cancelable) ev.preventDefault();
+              if (ev.cancelable) ev.preventDefault();
 
-          if (win.classList.contains('mini-web-modal') && win.dataset.preSnapW) {
-            win.style.width = win.dataset.preSnapW;
-            win.style.height = win.dataset.preSnapH;
-            delete win.dataset.preSnapW;
-            delete win.dataset.preSnapH;
-            var newR = win.getBoundingClientRect();
-            shiftX = Math.min(shiftX, newR.width / 2);
-          }
+              var scale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
+              var newLeft = ev.clientX - shiftX;
+              var newTop = ev.clientY - shiftY;
+              var scaledW = win.offsetWidth * scale;
+              var maxLeft = window.innerWidth - scaledW;
+              var maxTop = window.innerHeight - 40;
+              win.style.transformOrigin = 'top left';
+              win.style.transform = 'scale(' + scale + ')';
+              win.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
+              win.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
+            }
 
-          var scale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
-          var newLeft = ev.clientX - shiftX;
-          var newTop = ev.clientY - shiftY;
-          var scaledW = win.offsetWidth * scale;
-          var maxLeft = window.innerWidth - scaledW;
-          var maxTop = window.innerHeight - 40;
-          win.style.transformOrigin = 'top left';
-          win.style.transform = 'scale(' + scale + ')';
-          win.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
-          win.style.top = Math.max(0, Math.min(newTop, maxTop)) + 'px';
+                  function onUp() {
+                        bar.removeEventListener('pointermove', onMove);
+                        bar.removeEventListener('pointerup', onUp);
+                        bar.removeEventListener('pointercancel', onUp);
 
-          if (win.classList.contains('mini-web-modal')) {
-                      activeSnapTargetInfo = detectSnapZone(win, ev.clientX, ev.clientY);
-                      updateSnapGuide(activeSnapTargetInfo);
-                    }
-                  }
-
-              function onUp() {
-                    bar.removeEventListener('pointermove', onMove);
-                    bar.removeEventListener('pointerup', onUp);
-                    bar.removeEventListener('pointercancel', onUp);
-
-                    if (win.classList.contains('mini-web-modal')) {
-                      updateSnapGuide(null);
-                      if (activeSnapTargetInfo) {
-                        applyWindowSnap(win, activeSnapTargetInfo);
-                        activeSnapTargetInfo = null;
-                      }
-                      if (window.updateTileSplitters) window.updateTileSplitters();
-                    }
-
-          var scale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
+              var scale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
           win.style.transformOrigin = 'top left';
           win.style.transform = 'scale(' + scale + ')';
           saveWindowState(win);
@@ -1715,11 +1280,10 @@ function makeWindowDimensionalResizable(win) {
               }
             }
       function onUp(ev) {
-              handle.removeEventListener('pointermove', onMove);
-              handle.removeEventListener('pointerup', onUp);
-              handle.removeEventListener('pointercancel', onUp);
-              if (window.updateTileSplitters) window.updateTileSplitters();
-            }
+                    handle.removeEventListener('pointermove', onMove);
+                    handle.removeEventListener('pointerup', onUp);
+                    handle.removeEventListener('pointercancel', onUp);
+                  }
       handle.addEventListener('pointermove', onMove);
       handle.addEventListener('pointerup', onUp);
       handle.addEventListener('pointercancel', onUp);
@@ -1759,28 +1323,13 @@ window.openMiniWeb = function(repoFullName, e) {
               <div class="window-header" style="cursor:move; margin:0 !important; background:rgba(22,22,22,0.65) !important; backdrop-filter:blur(24px) !important; -webkit-backdrop-filter:blur(24px) !important;">
                 <div class="win-title" style="font-size:10px; pointer-events:none;"><i class="fa-solid fa-globe" style="color:var(--blue); margin-right:4px;"></i> ${repoName}</div>
             <div style="display:flex; align-items:center; gap:3px;">
-              <button class="panel-close" title="Tile Window" onclick="window.toggleMiniTile('${winId}')"><i class="fa-solid fa-table-cells-large" style="font-size:8px;"></i></button>
               <button class="panel-close" title="Zoom In/Out" onclick="window.toggleMiniZoom('${winId}')"><i class="fa-solid fa-magnifying-glass" style="font-size:8px;"></i></button>
-              <button class="panel-close" title="Reload" onclick="document.getElementById('${winId}_frame').src = '${url.split('?')[0]}?t=' + Date.now()"><i class="fa-solid fa-rotate-right" style="font-size:8px;"></i></button>
-              <button class="panel-close" title="Open in New Tab" onclick="window.open('${url}', '_blank')"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:8px;"></i></button>
-              <button class="panel-close" onclick="this.closest('.mini-web-modal').remove(); window.checkFreezePreviewState(); if(window.updateTileSplitters) window.updateTileSplitters();">✕</button>
-            </div>
-          </div>
-          <div class="mini-tile-pop" id="${winId}_tilePop">
-            <button class="tile-preset-btn" title="Full Screen" onclick="window.applyTilePreset('${winId}', 'max')"><div style="flex:1; background:rgba(255,255,255,0.4); border-radius:1px;"></div></button>
-            <button class="tile-preset-btn" title="Left Half" onclick="window.applyTilePreset('${winId}', 'left')"><div style="width:50%; height:100%; background:rgba(255,255,255,0.4); border-radius:1px 0 0 1px;"></div></button>
-            <button class="tile-preset-btn" title="Right Half" onclick="window.applyTilePreset('${winId}', 'right')"><div style="width:50%; margin-left:auto; height:100%; background:rgba(255,255,255,0.4); border-radius:0 1px 1px 0;"></div></button>
-            <button class="tile-preset-btn" title="Top Half" onclick="window.applyTilePreset('${winId}', 'top')"><div style="width:100%; height:50%; background:rgba(255,255,255,0.4); border-radius:1px 1px 0 0;"></div></button>
-            <button class="tile-preset-btn" title="Bottom Half" onclick="window.applyTilePreset('${winId}', 'bottom')"><div style="width:100%; height:50%; margin-top:auto; background:rgba(255,255,255,0.4); border-radius:0 0 1px 1px;"></div></button>
-            <button class="tile-preset-btn" title="Top Left Quarter" onclick="window.applyTilePreset('${winId}', 'tl')"><div style="width:50%; height:50%; background:rgba(255,255,255,0.4); border-radius:1px 0 0 0;"></div></button>
-            <button class="tile-preset-btn" title="Top Right Quarter" onclick="window.applyTilePreset('${winId}', 'tr')"><div style="width:50%; height:50%; margin-left:auto; background:rgba(255,255,255,0.4); border-radius:0 1px 0 0;"></div></button>
-            <button class="tile-preset-btn" title="Bottom Left Quarter" onclick="window.applyTilePreset('${winId}', 'bl')"><div style="width:50%; height:50%; margin-top:auto; background:rgba(255,255,255,0.4); border-radius:0 0 0 1px;"></div></button>
-            <button class="tile-preset-btn" title="Bottom Right Quarter" onclick="window.applyTilePreset('${winId}', 'br')"><div style="width:50%; height:50%; margin-top:auto; margin-left:auto; background:rgba(255,255,255,0.4); border-radius:0 0 1px 0;"></div></button>
-            <button class="tile-preset-btn" title="Left Third" onclick="window.applyTilePreset('${winId}', 'left-third')"><div style="width:33%; height:100%; background:rgba(255,255,255,0.4); border-radius:1px 0 0 1px;"></div></button>
-            <button class="tile-preset-btn" title="Center Third" onclick="window.applyTilePreset('${winId}', 'center-third')"><div style="width:34%; height:100%; margin:auto; background:rgba(255,255,255,0.4);"></div></button>
-            <button class="tile-preset-btn" title="Right Third" onclick="window.applyTilePreset('${winId}', 'right-third')"><div style="width:33%; height:100%; margin-left:auto; background:rgba(255,255,255,0.4); border-radius:0 1px 1px 0;"></div></button>
-          </div>
-          <div class="mini-zoom-pop" id="${winId}_zoomPop">
+                            <button class="panel-close" title="Reload" onclick="document.getElementById('${winId}_frame').src = '${url.split('?')[0]}?t=' + Date.now()"><i class="fa-solid fa-rotate-right" style="font-size:8px;"></i></button>
+                            <button class="panel-close" title="Open in New Tab" onclick="window.open('${url}', '_blank')"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:8px;"></i></button>
+                            <button class="panel-close" onclick="this.closest('.mini-web-modal').remove(); window.checkFreezePreviewState();">✕</button>
+                          </div>
+                        </div>
+                        <div class="mini-zoom-pop" id="${winId}_zoomPop">
             <input type="range" min="0.3" max="2" step="0.05" value="0.7" oninput="window.setMiniWebZoom('${winId}', this.value)">
             <span id="${winId}_zoomVal">70%</span>
           </div>
@@ -1820,28 +1369,11 @@ window.openMiniWeb = function(repoFullName, e) {
 };
 
     window.toggleMiniZoom = function(winId) {
-        const pop = document.getElementById(winId + '_zoomPop');
-        const tilePop = document.getElementById(winId + '_tilePop');
-        if (tilePop) tilePop.classList.remove('open');
-        if (pop) pop.classList.toggle('open');
-    };
+            const pop = document.getElementById(winId + '_zoomPop');
+            if (pop) pop.classList.toggle('open');
+        };
 
-    window.toggleMiniTile = function(winId) {
-        const pop = document.getElementById(winId + '_tilePop');
-        const zoomPop = document.getElementById(winId + '_zoomPop');
-        if (zoomPop) zoomPop.classList.remove('open');
-        if (pop) pop.classList.toggle('open');
-    };
-
-    window.applyTilePreset = function(winId, preset) {
-        const win = document.getElementById(winId);
-        if (!win) return;
-        const tilePop = document.getElementById(winId + '_tilePop');
-        if (tilePop) tilePop.classList.remove('open');
-        applyWindowSnap(win, preset);
-    };
-
-    window.setMiniWebZoom = function(winId, scale) {
+        window.setMiniWebZoom = function(winId, scale) {
         scale = parseFloat(scale) || 1;
         const frame = document.getElementById(winId + '_frame');
         const valSpan = document.getElementById(winId + '_zoomVal');
@@ -7247,365 +6779,7 @@ updateMenuPosition();
   }
 });
 
-// ═══════════════════════════════════════════════════════════════════════════
-// HARRY V3 — SOVEREIGN IDE INTELLIGENT VOICE ENGINE
-// ═══════════════════════════════════════════════════════════════════════════
-(function initHarryVoiceAssistant() {
-  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const voiceBtn = document.getElementById('voiceCtrlBtn');
-  const hud = document.getElementById('harryCaptionHud');
-  const hudText = document.getElementById('harryHudText');
-  const hudDot = document.getElementById('harryHudDot');
-  if (!voiceBtn) return;
 
-  if (!SpeechRec) {
-    voiceBtn.style.opacity = '0.35';
-    voiceBtn.title = 'Speech recognition not supported in this browser';
-    return;
-  }
-
-  const playTone = (freq = 600, duration = 0.08) => {
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.04, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-      osc.start();
-      osc.stop(ctx.currentTime + duration);
-    } catch(e) {}
-  };
-
-  const recognition = new SpeechRec();
-  recognition.continuous = true;
-  recognition.interimResults = true;
-  recognition.lang = 'en-IN';
-
-  let isListening = false;
-  let manualStop = false;
-  let hudTimer = null;
-  let lastDispatchedCmd = '';
-  let cmdCooldownTimer = null;
-  let speechDebounceTimer = null;
-
-  function levenshtein(a, b) {
-    const m = a.length, n = b.length;
-    const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
-    for (let i = 0; i <= m; i++) dp[i][0] = i;
-    for (let j = 0; j <= n; j++) dp[0][j] = j;
-    for (let i = 1; i <= m; i++) {
-      for (let j = 1; j <= n; j++) {
-        dp[i][j] = a[i - 1] === b[j - 1]
-          ? dp[i - 1][j - 1]
-          : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
-      }
-    }
-    return dp[m][n];
-  }
-
-  function findClosestRepo(query) {
-    if (!ghRepos || ghRepos.length === 0) return null;
-    const cleanQ = query.toLowerCase().replace(/[^a-z0-9]/g, '');
-    let bestMatch = null;
-    let lowestDistance = Infinity;
-
-    for (const fullRepo of ghRepos) {
-      const short = (fullRepo.split('/')[1] || fullRepo).toLowerCase();
-      const cleanShort = short.replace(/[^a-z0-9]/g, '');
-
-      if (cleanShort === cleanQ || cleanShort.includes(cleanQ) || cleanQ.includes(cleanShort)) {
-        return fullRepo;
-      }
-
-      if (cleanQ === 'seemp' || cleanQ === 'camp' || cleanQ === 'cmp') {
-        if (cleanShort === 'cmp') return fullRepo;
-      }
-
-      const dist = levenshtein(cleanQ, cleanShort);
-      if (dist < lowestDistance) {
-        lowestDistance = dist;
-        bestMatch = fullRepo;
-      }
-    }
-
-    return lowestDistance <= Math.max(2, Math.floor(cleanQ.length * 0.4)) ? bestMatch : null;
-  }
-
-  function showHud(msg, status = 'listen') {
-    if (!hud || !hudText) return;
-    hud.style.display = 'flex';
-    hudText.textContent = msg;
-
-    if (status === 'action') {
-      hudDot.style.background = 'var(--green)';
-      hudDot.style.boxShadow = '0 0 10px var(--green)';
-      hud.style.borderColor = 'var(--green)';
-      playTone(880, 0.06);
-    } else if (status === 'wake') {
-      hudDot.style.background = 'var(--amber)';
-      hudDot.style.boxShadow = '0 0 10px var(--amber)';
-      hud.style.borderColor = 'var(--amber)';
-    } else if (status === 'err') {
-      hudDot.style.background = 'var(--red)';
-      hudDot.style.boxShadow = '0 0 10px var(--red)';
-      hud.style.borderColor = 'var(--red)';
-      playTone(300, 0.12);
-    } else {
-      hudDot.style.background = 'var(--purple)';
-      hudDot.style.boxShadow = '0 0 8px var(--purple)';
-      hud.style.borderColor = 'rgba(188, 140, 255, 0.35)';
-    }
-
-    clearTimeout(hudTimer);
-    hudTimer = setTimeout(() => {
-      if (isListening) {
-        hudText.textContent = 'Listening...';
-        hudDot.style.background = 'var(--purple)';
-        hudDot.style.boxShadow = '0 0 8px var(--purple)';
-        hud.style.borderColor = 'rgba(188, 140, 255, 0.2)';
-      } else {
-        hud.style.display = 'none';
-      }
-    }, 2800);
-  }
-
-  function setVoiceUI(active) {
-    isListening = active;
-    voiceBtn.style.color = active ? 'var(--red)' : 'var(--purple)';
-    voiceBtn.innerHTML = active
-      ? '<i class="fa-solid fa-microphone-lines fa-fade"></i><span class="btn-lbl">Live</span>'
-      : '<i class="fa-solid fa-microphone"></i><span class="btn-lbl">Harry</span>';
-
-    if (active) {
-      showHud('Harry ready! Say "Harry..."');
-      playTone(520, 0.1);
-    } else if (hud) {
-      hud.style.display = 'none';
-    }
-  }
-
-  voiceBtn.addEventListener('click', () => {
-    if (!isListening) {
-      try {
-        manualStop = false;
-        recognition.start();
-        setVoiceUI(true);
-      } catch (err) {
-        toast('Mic error: ' + err.message, 'err');
-      }
-    } else {
-      manualStop = true;
-      recognition.stop();
-      setVoiceUI(false);
-      toast('💤 Harry paused');
-    }
-  });
-
-  recognition.onend = () => {
-    if (isListening && !manualStop) {
-      try { recognition.start(); } catch (e) { setVoiceUI(false); }
-    }
-  };
-
-  recognition.onerror = (e) => {
-    if (e.error === 'not-allowed') {
-      toast('Microphone permission denied', 'err');
-      setVoiceUI(false);
-      manualStop = true;
-    }
-  };
-
-  function slugify(text) {
-    return text.toString().toLowerCase()
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/[^\w\-]+/g, '')
-      .replace(/\-\-+/g, '-')
-      .substring(0, 35);
-  }
-
-  function executeHarryCommand(rawCmd) {
-    if (!rawCmd) return;
-    const cmd = rawCmd.trim().toLowerCase();
-
-    if (cmd === lastDispatchedCmd) return;
-    lastDispatchedCmd = cmd;
-    clearTimeout(cmdCooldownTimer);
-    cmdCooldownTimer = setTimeout(() => { lastDispatchedCmd = ''; }, 1200);
-
-    // 1. Create Repository
-    if (/^(create|make|start|new|initialize)\s+(a\s+)?(new\s+)?repo(sitory)?/i.test(cmd)) {
-      let rawName = cmd
-        .replace(/^(create|make|start|new|initialize)\s+(a\s+)?(new\s+)?repo(sitory)?/gi, '')
-        .replace(/^(called|named|with\s+name|name\s+is|name)\s*/gi, '')
-        .trim();
-
-      let validName = slugify(rawName) || ('repo-' + Date.now().toString().slice(-4));
-      showHud('🛠️ New Repo: ' + validName, 'action');
-
-      const addBtn = document.getElementById('repoAddBtn');
-      if (addBtn) addBtn.click();
-
-      setTimeout(async () => {
-        const nameInput = document.getElementById('nrName');
-        if (nameInput) {
-          nameInput.value = validName;
-          nameInput.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-
-        if (cmd.includes('paste') || cmd.includes('code')) {
-          const pasteRadio = document.querySelector('input[name="nrSource"][value="paste"]');
-          if (pasteRadio) {
-            pasteRadio.checked = true;
-            pasteRadio.dispatchEvent(new Event('change'));
-          }
-          try {
-            const clipText = await navigator.clipboard.readText();
-            const pasteArea = document.getElementById('nrPasteInput');
-            if (pasteArea && clipText) pasteArea.value = clipText;
-          } catch(e) {}
-        }
-
-        setTimeout(() => {
-          document.getElementById('nrAddBtn')?.click();
-        }, 500);
-      }, 350);
-      return;
-    }
-
-    // 2. Open / Switch Repository
-    if (/^(open|switch\s+to|load|go\s+to)\s+/i.test(cmd)) {
-      const targetQuery = cmd.replace(/^(open|switch\s+to|load|go\s+to)\s+/i, '').replace(/repo(sitory)?/gi, '').trim();
-      const found = findClosestRepo(targetQuery);
-      if (found) {
-        showHud('📂 Opening ' + (found.split('/')[1] || found), 'action');
-        window.switchRepo(found);
-      } else {
-        showHud('❌ Repo "' + targetQuery + '" not found', 'err');
-        toast(`Repo "${targetQuery}" not found in your GitHub list.`, 'warn');
-      }
-      return;
-    }
-
-    // 3. Edit & History
-    if (/^(paste|apply|patch)/i.test(cmd)) {
-      showHud('⚡ Paste & Apply', 'action');
-      document.getElementById('pasteBtn')?.click();
-      return;
-    }
-    if (/^(undo|revert|step\s+back)/i.test(cmd)) {
-      showHud('↩ Undo', 'action');
-      document.getElementById('undoBtn')?.click();
-      return;
-    }
-    if (/^(redo|step\s+forward)/i.test(cmd)) {
-      showHud('↪ Redo', 'action');
-      document.getElementById('redoBtn')?.click();
-      return;
-    }
-
-    // 4. View Modes & Fullscreen
-    if (/^(view|preview|show\s+code|toggle\s+view)/i.test(cmd)) {
-      showHud('👁 Toggle View', 'action');
-      document.getElementById('viewBtn')?.click();
-      return;
-    }
-    if (cmd.includes('full screen') || cmd === 'fullscreen') {
-      showHud('⛶ Fullscreen', 'action');
-      document.getElementById('fullScreenBtn')?.click();
-      return;
-    }
-    if (/^(find|search)/i.test(cmd)) {
-      showHud('🔍 Find & Replace', 'action');
-      if (viewMode === 'code') document.getElementById('searchCodeBtn')?.click();
-      return;
-    }
-    if (/^(tree|show\s+files|file\s+tree)/i.test(cmd)) {
-      showHud('🌳 File Tree', 'action');
-      document.getElementById('fullTreeBtn')?.click();
-      return;
-    }
-
-    // 5. GitHub Operations
-    if (/^(push|commit|save\s+online)/i.test(cmd)) {
-      showHud('⬆ Push to GitHub', 'action');
-      document.getElementById('ghPushBtn')?.click();
-      return;
-    }
-    if (/^(sync|fetch|refresh)/i.test(cmd)) {
-      showHud('🔄 Sync Repos', 'action');
-      document.getElementById('ghSyncBtn')?.click();
-      return;
-    }
-    if (/^(export|download)/i.test(cmd)) {
-      showHud('💾 Export File', 'action');
-      document.getElementById('exportBtn')?.click();
-      return;
-    }
-
-    // 6. AI Prompt & Payload
-    if (/^(instruction|prompt)\s+/i.test(cmd)) {
-      const text = cmd.replace(/^(instruction|prompt)\s+/i, '');
-      const input = document.getElementById('aiInstruction');
-      if (input) {
-        input.value = text;
-        showHud('📝 Prompt set', 'action');
-      }
-      return;
-    }
-    if (cmd.includes('payload') || cmd.includes('copy prompt')) {
-      showHud('🚀 Copied Payload', 'action');
-      document.getElementById('payloadBtn')?.click();
-      return;
-    }
-
-    // 7. Builder
-    if (/^(build|compile|make\s+apk)/i.test(cmd)) {
-      showHud('🔨 Build Modal', 'action');
-      document.getElementById('masterBuildBtn')?.click();
-      return;
-    }
-  }
-
-  recognition.onresult = (event) => {
-    let transcript = '';
-    let isFinal = false;
-
-    for (let i = event.resultIndex; i < event.results.length; ++i) {
-      transcript += event.results[i][0].transcript;
-      if (event.results[i].isFinal) isFinal = true;
-    }
-
-    transcript = transcript.trim();
-    if (!transcript) return;
-
-    showHud('🗣️ ' + transcript, 'wake');
-
-    const wakeMatch = transcript.match(/^(?:hey\s+|ok\s+)?(harry|हैरी)\b/i);
-    if (!wakeMatch) return;
-
-    const cmd = transcript.slice(wakeMatch[0].length).trim();
-    if (!cmd) return;
-
-    const isFastAction = /^(paste|undo|redo|view|push|sync|fullscreen|tree|find|export)$/i.test(cmd);
-    if (isFastAction) {
-      executeHarryCommand(cmd);
-      return;
-    }
-
-    clearTimeout(speechDebounceTimer);
-    if (isFinal) {
-      executeHarryCommand(cmd);
-    } else {
-      speechDebounceTimer = setTimeout(() => {
-        executeHarryCommand(cmd);
-      }, 700);
-    }
-  };
-})();
 
 sourceContent = '';
 render('', false); 
