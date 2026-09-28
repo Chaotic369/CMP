@@ -546,6 +546,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                           <button id="viewBtn" class="btn" title="Toggle View"><i class="fa-solid fa-eye"></i><span class="btn-lbl">View</span></button>
                               <button id="logBtn" class="btn" title="System Logs"><i class="fa-solid fa-file-lines"></i><span class="btn-lbl">Logs</span></button>
                               <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i><span class="btn-lbl">Wall</span></button>
+                                    <button id="renderBtn" class="btn" title="Render Cloud Services" style="color: #46e3b7;"><i class="fa-solid fa-cloud"></i><span class="btn-lbl">Render</span></button>
                                                                                   <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i><span class="btn-lbl">Get</span></button>
                               <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i><span class="btn-lbl">Build</span></button>
                                     
@@ -565,6 +566,66 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                                                 </div>
 
                       <div id="toast"><span id="toastMsg"></span><button id="toastCopyBtn" title="Copy Error"><i class="fa-regular fa-copy"></i></button></div>
+
+<div id="renderModal" style="display:none; width:90vw; max-width:440px; flex-direction:column; gap:12px;">
+  <div class="window-header">
+    <div class="win-title"><i class="fa-solid fa-cloud" style="color:#46e3b7; margin-right:8px;"></i> Render Services</div>
+    <button class="panel-close" id="renderCloseBtn">✕</button>
+  </div>
+
+  <div style="display:flex; gap:6px; margin-bottom:8px;">
+    <button class="btn" id="tabRenderServices" style="flex:1; width:auto; height:26px; font-size:10px; background:rgba(255,255,255,0.15);">My Services</button>
+    <button class="btn" id="tabRenderCreate" style="flex:1; width:auto; height:26px; font-size:10px; background:transparent;">New Service</button>
+    <button class="btn" id="tabRenderConfig" style="flex:1; width:auto; height:26px; font-size:10px; background:transparent;">Settings</button>
+  </div>
+
+  <!-- Services Tab -->
+  <div id="renderServicesView" style="display:flex; flex-direction:column; gap:8px;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-size:10px; color:#888;">Active Cloud Services</span>
+      <button id="rndRefreshBtn" class="btn" style="width:auto; height:20px; font-size:9px; padding:0 8px; color:var(--teal);"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+    </div>
+    <div id="renderServicesList" style="display:flex; flex-direction:column; gap:6px; max-height:260px; overflow-y:auto; padding-right:2px;">
+      <div style="color:#aaa; font-size:10px; text-align:center; padding:16px;">Configure your API Key in Settings to load services.</div>
+    </div>
+  </div>
+
+  <!-- Create Service Tab -->
+  <div id="renderCreateView" style="display:none; flex-direction:column; gap:8px;">
+    <div class="gh-row"><label>Name</label><input type="text" id="rndServiceName" placeholder="my-service-name"></div>
+    <div class="gh-row"><label>Runtime</label>
+      <select id="rndRuntime" class="bm-select" style="font-size:11px; padding:8px 12px;">
+        <option value="node">Node.js</option>
+        <option value="python">Python</option>
+        <option value="docker">Docker</option>
+        <option value="go">Go</option>
+        <option value="rust">Rust</option>
+      </select>
+    </div>
+    <div class="gh-row"><label>Build Cmd</label><input type="text" id="rndBuildCmd" value="npm install"></div>
+    <div class="gh-row"><label>Start Cmd</label><input type="text" id="rndStartCmd" value="npm start"></div>
+    <div class="gh-row"><label>Plan</label>
+      <select id="rndPlan" class="bm-select" style="font-size:11px; padding:8px 12px;">
+        <option value="free">Free</option>
+        <option value="starter" selected>Starter ($7/mo - Best for WebSockets)</option>
+        <option value="standard">Standard</option>
+      </select>
+    </div>
+    <div class="gh-actions">
+      <button id="rndSubmitCreateBtn" style="color:var(--green); background:rgba(57,211,83,0.2);"><i class="fa-solid fa-plus"></i> Create & Link Repo</button>
+    </div>
+  </div>
+
+  <!-- Config / Settings Tab -->
+  <div id="renderConfigView" style="display:none; flex-direction:column; gap:8px;">
+    <div class="gh-row"><label>API Key</label><input type="password" id="rndApiKey" placeholder="rnd_..."></div>
+    <div class="gh-row"><label>Owner ID</label><input type="text" id="rndOwnerId" placeholder="tea-... or usr-..."></div>
+    <div style="font-size:9px; color:#888; margin-top:2px;">Get your API key and Workspace ID from your Account Settings in the Render Dashboard.</div>
+    <div class="gh-actions">
+      <button id="rndSaveConfigBtn" style="color:var(--green); background:rgba(57,211,83,0.2);"><i class="fa-solid fa-floppy-disk"></i> Save Key</button>
+    </div>
+  </div>
+</div>
 
 <div id="wallpaperModal">
   <div class="window-header">
@@ -1169,6 +1230,11 @@ var ghBookmarkedRepos = [];
 var repoCollapsed = localStorage.getItem('repo_collapsed') === 'false' ? false : true;
 var ghConfigLoaded = false;
 
+// Render Cloud State
+var rndApiKey = '';
+var rndOwnerId = '';
+var rndServices = [];
+
 let dragSrcEl = null;
 window.nestedExpanded = window.nestedExpanded || {};
 let currentTreeFiles = [];
@@ -1657,14 +1723,16 @@ async function ghLoadConfigFromFirebase() {
     var localBackup = null;
     try { localBackup = JSON.parse(localStorage.getItem('gh_config_backup_v2') || 'null'); } catch(e) {}
     if (localBackup) {
-      ghToken = localBackup.token || ghToken;
-      ghUser = localBackup.user || ghUser;
-      ghRepo = localBackup.repo || ghRepo;
-      ghBranch = localBackup.branch || ghBranch;
-      ghFilePath = localBackup.filePath || ghFilePath;
-      ghRepos = localBackup.repos || ghRepos;
-      ghBookmarkedRepos = localBackup.bookmarkedRepos || ghBookmarkedRepos;
-    }
+          ghToken = localBackup.token || ghToken;
+          ghUser = localBackup.user || ghUser;
+          ghRepo = localBackup.repo || ghRepo;
+          ghBranch = localBackup.branch || ghBranch;
+          ghFilePath = localBackup.filePath || ghFilePath;
+          ghRepos = localBackup.repos || ghRepos;
+          ghBookmarkedRepos = localBackup.bookmarkedRepos || ghBookmarkedRepos;
+          rndApiKey = localBackup.rndApiKey || rndApiKey;
+          rndOwnerId = localBackup.rndOwnerId || rndOwnerId;
+        }
 
     if (window._fbLoadConfig) {
       const cfg = await window._fbLoadConfig();
@@ -1676,8 +1744,10 @@ async function ghLoadConfigFromFirebase() {
         ghBranch = cfg.branch || ghBranch;
         ghFilePath = cfg.filePath || ghFilePath;
         ghRepos = cfg.repos || ghRepos;
-        ghBookmarkedRepos = cfg.bookmarkedRepos || ghBookmarkedRepos;
-        console.log('[bookmarks] ghBookmarkedRepos set to:', ghBookmarkedRepos);
+                ghBookmarkedRepos = cfg.bookmarkedRepos || ghBookmarkedRepos;
+                rndApiKey = cfg.rndApiKey || rndApiKey;
+                rndOwnerId = cfg.rndOwnerId || rndOwnerId;
+                console.log('[bookmarks] ghBookmarkedRepos set to:', ghBookmarkedRepos);
         if (cfg.wallpaper !== undefined) {
           settings.wallpaper = cfg.wallpaper;
           localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -1723,18 +1793,20 @@ async function ghLoadConfigFromFirebase() {
 function ghSaveConfig() {
   if (ghUser) localStorage.setItem('gh_active_user', ghUser);
   const cfg = { 
-      token: ghToken || '', 
-      user: ghUser || '', 
-      repo: ghRepo || '', 
-      branch: ghBranch || 'main', 
-      filePath: ghFilePath || 'index.html', 
-      repos: ghRepos || [], 
-      bookmarkedRepos: ghBookmarkedRepos || [], 
-      wallpaper: settings.wallpaper || '',
-            toggleBtnPos: settings.toggleBtnPos || null,
-            menuScale: settings.menuScale || 1,
-            showLabels: settings.showLabels !== undefined ? settings.showLabels : true
-          };
+        token: ghToken || '', 
+        user: ghUser || '', 
+        repo: ghRepo || '', 
+        branch: ghBranch || 'main', 
+        filePath: ghFilePath || 'index.html', 
+        repos: ghRepos || [], 
+        bookmarkedRepos: ghBookmarkedRepos || [], 
+        wallpaper: settings.wallpaper || '',
+              toggleBtnPos: settings.toggleBtnPos || null,
+              menuScale: settings.menuScale || 1,
+              showLabels: settings.showLabels !== undefined ? settings.showLabels : true,
+              rndApiKey: rndApiKey || '',
+              rndOwnerId: rndOwnerId || ''
+            };
   try { localStorage.setItem('gh_config_backup_v2', JSON.stringify(cfg)); } catch(e) {}
   if (!ghConfigLoaded) {
     console.warn('[ghSaveConfig] Blocked Firebase save — config has not finished loading from Firebase yet.');
@@ -3678,10 +3750,10 @@ function toggleMenu() {
 $toggleBtn.addEventListener('click', function(e) { if (isDragging) return; toggleMenu(); });
 function closeTopmostModal() {
   var modalSelectors = [
-    '#astPanel', '#logPanel', '#ghConfigPanel', '#commitModal', '#newRepoModal',
-    '#wallpaperModal', '#buildModal', '#workflowsModal', '#fullTreeModal', '#bulkModal',
-        '#errLogModal', '#buildProgressOverlay'
-      ];
+      '#astPanel', '#logPanel', '#ghConfigPanel', '#commitModal', '#newRepoModal',
+      '#wallpaperModal', '#buildModal', '#workflowsModal', '#fullTreeModal', '#bulkModal',
+          '#errLogModal', '#buildProgressOverlay', '#renderModal'
+        ];
   var openModals = Array.from(document.querySelectorAll(modalSelectors.join(', '))).filter(function(m) {
     return m.classList.contains('open') || (m.style.display !== 'none' && window.getComputedStyle(m).display !== 'none');
   });
@@ -3989,6 +4061,175 @@ document.getElementById('liveSiteBtn').addEventListener('click', function() {
 });
 
 
+
+// --- RENDER MODAL CONTROLLERS ---
+document.getElementById('renderBtn').addEventListener('click', function() {
+  document.getElementById('rndApiKey').value = rndApiKey;
+  document.getElementById('rndOwnerId').value = rndOwnerId;
+  var rModal = document.getElementById('renderModal');
+  rModal.classList.add('open');
+  centerModal(rModal);
+  bringModalToFront(rModal);
+  $backdrop.classList.add('open');
+  if (rndApiKey) fetchRenderServices();
+});
+
+document.getElementById('renderCloseBtn').addEventListener('click', function() {
+  document.getElementById('renderModal').classList.remove('open');
+  document.getElementById('renderModal').style.display = 'none';
+  $backdrop.classList.remove('open');
+});
+
+function switchRenderTab(tab) {
+  ['Services', 'Create', 'Config'].forEach(function(t) {
+    document.getElementById('render' + t + 'View').style.display = (t === tab) ? 'flex' : 'none';
+    document.getElementById('tabRender' + t).style.background = (t === tab) ? 'rgba(255,255,255,0.15)' : 'transparent';
+  });
+}
+document.getElementById('tabRenderServices').onclick = function() { switchRenderTab('Services'); };
+document.getElementById('tabRenderCreate').onclick = function() { switchRenderTab('Create'); };
+document.getElementById('tabRenderConfig').onclick = function() { switchRenderTab('Config'); };
+
+document.getElementById('rndSaveConfigBtn').addEventListener('click', function() {
+  rndApiKey = document.getElementById('rndApiKey').value.trim();
+  rndOwnerId = document.getElementById('rndOwnerId').value.trim();
+  ghSaveConfig();
+  toast('✅ Render API Key Saved');
+  switchRenderTab('Services');
+  fetchRenderServices();
+});
+
+document.getElementById('rndRefreshBtn').addEventListener('click', function() {
+  fetchRenderServices();
+});
+
+async function fetchRenderServices() {
+  if (!rndApiKey) {
+    document.getElementById('renderServicesList').innerHTML = '<div style="color:var(--amber); font-size:10px; text-align:center; padding:16px;">Please set your API key in the Settings tab.</div>';
+    return;
+  }
+  document.getElementById('renderServicesList').innerHTML = '<div style="color:#aaa; font-size:10px; text-align:center; padding:16px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Fetching Render services...</div>';
+  try {
+    var res = await fetch('https://api.render.com/v1/services?limit=50', {
+      headers: { 'Authorization': 'Bearer ' + rndApiKey, 'Accept': 'application/json' }
+    });
+    if (!res.ok) throw new Error(await res.text());
+    var data = await res.json();
+    rndServices = data.map(function(item) { return item.service; });
+    renderServicesListUI();
+  } catch (err) {
+    document.getElementById('renderServicesList').innerHTML = '<div style="color:var(--red); font-size:10px; padding:10px;">Failed to fetch: ' + escHtml(err.message) + '</div>';
+    addLog('err', 'Render fetch failed: ' + err.message);
+  }
+}
+
+function renderServicesListUI() {
+  var container = document.getElementById('renderServicesList');
+  if (!rndServices.length) {
+    container.innerHTML = '<div style="color:#aaa; font-size:10px; text-align:center; padding:16px;">No services found on your Render account.</div>';
+    return;
+  }
+
+  container.innerHTML = rndServices.map(function(svc) {
+    var isCurrentRepo = ghRepo && svc.repo && svc.repo.toLowerCase().includes(ghRepo.toLowerCase());
+    var liveUrl = (svc.serviceDetails && svc.serviceDetails.url) ? svc.serviceDetails.url : '';
+    return '<div class="repo-item" style="padding:8px 10px; background:rgba(255,255,255,0.06); margin-bottom:4px; border-radius:8px; display:flex; align-items:center; justify-content:space-between;">' +
+      '<div style="overflow:hidden; flex:1;">' +
+        '<div style="font-weight:600; color:' + (isCurrentRepo ? '#46e3b7' : '#fff') + '; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escHtml(svc.name) + (isCurrentRepo ? ' <span style="font-size:9px; color:var(--teal);">[Linked]</span>' : '') + '</div>' +
+        '<div style="font-size:9px; color:#888;">' + escHtml(svc.type) + ' · ' + escHtml((svc.serviceDetails && svc.serviceDetails.env) || 'custom') + '</div>' +
+      '</div>' +
+      '<div style="display:flex; gap:6px; align-items:center;">' +
+        (liveUrl ? '<button class="repo-btn" onclick="window.open(\'' + liveUrl + '\', \'_blank\')" title="Open Live Service" style="color:var(--blue); font-size:10px;"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>' : '') +
+        '<button class="repo-btn" onclick="window.triggerRenderDeploy(\'' + svc.id + '\')" title="Trigger Deploy" style="color:var(--green); font-size:10px;"><i class="fa-solid fa-bolt"></i></button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+window.triggerRenderDeploy = async function(serviceId) {
+  if (!rndApiKey) return;
+  toast('⏳ Triggering Render deploy...', 'info');
+  showProgress(30);
+  try {
+    var res = await fetch('https://api.render.com/v1/services/' + serviceId + '/deploys', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + rndApiKey,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ clearCache: 'do_not_clear' })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    toast('✅ Render deploy started!', 'ok');
+    addLog('ok', 'Render deploy triggered for ' + serviceId);
+  } catch (err) {
+    toast('❌ Deploy failed: ' + err.message, 'err');
+    addLog('err', 'Render deploy failed: ' + err.message);
+  }
+  hideProgress();
+};
+
+document.getElementById('rndSubmitCreateBtn').addEventListener('click', async function() {
+  if (!rndApiKey || !rndOwnerId) {
+    toast('❌ Set API Key and Workspace Owner ID in Settings first', 'warn');
+    return;
+  }
+  if (!ghRepo) {
+    toast('❌ Select a GitHub repository first', 'warn');
+    return;
+  }
+
+  var name = document.getElementById('rndServiceName').value.trim();
+  var runtime = document.getElementById('rndRuntime').value;
+  var buildCmd = document.getElementById('rndBuildCmd').value.trim();
+  var startCmd = document.getElementById('rndStartCmd').value.trim();
+  var plan = document.getElementById('rndPlan').value;
+
+  if (!name) { toast('❌ Please enter a service name', 'warn'); return; }
+
+  toast('⏳ Creating Web Service on Render...', 'info');
+  showProgress(30);
+
+  var payload = {
+    type: 'web_service',
+    name: name,
+    ownerId: rndOwnerId,
+    repo: 'https://github.com/' + ghRepo,
+    branch: ghBranch || 'main',
+    autoDeploy: 'yes',
+    serviceDetails: {
+      env: runtime,
+      plan: plan,
+      region: 'oregon',
+      buildCommand: buildCmd,
+      startCommand: startCmd,
+      envVars: [{ key: 'NODE_ENV', value: 'production' }]
+    }
+  };
+
+  try {
+    var res = await fetch('https://api.render.com/v1/services', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + rndApiKey,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(await res.text());
+    var created = await res.json();
+    toast('✅ Render Service Created: ' + created.service.name, 'ok');
+    addLog('ok', 'Created Render service: ' + created.service.name);
+    switchRenderTab('Services');
+    fetchRenderServices();
+  } catch (err) {
+    toast('❌ Creation failed: ' + err.message, 'err');
+    addLog('err', 'Render creation failed: ' + err.message);
+  }
+  hideProgress();
+});
 
 // Wallpaper UI Triggers
 document.getElementById('wallpaperBtn').addEventListener('click', function() {
@@ -6618,7 +6859,8 @@ updateMenuPosition();
 [
   'astPanel', 'logPanel', 'ghConfigPanel', 'commitModal',
   'newRepoModal', 'wallpaperModal', 'bulkModal', 'workflowsModal',
-  'fullTreeModal', 'buildModal', 'buildProgressOverlay', 'errLogModal'
+  'fullTreeModal', 'buildModal', 'buildProgressOverlay', 'errLogModal',
+  'renderModal'
 ].forEach(function(id) {
   var el = document.getElementById(id);
   if (el) {
