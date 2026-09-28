@@ -1246,11 +1246,25 @@ async function renderApiFetch(endpoint, options) {
     var res = await fetch(directUrl, options);
     if (!res.ok) throw new Error(await res.text());
     return await res.json();
-  } catch (err) {
-    var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(directUrl);
-    var proxyRes = await fetch(proxyUrl, options);
-    if (!proxyRes.ok) throw new Error(await proxyRes.text());
-    return await proxyRes.json();
+  } catch (directErr) {
+    try {
+      var p1 = 'https://corsproxy.org/?url=' + encodeURIComponent(directUrl);
+      var res1 = await fetch(p1, options);
+      if (res1.ok) return await res1.json();
+    } catch (e1) {}
+
+    if (!options.method || options.method === 'GET') {
+      try {
+        var p2 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(directUrl);
+        var res2 = await fetch(p2, { headers: { 'Authorization': 'Bearer ' + rndApiKey } });
+        if (res2.ok) return await res2.json();
+      } catch (e2) {}
+    }
+
+    var p3 = 'https://thingproxy.freeboard.io/fetch/' + directUrl;
+    var res3 = await fetch(p3, options);
+    if (!res3.ok) throw new Error(await res3.text());
+    return await res3.json();
   }
 }
 
