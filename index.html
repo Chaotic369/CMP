@@ -567,7 +567,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
                       <div id="toast"><span id="toastMsg"></span><button id="toastCopyBtn" title="Copy Error"><i class="fa-regular fa-copy"></i></button></div>
 
-<div id="renderModal" style="display:none; width:90vw; max-width:440px; flex-direction:column; gap:12px;">
+<div id="renderModal">
   <div class="window-header">
     <div class="win-title"><i class="fa-solid fa-cloud" style="color:#46e3b7; margin-right:8px;"></i> Render Services</div>
     <button class="panel-close" id="renderCloseBtn">✕</button>
@@ -1234,6 +1234,25 @@ var ghConfigLoaded = false;
 var rndApiKey = '';
 var rndOwnerId = '';
 var rndServices = [];
+
+async function renderApiFetch(endpoint, options) {
+  options = options || {};
+  options.headers = options.headers || {};
+  options.headers['Authorization'] = 'Bearer ' + rndApiKey;
+  options.headers['Accept'] = 'application/json';
+  var directUrl = 'https://api.render.com/v1/' + endpoint;
+
+  try {
+    var res = await fetch(directUrl, options);
+    if (!res.ok) throw new Error(await res.text());
+    return await res.json();
+  } catch (err) {
+    var proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(directUrl);
+    var proxyRes = await fetch(proxyUrl, options);
+    if (!proxyRes.ok) throw new Error(await proxyRes.text());
+    return await proxyRes.json();
+  }
+}
 
 let dragSrcEl = null;
 window.nestedExpanded = window.nestedExpanded || {};
@@ -4118,11 +4137,7 @@ async function fetchRenderServices() {
   }
   document.getElementById('renderServicesList').innerHTML = '<div style="color:#aaa; font-size:10px; text-align:center; padding:16px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Fetching Render services...</div>';
   try {
-    var res = await fetch('https://api.render.com/v1/services?limit=50', {
-      headers: { 'Authorization': 'Bearer ' + rndApiKey, 'Accept': 'application/json' }
-    });
-    if (!res.ok) throw new Error(await res.text());
-    var data = await res.json();
+    var data = await renderApiFetch('services?limit=50');
     rndServices = data.map(function(item) { return item.service; });
     renderServicesListUI();
   } catch (err) {
@@ -4159,16 +4174,11 @@ window.triggerRenderDeploy = async function(serviceId) {
   toast('⏳ Triggering Render deploy...', 'info');
   showProgress(30);
   try {
-    var res = await fetch('https://api.render.com/v1/services/' + serviceId + '/deploys', {
+    await renderApiFetch('services/' + serviceId + '/deploys', {
       method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + rndApiKey,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ clearCache: 'do_not_clear' })
     });
-    if (!res.ok) throw new Error(await res.text());
     toast('✅ Render deploy started!', 'ok');
     addLog('ok', 'Render deploy triggered for ' + serviceId);
   } catch (err) {
@@ -4217,25 +4227,19 @@ document.getElementById('rndSubmitCreateBtn').addEventListener('click', async fu
   };
 
   try {
-    var res = await fetch('https://api.render.com/v1/services', {
-      method: 'POST',
-      headers: {
-        'Authorization': 'Bearer ' + rndApiKey,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error(await res.text());
-    var created = await res.json();
-    toast('✅ Render Service Created: ' + created.service.name, 'ok');
-    addLog('ok', 'Created Render service: ' + created.service.name);
-    switchRenderTab('Services');
-    fetchRenderServices();
-  } catch (err) {
-    toast('❌ Creation failed: ' + err.message, 'err');
-    addLog('err', 'Render creation failed: ' + err.message);
-  }
+      var created = await renderApiFetch('services', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      toast('✅ Render Service Created: ' + created.service.name, 'ok');
+      addLog('ok', 'Created Render service: ' + created.service.name);
+      switchRenderTab('Services');
+      fetchRenderServices();
+    } catch (err) {
+      toast('❌ Creation failed: ' + err.message, 'err');
+      addLog('err', 'Render creation failed: ' + err.message);
+    }
   hideProgress();
 });
 
