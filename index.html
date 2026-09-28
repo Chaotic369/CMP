@@ -268,7 +268,7 @@ body.hide-btn-labels .btn-lbl {
 #toastCopyBtn { display: none; background: rgba(255,255,255,0.12); border: none; color: inherit; border-radius: 8px; width: 18px; height: 18px; flex-shrink: 0; align-items: center; justify-content: center; cursor: pointer; font-size: 6px; }
 #toast.err #toastCopyBtn { display: flex; }
 
-#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal {
+#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal, #renderModal {
   position: fixed; z-index: 30000; background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px;
   padding: 24px; color: #ffffff; font-size: 11px; box-shadow: none;
   max-height: calc(100vh - 40px); overflow-y: auto;
@@ -277,15 +277,15 @@ body.hide-btn-labels .btn-lbl {
 #astPanel::-webkit-scrollbar, #logPanel::-webkit-scrollbar, #ghConfigPanel::-webkit-scrollbar,
 #commitModal::-webkit-scrollbar, #newRepoModal::-webkit-scrollbar, #wallpaperModal::-webkit-scrollbar,
 #buildModal::-webkit-scrollbar, #workflowsModal::-webkit-scrollbar, #fullTreeModal::-webkit-scrollbar,
-#bulkModal::-webkit-scrollbar, #errLogModal::-webkit-scrollbar {
+#bulkModal::-webkit-scrollbar, #errLogModal::-webkit-scrollbar, #renderModal::-webkit-scrollbar {
   display: none; width: 0; height: 0;
 }
 #astPanel, #logPanel { width: calc(100vw - 40px); max-width: 420px; max-height: 48vh; overflow-y: auto; display: none; line-height: 1.6; }
 #logPanel { z-index: 30005; }
 
-#ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal { width: 90vw; max-width: 400px; display: none; flex-direction: column; gap: 12px; }
+#ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #renderModal { width: 90vw; max-width: 420px; display: none; flex-direction: column; gap: 12px; }
 #ghConfigPanel.open, #commitModal.open, #newRepoModal.open, #wallpaperModal.open,
-#buildModal.open, #workflowsModal.open, #fullTreeModal.open, #bulkModal.open, #errLogModal.open { display: flex !important; flex-direction: column !important; }
+#buildModal.open, #workflowsModal.open, #fullTreeModal.open, #bulkModal.open, #errLogModal.open, #renderModal.open { display: flex !important; flex-direction: column !important; }
 #astPanel.open, #logPanel.open { display: block !important; }
 
 #astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
@@ -955,10 +955,10 @@ function bringModalToFront(modal) {
   topModalZ += 2;
   if (topModalZ >= MAX_WINDOW_Z) {
     var allModals = Array.from(document.querySelectorAll(
-      '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
-      '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
-      '#errLogModal, #buildProgressOverlay'
-          ));
+          '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
+          '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
+          '#errLogModal, #buildProgressOverlay, #renderModal'
+              ));
           allModals.sort(function(a, b) {
       return (parseInt(window.getComputedStyle(a).zIndex) || 30000) - 
              (parseInt(window.getComputedStyle(b).zIndex) || 30000);
@@ -1003,10 +1003,10 @@ function centerModal(el) {
   }
   
   var openModals = Array.from(document.querySelectorAll(
-    '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
-    '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
-    '#errLogModal, #buildProgressOverlay'
-      )).filter(function(m) {
+      '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
+      '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
+      '#errLogModal, #buildProgressOverlay, #renderModal'
+        )).filter(function(m) {
         return m !== el && window.getComputedStyle(m).display !== 'none' && m.offsetWidth > 0;
   }).map(function(m) {
     var r = m.getBoundingClientRect();
@@ -4063,16 +4063,24 @@ document.getElementById('liveSiteBtn').addEventListener('click', function() {
 
 
 // --- RENDER MODAL CONTROLLERS ---
-document.getElementById('renderBtn').addEventListener('click', function() {
-  document.getElementById('rndApiKey').value = rndApiKey;
-  document.getElementById('rndOwnerId').value = rndOwnerId;
-  var rModal = document.getElementById('renderModal');
-  rModal.classList.add('open');
-  centerModal(rModal);
-  bringModalToFront(rModal);
-  $backdrop.classList.add('open');
-  if (rndApiKey) fetchRenderServices();
-});
+var renderBtnEl = document.getElementById('renderBtn');
+if (renderBtnEl) {
+  renderBtnEl.addEventListener('click', function() {
+    var rModal = document.getElementById('renderModal');
+    if (!rModal) return;
+    document.getElementById('rndApiKey').value = rndApiKey;
+    document.getElementById('rndOwnerId').value = rndOwnerId;
+    rModal.classList.add('open');
+    centerModal(rModal);
+    bringModalToFront(rModal);
+    $backdrop.classList.add('open');
+    if (rndApiKey) {
+      fetchRenderServices();
+    } else {
+      switchRenderTab('Config');
+    }
+  });
+}
 
 document.getElementById('renderCloseBtn').addEventListener('click', function() {
   document.getElementById('renderModal').classList.remove('open');
