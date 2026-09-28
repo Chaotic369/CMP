@@ -1242,30 +1242,32 @@ async function renderApiFetch(endpoint, options) {
   options.headers['Accept'] = 'application/json';
   var directUrl = 'https://api.render.com/v1/' + endpoint;
 
-  try {
-    var res = await fetch(directUrl, options);
-    if (!res.ok) throw new Error(await res.text());
-    return await res.json();
-  } catch (directErr) {
+  var proxies = [
+    function() { return directUrl; },
+    function() { return 'https://corsproxy.org/?url=' + encodeURIComponent(directUrl); },
+    function() { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(directUrl); },
+    function() { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(directUrl); }
+  ];
+
+  var lastErr = null;
+  for (var i = 0; i < proxies.length; i++) {
     try {
-      var p1 = 'https://corsproxy.org/?url=' + encodeURIComponent(directUrl);
-      var res1 = await fetch(p1, options);
-      if (res1.ok) return await res1.json();
-    } catch (e1) {}
-
-    if (!options.method || options.method === 'GET') {
+      var targetUrl = proxies[i]();
+      var res = await fetch(targetUrl, options);
+      if (res.ok) {
+        return await res.json();
+      }
+      var errTxt = await res.text();
       try {
-        var p2 = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(directUrl);
-        var res2 = await fetch(p2, { headers: { 'Authorization': 'Bearer ' + rndApiKey } });
-        if (res2.ok) return await res2.json();
-      } catch (e2) {}
+        var parsed = JSON.parse(errTxt);
+        if (parsed.message) errTxt = parsed.message;
+      } catch (pe) {}
+      lastErr = new Error(errTxt);
+    } catch (e) {
+      lastErr = e;
     }
-
-    var p3 = 'https://thingproxy.freeboard.io/fetch/' + directUrl;
-    var res3 = await fetch(p3, options);
-    if (!res3.ok) throw new Error(await res3.text());
-    return await res3.json();
   }
+  throw lastErr || new Error('Network error calling Render API');
 }
 
 let dragSrcEl = null;
