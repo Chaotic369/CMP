@@ -569,7 +569,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <div id="wallpaperModal">
   <div class="window-header">
     <div class="win-title"><i class="fa-solid fa-image"></i> Workspace Wallpaper</div>
-    <button class="panel-close" onclick="document.getElementById('wallpaperModal').classList.remove('open'); document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
+    <button class="panel-close" onclick="document.getElementById('wallpaperModal').classList.remove('open'); document.getElementById('wallpaperModal').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
   <div class="gh-row"><label>Image URL</label><input type="text" id="wpUrlInput" placeholder=""></div>
   <div style="display:flex; justify-content:center; margin: 10px 0;">
@@ -662,7 +662,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <div id="ghConfigPanel">
   <div class="window-header">
     <div class="win-title"><i class="fa-brands fa-github"></i> GitHub Integration</div>
-    <button class="panel-close" id="ghClosePanelTopBtn" onclick="document.getElementById('ghConfigPanel').classList.remove('open'); document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
+    <button class="panel-close" id="ghClosePanelTopBtn" onclick="document.getElementById('ghConfigPanel').classList.remove('open'); document.getElementById('ghConfigPanel').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
   <div class="gh-row"><label>Token</label><input type="password" id="ghToken" placeholder=""></div>
   <div class="gh-row"><label>User</label><input type="text" id="ghUser" placeholder=""></div>
@@ -684,7 +684,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <div id="commitModal">
   <div class="window-header">
     <div class="win-title"><i class="fa-solid fa-arrow-up-from-bracket"></i> Commit & Push</div>
-    <button class="panel-close" onclick="document.getElementById('commitModal').classList.remove('open'); document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
+    <button class="panel-close" onclick="document.getElementById('commitModal').classList.remove('open'); document.getElementById('commitModal').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
   <textarea id="commitMsgInput" placeholder=""></textarea>
   <div class="gh-actions">
@@ -4002,17 +4002,19 @@ document.getElementById('wallpaperBtn').addEventListener('click', function() {
 
 document.getElementById('wpCancelBtn').addEventListener('click', function() {
   document.getElementById('wallpaperModal').classList.remove('open');
+  document.getElementById('wallpaperModal').style.display = 'none';
   $backdrop.classList.remove('open');
 });
 
 document.getElementById('wpSaveBtn').addEventListener('click', function() {
   const url = document.getElementById('wpUrlInput').value.trim();
-  settings.wallpaper = url;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  applyWallpaper(url);
-  ghSaveConfig();
-  document.getElementById('wallpaperModal').classList.remove('open');
-  $backdrop.classList.remove('open');
+    settings.wallpaper = url;
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    applyWallpaper(url);
+    ghSaveConfig();
+    document.getElementById('wallpaperModal').classList.remove('open');
+    document.getElementById('wallpaperModal').style.display = 'none';
+    $backdrop.classList.remove('open');
   toast('✅ Wallpaper applied & synced!');
 });
 
@@ -4038,9 +4040,10 @@ document.getElementById('wpFileInput').addEventListener('change', function(e) {
     settings.wallpaper = dataUrl;
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     applyWallpaper(dataUrl);
-    ghSaveConfig();
-    document.getElementById('wallpaperModal').classList.remove('open');
-    $backdrop.classList.remove('open');
+        ghSaveConfig();
+        document.getElementById('wallpaperModal').classList.remove('open');
+        document.getElementById('wallpaperModal').style.display = 'none';
+        $backdrop.classList.remove('open');
     toast('✅ Wallpaper uploaded & synced!');
   };
   reader.readAsDataURL(file);
@@ -4994,6 +4997,7 @@ document.getElementById('ghSettingsBtn').addEventListener('click', function() {
 
 document.getElementById('ghClosePanelBtn').addEventListener('click', function() {
   document.getElementById('ghConfigPanel').classList.remove('open');
+  document.getElementById('ghConfigPanel').style.display = 'none';
   $backdrop.classList.remove('open');
 });
 
@@ -5022,9 +5026,10 @@ document.getElementById('ghSaveBtn').addEventListener('click', function() {
     applyLabelsState(settings.showLabels);
   
     ghSaveConfig();
-  document.getElementById('ghConfigPanel').classList.remove('open');
-  $backdrop.classList.remove('open');
-  toast('💾 GitHub Settings Saved!');
+      document.getElementById('ghConfigPanel').classList.remove('open');
+      document.getElementById('ghConfigPanel').style.display = 'none';
+      $backdrop.classList.remove('open');
+      toast('💾 GitHub Settings Saved!');
   
   if (ghToken && ghUser && ghRepos.length === 0) {
     ghFetchAllRepos();
@@ -5338,6 +5343,7 @@ document.getElementById('ghPushBtn').addEventListener('click', function() {
 
 document.getElementById('cmCancelBtn').addEventListener('click', function() {
   document.getElementById('commitModal').classList.remove('open');
+  document.getElementById('commitModal').style.display = 'none';
   $backdrop.classList.remove('open');
 });
 
@@ -5345,8 +5351,9 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
   syncEditorToSource();
   const msg = document.getElementById('commitMsgInput').value.trim();
   if (!msg) { toast('❌ Enter a commit message', 'warn'); return; }
-  document.getElementById('commitModal').classList.remove('open');
-  $backdrop.classList.remove('open');
+    document.getElementById('commitModal').classList.remove('open');
+    document.getElementById('commitModal').style.display = 'none';
+    $backdrop.classList.remove('open');
   
   const btn = document.getElementById('ghPushBtn');
   btn.disabled = true;
@@ -5431,15 +5438,17 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
 
                       var errLogCloseBtnTopEl = document.getElementById('errLogCloseBtnTop');
                       if (errLogCloseBtnTopEl) errLogCloseBtnTopEl.addEventListener('click', function() {
-                        document.getElementById('errLogModal').classList.remove('open');
-                        $backdrop.classList.remove('open');
-                      });
+                                              document.getElementById('errLogModal').classList.remove('open');
+                                              document.getElementById('errLogModal').style.display = 'none';
+                                              $backdrop.classList.remove('open');
+                                            });
 
                       var errLogCloseBtnEl = document.getElementById('errLogCloseBtn');
                       if (errLogCloseBtnEl) errLogCloseBtnEl.addEventListener('click', function() {
-                        document.getElementById('errLogModal').classList.remove('open');
-                        $backdrop.classList.remove('open');
-                      });
+                                              document.getElementById('errLogModal').classList.remove('open');
+                                              document.getElementById('errLogModal').style.display = 'none';
+                                              $backdrop.classList.remove('open');
+                                            });
 
                       var errLogCopyBtnEl = document.getElementById('errLogCopyBtn');
                       if (errLogCopyBtnEl) errLogCopyBtnEl.addEventListener('click', function() {
@@ -5582,9 +5591,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                   if (bmManageWorkflowsBtnEl) bmManageWorkflowsBtnEl.addEventListener('click', window.openWorkflowsModal);
                   var wfModalCloseBtnEl = document.getElementById('wfModalCloseBtn');
                         if (wfModalCloseBtnEl) wfModalCloseBtnEl.addEventListener('click', function() {
-                          document.getElementById('workflowsModal').classList.remove('open');
-                          $backdrop.classList.remove('open');
-                        });
+                                                  document.getElementById('workflowsModal').classList.remove('open');
+                                                  document.getElementById('workflowsModal').style.display = 'none';
+                                                  $backdrop.classList.remove('open');
+                                                });
 
                         var bmUseWrapperYamlBtnEl = document.getElementById('bmUseWrapperYamlBtn');
                               if (bmUseWrapperYamlBtnEl) bmUseWrapperYamlBtnEl.addEventListener('click', function() {
@@ -5717,9 +5727,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                         });
 
       function closeBuildModal() {
-        document.getElementById('buildModal').classList.remove('open');
-        $backdrop.classList.remove('open');
-      }
+              document.getElementById('buildModal').classList.remove('open');
+              document.getElementById('buildModal').style.display = 'none';
+              $backdrop.classList.remove('open');
+            }
       document.getElementById('bmCloseBtn').addEventListener('click', closeBuildModal);
       document.getElementById('bmCancelBtn').addEventListener('click', closeBuildModal);
 
