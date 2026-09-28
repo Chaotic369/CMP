@@ -618,9 +618,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
   <!-- Config / Settings Tab -->
   <div id="renderConfigView" style="display:none; flex-direction:column; gap:8px;">
-    <div class="gh-row"><label>API Key</label><input type="password" id="rndApiKey" placeholder="rnd_..."></div>
-    <div class="gh-row"><label>Owner ID</label><input type="text" id="rndOwnerId" placeholder="tea-... or usr-..."></div>
-    <div style="font-size:9px; color:#888; margin-top:2px;">Get your API key and Workspace ID from your Account Settings in the Render Dashboard.</div>
+    <div class="gh-row"><label>Relay Secret</label><input type="password" id="rndApiKey" placeholder="the RELAY_SECRET you set on your relay"></div>
+        <div class="gh-row"><label>Owner ID</label><input type="text" id="rndOwnerId" placeholder="tea-... or usr-..."></div>
+        <div style="font-size:9px; color:#888; margin-top:2px;">Your real Render API key now lives only in your relay service's environment variables. This field holds the separate Relay Secret \u2014 never your actual Render key.</div>
     <div class="gh-actions">
       <button id="rndSaveConfigBtn" style="color:var(--green); background:rgba(57,211,83,0.2);"><i class="fa-solid fa-floppy-disk"></i> Save Key</button>
     </div>
@@ -1231,48 +1231,29 @@ var repoCollapsed = localStorage.getItem('repo_collapsed') === 'false' ? false :
 var ghConfigLoaded = false;
 
 // Render Cloud State
-var rndApiKey = '';
+// RENDER_RELAY_URL points at your deployed relay service — no trailing slash.
+var RENDER_RELAY_URL = 'https://render-relay-fdfl.onrender.com';
+var rndApiKey = ''; // now holds the RELAY_SECRET you set on the relay, NOT your real Render key
 var rndOwnerId = '';
 var rndServices = [];
 
 async function renderApiFetch(endpoint, options) {
   options = options || {};
-  options.headers = options.headers || {};
-  options.headers['Authorization'] = 'Bearer ' + rndApiKey;
-  options.headers['Accept'] = 'application/json';
-  var directUrl = 'https://api.render.com/v1/' + endpoint;
-  var method = (options.method || 'GET').toUpperCase();
-
-  var proxies = [
-    { label: 'Direct (api.render.com)', build: function() { return directUrl; } },
-    { label: 'corsproxy.org', build: function() { return 'https://corsproxy.org/?url=' + encodeURIComponent(directUrl); } },
-    { label: 'codetabs', build: function() { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(directUrl); } },
-    { label: 'allorigins.win', build: function() { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(directUrl); } }
-  ];
-
-  var attemptLog = [];
-  for (var i = 0; i < proxies.length; i++) {
-    var p = proxies[i];
-    try {
-      var targetUrl = p.build();
-      var res = await fetch(targetUrl, options);
-      if (res.ok) {
-        return await res.json();
-      }
-      var errTxt = await res.text();
-      try {
-        var parsed = JSON.parse(errTxt);
-        if (parsed.message) errTxt = parsed.message;
-      } catch (pe) {}
-      attemptLog.push(p.label + ': HTTP ' + res.status + ' - ' + errTxt.slice(0, 150));
-    } catch (e) {
-      var hint = (i === 0) ? ' (expected: Render\u2019s API has no browser CORS support)' : '';
-      attemptLog.push(p.label + ': ' + (e.message || 'network/CORS error') + hint);
-    }
+  if (!RENDER_RELAY_URL) {
+    throw new Error('Set RENDER_RELAY_URL to your deployed relay URL first.');
   }
-  var combined = 'All ' + proxies.length + ' attempt(s) failed for ' + method + ' ' + endpoint + ':\n' + attemptLog.join('\n');
-  if (typeof addLog === 'function') addLog('err', combined);
-  throw new Error(combined);
+  var res = await fetch(RENDER_RELAY_URL + '/' + endpoint, {
+    method: options.method || 'GET',
+    headers: Object.assign({ 'X-Relay-Secret': rndApiKey, 'Content-Type': 'application/json' }, options.headers || {}),
+    body: options.body
+  });
+  var text = await res.text();
+  var data = {};
+  try { data = text ? JSON.parse(text) : {}; } catch (e) { data = { message: text }; }
+  if (!res.ok) {
+    throw new Error(data.message || ('HTTP ' + res.status));
+  }
+  return data;
 }
 
 let dragSrcEl = null;
