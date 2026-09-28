@@ -118,20 +118,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
   transform: rotate(45deg);
 }
 
-#floatingPushBtn {
-  position: fixed; z-index: 999999 !important; width: 24px; height: 24px; border-radius: 6px;
-  background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
-  align-items: center; justify-content: center;
-  cursor: pointer; user-select: none; touch-action: none;
-  color: var(--blue); font-size: 6px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.2s, opacity 0.2s;
-}
-#floatingPushBtn:hover {
-  background: rgba(33, 33, 33, 0.75);
-}
-
 #app-menu {
       position: fixed; z-index: 100000 !important; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 6px;
       background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 6px; border: none !important; outline: none !important; border-radius: 14px;
@@ -264,44 +250,6 @@ body.hide-btn-labels .btn-lbl {
 
 .repo-actions { display: none; align-items: center; gap: 3px; }
 .repo-item.active .repo-actions { display: flex; }
-.repo-item .repo-web-btn { display: flex !important; color: #ffffff !important; opacity: 0.9; margin-left: auto; flex-shrink: 0; }
-.repo-item .repo-web-btn:hover { opacity: 1; color: #ffffff !important; }
-
-.mini-web-modal {
-  position: fixed; width: 340px; height: 400px; min-width: 200px; min-height: 150px;
-  display: flex; flex-direction: column; gap: 0px; z-index: 32500;
-  background: #000000 !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important; outline: none !important; border-radius: 12px; padding: 0px;
-  color: #ffffff; box-shadow: none; overflow: hidden;
-}
-.mini-web-modal .window-header {
-  height: 28px !important; min-height: 28px !important; padding: 0 10px !important; margin: 0 !important;
-  border: none !important; border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
-  border-radius: 12px 12px 0 0 !important; background: #000000 !important;
-}
-.mini-web-modal .panel-close {
-  padding: 2px 5px !important; font-size: 9px !important; border-radius: 4px;
-}
-.mini-web-frame-wrap {
-  width: 100%; flex: 1; overflow: hidden; position: relative; border-radius: 0 0 14px 14px; background: transparent;
-}
-.mini-web-modal iframe {
-  border: none; background: transparent; position: absolute; top: 0; left: 0;
-  transform-origin: 0 0;
-}
-.mini-zoom-pop {
-  display: none; align-items: center; gap: 6px; position: absolute; top: 22px; right: 6px;
-  background: #000000; padding: 3px 6px; border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important; z-index: 10002; box-shadow: none;
-}
-.mini-zoom-pop.open { display: flex; }
-.mini-zoom-pop input[type="range"] { width: 70px; accent-color: var(--blue); cursor: pointer; }
-.mini-zoom-pop span { font-size: 8px; font-family: monospace; min-width: 28px; }
-
-.resize-handle { position: absolute; z-index: 10001; touch-action: none; }
-.resize-r { top: 0; right: -4px; width: 12px; height: 100%; cursor: e-resize; }
-.resize-b { bottom: -4px; left: 0; width: 100%; height: 12px; cursor: s-resize; }
-.resize-br { bottom: -4px; right: -4px; width: 16px; height: 16px; cursor: se-resize; background: radial-gradient(circle at 70% 70%, rgba(255,255,255,0.3) 2px, transparent 3px); }
 .repo-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 2px 4px; font-size: 6px; border-radius: 6px; }
 .repo-btn.del { color: var(--red); }
 
@@ -369,7 +317,7 @@ body.hide-btn-labels .btn-lbl {
 /* Fullscreen UI Adjustments */
 :fullscreen #statusBar, :-webkit-full-screen #statusBar { display: none !important; }
 :fullscreen #codeView, :-webkit-full-screen #codeView { height: 100vh !important; }
-:fullscreen #toggleUiBtn, :-webkit-full-screen #toggleUiBtn, :fullscreen #floatingPushBtn, :-webkit-full-screen #floatingPushBtn { transform: scale(0.85); transform-origin: bottom right; }
+:fullscreen #toggleUiBtn, :-webkit-full-screen #toggleUiBtn { transform: scale(0.85); transform-origin: bottom right; }
 :fullscreen #app-menu, :-webkit-full-screen #app-menu { transform: scale(calc(var(--user-scale, 1) * 0.85)); }
 :fullscreen #fnrPanel, :-webkit-full-screen #fnrPanel { transform: scale(0.85); transform-origin: top center; }
 
@@ -553,10 +501,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <button id="toggleUiBtn" title="Toggle Menu">
   <i class="fa-solid fa-plus"></i>
 </button>
-<button id="floatingPushBtn" title="Push Changes to GitHub" style="display:none;">
-  <i class="fa-solid fa-arrow-up-from-bracket"></i>
-</button>
-
 <div id="app-menu">
       <div id="menu-resize-handle" style="position: absolute; bottom: 0; left: 0; width: 20px; height: 20px; cursor: sw-resize; z-index: 10001; pointer-events: auto; touch-action: none;" title="Drag to Resize">
               <div style="position: absolute; bottom: 4px; left: 4px; width: 12px; height: 12px; border-bottom: 2.5px solid rgba(160, 160, 160, 0.8); border-left: 2.5px solid rgba(160, 160, 160, 0.8); border-bottom-left-radius: 8px; box-shadow: none;"></div>
@@ -952,9 +896,9 @@ function bringModalToFront(modal) {
     var allModals = Array.from(document.querySelectorAll(
       '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
       '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
-      '#errLogModal, #buildProgressOverlay, .mini-web-modal'
-    ));
-    allModals.sort(function(a, b) {
+      '#errLogModal, #buildProgressOverlay'
+          ));
+          allModals.sort(function(a, b) {
       return (parseInt(window.getComputedStyle(a).zIndex) || 30000) - 
              (parseInt(window.getComputedStyle(b).zIndex) || 30000);
     });
@@ -1000,9 +944,9 @@ function centerModal(el) {
   var openModals = Array.from(document.querySelectorAll(
     '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
     '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
-    '#errLogModal, #buildProgressOverlay, .mini-web-modal'
-  )).filter(function(m) {
-    return m !== el && window.getComputedStyle(m).display !== 'none' && m.offsetWidth > 0;
+    '#errLogModal, #buildProgressOverlay'
+      )).filter(function(m) {
+        return m !== el && window.getComputedStyle(m).display !== 'none' && m.offsetWidth > 0;
   }).map(function(m) {
     var r = m.getBoundingClientRect();
     return { left: r.left, right: r.right, top: r.top, bottom: r.bottom };
@@ -1292,166 +1236,6 @@ window.toggleBookmarkRepo = function(r, e) {
     renderRepoTabs();
     if(window.renderBookmarks) window.renderBookmarks();
 };
-
-window.checkFreezePreviewState = function() {
-  var anyOpen = document.querySelectorAll('.mini-web-modal').length > 0;
-  var pv = document.getElementById('preview');
-  var es = document.getElementById('emptyState');
-  if (!pv || !es) return;
-
-  if (anyOpen) {
-    if (!window._previewWasSuspended) {
-      window._previewWasSuspended = true;
-      window._savedPreviewSrc = pv.src;
-      window._savedPreviewSrcdoc = pv.srcdoc;
-      pv.style.display = 'none';
-      es.style.display = 'flex';
-      pv.srcdoc = '<!DOCTYPE html><html><body style="background:#000;"></body></html>';
-    }
-  } else {
-    if (window._previewWasSuspended) {
-      window._previewWasSuspended = false;
-      if (window._savedPreviewSrcdoc) {
-        pv.srcdoc = window._savedPreviewSrcdoc;
-      } else if (window._savedPreviewSrc) {
-        pv.src = window._savedPreviewSrc;
-      }
-      if (viewMode === 'preview' && (sourceContent || window._savedPreviewSrcdoc || window._savedPreviewSrc)) {
-        pv.style.display = 'block';
-        es.style.display = 'none';
-      }
-    }
-  }
-};
-
-function makeWindowDimensionalResizable(win) {
-  const handles = ['r', 'b', 'br'];
-  handles.forEach(dir => {
-    let handle = document.createElement('div');
-    handle.className = `resize-handle resize-${dir}`;
-    win.appendChild(handle);
-    let startW, startH, startX, startY;
-    
-    handle.addEventListener('pointerdown', function(e) {
-      if (e.button !== 0 && e.pointerType === 'mouse') return;
-      e.stopPropagation();
-      startX = e.clientX; startY = e.clientY;
-      startW = win.offsetWidth; startH = win.offsetHeight;
-      bringModalToFront(win);
-      try { handle.setPointerCapture(e.pointerId); } catch(err) {}
-      
-      function onMove(ev) {
-              ev.stopPropagation();
-              if (ev.cancelable) ev.preventDefault();
-              if (dir === 'r' || dir === 'br') win.style.width = Math.max(200, startW + (ev.clientX - startX)) + 'px';
-              if (dir === 'b' || dir === 'br') win.style.height = Math.max(150, startH + (ev.clientY - startY)) + 'px';
-              const frame = win.querySelector('iframe');
-              if (frame && frame.dataset.zoom) {
-                const z = parseFloat(frame.dataset.zoom) || 1;
-                frame.style.width = (100 / z) + '%';
-                frame.style.height = (100 / z) + '%';
-              }
-            }
-      function onUp(ev) {
-                    handle.removeEventListener('pointermove', onMove);
-                    handle.removeEventListener('pointerup', onUp);
-                    handle.removeEventListener('pointercancel', onUp);
-                  }
-      handle.addEventListener('pointermove', onMove);
-      handle.addEventListener('pointerup', onUp);
-      handle.addEventListener('pointercancel', onUp);
-    });
-  });
-}
-
-window.miniWebCount = 0;
-window.openMiniWeb = function(repoFullName, e) {
-    if (e) e.stopPropagation();
-    const repoOwner = repoFullName.split('/')[0] || ghUser;
-    const repoName = (repoFullName.split('/')[1] || repoFullName).trim();
-    if (!repoName) { toast('❌ Invalid repo', 'warn'); return; }
-
-    const targetRepoLower = repoName.toLowerCase();
-    const currentPathLower = window.location.pathname.toLowerCase();
-    const currentRepoLower = (ghRepo ? (ghRepo.split('/')[1] || ghRepo) : '').toLowerCase();
-
-    const isSelfReplicating = targetRepoLower === 'cmp' ||
-                              (currentRepoLower && targetRepoLower === currentRepoLower) ||
-                              currentPathLower.includes('/' + targetRepoLower + '/');
-
-    if (isSelfReplicating) {
-        toast('🛑 Replication blocked: CMP cannot embed itself.', 'warn', 4000);
-        return;
-    }
-
-    const url = `https://${repoOwner}.github.io/${repoName}/?t=${Date.now()}`;
-    window.miniWebCount++;
-    const winId = 'miniWeb_' + window.miniWebCount;
-
-    const modal = document.createElement('div');
-    modal.className = 'mini-web-modal';
-    modal.id = winId;
-    
-    modal.innerHTML = `
-                  <div class="window-header" style="cursor:move; margin:0 !important; background:#000000 !important;">
-                    <div class="win-title" style="font-size:10px; pointer-events:none;"><i class="fa-solid fa-globe" style="color:var(--blue); margin-right:4px;"></i> ${repoName}</div>
-            <div style="display:flex; align-items:center; gap:3px;">
-              <button class="panel-close" title="Zoom In/Out" onclick="window.toggleMiniZoom('${winId}')"><i class="fa-solid fa-magnifying-glass" style="font-size:8px;"></i></button>
-                            <button class="panel-close" title="Reload" onclick="document.getElementById('${winId}_frame').src = '${url.split('?')[0]}?t=' + Date.now()"><i class="fa-solid fa-rotate-right" style="font-size:8px;"></i></button>
-                            <button class="panel-close" title="Open in New Tab" onclick="window.open('${url}', '_blank')"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:8px;"></i></button>
-                            <button class="panel-close" onclick="this.closest('.mini-web-modal').remove(); window.checkFreezePreviewState();">✕</button>
-                          </div>
-                        </div>
-                        <div class="mini-zoom-pop" id="${winId}_zoomPop">
-            <input type="range" min="0.3" max="2" step="0.05" value="0.7" oninput="window.setMiniWebZoom('${winId}', this.value)">
-            <span id="${winId}_zoomVal">70%</span>
-          </div>
-          <div class="mini-web-frame-wrap" id="${winId}_wrap">
-            <iframe id="${winId}_frame" src="${url}" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
-          </div>
-        `;
-    
-    document.body.appendChild(modal);
-        modal.style.transformOrigin = 'top left';
-        modal.style.transform = 'scale(1)';
-    
-        centerModal(modal);
-    
-        ['pointerdown', 'mousedown', 'touchstart'].forEach(function(evt) {
-      modal.addEventListener(evt, function() {
-        bringModalToFront(modal);
-      }, { capture: true, passive: true });
-    });
-
-    modal.addEventListener('pointerenter', function() {
-      bringModalToFront(modal);
-    });
-
-    bringModalToFront(modal);
-    makeWindowDraggable(modal);
-    makeWindowDimensionalResizable(modal);
-    window.setMiniWebZoom(winId, 0.7);
-    window.checkFreezePreviewState();
-};
-
-    window.toggleMiniZoom = function(winId) {
-            const pop = document.getElementById(winId + '_zoomPop');
-            if (pop) pop.classList.toggle('open');
-        };
-
-        window.setMiniWebZoom = function(winId, scale) {
-        scale = parseFloat(scale) || 1;
-        const frame = document.getElementById(winId + '_frame');
-        const valSpan = document.getElementById(winId + '_zoomVal');
-        if (valSpan) valSpan.textContent = Math.round(scale * 100) + '%';
-        if (!frame) return;
-
-        frame.dataset.zoom = scale;
-        const pct = (100 / scale) + '%';
-        frame.style.width = pct;
-        frame.style.height = pct;
-        frame.style.transform = `scale(${scale})`;
-    };
 
 window.switchRepo = function(r) {
     if (ghRepo === r) return;
@@ -2218,15 +2002,7 @@ function renderRepoTabs() {
                                 }
 
                 btn.appendChild(nameSpan);
-                                if (!window.repoBulkMode) {
-                                    const webBtn = document.createElement('button');
-                                    webBtn.className = 'repo-btn repo-web-btn';
-                                    webBtn.title = 'Open Mini Site';
-                                    webBtn.innerHTML = '<i class="fa-solid fa-globe"></i>';
-                                    webBtn.onclick = (ev) => { ev.stopPropagation(); window.openMiniWeb(r, ev); };
-                                    btn.appendChild(webBtn);
-                                }
-                            btn.appendChild(actions);
+                                            btn.appendChild(actions);
             container.appendChild(btn);
           });
           if(window.renderBookmarks) window.renderBookmarks();
@@ -3735,38 +3511,6 @@ document.getElementById('dismissErrText').addEventListener('click', function(e) 
 });
 
 // Global error handlers
-window.updateFloatingPushPosition = function() {
-  var fpb = document.getElementById('floatingPushBtn');
-  if (!fpb) return;
-  
-  var needsPush = false;
-  var currentContent = (viewMode === 'code') ? $codeView.value : sourceContent;
-  if (currentContent !== lastSavedContent && ghRepo && ghToken) needsPush = true;
-  
-  if (window.workspaceFiles) {
-      for (let k in window.workspaceFiles) {
-          if (window.workspaceFiles[k].modified) needsPush = true;
-      }
-  }
-  
-  if (!needsPush) {
-    fpb.style.display = 'none';
-    return;
-  }
-  
-  var mainPushBtn = document.getElementById('ghPushBtn');
-  if (mainPushBtn) mainPushBtn.disabled = false;
-  
-  fpb.style.display = 'flex';
-  var rect = $toggleBtn.getBoundingClientRect();
-  if (rect.right + 30 > window.innerWidth) {
-    fpb.style.left = (rect.left - 30) + 'px';
-  } else {
-    fpb.style.left = (rect.right + 6) + 'px';
-  }
-  fpb.style.top = rect.top + 'px';
-};
-
 window.addEventListener('error', function(e) {
   showErr('App Error: ' + e.message + '\nAt: ' + (e.filename || 'unknown') + ':' + e.lineno);
 });
@@ -3798,10 +3542,9 @@ function updateStatusBar() {
       if (broken.length === 0) { sb.textContent = 'AST: ✓'; sb.className = 'sb-item sb-ok'; }
       else { sb.textContent = 'AST: ⚠'; sb.className = 'sb-item sb-warn'; }
     }
-    if (window.updateFloatingPushPosition) window.updateFloatingPushPosition();
-  }
+      }
 
-function flash(color) {
+    function flash(color) {
   var c = color || 'var(--green)';
   $fring.style.borderColor = c;
   $fring.classList.add('on');
@@ -3849,10 +3592,9 @@ function updateMenuPosition() {
     else          { $appMenu.style.top    = (rect.bottom - 10) + 'px'; }
 
     syncSidebarHeightToControls();
-    if (window.updateFloatingPushPosition) window.updateFloatingPushPosition();
-  }
+      }
 
-$toggleBtn.addEventListener('pointerdown', function(e) {
+    $toggleBtn.addEventListener('pointerdown', function(e) {
   isDragging  = false;
   dragStartX  = e.clientX; dragStartY  = e.clientY;
   var rect    = $toggleBtn.getBoundingClientRect();
@@ -3894,8 +3636,7 @@ function onPtrMove(e) {
         $toggleBtn.style.left = newX + 'px'; $toggleBtn.style.top  = newY + 'px';
                 $toggleBtn.style.right = 'auto'; $toggleBtn.style.bottom = 'auto';
                 if ($appMenu.classList.contains('open')) updateMenuPosition();
-                if (window.updateFloatingPushPosition) window.updateFloatingPushPosition();
-                window.dragAnimationFrame = null;
+                                window.dragAnimationFrame = null;
               });
             }
   }
@@ -3939,8 +3680,8 @@ function closeTopmostModal() {
   var modalSelectors = [
     '#astPanel', '#logPanel', '#ghConfigPanel', '#commitModal', '#newRepoModal',
     '#wallpaperModal', '#buildModal', '#workflowsModal', '#fullTreeModal', '#bulkModal',
-    '#errLogModal', '#buildProgressOverlay', '.mini-web-modal'
-  ];
+        '#errLogModal', '#buildProgressOverlay'
+      ];
   var openModals = Array.from(document.querySelectorAll(modalSelectors.join(', '))).filter(function(m) {
     return m.classList.contains('open') || (m.style.display !== 'none' && window.getComputedStyle(m).display !== 'none');
   });
@@ -3955,11 +3696,8 @@ function closeTopmostModal() {
     } else if (topModal.id === 'buildProgressOverlay') {
       topModal.style.display = 'none';
       topModal.classList.remove('open');
-    } else if (topModal.classList.contains('mini-web-modal')) {
-      topModal.remove();
-      if (typeof window.checkFreezePreviewState === 'function') window.checkFreezePreviewState();
     } else {
-      topModal.classList.remove('open');
+          topModal.classList.remove('open');
       topModal.style.display = 'none';
     }
 
@@ -4123,10 +3861,6 @@ document.getElementById('fnrClose').addEventListener('click', () => {
 
 $fnrFind.addEventListener('input', doCodeSearch);
 $codeView.addEventListener('input', doCodeSearch);
-$codeView.addEventListener('input', function() {
-  if (window.updateFloatingPushPosition) window.updateFloatingPushPosition();
-});
-
 function doCodeSearch() {
   let text = $codeView.value;
   let q = $fnrFind.value;
@@ -5581,15 +5315,6 @@ document.getElementById('ghSyncBtn').addEventListener('click', async function() 
   hideProgress();
 });
 
-document.getElementById('floatingPushBtn').addEventListener('click', function(e) {
-  e.stopPropagation();
-  var mainBtn = document.getElementById('ghPushBtn');
-  if (mainBtn) {
-    mainBtn.disabled = false;
-    mainBtn.click();
-  }
-});
-
 document.getElementById('ghPushBtn').addEventListener('click', function() {
   syncEditorToSource();
   if (!ghToken || !ghRepo) {
@@ -5699,11 +5424,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
   } finally {
     btn.disabled = false;
     hideProgress();
-    if (window.updateFloatingPushPosition) window.updateFloatingPushPosition();
-  }
-});
+      }
+    });
 
-                // Modals are closed via their explicit close/cancel buttons
+                    // Modals are closed via their explicit close/cancel buttons
 
                       var errLogCloseBtnTopEl = document.getElementById('errLogCloseBtnTop');
                       if (errLogCloseBtnTopEl) errLogCloseBtnTopEl.addEventListener('click', function() {
@@ -6869,7 +6593,6 @@ document.addEventListener('drop', function(e) {
 
 window.addEventListener('resize', function() {
   if ($appMenu.classList.contains('open')) updateMenuPosition();
-  if (window.updateFloatingPushPosition) window.updateFloatingPushPosition();
 });
 
 window.addEventListener('beforeunload', function(e) {
