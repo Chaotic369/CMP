@@ -1241,18 +1241,20 @@ async function renderApiFetch(endpoint, options) {
   options.headers['Authorization'] = 'Bearer ' + rndApiKey;
   options.headers['Accept'] = 'application/json';
   var directUrl = 'https://api.render.com/v1/' + endpoint;
+  var method = (options.method || 'GET').toUpperCase();
 
   var proxies = [
-    function() { return directUrl; },
-    function() { return 'https://corsproxy.org/?url=' + encodeURIComponent(directUrl); },
-    function() { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(directUrl); },
-    function() { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(directUrl); }
+    { label: 'Direct (api.render.com)', build: function() { return directUrl; } },
+    { label: 'corsproxy.org', build: function() { return 'https://corsproxy.org/?url=' + encodeURIComponent(directUrl); } },
+    { label: 'codetabs', build: function() { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(directUrl); } },
+    { label: 'allorigins.win', build: function() { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(directUrl); } }
   ];
 
-  var lastErr = null;
+  var attemptLog = [];
   for (var i = 0; i < proxies.length; i++) {
+    var p = proxies[i];
     try {
-      var targetUrl = proxies[i]();
+      var targetUrl = p.build();
       var res = await fetch(targetUrl, options);
       if (res.ok) {
         return await res.json();
@@ -1262,12 +1264,15 @@ async function renderApiFetch(endpoint, options) {
         var parsed = JSON.parse(errTxt);
         if (parsed.message) errTxt = parsed.message;
       } catch (pe) {}
-      lastErr = new Error(errTxt);
+      attemptLog.push(p.label + ': HTTP ' + res.status + ' - ' + errTxt.slice(0, 150));
     } catch (e) {
-      lastErr = e;
+      var hint = (i === 0) ? ' (expected: Render\u2019s API has no browser CORS support)' : '';
+      attemptLog.push(p.label + ': ' + (e.message || 'network/CORS error') + hint);
     }
   }
-  throw lastErr || new Error('Network error calling Render API');
+  var combined = 'All ' + proxies.length + ' attempt(s) failed for ' + method + ' ' + endpoint + ':\n' + attemptLog.join('\n');
+  if (typeof addLog === 'function') addLog('err', combined);
+  throw new Error(combined);
 }
 
 let dragSrcEl = null;
