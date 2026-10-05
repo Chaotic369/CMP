@@ -94,8 +94,9 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 #fring { position: fixed; inset: 0; z-index: 99; border: 3px solid var(--green); pointer-events: none; opacity: 0; }
 #fring.on { opacity: 1; }
-#menu-backdrop { position: fixed; inset: 0; z-index: 29990; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: none; transition: opacity 0.2s ease; }
+#menu-backdrop { position: fixed; inset: 0; z-index: 29990; background: transparent; display: none; }
 #menu-backdrop.open { display: block; }
+#menu-backdrop.dimmed { background: rgba(0, 0, 0, 0.6); }
 
 /* Action Pop Up Button */
 #toggleUiBtn {
@@ -270,7 +271,7 @@ body.hide-btn-labels .btn-lbl {
 
 #astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal {
   position: fixed; z-index: 30000; background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px;
-  padding: 24px; color: #ffffff; font-size: 11px; box-shadow: none;
+  padding: 14px 18px; color: #ffffff; font-size: 11px; box-shadow: none;
   max-height: calc(100vh - 40px); overflow-y: auto;
   scrollbar-width: none; -ms-overflow-style: none;
 }
@@ -325,9 +326,9 @@ body.hide-btn-labels .btn-lbl {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   user-select: none;
   touch-action: none;
@@ -337,8 +338,8 @@ body.hide-btn-labels .btn-lbl {
 .win-title {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 14px;
+  gap: 5px;
+  font-size: 11px;
   font-weight: 600;
   color: #ffffff;
   flex: 1;
@@ -350,12 +351,12 @@ body.hide-btn-labels .btn-lbl {
 .panel-close {
   cursor: pointer;
   color: rgba(255, 255, 255, 0.7);
-  font-size: 13px;
+  font-size: 10px;
   line-height: 1;
-  padding: 4px 6px;
+  padding: 2px 4px;
   border: none;
   background: transparent;
-  border-radius: 6px;
+  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -800,7 +801,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <div id="astPanel">
   <div class="window-header">
     <div class="win-title">🧠 AST Health</div>
-    <button class="panel-close" onclick="document.getElementById('astPanel').style.display='none'">✕</button>
+    <button class="panel-close" id="astCloseBtn">✕</button>
   </div>
   <div id="astContent">Load a file to analyse.</div>
 </div>
@@ -816,7 +817,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <div id="logPanel">
   <div class="window-header">
     <div class="win-title">🪵 Patch Log</div>
-    <button class="panel-close" onclick="document.getElementById('logPanel').style.display='none'">✕</button>
+    <button class="panel-close" id="logCloseBtn">✕</button>
   </div>
   <div id="logContent"></div>
 </div>
@@ -893,6 +894,7 @@ function bringModalToFront(modal) {
   if (!modal) return;
   modal.style.display = (modal.id === 'astPanel' || modal.id === 'logPanel') ? 'block' : 'flex';
   modal.classList.add('open');
+  $backdrop.classList.add('open', 'dimmed');
   topModalZ += 2;
   if (topModalZ >= MAX_WINDOW_Z) {
       var allModals = Array.from(document.querySelectorAll(
@@ -3666,6 +3668,7 @@ function toggleMenu() {
   var isOpen = $appMenu.classList.toggle('open');
   $toggleBtn.classList.toggle('active', isOpen);
   $backdrop.classList.toggle('open', isOpen);
+  $backdrop.classList.remove('dimmed');
   if (isOpen) {
       // Restore user's last sidebar state instead of forcing collapse
       if (repoCollapsed) {
@@ -3712,17 +3715,20 @@ function closeTopmostModal() {
     }
 
     var remaining = Array.from(document.querySelectorAll(modalSelectors.join(', '))).filter(function(m) {
-      return m.classList.contains('open') || (m.style.display !== 'none' && window.getComputedStyle(m).display !== 'none');
-    });
-    if (remaining.length === 0 && !$appMenu.classList.contains('open')) {
-      $backdrop.classList.remove('open');
+          return m.classList.contains('open') || (m.style.display !== 'none' && window.getComputedStyle(m).display !== 'none');
+        });
+        if (remaining.length === 0) {
+          $backdrop.classList.remove('dimmed');
+          if (!$appMenu.classList.contains('open')) {
+            $backdrop.classList.remove('open');
+          }
+        }
+      } else if ($appMenu.classList.contains('open')) {
+        toggleMenu();
+      } else {
+        $backdrop.classList.remove('open', 'dimmed');
+      }
     }
-  } else if ($appMenu.classList.contains('open')) {
-    toggleMenu();
-  } else {
-    $backdrop.classList.remove('open');
-  }
-}
 
 $backdrop.addEventListener('click', function(e) {
   if (e.target !== $backdrop) return;
@@ -4548,13 +4554,29 @@ function render(src, skipEditorUpdate) {
 
 document.getElementById('astBtn').addEventListener('click', function() {
   syncEditorToSource();
-  var isOpen = $astPanel.style.display === 'block';$astPanel.style.display = isOpen ? 'none' : 'block';
-  if (!isOpen) {
+  var isOpen = $astPanel.classList.contains('open') || $astPanel.style.display === 'block';
+  if (isOpen) {
+    $astPanel.classList.remove('open');
+    $astPanel.style.display = 'none';
+    $backdrop.classList.remove('open');
+  } else {
+    $astPanel.classList.add('open');
+    $astPanel.style.display = 'block';
     centerModal($astPanel);
     bringModalToFront($astPanel);
+    $backdrop.classList.add('open');
     if (sourceContent) runASTCheck(sourceContent);
   }
 });
+
+var astCloseBtnEl = document.getElementById('astCloseBtn');
+if (astCloseBtnEl) {
+  astCloseBtnEl.addEventListener('click', function() {
+    $astPanel.classList.remove('open');
+    $astPanel.style.display = 'none';
+    $backdrop.classList.remove('open');
+  });
+}
 
 function tokenBalance(src) {
   var jsCode = src;
@@ -4683,13 +4705,29 @@ function astGuardAfterApply() {
 }
 
 document.getElementById('logBtn').addEventListener('click', function() {
-  var isOpen = $logPanel.style.display === 'block';$logPanel.style.display = isOpen ? 'none' : 'block';
-  if (!isOpen) {
+  var isOpen = $logPanel.classList.contains('open') || $logPanel.style.display === 'block';
+  if (isOpen) {
+    $logPanel.classList.remove('open');
+    $logPanel.style.display = 'none';
+    $backdrop.classList.remove('open');
+  } else {
+    $logPanel.classList.add('open');
+    $logPanel.style.display = 'block';
     centerModal($logPanel);
     bringModalToFront($logPanel);
+    $backdrop.classList.add('open');
     renderLog();
   }
 });
+
+var logCloseBtnEl = document.getElementById('logCloseBtn');
+if (logCloseBtnEl) {
+  logCloseBtnEl.addEventListener('click', function() {
+    $logPanel.classList.remove('open');
+    $logPanel.style.display = 'none';
+    $backdrop.classList.remove('open');
+  });
+}
 
 function escHtml(s) {
   return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>');
