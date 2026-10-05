@@ -81,7 +81,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 #preview {
   position: fixed; top: env(safe-area-inset-top, 0px); left: env(safe-area-inset-left, 0px);
   width: calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
-  height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  height: calc(100vh - 24px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   border: none; background: transparent; z-index: 1; display: none; -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto; color-scheme: dark;
 }
 
@@ -102,7 +102,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 /* Action Pop Up Button */
 #toggleUiBtn {
-  position: fixed; bottom: calc(130px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 999999 !important; width: 24px; height: 24px; border-radius: 6px;
+  position: fixed; bottom: calc(130px + 24px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 999999 !important; width: 24px; height: 24px; border-radius: 6px;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; user-select: none; touch-action: none;
@@ -492,6 +492,16 @@ input::placeholder, textarea::placeholder {
 .bm-toggle-btn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500; }
 .bm-toggle-btn.active { background: rgba(92, 157, 255, 0.2); border-color: var(--blue); }
 .bm-code-box { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; padding: 10px; border-radius: 8px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 10px; min-height: 80px; resize: vertical; box-sizing: border-box; }
+.bm-code-box::-webkit-resizer {
+  background-color: rgba(255, 255, 255, 0.18);
+  border-bottom-right-radius: 8px;
+  border-right: 4px solid var(--blue);
+  border-bottom: 4px solid var(--blue);
+  outline: 2px solid rgba(255, 255, 255, 0.25);
+  cursor: se-resize;
+  width: 22px;
+  height: 22px;
+}
 .bm-permissions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
 .bm-permissions-grid label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .bm-advanced { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-top: 4px; }
@@ -706,18 +716,29 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     </div>
 </div>
 
-<div id="bulkModal" style="width: 90vw; max-width: 400px; display: none; flex-direction: column;">
-  <div class="window-header">
-    <div class="win-title"><i class="fa-solid fa-cubes"></i> Bulk Create Files</div>
+<div id="bulkModal" style="width:92vw; max-width:440px; display:none; flex-direction:column; padding:16px; box-sizing:border-box;">
+  <div class="window-header" style="margin-bottom:12px; padding-bottom:8px;">
+    <div class="win-title"><i class="fa-solid fa-cubes" style="color:var(--amber); margin-right:6px;"></i> Bulk Create Files & Folders</div>
     <button class="panel-close" onclick="document.getElementById('bulkModal').classList.remove('open'); document.getElementById('bulkModal').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
-  <p style="font-size:11px; margin-bottom:8px; color:#a0a0a0;">Paste file paths (one per line). Folders are auto-created.</p>
-  <textarea id="bulkPathsInput" placeholder="app/build.gradle&#10;app/src/main/AndroidManifest.xml&#10;.github/workflows/build.yml" style="width:100%; height:150px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:12px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:11px;"></textarea>
-  <div class="gh-actions">
-      <button id="bulkCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
-      <button id="bulkConfirmBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-check"></i> Create</button>
+
+  <div style="display:flex; flex-direction:column; gap:10px;">
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:11px; font-weight:600; color:var(--amber);"><i class="fa-solid fa-folder-tree" style="margin-right:6px;"></i>Project Structure</span>
+        <button id="bulkPasteBtn" type="button" class="btn" style="width:auto; padding:2px 8px; font-size:9px; height:22px; border-radius:6px; color:var(--green); background:rgba(57,211,83,0.12); border:1px solid rgba(57,211,83,0.25);" title="Paste paths from clipboard"><i class="fa-solid fa-paste" style="margin-right:4px;"></i>Paste</button>
+      </div>
+      <p style="font-size:10px; color:rgba(255,255,255,0.6); margin:0; line-height:1.4;">One path per line. End with <code>/</code> for empty folders.</p>
+      <textarea id="bulkPathsInput" class="bm-code-box" placeholder="app/build.gradle.kts&#10;app/src/main/AndroidManifest.xml&#10;.github/workflows/android.yml" style="width:100%; height:160px; min-height:120px; margin:0; border-radius:8px; box-sizing:border-box;"></textarea>
     </div>
   </div>
+
+  <div class="gh-actions" style="margin-top:12px;">
+    <button id="bulkClearBtn" style="color:var(--red); margin-right:auto; background:rgba(248,81,73,0.15); border-color:rgba(248,81,73,0.3) !important;"><i class="fa-solid fa-trash"></i> Clear</button>
+    <button id="bulkCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+    <button id="bulkConfirmBtn" style="color:var(--green); background:rgba(57,211,83,0.18); border-color:rgba(57,211,83,0.4) !important;"><i class="fa-solid fa-check"></i> Create Files</button>
+  </div>
+</div>
 
   <div id="workflowsModal" style="width: 90vw; max-width: 420px;">
       <div class="window-header">
@@ -748,26 +769,44 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <div id="modalRepoList" style="display:none; flex-direction:column; gap:4px; overflow-y:auto; flex:1; padding-right:4px;"></div>
   </div>
 
-<div id="ghConfigPanel">
-  <div class="window-header">
-    <div class="win-title"><i class="fa-brands fa-github"></i> GitHub Integration</div>
+<div id="ghConfigPanel" style="width:92vw; max-width:440px; padding:16px; box-sizing:border-box;">
+  <div class="window-header" style="margin-bottom:12px; padding-bottom:8px;">
+    <div class="win-title"><i class="fa-solid fa-sliders" style="color:var(--blue); margin-right:6px;"></i> Settings & Integration</div>
     <button class="panel-close" id="ghClosePanelTopBtn" onclick="document.getElementById('ghConfigPanel').classList.remove('open'); document.getElementById('ghConfigPanel').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
-  <div class="gh-row"><label>Token</label><input type="password" id="ghToken" placeholder=""></div>
-  <div class="gh-row"><label>User</label><input type="text" id="ghUser" placeholder=""></div>
-  <div class="gh-row"><label>Branch</label><input type="text" id="ghBranch" placeholder=""></div>
-    <div class="gh-row"><label>File Path</label><input type="text" id="ghFilePath" placeholder=""></div>
-    <div class="gh-row" style="cursor:pointer;" onclick="document.getElementById('ghShowLabels').click()">
-      <label style="cursor:pointer;">Labels</label>
-      <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:11px; color:#ffffff;">
-        <input type="checkbox" id="ghShowLabels" style="cursor:pointer;" checked onclick="event.stopPropagation()"> Show button labels
+
+  <div style="display:flex; flex-direction:column; gap:10px;">
+    <!-- GitHub Authentication Section -->
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:11px; font-weight:600; color:var(--blue);"><i class="fa-brands fa-github" style="margin-right:6px;"></i>GitHub Authentication</span>
+        <button id="ghFetchReposBtn" type="button" class="btn" style="width:auto; padding:2px 8px; font-size:9px; height:22px; border-radius:6px; color:var(--teal); background:rgba(45,212,191,0.12); border:1px solid rgba(45,212,191,0.25);" title="Fetch user repositories"><i class="fa-solid fa-arrows-rotate" style="margin-right:4px;"></i>Fetch Repos</button>
+      </div>
+      <div class="gh-row" style="margin:0;"><label>Token</label><input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx"></div>
+      <div class="gh-row" style="margin:0;"><label>User</label><input type="text" id="ghUser" placeholder="github-username"></div>
+    </div>
+
+    <!-- Repository & Branch Target Section -->
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+      <span style="font-size:11px; font-weight:600; color:var(--purple);"><i class="fa-solid fa-code-branch" style="margin-right:6px;"></i>Repository Defaults</span>
+      <div class="gh-row" style="margin:0;"><label>Branch</label><input type="text" id="ghBranch" placeholder="main"></div>
+      <div class="gh-row" style="margin:0;"><label>File Path</label><input type="text" id="ghFilePath" placeholder="index.html"></div>
+    </div>
+
+    <!-- Workspace & Preferences Section -->
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+      <span style="font-size:11px; font-weight:600; color:var(--amber);"><i class="fa-solid fa-desktop" style="margin-right:6px;"></i>Preferences</span>
+      <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:11px; color:#ffffff; user-select:none; margin:0; padding:2px 0;">
+        <span style="display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-tag" style="font-size:10px; color:rgba(255,255,255,0.6);"></i>Show toolbar button labels</span>
+        <input type="checkbox" id="ghShowLabels" style="cursor:pointer; accent-color:var(--blue); width:14px; height:14px;" checked>
       </label>
     </div>
-    <div class="gh-actions">
-        <button id="ghFetchReposBtn" style="color:var(--teal); margin-right: auto; background: rgba(45, 212, 191, 0.15); border-color: rgba(45, 212, 191, 0.35) !important;"><i class="fa-solid fa-arrows-rotate"></i> Fetch Repos</button>
-        <button id="ghClosePanelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
-        <button id="ghSaveBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.18); border-color: rgba(57, 211, 83, 0.4) !important;"><i class="fa-solid fa-floppy-disk"></i> Save Config</button>
-      </div>
+  </div>
+
+  <div class="gh-actions" style="margin-top:12px;">
+    <button id="ghClosePanelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+    <button id="ghSaveBtn" style="color:var(--green); background:rgba(57,211,83,0.18); border-color:rgba(57,211,83,0.4) !important;"><i class="fa-solid fa-floppy-disk"></i> Save Config</button>
+  </div>
 </div>
 
 <div id="commitModal">
@@ -815,16 +854,21 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                       <button id="bmCopyYamlPromptBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08);" title="Copy native app prompt for AI"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:3px;"></i>Native App</button>
                     </div>
                   </div>
-                  <div style="position:relative; width:100%;">
-                    <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:95px; margin:0; border-radius:8px; padding-bottom:30px;"></textarea>
-                    <button id="bmInnerPasteYamlBtn" type="button" class="btn" style="position:absolute; bottom:8px; right:8px; width:auto; padding:2px 8px; font-size:9px; height:20px; border-radius:6px; background:rgba(255,255,255,0.12); color:var(--green); border:1px solid rgba(255,255,255,0.15);" title="Paste YAML from clipboard"><i class="fa-solid fa-paste" style="margin-right:4px;"></i>Paste</button>
-                  </div>
+                  <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:95px; margin:0; border-radius:8px;"></textarea>
           <div class="gh-row" style="margin:0;"><label>Filename</label><input type="text" id="bmWorkflowFilename" placeholder="custom-build.yml" value="custom-build.yml"></div>
         </div>
 
-        <!-- Section 2: Artifact & Quick Actions -->
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; box-sizing:border-box;">
-          <div class="gh-row" style="margin:0;"><label>Artifact</label><input type="text" id="bmArtifactName" placeholder="e.g. Android-APK"></div>
+        <!-- Section 2: Quick Actions & Workflows -->
+            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; box-sizing:border-box;">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                <div id="bmExistingWorkflows" style="font-size:9px; color:rgba(255,255,255,0.5); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Loading workflows...</div>
+                <div style="display:flex; gap:5px; flex-shrink:0;">
+                  <button id="pullApkLogBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--red); background:rgba(248,81,73,0.12); border:1px solid rgba(248,81,73,0.25);" type="button" onclick="window.pullLastFailedLog()"><i class="fa-solid fa-file-waveform" style="margin-right:3px;"></i>Logs</button>
+                  <button id="downloadApkBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--teal); background:rgba(45,212,191,0.12); border:1px solid rgba(45,212,191,0.25);" type="button" onclick="window.checkAndDownloadLastBuild()"><i class="fa-solid fa-file-zipper" style="margin-right:3px;"></i>APK</button>
+                  <button id="bmManageWorkflowsBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);" type="button"><i class="fa-solid fa-folder-tree" style="margin-right:3px;"></i>Files</button>
+                </div>
+              </div>
+            </div>
           <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; padding-top:4px; border-top:1px solid rgba(255,255,255,0.05);">
             <div id="bmExistingWorkflows" style="font-size:9px; color:rgba(255,255,255,0.5); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Loading workflows...</div>
             <div style="display:flex; gap:5px; flex-shrink:0;">
@@ -1066,7 +1110,7 @@ function centerModal(el) {
   var w = (rect.width > 20 ? rect.width : (el.offsetWidth || 360));
   var h = (rect.height > 20 ? rect.height : (el.offsetHeight || 300));
   var maxW = window.innerWidth;
-  var maxH = window.innerHeight;
+    var maxH = window.innerHeight - 24 - (parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat-bottom')) || 0);
   
   var cx = Math.max(10, Math.floor((maxW - w) / 2));
   var cy = Math.max(40, Math.floor((maxH - h) / 2));
@@ -1261,7 +1305,7 @@ function makeWindowDraggable(win) {
                   var newTop = ev.clientY - shiftY;
                   var scaledW = win.offsetWidth * scale;
                   var maxLeft = window.innerWidth - scaledW;
-                  var maxTop = window.innerHeight - 40;
+                                    var maxTop = window.innerHeight - 24 - 40;
                   win.style.transformOrigin = 'top left';
                   win.style.transform = 'scale(' + scale + ')';
                   win.style.left = Math.max(0, Math.min(newLeft, maxLeft)) + 'px';
@@ -3784,7 +3828,7 @@ function onPtrMove(e) {
         var minX = margin;
         var minY = margin;
         var maxX = window.innerWidth - $toggleBtn.offsetWidth - margin;
-        var maxY = window.innerHeight - $toggleBtn.offsetHeight - margin;
+                var maxY = window.innerHeight - 24 - $toggleBtn.offsetHeight - margin;
         
         if ($appMenu.classList.contains('open')) {
             var isRight = (initialBtnX + dx + $toggleBtn.offsetWidth / 2) > (window.innerWidth / 2);
@@ -5681,32 +5725,30 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
             var BUILD_CONFIG_KEY = 'build_config_v1';
 
             function saveBuildConfig() {
-              try {
-                var cfg = {
-                  yaml: document.getElementById('bmWorkflowYaml').value,
-                  filename: document.getElementById('bmWorkflowFilename').value,
-                  artifactName: document.getElementById('bmArtifactName').value,
-                  appName: document.getElementById('bmAppName').value,
-                  version: document.getElementById('bmVersion').value
-                };
-                localStorage.setItem(BUILD_CONFIG_KEY, JSON.stringify(cfg));
-              } catch (e) {}
-            }
+                          try {
+                            var cfg = {
+                              yaml: document.getElementById('bmWorkflowYaml').value,
+                              filename: document.getElementById('bmWorkflowFilename').value,
+                              appName: document.getElementById('bmAppName').value,
+                              version: document.getElementById('bmVersion').value
+                            };
+                            localStorage.setItem(BUILD_CONFIG_KEY, JSON.stringify(cfg));
+                          } catch (e) {}
+                        }
 
-            function loadBuildConfig() {
-              try {
-                var raw = localStorage.getItem(BUILD_CONFIG_KEY);
-                if (!raw) return;
-                var cfg = JSON.parse(raw);
-                if (cfg.yaml) document.getElementById('bmWorkflowYaml').value = cfg.yaml;
-                if (cfg.filename) document.getElementById('bmWorkflowFilename').value = cfg.filename;
-                if (cfg.artifactName) document.getElementById('bmArtifactName').value = cfg.artifactName;
-                if (cfg.appName) document.getElementById('bmAppName').value = cfg.appName;
-                if (cfg.version) document.getElementById('bmVersion').value = cfg.version;
-              } catch (e) {}
-            }
+                        function loadBuildConfig() {
+                          try {
+                            var raw = localStorage.getItem(BUILD_CONFIG_KEY);
+                            if (!raw) return;
+                            var cfg = JSON.parse(raw);
+                            if (cfg.yaml) document.getElementById('bmWorkflowYaml').value = cfg.yaml;
+                            if (cfg.filename) document.getElementById('bmWorkflowFilename').value = cfg.filename;
+                            if (cfg.appName) document.getElementById('bmAppName').value = cfg.appName;
+                            if (cfg.version) document.getElementById('bmVersion').value = cfg.version;
+                          } catch (e) {}
+                        }
 
-            ['bmWorkflowYaml', 'bmWorkflowFilename', 'bmArtifactName', 'bmAppName', 'bmVersion'].forEach(function(id) {
+                        ['bmWorkflowYaml', 'bmWorkflowFilename', 'bmAppName', 'bmVersion'].forEach(function(id) {
                           var el = document.getElementById(id);
                           if (el) el.addEventListener('input', saveBuildConfig);
                         });
@@ -5751,8 +5793,29 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                         var bmPasteYamlBtnEl = document.getElementById('bmPasteYamlBtn');
                         if (bmPasteYamlBtnEl) bmPasteYamlBtnEl.addEventListener('click', pasteToWorkflowYaml);
 
-                        var bmInnerPasteYamlBtnEl = document.getElementById('bmInnerPasteYamlBtn');
-                        if (bmInnerPasteYamlBtnEl) bmInnerPasteYamlBtnEl.addEventListener('click', pasteToWorkflowYaml);
+                        var isYamlExpanded = false;
+                                    var bmExpandYamlBtnEl = document.getElementById('bmExpandYamlBtn');
+                                    if (bmExpandYamlBtnEl) {
+                                      bmExpandYamlBtnEl.addEventListener('click', function() {
+                                        var yamlEl = document.getElementById('bmWorkflowYaml');
+                                        var iconEl = document.getElementById('bmExpandYamlIcon');
+                                        var lblEl = document.getElementById('bmExpandYamlLbl');
+                                        if (!yamlEl) return;
+
+                                        isYamlExpanded = !isYamlExpanded;
+                                        if (isYamlExpanded) {
+                                          yamlEl.style.minHeight = '320px';
+                                          if (iconEl) iconEl.className = 'fa-solid fa-down-left-and-up-right-to-center';
+                                          if (lblEl) lblEl.textContent = 'Collapse';
+                                          this.style.color = 'var(--amber)';
+                                        } else {
+                                          yamlEl.style.minHeight = '95px';
+                                          if (iconEl) iconEl.className = 'fa-solid fa-up-right-and-down-left-from-center';
+                                          if (lblEl) lblEl.textContent = 'Expand';
+                                          this.style.color = '#ffffff';
+                                        }
+                                      });
+                                    }
 
             // === Dual Engine Build Modal Logic ===
                         document.getElementById('masterBuildBtn').addEventListener('click', () => {
@@ -5938,36 +6001,34 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                                                           ].join('\n');
 
                                                         document.getElementById('bmWorkflowYaml').value = wrapperYaml;
-                                                        var artifactInput = document.getElementById('bmArtifactName');
-                                                        if (artifactInput && !artifactInput.value.trim()) artifactInput.value = 'Android-APK';
                                                         var filenameInput = document.getElementById('bmWorkflowFilename');
-                                                        if (filenameInput && (!filenameInput.value.trim() || filenameInput.value.trim() === 'custom-build.yml')) filenameInput.value = 'html-wrapper.yml';
+                                                                                        if (filenameInput && (!filenameInput.value.trim() || filenameInput.value.trim() === 'custom-build.yml')) filenameInput.value = 'html-wrapper.yml';
                                                         saveBuildConfig();
                                                         toast('✅ HTML Wrapper YAML template loaded');
                                                       });
 
                                                       var bmCopyYamlPromptBtnEl = document.getElementById('bmCopyYamlPromptBtn');
-                                                      if (bmCopyYamlPromptBtnEl) bmCopyYamlPromptBtnEl.addEventListener('click', function() {
-                                                        var filename = (document.getElementById('bmWorkflowFilename').value.trim() || 'android-build.yml');
-                                                        var artifactName = (document.getElementById('bmArtifactName').value.trim() || 'Android-APK');
-                                                        var appName = (document.getElementById('bmAppName').value.trim() || 'My App');
-                                                        var appVersion = (document.getElementById('bmVersion').value.trim() || '1.0.0');
-                                                        var repoContext = ghRepo ? ghRepo : '(my GitHub repo)';
+                                                                                    if (bmCopyYamlPromptBtnEl) bmCopyYamlPromptBtnEl.addEventListener('click', function() {
+                                                                                      var filename = (document.getElementById('bmWorkflowFilename').value.trim() || 'android-build.yml');
+                                                                                      var appName = (document.getElementById('bmAppName').value.trim() || 'My App');
+                                                                                      var artifactName = appName;
+                                                                                      var appVersion = (document.getElementById('bmVersion').value.trim() || '1.0.0');
+                                                                                      var repoContext = ghRepo ? ghRepo : '(my GitHub repo)';
 
-                                                        var prompt = 'Write a complete GitHub Actions workflow YAML file to build my Native Android App.\n\n' +
-                                                          'Context & Constraints:\n' +
-                                                          '- Repo: ' + repoContext + '\n' +
-                                                          '- The YAML file will be saved at: .github/workflows/' + filename + '\n' +
-                                                          '- Trigger must be: "on: workflow_dispatch:"\n' +
-                                                          '- Declare inputs under "workflow_dispatch: inputs:" for "app_name" and "app_version" (defaults: "' + appName + '", "' + appVersion + '")\n' +
-                                                          '- Runner: ubuntu-latest\n' +
-                                                          '- Java setup: actions/setup-java@v4 with Temurin Java 17\n' +
-                                                          '- Gradle setup: gradle/actions/setup-gradle@v4 with gradle-version 8.7\n' +
-                                                          '- Native build step: run "gradle assembleDebug --no-daemon" (no wrapper assumed)\n' +
-                                                          '- Version & Name patching: Patch android:label in app/src/main/AndroidManifest.xml and versionName/versionCode in app/build.gradle.kts using inline Python3 prior to build\n' +
-                                                          '- Icon Handling: If build-icon.png exists at the repo root, inject it into app/src/main/res/mipmap-* densities\n' +
-                                                          '- Artifact Upload: actions/upload-artifact@v4 uploading "app/build/outputs/apk/debug/app-debug.apk" with artifact name exactly: ' + artifactName + '\n\n' +
-                                                          'Return ONLY the raw YAML content. No markdown code fences, no explanations.';
+                                                                                      var prompt = 'Write a complete GitHub Actions workflow YAML file to build my Native Android App.\n\n' +
+                                                                                        'Context & Constraints:\n' +
+                                                                                        '- Repo: ' + repoContext + '\n' +
+                                                                                        '- The YAML file will be saved at: .github/workflows/' + filename + '\n' +
+                                                                                        '- Trigger must be: "on: workflow_dispatch:"\n' +
+                                                                                        '- Declare inputs under "workflow_dispatch: inputs:" for "app_name" and "app_version" (defaults: "' + appName + '", "' + appVersion + '")\n' +
+                                                                                        '- Runner: ubuntu-latest\n' +
+                                                                                        '- Java setup: actions/setup-java@v4 with Temurin Java 17\n' +
+                                                                                        '- Gradle setup: gradle/actions/setup-gradle@v4 with gradle-version 8.7\n' +
+                                                                                        '- Native build step: run "gradle assembleDebug --no-daemon" (no wrapper assumed)\n' +
+                                                                                        '- Version & Name patching: Patch android:label in app/src/main/AndroidManifest.xml and versionName/versionCode in app/build.gradle.kts using inline Python3 prior to build\n' +
+                                                                                        '- Icon Handling: If build-icon.png exists at the repo root, inject it into app/src/main/res/mipmap-* densities\n' +
+                                                                                        '- Artifact Upload: actions/upload-artifact@v4 uploading "app/build/outputs/apk/debug/app-debug.apk" with artifact name matching app name: "${{ github.event.inputs.app_name || \'' + artifactName + '\' }}"\n\n' +
+                                                                                        'Return ONLY the raw YAML content. No markdown code fences, no explanations.';
 
                                                         navigator.clipboard.writeText(prompt).then(function() {
                                                           toast('🚀 Native App YAML Prompt copied!');
@@ -6226,24 +6287,20 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                     saveBuildConfig();
                     closeBuildModal();
                     const filename = (document.getElementById('bmWorkflowFilename').value.trim() || 'custom-build.yml');
-              const yamlContent = document.getElementById('bmWorkflowYaml').value;
-              const artifactName = document.getElementById('bmArtifactName').value.trim();
-              const appName = document.getElementById('bmAppName').value.trim() || 'My App';
-                            const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
-                            const iconFile = croppedIconBlob || document.getElementById('bmAppIcon').files[0];
+                                  const yamlContent = document.getElementById('bmWorkflowYaml').value;
+                                  const appName = document.getElementById('bmAppName').value.trim() || 'My App';
+                                  const artifactName = appName;
+                                  const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
+                                  const iconFile = croppedIconBlob || document.getElementById('bmAppIcon').files[0];
 
-              if (!ghToken || !ghRepo) {
-                toast('❌ Select a GitHub repo first', 'warn');
-                return;
-              }
-              if (!yamlContent.trim()) {
-                toast('❌ Paste your workflow YAML first', 'warn');
-                return;
-              }
-              if (!artifactName) {
-                toast('❌ Enter the Artifact Name from your upload-artifact step', 'warn');
-                return;
-              }
+                                  if (!ghToken || !ghRepo) {
+                                    toast('❌ Select a GitHub repo first', 'warn');
+                                    return;
+                                  }
+                                  if (!yamlContent.trim()) {
+                                    toast('❌ Paste your workflow YAML first', 'warn');
+                                    return;
+                                  }
 
               const title = 'Building: ' + filename;
               showBuildOverlay(title);
@@ -6361,9 +6418,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
               appendBuildLog(`[${new Date().toLocaleTimeString()}] Conclusion: SUCCESS`);
         
               let artRes = await fetch(run.artifacts_url, { headers: { Authorization: `token ${ghToken}` }});
-              let artData = await artRes.json();
-              let artifact = artData.artifacts.find(a => a.name === artifactName);
-              if (!artifact) throw new Error('Artifact not found in success run.');
+                            let artData = await artRes.json();
+                            let artifact = artData.artifacts.find(a => a.name === artifactName || a.name === 'Android-APK' || a.name.toLowerCase() === artifactName.toLowerCase());
+                            if (!artifact && artData.artifacts.length > 0) artifact = artData.artifacts[0];
+                            if (!artifact) throw new Error('Artifact not found in success run.');
         
               appendBuildLog(`Triggering automatic native download...`);
                                                         const directDownloadUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}/artifacts/${artifact.id}`;
@@ -6761,20 +6819,50 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       };
 
       window.openBulkModal = function() {
-                if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
-                document.getElementById('bulkPathsInput').value = '';
-                var bModal = document.getElementById('bulkModal');
-                bModal.classList.add('open');
-                centerModal(bModal);
-                bringModalToFront(bModal);
-                document.getElementById('menu-backdrop').classList.add('open');
-            };
+                      if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+                      document.getElementById('bulkPathsInput').value = '';
+                      var bModal = document.getElementById('bulkModal');
+                      bModal.classList.add('open');
+                      centerModal(bModal);
+                      bringModalToFront(bModal);
+                      document.getElementById('menu-backdrop').classList.add('open');
+                  };
 
-document.getElementById('bulkCancelBtn').addEventListener('click', () => {
-    document.getElementById('bulkModal').classList.remove('open');
-    document.getElementById('bulkModal').style.display = 'none';
-    document.getElementById('menu-backdrop').classList.remove('open');
-});
+      document.getElementById('bulkCancelBtn').addEventListener('click', () => {
+          document.getElementById('bulkModal').classList.remove('open');
+          document.getElementById('bulkModal').style.display = 'none';
+          document.getElementById('menu-backdrop').classList.remove('open');
+      });
+
+      var bulkClearBtnEl = document.getElementById('bulkClearBtn');
+      if (bulkClearBtnEl) {
+        bulkClearBtnEl.addEventListener('click', () => {
+          document.getElementById('bulkPathsInput').value = '';
+        });
+      }
+
+      var bulkPasteBtnEl = document.getElementById('bulkPasteBtn');
+      if (bulkPasteBtnEl) {
+        bulkPasteBtnEl.addEventListener('click', async () => {
+          try {
+            let text = '';
+            if (window.AndroidClipboard && typeof window.AndroidClipboard.read === 'function') {
+              text = window.AndroidClipboard.read();
+            } else if (navigator.clipboard && navigator.clipboard.readText) {
+              text = await navigator.clipboard.readText();
+            }
+            if (text && text.trim()) {
+              const input = document.getElementById('bulkPathsInput');
+              input.value = (input.value ? input.value + '\n' : '') + text.trim();
+              toast('✅ Paths pasted!');
+            } else {
+              toast('⚠️ Clipboard is empty', 'warn');
+            }
+          } catch(err) {
+            toast('❌ Clipboard read failed: ' + err.message, 'err');
+          }
+        });
+      }
 
 document.getElementById('bulkConfirmBtn').addEventListener('click', async () => {
     const input = document.getElementById('bulkPathsInput').value;
