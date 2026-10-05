@@ -11,7 +11,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -397,9 +399,9 @@ input::placeholder, textarea::placeholder {
   font-size: 7px !important;
 }
 
-.gh-row { display: flex; gap: 8px; align-items: center; }
-.gh-row label { width: 70px; color: #ffffff; font-size: 11px; font-weight: 500; }
-.gh-row input { flex: 1; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 20px; outline: none; }
+.gh-row { display: flex; gap: 8px; align-items: center; width: 100%; box-sizing: border-box; }
+.gh-row label { width: 68px; flex-shrink: 0; color: #ffffff; font-size: 11px; font-weight: 500; }
+.gh-row input { flex: 1; min-width: 0; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 7px 12px; border-radius: 10px; outline: none; font-size: 11px; box-sizing: border-box; }
 .gh-row input:focus { background: rgba(255, 255, 255, 0.15); }
 
 .gh-actions { 
@@ -483,13 +485,13 @@ input::placeholder, textarea::placeholder {
 .fnr-btn:hover { background: rgba(255,255,255,0.15); }
 
 /* Dual-Engine Build Modal */
-#buildModal { width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; background: #23252a; border: 1px solid rgba(255, 255, 255, 0.12) !important; outline: none !important; border-radius: 12px; padding: 24px; color: #ffffff; box-shadow: 0 12px 40px rgba(0,0,0,0.4); max-height: 85vh; overflow-y: auto; }
+#buildModal { width: 92vw; max-width: 440px; display: none; flex-direction: column; gap: 10px; z-index: 30000; position: fixed; background: #23252a; border: 1px solid rgba(255, 255, 255, 0.12) !important; outline: none !important; border-radius: 12px; padding: 14px 16px; color: #ffffff; box-shadow: 0 12px 40px rgba(0,0,0,0.4); max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
 #buildModal.open { display: flex; }
 #buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
 .bm-step label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--blue); }
 .bm-toggle-btn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500; }
 .bm-toggle-btn.active { background: rgba(92, 157, 255, 0.2); border-color: var(--blue); }
-.bm-code-box { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; padding: 12px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; min-height: 80px; resize: vertical; margin-bottom: 8px; }
+.bm-code-box { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; padding: 10px; border-radius: 8px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 10px; min-height: 80px; resize: vertical; box-sizing: border-box; }
 .bm-permissions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
 .bm-permissions-grid label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .bm-advanced { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-top: 4px; }
@@ -498,6 +500,20 @@ input::placeholder, textarea::placeholder {
 .bm-lib-chip:hover { background: rgba(255,255,255,0.2); }
 select.bm-select { width: 100%; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 12px; outline: none; font-size: 13px; -webkit-appearance: none; }
 select.bm-select option { background: var(--elevated); color: #fff; }
+
+/* Cropper Modal */
+#iconCropModal {
+  position: fixed; z-index: 45000; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center; padding: 16px;
+}
+#iconCropModal.open { display: flex; }
+#iconCropBox {
+  background: #23252a; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px;
+  width: 90vw; max-width: 380px; display: flex; flex-direction: column; overflow: hidden;
+}
+#iconCropImgContainer {
+  width: 100%; height: 260px; background: #111; overflow: hidden; display: flex; align-items: center; justify-content: center;
+}
 </style>
 </head>
 <body>
@@ -766,6 +782,22 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     </div>
 </div>
 
+<div id="iconCropModal">
+  <div id="iconCropBox">
+    <div class="window-header" style="padding:10px 14px; margin:0;">
+      <div class="win-title"><i class="fa-solid fa-crop-simple" style="color:var(--teal); margin-right:6px;"></i> Crop App Icon</div>
+      <button class="panel-close" id="iconCropCloseBtn">✕</button>
+    </div>
+    <div id="iconCropImgContainer">
+      <img id="iconCropSourceImg" style="max-width:100%; display:block;">
+    </div>
+    <div class="gh-actions" style="padding:10px 14px; margin:0; background:#1c1d20;">
+      <button id="iconCropCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+      <button id="iconCropApplyBtn" style="color:var(--green); background:rgba(57,211,83,0.18); border-color:rgba(57,211,83,0.4) !important;"><i class="fa-solid fa-check"></i> Crop & Apply</button>
+    </div>
+  </div>
+</div>
+
 <div id="buildModal">
   <div class="window-header">
     <div class="win-title"><i class="fa-solid fa-hammer" style="color:var(--blue);"></i> Build App</div>
@@ -774,46 +806,47 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
   <div id="bmWrapperSettings" style="display:flex; flex-direction:column; gap:10px;">
     <!-- Section 1: Workflow Setup -->
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap;">
-        <span style="font-size:11px; font-weight:600; color:var(--blue);"><i class="fa-solid fa-file-code" style="margin-right:5px;"></i>Workflow YAML</span>
-        <div style="display:flex; gap:6px;">
-          <button id="bmUseWrapperYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08);" title="Load HTML wrapper (Cordova) template"><i class="fa-solid fa-cube" style="margin-right:3px;"></i>Template</button>
-          <button id="bmCopyYamlPromptBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08);" title="Copy prompt for AI"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:3px;"></i>AI Prompt</button>
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; box-sizing:border-box;">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap;">
+            <span style="font-size:11px; font-weight:600; color:var(--blue);"><i class="fa-solid fa-file-code" style="margin-right:5px;"></i>Workflow YAML</span>
+            <div style="display:flex; gap:6px;">
+              <button id="bmUseWrapperYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08);" title="Load HTML wrapper (Cordova) template"><i class="fa-solid fa-cube" style="margin-right:3px;"></i>HTML Wrapper</button>
+              <button id="bmCopyYamlPromptBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08);" title="Copy native app prompt for AI"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:3px;"></i>Native App</button>
+            </div>
+          </div>
+          <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:95px; margin:0; border-radius:8px;"></textarea>
+          <div class="gh-row" style="margin:0;"><label>Filename</label><input type="text" id="bmWorkflowFilename" placeholder="custom-build.yml" value="custom-build.yml"></div>
         </div>
-      </div>
-      <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:110px; margin:0; border-radius:8px;"></textarea>
-      <div class="gh-row" style="margin:0;"><label style="width:75px;">Filename</label><input type="text" id="bmWorkflowFilename" placeholder="custom-build.yml" value="custom-build.yml"></div>
-    </div>
 
-    <!-- Section 2: Artifact & Quick Actions -->
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
-      <div class="gh-row" style="margin:0;"><label style="width:75px;">Artifact</label><input type="text" id="bmArtifactName" placeholder="e.g. Android-APK"></div>
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; padding-top:4px; border-top:1px solid rgba(255,255,255,0.05);">
-        <div id="bmExistingWorkflows" style="font-size:9px; color:rgba(255,255,255,0.5); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Loading workflows...</div>
-        <div style="display:flex; gap:5px; flex-shrink:0;">
-          <button id="pullApkLogBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--red); background:rgba(248,81,73,0.12); border:1px solid rgba(248,81,73,0.25);" type="button" onclick="window.pullLastFailedLog()"><i class="fa-solid fa-file-waveform" style="margin-right:3px;"></i>Logs</button>
-          <button id="downloadApkBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--teal); background:rgba(45,212,191,0.12); border:1px solid rgba(45,212,191,0.25);" type="button" onclick="window.checkAndDownloadLastBuild()"><i class="fa-solid fa-file-zipper" style="margin-right:3px;"></i>APK</button>
-          <button id="bmManageWorkflowsBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);" type="button"><i class="fa-solid fa-folder-tree" style="margin-right:3px;"></i>Files</button>
+        <!-- Section 2: Artifact & Quick Actions -->
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; box-sizing:border-box;">
+          <div class="gh-row" style="margin:0;"><label>Artifact</label><input type="text" id="bmArtifactName" placeholder="e.g. Android-APK"></div>
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; padding-top:4px; border-top:1px solid rgba(255,255,255,0.05);">
+            <div id="bmExistingWorkflows" style="font-size:9px; color:rgba(255,255,255,0.5); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Loading workflows...</div>
+            <div style="display:flex; gap:5px; flex-shrink:0;">
+              <button id="pullApkLogBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--red); background:rgba(248,81,73,0.12); border:1px solid rgba(248,81,73,0.25);" type="button" onclick="window.pullLastFailedLog()"><i class="fa-solid fa-file-waveform" style="margin-right:3px;"></i>Logs</button>
+              <button id="downloadApkBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--teal); background:rgba(45,212,191,0.12); border:1px solid rgba(45,212,191,0.25);" type="button" onclick="window.checkAndDownloadLastBuild()"><i class="fa-solid fa-file-zipper" style="margin-right:3px;"></i>APK</button>
+              <button id="bmManageWorkflowsBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);" type="button"><i class="fa-solid fa-folder-tree" style="margin-right:3px;"></i>Files</button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Section 3: App Details -->
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-        <div class="gh-row" style="margin:0;"><label style="width:65px;">Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
-        <div class="gh-row" style="margin:0;"><label style="width:55px;">Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
-      </div>
-      <div class="gh-row" style="margin:0; align-items:center;">
-        <label style="width:65px;">Icon</label>
-        <div style="flex:1; display:flex; align-items:center; gap:8px;">
-          <input type="file" id="bmAppIcon" accept="image/*" style="display:none;" onchange="document.getElementById('bmAppIconLabel').textContent = this.files[0] ? this.files[0].name : 'Optional';">
-          <button id="bmAppIconBtn" type="button" class="btn" style="width:auto; padding:4px 10px; font-size:10px; height:26px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);" onclick="document.getElementById('bmAppIcon').click()"><i class="fa-solid fa-image" style="margin-right:4px;"></i>Choose</button>
-          <span id="bmAppIconLabel" style="font-size:9px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Optional</span>
+        <!-- Section 3: App Details -->
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; box-sizing:border-box;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div class="gh-row" style="margin:0;"><label>Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
+            <div class="gh-row" style="margin:0;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
+          </div>
+          <div class="gh-row" style="margin:0; align-items:center;">
+            <label>Icon</label>
+            <div style="flex:1; min-width:0; display:flex; align-items:center; gap:8px;">
+              <input type="file" id="bmAppIcon" accept="image/*" style="display:none;">
+              <img id="bmAppIconPreview" style="display:none; width:24px; height:24px; border-radius:6px; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0;">
+              <button id="bmAppIconBtn" type="button" class="btn" style="width:auto; padding:4px 10px; font-size:10px; height:26px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);" onclick="document.getElementById('bmAppIcon').click()"><i class="fa-solid fa-image" style="margin-right:4px;"></i>Choose</button>
+              <span id="bmAppIconLabel" style="font-size:9px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Optional</span>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
   </div>
 
   <div class="gh-actions" style="margin-top:12px;">
@@ -5776,134 +5809,196 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                 });
 
                         var bmUseWrapperYamlBtnEl = document.getElementById('bmUseWrapperYamlBtn');
-                              if (bmUseWrapperYamlBtnEl) bmUseWrapperYamlBtnEl.addEventListener('click', function() {
-                                var wrapperYaml = [
-                                  "name: Build APK (HTML Wrapper)",
-                                  "on:",
-                                  "  workflow_dispatch:",
-                                  "    inputs:",
-                                  "      app_name:",
-                                  "        description: 'App display name'",
-                                  "        required: false",
-                                  "        default: 'My App'",
-                                  "      app_version:",
-                                  "        description: 'App version'",
-                                  "        required: false",
-                                  "        default: '1.0.0'",
-                                  "jobs:",
-                                  "  build:",
-                                  "    runs-on: ubuntu-latest",
-                                                                    "    env:",
-                                                                    "      APP_NAME: ${{ github.event.inputs.app_name }}",
-                                                                    "      APP_VERSION: ${{ github.event.inputs.app_version }}",
-                                                                    "    steps:",
-                                                                    "      - name: Checkout Source",
-                                                                    "        uses: actions/checkout@v4",
-                                                                    "      - name: Setup Java",
-                                                                    "        uses: actions/setup-java@v4",
-                                                                    "        with:",
-                                                                    "          distribution: 'temurin'",
-                                                                    "          java-version: '17'",
-                                                                    "      - name: Setup Android SDK",
-                                                                    "        uses: android-actions/setup-android@v3",
-                                                                    "        with:",
-                                                                    "          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'",
-                                                                    "      - name: Setup Node.js",
-                                                                    "        uses: actions/setup-node@v4",
-                                                                    "        with:",
-                                                                    "          node-version: '20'",
-                                                                    "      - name: Install Cordova",
-                                                                    "        run: npm install -g cordova",
-                                                                    "      - name: Build APK",
-                                                                    "        shell: bash",
-                                                                    "        run: |",
-                                                                    "          set -e",
-                                                                    "          export CI=true",
-                                                                    "          export CORDOVA_NO_TELEMETRY=1",
-                                                                    "          export CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https://services.gradle.org/distributions/gradle-8.7-all.zip",
-                                                                    "          APP_ID=\"com.wrapper.app$(date +%s | tail -c 7)\"",
-                                                                    "          SAFE_VERSION=\"$(printf '%s' \"${APP_VERSION:-1.0.0}\" | tr -cd '0-9A-Za-z._-')\"",
-                                                                    "          [ -z \"$SAFE_VERSION\" ] && SAFE_VERSION=\"1.0.0\"",
-                                                                    "          cd /tmp",
-                                                                    "          cordova create app \"$APP_ID\" \"App\" --no-telemetry",
-                                                                    "          rm -rf app/www/*",
-                                                                    "          rsync -a --exclude='.git' --exclude='.github' --exclude='build-icon.png' \"$GITHUB_WORKSPACE/\" app/www/",
-                                                                    "          HAS_ICON=0",
-                                                                    "          if [ -f \"$GITHUB_WORKSPACE/build-icon.png\" ]; then",
-                                                                    "            cp \"$GITHUB_WORKSPACE/build-icon.png\" app/icon.png",
-                                                                    "            HAS_ICON=1",
-                                                                    "          fi",
-                                                                    "          cd app",
-                                                                    "          python3 - \"${APP_NAME:-My App}\" \"$SAFE_VERSION\" \"$HAS_ICON\" << 'PYEOF'",
-                                                                    "          import re, sys",
-                                                                    "          from xml.sax.saxutils import escape",
-                                                                    "          name, ver, has_icon = sys.argv[1], sys.argv[2], sys.argv[3]",
-                                                                    "          s = open('config.xml', encoding='utf-8').read()",
-                                                                    "          s = re.sub(r'(<widget\\b[^>]*\\bversion=)\"[^\"]*\"', lambda m: m.group(1) + '\"' + ver + '\"', s, count=1)",
-                                                                    "          s = re.sub(r'<name>.*?</name>', lambda m: '<name>' + escape(name) + '</name>', s, count=1, flags=re.S)",
-                                                                    "          extra = '    <allow-navigation href=\"*\" />\\n    <allow-intent href=\"*\" />\\n'",
-                                                                    "          if has_icon == '1':",
-                                                                    "              extra += '    <icon src=\"icon.png\" />\\n'",
-                                                                    "          s = s.replace('</widget>', extra + '</widget>')",
-                                                                    "          open('config.xml', 'w', encoding='utf-8').write(s)",
-                                                                    "          PYEOF",
-                                                                    "          cordova platform add android@13.0.0 --no-telemetry",
-                                                                    "          cordova build android --no-telemetry",
-                                                                    "      - name: Upload APK",
-                                                                    "        uses: actions/upload-artifact@v4",
-                                                                    "        with:",
-                                                                    "          name: Android-APK",
-                                                                    "          path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk",
-                                                                    "          if-no-files-found: error"
-                                                                  ].join('\n');
+                                                      if (bmUseWrapperYamlBtnEl) bmUseWrapperYamlBtnEl.addEventListener('click', function() {
+                                                        var wrapperYaml = [
+                                                          "name: Build APK (HTML Wrapper)",
+                                                          "on:",
+                                                          "  workflow_dispatch:",
+                                                          "    inputs:",
+                                                          "      app_name:",
+                                                          "        description: 'App display name'",
+                                                          "        required: false",
+                                                          "        default: 'My App'",
+                                                          "      app_version:",
+                                                          "        description: 'App version'",
+                                                          "        required: false",
+                                                          "        default: '1.0.0'",
+                                                          "jobs:",
+                                                          "  build:",
+                                                          "    runs-on: ubuntu-latest",
+                                                                                            "    env:",
+                                                                                            "      APP_NAME: ${{ github.event.inputs.app_name }}",
+                                                                                            "      APP_VERSION: ${{ github.event.inputs.app_version }}",
+                                                                                            "    steps:",
+                                                                                            "      - name: Checkout Source",
+                                                                                            "        uses: actions/checkout@v4",
+                                                                                            "      - name: Setup Java",
+                                                                                            "        uses: actions/setup-java@v4",
+                                                                                            "        with:",
+                                                                                            "          distribution: 'temurin'",
+                                                                                            "          java-version: '17'",
+                                                                                            "      - name: Setup Android SDK",
+                                                                                            "        uses: android-actions/setup-android@v3",
+                                                                                            "        with:",
+                                                                                            "          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'",
+                                                                                            "      - name: Setup Node.js",
+                                                                                            "        uses: actions/setup-node@v4",
+                                                                                            "        with:",
+                                                                                            "          node-version: '20'",
+                                                                                            "      - name: Install Cordova",
+                                                                                            "        run: npm install -g cordova",
+                                                                                            "      - name: Build APK",
+                                                                                            "        shell: bash",
+                                                                                            "        run: |",
+                                                                                            "          set -e",
+                                                                                            "          export CI=true",
+                                                                                            "          export CORDOVA_NO_TELEMETRY=1",
+                                                                                            "          export CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL=https://services.gradle.org/distributions/gradle-8.7-all.zip",
+                                                                                            "          APP_ID=\"com.wrapper.app$(date +%s | tail -c 7)\"",
+                                                                                            "          SAFE_VERSION=\"$(printf '%s' \"${APP_VERSION:-1.0.0}\" | tr -cd '0-9A-Za-z._-')\"",
+                                                                                            "          [ -z \"$SAFE_VERSION\" ] && SAFE_VERSION=\"1.0.0\"",
+                                                                                            "          cd /tmp",
+                                                                                            "          cordova create app \"$APP_ID\" \"App\" --no-telemetry",
+                                                                                            "          rm -rf app/www/*",
+                                                                                            "          rsync -a --exclude='.git' --exclude='.github' --exclude='build-icon.png' \"$GITHUB_WORKSPACE/\" app/www/",
+                                                                                            "          HAS_ICON=0",
+                                                                                            "          if [ -f \"$GITHUB_WORKSPACE/build-icon.png\" ]; then",
+                                                                                            "            cp \"$GITHUB_WORKSPACE/build-icon.png\" app/icon.png",
+                                                                                            "            HAS_ICON=1",
+                                                                                            "          fi",
+                                                                                            "          cd app",
+                                                                                            "          python3 - \"${APP_NAME:-My App}\" \"$SAFE_VERSION\" \"$HAS_ICON\" << 'PYEOF'",
+                                                                                            "          import re, sys",
+                                                                                            "          from xml.sax.saxutils import escape",
+                                                                                            "          name, ver, has_icon = sys.argv[1], sys.argv[2], sys.argv[3]",
+                                                                                            "          s = open('config.xml', encoding='utf-8').read()",
+                                                                                            "          s = re.sub(r'(<widget\\b[^>]*\\bversion=)\"[^\"]*\"', lambda m: m.group(1) + '\"' + ver + '\"', s, count=1)",
+                                                                                            "          s = re.sub(r'<name>.*?</name>', lambda m: '<name>' + escape(name) + '</name>', s, count=1, flags=re.S)",
+                                                                                            "          extra = '    <allow-navigation href=\"*\" />\\n    <allow-intent href=\"*\" />\\n'",
+                                                                                            "          if has_icon == '1':",
+                                                                                            "              extra += '    <icon src=\"icon.png\" />\\n'",
+                                                                                            "          s = s.replace('</widget>', extra + '</widget>')",
+                                                                                            "          open('config.xml', 'w', encoding='utf-8').write(s)",
+                                                                                            "          PYEOF",
+                                                                                            "          cordova platform add android@13.0.0 --no-telemetry",
+                                                                                            "          cordova build android --no-telemetry",
+                                                                                            "      - name: Upload APK",
+                                                                                            "        uses: actions/upload-artifact@v4",
+                                                                                            "        with:",
+                                                                                            "          name: Android-APK",
+                                                                                            "          path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk",
+                                                                                            "          if-no-files-found: error"
+                                                                                          ].join('\n');
 
-                                document.getElementById('bmWorkflowYaml').value = wrapperYaml;
-                                var artifactInput = document.getElementById('bmArtifactName');
-                                if (artifactInput && !artifactInput.value.trim()) artifactInput.value = 'Android-APK';
-                                var filenameInput = document.getElementById('bmWorkflowFilename');
-                                if (filenameInput && (!filenameInput.value.trim() || filenameInput.value.trim() === 'custom-build.yml')) filenameInput.value = 'html-wrapper.yml';
-                                toast('✅ HTML Wrapper YAML filled in');
-                              });
+                                                        document.getElementById('bmWorkflowYaml').value = wrapperYaml;
+                                                        var artifactInput = document.getElementById('bmArtifactName');
+                                                        if (artifactInput && !artifactInput.value.trim()) artifactInput.value = 'Android-APK';
+                                                        var filenameInput = document.getElementById('bmWorkflowFilename');
+                                                        if (filenameInput && (!filenameInput.value.trim() || filenameInput.value.trim() === 'custom-build.yml')) filenameInput.value = 'html-wrapper.yml';
+                                                        saveBuildConfig();
+                                                        toast('✅ HTML Wrapper YAML template loaded');
+                                                      });
 
-                              var bmCopyYamlPromptBtnEl = document.getElementById('bmCopyYamlPromptBtn');
-                                                            if (bmCopyYamlPromptBtnEl) bmCopyYamlPromptBtnEl.addEventListener('click', function() {
-                                                        var filename = (document.getElementById('bmWorkflowFilename').value.trim() || 'custom-build.yml');
-                          var artifactName = (document.getElementById('bmArtifactName').value.trim() || '(name you choose, then enter it in the Artifact Name field)');
-                          var appName = (document.getElementById('bmAppName').value.trim() || 'My App');
-                          var appVersion = (document.getElementById('bmVersion').value.trim() || '1.0.0');
-                          var repoContext = ghRepo ? ghRepo : '(my GitHub repo)';
+                                                      var bmCopyYamlPromptBtnEl = document.getElementById('bmCopyYamlPromptBtn');
+                                                      if (bmCopyYamlPromptBtnEl) bmCopyYamlPromptBtnEl.addEventListener('click', function() {
+                                                        var filename = (document.getElementById('bmWorkflowFilename').value.trim() || 'android-build.yml');
+                                                        var artifactName = (document.getElementById('bmArtifactName').value.trim() || 'Android-APK');
+                                                        var appName = (document.getElementById('bmAppName').value.trim() || 'My App');
+                                                        var appVersion = (document.getElementById('bmVersion').value.trim() || '1.0.0');
+                                                        var repoContext = ghRepo ? ghRepo : '(my GitHub repo)';
 
-                          var prompt = 'Write a complete GitHub Actions workflow YAML file for me.\n\n' +
-                                                      'Context:\n' +
-                                                      '- Repo: ' + repoContext + '\n' +
-                                                      '- The YAML will be saved as .github/workflows/' + filename + '\n' +
-                                                      '- It must be triggered by "on: workflow_dispatch:" so it can be dispatched via the GitHub REST API.\n' +
-                                                      '- If it needs app name / version at build time, declare them as workflow_dispatch inputs named exactly "app_name" and "app_version" (defaults "' + appName + '" and "' + appVersion + '") — my app dispatches these two inputs on every run, but GitHub silently drops them if the YAML does not declare matching input names under "on: workflow_dispatch: inputs:".\n' +
-                                                      '- If the build needs a custom icon, know that before dispatch my app PUTs an icon file to "build-icon.png" at the repo root (only if I chose one) — reference that path in a build step if relevant, but do not fail the build if it is missing.\n' +
-                                                      '- The final build output MUST be uploaded with "actions/upload-artifact@v4" and the artifact "name:" must be exactly: ' + artifactName + ' — my app polls for an artifact with this exact name to auto-download it, so do not change or invent a different name.\n' +
-                                                      '- Use "runs-on: ubuntu-latest" unless I say otherwise.\n' +
-                                                      '- Keep it a single valid YAML file, spaces only (no tabs), with "name:", "on:", and "jobs:" top-level keys.\n\n' +
-                                                      'If my repo is a native Android project (Kotlin/Gradle with app/build.gradle.kts and app/src/main/AndroidManifest.xml already in the repo), follow these extra rules:\n' +
-                                                      '- Do NOT scaffold or generate a new project (no Cordova, no npm). Build the project that already exists in the repo.\n' +
-                                                      '- Use actions/setup-java@v4 with temurin Java 17, then gradle/actions/setup-gradle@v4 with gradle-version 8.7. There is no gradlew wrapper, so run "gradle assembleDebug --no-daemon".\n' +
-                                                      '- Upload exactly this path: app/build/outputs/apk/debug/app-debug.apk with if-no-files-found: error.\n' +
-                                                      '- Patch the app name into android:label in app/src/main/AndroidManifest.xml and the version into versionName / versionCode in app/build.gradle.kts before building (versionCode = date +%s). Use an inline python3 script with re.sub and a lambda replacement for this, not sed, so special characters in the app name cannot break it. XML-escape & < > " in the app name first.\n' +
-                                                      '- If build-icon.png exists at the repo root, copy it to app/src/main/res/mipmap-{mdpi,hdpi,xhdpi,xxhdpi,xxxhdpi}/ic_launcher.png and ic_launcher_round.png, and add android:icon and android:roundIcon to the <application> tag only if android:icon is not already present. If the file is missing, print a message and continue.\n\n' +
-                                                      'If my repo is an HTML/web app that must be wrapped into an Android APK (index.html, css, js at the repo root, no Android project), follow these extra rules:\n' +
-                                                                                  '- Use Apache Cordova. Use actions/setup-java@v4 with temurin Java 17, android-actions/setup-android@v3 with packages "platform-tools platforms;android-34 build-tools;34.0.0", and actions/setup-node@v4 with Node 20 or newer. Install Cordova with npm install -g cordova.\n' +
-                                                                                  '- Create the Cordova project in /tmp (cordova create app <package id> "<app name>") and use a unique package id like com.wrapper.app plus a number from date +%s. Delete app/www/* and copy my repo files into app/www/ with rsync, excluding .git, .github and build-icon.png.\n' +
-                                                                                  '- Patch the version into the <widget> tag of config.xml with a tolerant regex, and add allow-navigation and allow-intent entries so links work.\n' +
-                                                                                  '- If build-icon.png exists at the repo root, copy it to app/icon.png and add an <icon src="icon.png" /> entry to config.xml. If it is missing, continue without failing.\n' +
-                                                                                  '- Run cordova platform add android@13.0.0 and cordova build android, with CI=true and CORDOVA_NO_TELEMETRY=1 set.\n' +
-                                                                                  '- Upload exactly this path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk\n\n' +
-                                                                                  'Give me ONLY the final YAML content, no explanation, no markdown code fences.';
+                                                        var prompt = 'Write a complete GitHub Actions workflow YAML file to build my Native Android App.\n\n' +
+                                                          'Context & Constraints:\n' +
+                                                          '- Repo: ' + repoContext + '\n' +
+                                                          '- The YAML file will be saved at: .github/workflows/' + filename + '\n' +
+                                                          '- Trigger must be: "on: workflow_dispatch:"\n' +
+                                                          '- Declare inputs under "workflow_dispatch: inputs:" for "app_name" and "app_version" (defaults: "' + appName + '", "' + appVersion + '")\n' +
+                                                          '- Runner: ubuntu-latest\n' +
+                                                          '- Java setup: actions/setup-java@v4 with Temurin Java 17\n' +
+                                                          '- Gradle setup: gradle/actions/setup-gradle@v4 with gradle-version 8.7\n' +
+                                                          '- Native build step: run "gradle assembleDebug --no-daemon" (no wrapper assumed)\n' +
+                                                          '- Version & Name patching: Patch android:label in app/src/main/AndroidManifest.xml and versionName/versionCode in app/build.gradle.kts using inline Python3 prior to build\n' +
+                                                          '- Icon Handling: If build-icon.png exists at the repo root, inject it into app/src/main/res/mipmap-* densities\n' +
+                                                          '- Artifact Upload: actions/upload-artifact@v4 uploading "app/build/outputs/apk/debug/app-debug.apk" with artifact name exactly: ' + artifactName + '\n\n' +
+                                                          'Return ONLY the raw YAML content. No markdown code fences, no explanations.';
 
-                          navigator.clipboard.writeText(prompt).then(function() {
-                            toast('🚀 AI prompt for YAML copied!');
-                          }).catch(function(err) {
-                            toast('❌ Failed to copy prompt: ' + err.message, 'err');
-                          });
-                        });
+                                                        navigator.clipboard.writeText(prompt).then(function() {
+                                                          toast('🚀 Native App YAML Prompt copied!');
+                                                        }).catch(function(err) {
+                                                          toast('❌ Failed to copy prompt: ' + err.message, 'err');
+                                                        });
+                                                      });
+
+                              // Icon Cropper State & Logic
+                              let iconCropperInstance = null;
+                              let croppedIconBlob = null;
+
+                              const bmAppIconInput = document.getElementById('bmAppIcon');
+                              if (bmAppIconInput) {
+                                bmAppIconInput.addEventListener('change', function(e) {
+                                  const file = e.target.files[0];
+                                  if (!file) return;
+                                  const reader = new FileReader();
+                                  reader.onload = function(ev) {
+                                    const cropModal = document.getElementById('iconCropModal');
+                                    const cropImg = document.getElementById('iconCropSourceImg');
+                                    cropImg.src = ev.target.result;
+                                    cropModal.classList.add('open');
+
+                                    if (iconCropperInstance) {
+                                      iconCropperInstance.destroy();
+                                    }
+                                    iconCropperInstance = new Cropper(cropImg, {
+                                      aspectRatio: 1,
+                                      viewMode: 1,
+                                      autoCropArea: 0.95,
+                                      dragMode: 'move',
+                                      cropBoxMovable: true,
+                                      cropBoxResizable: true
+                                    });
+                                  };
+                                  reader.readAsDataURL(file);
+                                });
+                              }
+
+                              function closeIconCropModal() {
+                                const cropModal = document.getElementById('iconCropModal');
+                                cropModal.classList.remove('open');
+                                if (iconCropperInstance) {
+                                  iconCropperInstance.destroy();
+                                  iconCropperInstance = null;
+                                }
+                              }
+
+                              var cropCloseBtn = document.getElementById('iconCropCloseBtn');
+                              if (cropCloseBtn) cropCloseBtn.addEventListener('click', closeIconCropModal);
+                              var cropCancelBtn = document.getElementById('iconCropCancelBtn');
+                              if (cropCancelBtn) cropCancelBtn.addEventListener('click', closeIconCropModal);
+
+                              var cropApplyBtn = document.getElementById('iconCropApplyBtn');
+                              if (cropApplyBtn) {
+                                cropApplyBtn.addEventListener('click', function() {
+                                  if (!iconCropperInstance) return;
+                                  const canvas = iconCropperInstance.getCroppedCanvas({
+                                    width: 512,
+                                    height: 512,
+                                    imageSmoothingEnabled: true,
+                                    imageSmoothingQuality: 'high'
+                                  });
+                                  canvas.toBlob(function(blob) {
+                                    croppedIconBlob = blob;
+                                    const preview = document.getElementById('bmAppIconPreview');
+                                    const label = document.getElementById('bmAppIconLabel');
+                                    if (preview) {
+                                      preview.src = canvas.toDataURL('image/png');
+                                      preview.style.display = 'block';
+                                    }
+                                    if (label) label.textContent = 'Cropped (512x512)';
+                                    closeIconCropModal();
+                                    toast('✅ Icon cropped & ready for build');
+                                  }, 'image/png');
+                                });
+                              }
 
       function closeBuildModal() {
               document.getElementById('buildModal').classList.remove('open');
@@ -6083,8 +6178,8 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
               const yamlContent = document.getElementById('bmWorkflowYaml').value;
               const artifactName = document.getElementById('bmArtifactName').value.trim();
               const appName = document.getElementById('bmAppName').value.trim() || 'My App';
-              const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
-              const iconFile = document.getElementById('bmAppIcon').files[0];
+                            const appVersion = document.getElementById('bmVersion').value.trim() || '1.0.0';
+                            const iconFile = croppedIconBlob || document.getElementById('bmAppIcon').files[0];
 
               if (!ghToken || !ghRepo) {
                 toast('❌ Select a GitHub repo first', 'warn');
