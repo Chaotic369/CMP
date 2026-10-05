@@ -2447,13 +2447,19 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
             document.getElementById('repoTabsContainer').classList.remove('expanded');
 
             toast(`✅ Repo '${name}' created and live!`, 'ok');
-    addLog('ok', `Repo creation pipeline complete for ${newRepoName}`);
+                addLog('ok', `Repo creation pipeline complete for ${newRepoName}`);
 
-    document.getElementById('newRepoModal').classList.remove('open');
-    document.getElementById('menu-backdrop').classList.remove('open');
-    document.getElementById('nrAddBtn').disabled = false;
-    hideProgress();
-});
+                var nrModalEl = document.getElementById('newRepoModal');
+                nrModalEl.classList.remove('open');
+                nrModalEl.style.display = 'none';
+                document.getElementById('menu-backdrop').classList.remove('open');
+                document.getElementById('nrAddBtn').disabled = false;
+                hideProgress();
+
+                if (window._treeCache) delete window._treeCache[newRepoName];
+                await fetchFileTree(false, true);
+                await syncCurrentFile();
+            });
 
 window.renameRepo = async function(full_name, e) {
     e.stopPropagation();
