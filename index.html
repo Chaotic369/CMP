@@ -4736,7 +4736,7 @@ function render(src, skipEditorUpdate) {
       }
       try {
         var bridge = [
-                    '<style>html,body{-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto;}</style>',
+                            '<style>html,body{-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto;box-sizing:border-box;} body{padding-bottom:calc(28px + env(safe-area-inset-bottom, 0px)) !important; min-height:calc(100vh - 28px - env(safe-area-inset-bottom, 0px)) !important;}</style>',
                     '<scr' + 'ipt>',
               'window.onerror = function(m,s,l,c,err){',
               '  window.parent.postMessage({__compilerErr:"Line "+l+": "+m+(err&&err.stack?" | "+err.stack.split("\\n")[1]:"")}, "*");',
