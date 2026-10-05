@@ -777,8 +777,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <div class="win-title"><i class="fa-solid fa-sliders" style="margin-right:6px;"></i> Settings & Integration</div>
     <button class="panel-close" id="ghClosePanelTopBtn" onclick="document.getElementById('ghConfigPanel').classList.remove('open'); document.getElementById('ghConfigPanel').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
-    <button class="panel-close" id="ghClosePanelTopBtn" onclick="document.getElementById('ghConfigPanel').classList.remove('open'); document.getElementById('ghConfigPanel').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
-  </div>
 
   <div style="display:flex; flex-direction:column; gap:14px;">
     <!-- GitHub Authentication Section -->
@@ -5269,47 +5267,6 @@ if (ghShowLabelsEl) {
     ghSaveConfig();
   });
 }
-
-document.getElementById('ghClosePanelBtn').addEventListener('click', function() {
-  document.getElementById('ghConfigPanel').classList.remove('open');
-  document.getElementById('ghConfigPanel').style.display = 'none';
-  $backdrop.classList.remove('open');
-});
-
-document.getElementById('ghSaveBtn').addEventListener('click', function() {
-  let newUser = document.getElementById('ghUser').value.trim();
-  let newToken = document.getElementById('ghToken').value.trim();
-  
-  if ((newUser !== ghUser && newUser !== '') || (newToken !== ghToken && newToken !== '')) {
-    ghRepos = [];
-    ghBookmarkedRepos = [];
-    ghRepo = '';
-    currentDirectory = '';
-    const ftc = document.getElementById('fileTreeContainer');
-    const rtc = document.getElementById('repoTabsContainer');
-    if(ftc) ftc.innerHTML = '';
-    if(rtc) rtc.innerHTML = '';
-  }
-  
-  ghToken = newToken;
-  ghUser = newUser;
-  ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
-  ghFilePath = document.getElementById('ghFilePath').value.trim() || 'index.html';
-
-  settings.showLabels = document.getElementById('ghShowLabels').checked;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  applyLabelsState(settings.showLabels);
-
-  ghSaveConfig();
-  document.getElementById('ghConfigPanel').classList.remove('open');
-  document.getElementById('ghConfigPanel').style.display = 'none';
-  $backdrop.classList.remove('open');
-  toast('💾 GitHub Settings Saved!');
-
-  if (ghToken && ghUser && ghRepos.length === 0) {
-    ghFetchAllRepos();
-  }
-});
 
 var ghShowLabelsEl = document.getElementById('ghShowLabels');
 if (ghShowLabelsEl) {
