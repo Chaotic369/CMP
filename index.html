@@ -69,7 +69,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 0px; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
 
 #emptyState {
   position: fixed; inset: 0; background: #000000; z-index: 0; display: flex; align-items: center; justify-content: center;
@@ -99,7 +99,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 /* Action Pop Up Button */
 #toggleUiBtn {
-  position: fixed; bottom: calc(130px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 999999 !important; width: 24px; height: 24px; border-radius: 0px;
+  position: fixed; bottom: calc(130px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 999999 !important; width: 24px; height: 24px; border-radius: 6px;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; user-select: none; touch-action: none;
@@ -120,7 +120,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 #app-menu {
       position: fixed; z-index: 100000 !important; display: flex; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: stretch; gap: 6px;
-      background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 6px; border: none !important; outline: none !important; border-radius: 0px;
+      background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); padding: 6px; border: none !important; outline: none !important; border-radius: 14px;
       box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4); width: fit-content; height: fit-content;
       max-width: min(calc(100vw - 12px), calc(100vw - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px) - 12px));
       max-height: fit-content;
@@ -135,7 +135,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 /* Squircle Base Buttons */
 button.btn {
-  background: rgba(255, 255, 255, 0.08); border: none; color: #ffffff; border-radius: 0px; font-size: 8px; cursor: pointer;
+  background: rgba(255, 255, 255, 0.08); border: none; color: #ffffff; border-radius: 6px; font-size: 8px; cursor: pointer;
   display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; outline: none;
 }
 button.btn:hover { background: rgba(255, 255, 255, 0.15); }
@@ -189,7 +189,7 @@ body.hide-btn-labels .btn-lbl {
 #sidebarContent.mini #repoTabsContainer { display: flex !important; flex-direction: column; gap: 0px; max-height: none !important; height: auto; overflow-y: visible; justify-content: flex-start; margin: 0; flex-shrink: 0; }
 
 #bookmarkContent { display: flex; flex-direction: column; width: 140px; height: fit-content; max-height: 45vh; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 4px; overflow-x: hidden; }
-#bookmarkContent .repo-item { background: transparent; border-radius: 0px; margin-bottom: 2px; }
+#bookmarkContent .repo-item { background: transparent; border-radius: 8px; margin-bottom: 2px; }
 #bookmarkContent .repo-item:active { background: rgba(255,255,255,0.15); }
 #bookmarkContent .repo-item.active { background: rgba(255,255,255,0.15); }
 #bookmarkContent.mini { height: auto; max-height: 55vh !important; width: 45px; padding-left: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
@@ -207,7 +207,7 @@ body.hide-btn-labels .btn-lbl {
   padding: 6px 6px;
   margin-bottom: 2px;
   background: rgba(255,255,255,0.05);
-  border-radius: 0px;
+  border-radius: 6px;
   font-size: 8px;
   color: rgba(255,255,255,0.7);
 }
@@ -236,12 +236,12 @@ body.hide-btn-labels .btn-lbl {
 #fileTreeContainer { display: none; flex-direction: column; gap: 0px; flex: 1; min-height: 40px; max-height: 100%; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2px; margin-top: 2px; }
 
 .repo-item {
-  padding: 0px 6px; font-size: 7px; border-radius: 0px; border: none; background: transparent;
+  padding: 0px 6px; font-size: 7px; border-radius: 8px; border: none; background: transparent;
   cursor: pointer; text-align: left; font-weight: 500;
   display: flex; align-items: center; justify-content: space-between; gap: 4px; user-select: none; color: #ffffff;
   min-height: 12px; line-height: 12px;
 }
-.repo-item.file-item { padding: 3px 6px; border-radius: 0px; }
+.repo-item.file-item { padding: 3px 6px; border-radius: 6px; }
 .repo-item.ready-to-drag { background: rgba(255,255,255,0.1); cursor: grab; }
 .repo-item.ready-to-drag:active { cursor: grabbing; }
 .repo-item.drag-over { border: 1px dashed var(--green); background: rgba(255,255,255,0.05); opacity: 0.8; }
@@ -250,13 +250,13 @@ body.hide-btn-labels .btn-lbl {
 
 .repo-actions { display: none; align-items: center; gap: 3px; }
 .repo-item.active .repo-actions { display: flex; }
-.repo-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 2px 4px; font-size: 6px; border-radius: 0px; }
+.repo-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 2px 4px; font-size: 6px; border-radius: 6px; }
 .repo-btn.del { color: var(--red); }
 
 #main-controls { display: grid; grid-template-columns: repeat(5, 24px); grid-auto-rows: 24px; gap: 4px; align-content: start; flex-shrink: 0; height: fit-content; }
 
 #toast {
-  position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 0px; font-size: 6px; font-weight: 500;
+  position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 12px; font-size: 6px; font-weight: 500;
   background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; color: var(--green);
   z-index: 40000; display: none; max-width: 90vw; text-align: center; white-space: pre-line;
   box-shadow: none;
@@ -265,11 +265,11 @@ body.hide-btn-labels .btn-lbl {
 #toast.warn { color: var(--amber); }
 #toast.err  { color: var(--red); }
 #toast.info { color: var(--blue); }
-#toastCopyBtn { display: none; background: rgba(255,255,255,0.12); border: none; color: inherit; border-radius: 0px; width: 18px; height: 18px; flex-shrink: 0; align-items: center; justify-content: center; cursor: pointer; font-size: 6px; }
+#toastCopyBtn { display: none; background: rgba(255,255,255,0.12); border: none; color: inherit; border-radius: 8px; width: 18px; height: 18px; flex-shrink: 0; align-items: center; justify-content: center; cursor: pointer; font-size: 6px; }
 #toast.err #toastCopyBtn { display: flex; }
 
 #astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal, #renderModal {
-  position: fixed; z-index: 30000; background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 0px;
+  position: fixed; z-index: 30000; background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px;
   padding: 24px; color: #ffffff; font-size: 11px; box-shadow: none;
   max-height: calc(100vh - 40px); overflow-y: auto;
   scrollbar-width: none; -ms-overflow-style: none;
@@ -294,7 +294,7 @@ body.hide-btn-labels .btn-lbl {
 
 #errOverlay {
   position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
-  background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 0px;
+  background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px;
   padding: 16px; color: var(--red); font-size: 6px; font-weight: 500; z-index: 25000;
   width: 90vw; max-width: 480px; display: none; white-space: pre-wrap; max-height: 40vh; overflow-y: auto;
   box-shadow: none;
@@ -355,7 +355,7 @@ body.hide-btn-labels .btn-lbl {
   padding: 4px 6px;
   border: none;
   background: transparent;
-  border-radius: 0px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -386,7 +386,7 @@ body.hide-btn-labels .btn-lbl {
   height: 14px;
   border-bottom: 3px solid rgba(160, 160, 160, 0.8);
   border-left: 3px solid rgba(160, 160, 160, 0.8);
-  border-bottom-left-radius: 0px;
+  border-bottom-left-radius: 14px;
   box-shadow: none;
 }
 input::placeholder, textarea::placeholder {
@@ -398,16 +398,16 @@ input::placeholder, textarea::placeholder {
 
 .gh-row { display: flex; gap: 8px; align-items: center; }
 .gh-row label { width: 70px; color: #ffffff; font-size: 11px; font-weight: 500; }
-.gh-row input { flex: 1; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 0px; outline: none; }
+.gh-row input { flex: 1; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 20px; outline: none; }
 .gh-row input:focus { background: rgba(255, 255, 255, 0.15); }
 
 .gh-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
-.gh-actions button { background: rgba(255, 255, 255, 0.15); border: none; color: #ffffff; padding: 8px 16px; border-radius: 0px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+.gh-actions button { background: rgba(255, 255, 255, 0.15); border: none; color: #ffffff; padding: 8px 16px; border-radius: 20px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
 .gh-actions button:hover { background: rgba(255, 255, 255, 0.25); }
 
 #commitMsgInput {
   width: 100%; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff;
-  padding: 14px; border-radius: 0px; min-height: 90px; resize: vertical; outline: none;
+  padding: 14px; border-radius: 20px; min-height: 90px; resize: vertical; outline: none;
 }
 #commitMsgInput:focus { background: rgba(255, 255, 255, 0.15); }
 
@@ -418,7 +418,7 @@ input::placeholder, textarea::placeholder {
   height: 36px; background: #000000; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 0 10px;
 }
 .ce-action-btn {
-  width: 28px; height: 28px; border-radius: 0px;
+  width: 28px; height: 28px; border-radius: 6px;
   background: transparent; border: none !important; outline: none !important;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; color: #ffffff; font-size: 11px;
@@ -434,26 +434,26 @@ input::placeholder, textarea::placeholder {
   box-shadow: none;
 }
 .fnr-row { display: flex; gap: 10px; align-items: center; }
-.fnr-row input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); color: #fff; padding: 10px 14px; border-radius: 0px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.fnr-row input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); color: #fff; padding: 10px 14px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
 .fnr-row input:focus { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.2); }
-.fnr-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 8px 14px; border-radius: 0px; cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.fnr-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
 .fnr-btn:hover { background: rgba(255,255,255,0.2); }
 
 /* Dual-Engine Build Modal */
-#buildModal { width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 0px; padding: 24px; color: #ffffff; box-shadow: none; max-height: 85vh; overflow-y: auto; }
+#buildModal { width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px; padding: 24px; color: #ffffff; box-shadow: none; max-height: 85vh; overflow-y: auto; }
 #buildModal.open { display: flex; }
 #buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
 .bm-step label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--blue); }
-.bm-toggle-btn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px; border-radius: 0px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500; }
+.bm-toggle-btn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500; }
 .bm-toggle-btn.active { background: rgba(92, 157, 255, 0.2); border-color: var(--blue); }
-.bm-code-box { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; padding: 12px; border-radius: 0px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; min-height: 80px; resize: vertical; margin-bottom: 8px; }
-.bm-permissions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 0px; margin-bottom: 10px; }
+.bm-code-box { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; padding: 12px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; min-height: 80px; resize: vertical; margin-bottom: 8px; }
+.bm-permissions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
 .bm-permissions-grid label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-.bm-advanced { background: rgba(255,255,255,0.03); border-radius: 0px; padding: 12px; margin-top: 4px; }
+.bm-advanced { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-top: 4px; }
 .bm-advanced summary { cursor: pointer; font-size: 13px; font-weight: 600; outline: none; user-select: none; }
-.bm-lib-chip { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 6px 10px; border-radius: 0px; font-size: 11px; cursor: pointer; }
+.bm-lib-chip { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 6px 10px; border-radius: 10px; font-size: 11px; cursor: pointer; }
 .bm-lib-chip:hover { background: rgba(255,255,255,0.2); }
-select.bm-select { width: 100%; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 0px; outline: none; font-size: 13px; -webkit-appearance: none; }
+select.bm-select { width: 100%; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 12px; outline: none; font-size: 13px; -webkit-appearance: none; }
 select.bm-select option { background: var(--elevated); color: #fff; }
 </style>
 </head>
@@ -503,9 +503,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </button>
 <div id="app-menu">
       <div id="menu-resize-handle" style="position: absolute; bottom: 0; left: 0; width: 20px; height: 20px; cursor: sw-resize; z-index: 10001; pointer-events: auto; touch-action: none;" title="Drag to Resize">
-              <div style="position: absolute; bottom: 4px; left: 4px; width: 12px; height: 12px; border-bottom: 2.5px solid rgba(160, 160, 160, 0.8); border-left: 2.5px solid rgba(160, 160, 160, 0.8); border-bottom-left-radius: 0px; box-shadow: none;"></div>
+              <div style="position: absolute; bottom: 4px; left: 4px; width: 12px; height: 12px; border-bottom: 2.5px solid rgba(160, 160, 160, 0.8); border-left: 2.5px solid rgba(160, 160, 160, 0.8); border-bottom-left-radius: 8px; box-shadow: none;"></div>
             </div>
-            <div id="app-menu-loader" style="display: none; position: absolute; inset: 0; z-index: 10000; background: #000000; border-radius: 0px; align-items: center; justify-content: center; flex-direction: column; gap: 10px;">
+            <div id="app-menu-loader" style="display: none; position: absolute; inset: 0; z-index: 10000; background: #000000; border-radius: 12px; align-items: center; justify-content: center; flex-direction: column; gap: 10px;">
           <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 6px; color: var(--blue);"></i>
         <span id="app-menu-loader-text" style="font-size: 6px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">Connecting...</span>
   </div>
@@ -552,10 +552,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                     
                                                           <button id="buildApkBtn" class="btn" style="display:none;"></button>
                                                                                     <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
-                                    <div style="grid-column: 1 / -1; grid-row: 3; display: flex; background: rgba(255,255,255,0.1); border-radius: 0px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05);">
-                                                                                                                                                                                  <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
-                                                                                                                                                                                                                                                                                                                                                                                                                                          <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 0px;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
-                                                                                                                                                                                </div>
+                                    <div style="grid-column: 1 / -1; grid-row: 3; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05);">
+                                                                                                                                                                                                                      <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                              <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
+                                                                                                                                                                                                                    </div>
                                                                                     </div>
   
                                                         <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0; position: relative; max-height: 100%;">
@@ -634,7 +634,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
   <div class="gh-row"><label>Image URL</label><input type="text" id="wpUrlInput" placeholder=""></div>
   <div style="display:flex; justify-content:center; margin: 10px 0;">
-    <button id="wpUploadBtn" style="background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 16px; border-radius: 0px; cursor: pointer; display:flex; align-items:center; gap:8px; transition: background 0.2s;"><i class="fa-solid fa-upload"></i> Or Upload Image</button>
+    <button id="wpUploadBtn" style="background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 16px; border-radius: 20px; cursor: pointer; display:flex; align-items:center; gap:8px; transition: background 0.2s;"><i class="fa-solid fa-upload"></i> Or Upload Image</button>
     <input type="file" id="wpFileInput" accept="image/*" style="display:none;">
   </div>
   <div class="gh-actions">
@@ -659,19 +659,19 @@ select.bm-select option { background: var(--elevated); color: #fff; }
             <label style="cursor:pointer;"><input type="radio" name="nrSource" value="files"> <i class="fa-solid fa-file-zipper"></i> Upload Files (ZIPs auto-extract)</label>
           </div>
   
-      <label id="nrFileLabel" for="nrFileInput" style="display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:0px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
+      <label id="nrFileLabel" for="nrFileInput" style="display:flex; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
               <i class="fa-solid fa-cloud-arrow-up" style="font-size:16px; color:var(--blue);"></i>
               <span id="nrFileNameDisplay" style="font-size:11px; font-weight:500;">Click to upload HTML file</span>
             </label>
             <input type="file" id="nrFileInput" accept=".html,.htm" style="display:none;">
 
-            <label id="nrFilesLabel" for="nrFilesInput" style="display:none; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:0px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
+            <label id="nrFilesLabel" for="nrFilesInput" style="display:none; align-items:center; justify-content:center; gap:10px; background:rgba(255,255,255,0.05); padding:16px; border-radius:16px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1px dashed rgba(255,255,255,0.3); transition: all 0.2s;">
               <i class="fa-solid fa-file-zipper" style="font-size:16px; color:var(--purple);"></i>
               <span id="nrFilesNameDisplay" style="font-size:11px; font-weight:500;">Click to select any files (multiple allowed)</span>
             </label>
             <input type="file" id="nrFilesInput" multiple style="display:none;">
 
-            <textarea id="nrPasteInput" placeholder="" style="display:none; width:100%; height:120px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:0px; margin-bottom:10px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:11px;"></textarea>
+            <textarea id="nrPasteInput" placeholder="" style="display:none; width:100%; height:120px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:4px; margin-bottom:10px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:11px;"></textarea>
   <div class="gh-actions">
     <button id="nrCancelBtn">✕ Cancel</button>
     <button id="nrAddBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);">Add</button>
@@ -684,7 +684,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <button class="panel-close" onclick="document.getElementById('bulkModal').classList.remove('open'); document.getElementById('bulkModal').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
   <p style="font-size:11px; margin-bottom:8px; color:#a0a0a0;">Paste file paths (one per line). Folders are auto-created.</p>
-  <textarea id="bulkPathsInput" placeholder="app/build.gradle&#10;app/src/main/AndroidManifest.xml&#10;.github/workflows/build.yml" style="width:100%; height:150px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:0px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:11px;"></textarea>
+  <textarea id="bulkPathsInput" placeholder="app/build.gradle&#10;app/src/main/AndroidManifest.xml&#10;.github/workflows/build.yml" style="width:100%; height:150px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:12px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:11px;"></textarea>
   <div class="gh-actions">
       <button id="bulkCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
       <button id="bulkConfirmBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-check"></i> Create</button>
@@ -709,12 +709,12 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         </span>
       </div>
       <div style="display:flex; align-items:center; gap:10px;">
-                  <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.2); color:var(--amber); border:none; padding:6px 12px; border-radius:0px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
-                  <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.2); color:var(--blue); border:none; padding:6px 12px; border-radius:0px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
-                  <button id="modalRepoBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.25); color:var(--red); border:none; padding:6px 12px; border-radius:0px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteSelectedReposWithWarning()"><i class="fa-solid fa-trash"></i> Delete Repos (<span id="modalRepoBulkCount">0</span>)</button>
-                  <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:none; padding:6px 12px; border-radius:0px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
-                  <button class="panel-close" onclick="window.closeFullTreeModal()">✕</button>
-                </div>
+                        <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.2); color:var(--amber); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
+                        <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.2); color:var(--blue); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
+                        <button id="modalRepoBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.25); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteSelectedReposWithWarning()"><i class="fa-solid fa-trash"></i> Delete Repos (<span id="modalRepoBulkCount">0</span>)</button>
+                        <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
+                        <button class="panel-close" onclick="window.closeFullTreeModal()">✕</button>
+                      </div>
     </div>
     <div id="fullTreeContent" style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; overflow-x: hidden;"></div>
     <div id="modalRepoList" style="display:none; flex-direction:column; gap:4px; overflow-y:auto; flex:1; padding-right:4px;"></div>
@@ -1843,8 +1843,8 @@ function renderRepoTabs() {
   container.innerHTML = '';
   
   if (window.repoBulkMode) {
-        const bulkToolbar = document.createElement('div');
-        bulkToolbar.style = "display:flex; justify-content:space-between; align-items:center; padding:6px; background:rgba(248,81,73,0.15); border-bottom:1px solid rgba(248,81,73,0.3); margin-bottom:4px; border-radius:0px;";
+          const bulkToolbar = document.createElement('div');
+          bulkToolbar.style = "display:flex; justify-content:space-between; align-items:center; padding:6px; background:rgba(248,81,73,0.15); border-bottom:1px solid rgba(248,81,73,0.3); margin-bottom:4px; border-radius:6px;";
       bulkToolbar.innerHTML = `
           <span style="font-size:7px; color:var(--red); font-weight:bold;">Select Repos</span>
           <div style="display:flex; gap:4px;">
@@ -6475,11 +6475,11 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                           list.innerHTML = '';
                                           window.updateModalRepoBulkDeleteBtn();
                                           ghRepos.forEach((r, index) => {
-                                                                                        const btn = document.createElement('div');
-                                                                                        btn.className = 'repo-item' + (r === ghRepo ? ' active' : '');
-                                                                                        btn.style.padding = '12px 14px';
-                                                                                        btn.style.fontSize = '13px';
-                                                                                        btn.style.borderRadius = '0px';
+                                                                                                                                  const btn = document.createElement('div');
+                                                                                                                                  btn.className = 'repo-item' + (r === ghRepo ? ' active' : '');
+                                                                                                                                  btn.style.padding = '12px 14px';
+                                                                                                                                  btn.style.fontSize = '13px';
+                                                                                                                                  btn.style.borderRadius = '10px';
                                               btn.style.cursor = 'pointer';
                                               btn.style.display = 'flex';
                                               btn.style.alignItems = 'center';
