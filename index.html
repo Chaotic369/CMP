@@ -55,10 +55,10 @@
 :root {
   --blue: #5c9dff; --green: #39d353; --red: #f85149;
   --amber: #e3b341; --purple: #bc8cff; --teal: #2dd4bf;
-  --surface: #000000; 
-  --elevated: #070b4a; 
-  --panel: #030835;
-  --border: transparent;
+  --surface: #1e1f22; 
+  --elevated: #2b2d31; 
+  --panel: #232428;
+  --border: rgba(255, 255, 255, 0.08);
   --tp: #ffffff; 
   --tm: #ffffff; 
   --td: #ffffff;
@@ -72,7 +72,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
 
 #emptyState {
-  position: fixed; inset: 0; background: #000000; z-index: 0; display: flex; align-items: center; justify-content: center;
+  position: fixed; inset: 0; background: var(--surface); z-index: 0; display: flex; align-items: center; justify-content: center;
   flex-direction: column; gap: 10px; color: #ffffff; font-family: 'JetBrains Mono', monospace; font-size: 14px; letter-spacing: 0.1em;
 }
 
@@ -416,7 +416,7 @@ input::placeholder, textarea::placeholder {
 #codeEditorActions {
   position: fixed; top: env(safe-area-inset-top, 0px); left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px); z-index: 10000;
   display: none; align-items: center; justify-content: flex-start; gap: 8px; flex-direction: row;
-  height: 36px; background: #000000; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 0 10px;
+  height: 36px; background: #1e1f22; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 0 10px;
 }
 .ce-action-btn {
   width: 28px; height: 28px; border-radius: 6px;
@@ -430,18 +430,18 @@ input::placeholder, textarea::placeholder {
 
 #fnrPanel {
   position: fixed; top: calc(36px + env(safe-area-inset-top, 0px)); left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px); z-index: 10001;
-  background: #000000; border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important;
+  background: #23252a; border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important;
   padding: 16px 20px; display: none; flex-direction: column; gap: 10px;
-  box-shadow: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 }
 .fnr-row { display: flex; gap: 10px; align-items: center; }
-.fnr-row input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.05); color: #fff; padding: 10px 14px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
-.fnr-row input:focus { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.2); }
-.fnr-btn { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
-.fnr-btn:hover { background: rgba(255,255,255,0.2); }
+.fnr-row input { flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: #fff; padding: 10px 14px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.fnr-row input:focus { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.2); }
+.fnr-btn { background: rgba(255,255,255,0.08); border: none; color: #fff; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.fnr-btn:hover { background: rgba(255,255,255,0.15); }
 
 /* Dual-Engine Build Modal */
-#buildModal { width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px; padding: 24px; color: #ffffff; box-shadow: none; max-height: 85vh; overflow-y: auto; }
+#buildModal { width: 90vw; max-width: 460px; display: none; flex-direction: column; gap: 12px; z-index: 30000; position: fixed; background: #23252a; border: 1px solid rgba(255, 255, 255, 0.12) !important; outline: none !important; border-radius: 12px; padding: 24px; color: #ffffff; box-shadow: 0 12px 40px rgba(0,0,0,0.4); max-height: 85vh; overflow-y: auto; }
 #buildModal.open { display: flex; }
 #buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
 .bm-step label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--blue); }
