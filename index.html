@@ -154,9 +154,6 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   max-width: 22px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   opacity: 0.8;
 }
-body.hide-btn-labels .btn-lbl {
-  display: none !important;
-}
 
 /* Sidebar Buttons - No Background */
 #repoSidebar > div:first-child > button.btn,
@@ -796,15 +793,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
       <div class="gh-row" style="margin:0;"><label>File Path</label><input type="text" id="ghFilePath" placeholder="index.html"></div>
     </div>
 
-    <!-- Workspace & Preferences Section -->
-    <div style="display:flex; flex-direction:column; gap:8px;">
-      <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-desktop" style="margin-right:6px;"></i>Preferences</span>
-      <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:11px; color:#ffffff; user-select:none; margin:0; padding:2px 0;">
-        <span style="display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-tag" style="font-size:10px; color:rgba(255,255,255,0.6);"></i>Show toolbar button labels</span>
-        <input type="checkbox" id="ghShowLabels" style="cursor:pointer; accent-color:#ffffff; width:14px; height:14px;" checked>
-      </label>
     </div>
-  </div>
 
   <div class="gh-actions" style="margin-top:12px;">
       <button id="ghClosePanelBtn" style="background:transparent; border:1px solid rgba(255,255,255,0.2) !important;"><i class="fa-solid fa-xmark"></i> Cancel</button>
@@ -1050,15 +1039,7 @@ var dragStartX, dragStartY, initialBtnX, initialBtnY;
 var currentErrText = '';
 
 // AST Guard disabled by default to prevent apply rejections
-var settings = { astGuard: false, indentFix: true, warnAmbiguous: true, menuScale: 1, showLabels: true };
-
-function applyLabelsState(show) {
-  if (show === false) {
-    document.body.classList.add('hide-btn-labels');
-  } else {
-    document.body.classList.remove('hide-btn-labels');
-  }
-}
+var settings = { astGuard: false, indentFix: true, warnAmbiguous: true, menuScale: 1 };
 
 var topModalZ = 50000;
 var MAX_WINDOW_Z = 80000;
@@ -1875,13 +1856,7 @@ async function ghLoadConfigFromFirebase() {
                   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
                   document.getElementById('app-menu').style.setProperty('--user-scale', settings.menuScale);
                 }
-                if (cfg.showLabels !== undefined) {
-                                  settings.showLabels = cfg.showLabels;
-                                  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-                                  applyLabelsState(cfg.showLabels);
-                                  var chkEl = document.getElementById('ghShowLabels');
-                                  if (chkEl) chkEl.checked = cfg.showLabels !== false;
-                                }
+                
         if (window.self === window.top && cfg.toggleBtnPos && cfg.toggleBtnPos.left !== undefined && cfg.toggleBtnPos.top !== undefined) {
           settings.toggleBtnPos = cfg.toggleBtnPos;
           localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -1913,17 +1888,16 @@ function ghSaveConfig() {
   if (ghUser) localStorage.setItem('gh_active_user', ghUser);
   const cfg = { 
         token: ghToken || '', 
-        user: ghUser || '', 
-        repo: ghRepo || '', 
-        branch: ghBranch || 'main', 
-        filePath: ghFilePath || 'index.html', 
-        repos: ghRepos || [], 
-        bookmarkedRepos: ghBookmarkedRepos || [], 
-        wallpaper: settings.wallpaper || '',
-              toggleBtnPos: settings.toggleBtnPos || null,
-                            menuScale: settings.menuScale || 1,
-                            showLabels: settings.showLabels !== undefined ? settings.showLabels : true
-                          };
+                user: ghUser || '', 
+                repo: ghRepo || '', 
+                branch: ghBranch || 'main', 
+                filePath: ghFilePath || 'index.html', 
+                repos: ghRepos || [], 
+                bookmarkedRepos: ghBookmarkedRepos || [], 
+                wallpaper: settings.wallpaper || '',
+                toggleBtnPos: settings.toggleBtnPos || null,
+                menuScale: settings.menuScale || 1
+              };
   try { localStorage.setItem('gh_config_backup_v2', JSON.stringify(cfg)); } catch(e) {}
   if (!ghConfigLoaded) {
     console.warn('[ghSaveConfig] Blocked Firebase save — config has not finished loading from Firebase yet.');
@@ -4318,12 +4292,11 @@ window.addEventListener('DOMContentLoaded', async function() {
   }
   showMenuLoader('Connecting to Firebase...');
   try {
-    var s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
-    Object.assign(settings, s);
-    if (settings.wallpaper) applyWallpaper(settings.wallpaper);
-        if (settings.menuScale) document.getElementById('app-menu').style.setProperty('--user-scale', settings.menuScale);
-        if (settings.showLabels !== undefined) applyLabelsState(settings.showLabels);
-      } catch(e) {}
+      var s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+      Object.assign(settings, s);
+      if (settings.wallpaper) applyWallpaper(settings.wallpaper);
+      if (settings.menuScale) document.getElementById('app-menu').style.setProperty('--user-scale', settings.menuScale);
+    } catch(e) {}
   
   updateRepoSidebar(); 
 
@@ -5250,23 +5223,11 @@ document.getElementById('ghSettingsBtn').addEventListener('click', function() {
   document.getElementById('ghUser').value = ghUser;
   document.getElementById('ghBranch').value = ghBranch;
   document.getElementById('ghFilePath').value = ghFilePath;
-  var lblChk = document.getElementById('ghShowLabels');
-  if (lblChk) lblChk.checked = settings.showLabels !== false;
   var ghPanel = document.getElementById('ghConfigPanel');
   ghPanel.classList.add('open');
   centerModal(ghPanel);
   bringModalToFront(ghPanel);
 });
-
-var ghShowLabelsEl = document.getElementById('ghShowLabels');
-if (ghShowLabelsEl) {
-  ghShowLabelsEl.addEventListener('change', function() {
-    settings.showLabels = this.checked;
-    applyLabelsState(this.checked);
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    ghSaveConfig();
-  });
-}
 
 var ghShowLabelsEl = document.getElementById('ghShowLabels');
 if (ghShowLabelsEl) {
@@ -5302,13 +5263,9 @@ document.getElementById('ghSaveBtn').addEventListener('click', function() {
   ghToken = newToken;
   ghUser = newUser;
   ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
-  ghFilePath = document.getElementById('ghFilePath').value.trim() || 'index.html';
+    ghFilePath = document.getElementById('ghFilePath').value.trim() || 'index.html';
 
-  settings.showLabels = document.getElementById('ghShowLabels').checked;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-  applyLabelsState(settings.showLabels);
-
-  ghSaveConfig();
+    ghSaveConfig();
   document.getElementById('ghConfigPanel').classList.remove('open');
   document.getElementById('ghConfigPanel').style.display = 'none';
   $backdrop.classList.remove('open');
