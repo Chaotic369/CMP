@@ -1834,6 +1834,30 @@ function applyWallpaper(url) {
   }
 }
 
+function updateConfigButtonAvatar() {
+  var btn = document.getElementById('ghSettingsBtn');
+  if (!btn) return;
+  if (ghAvatar) {
+    btn.innerHTML = '<img src="' + ghAvatar + '" style="width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.25);" alt="PFP"><span class="btn-lbl">Config</span>';
+  } else {
+    btn.innerHTML = '<i class="fa-solid fa-gear"></i><span class="btn-lbl">Config</span>';
+  }
+}
+
+async function fetchGitHubProfile(token) {
+  if (!token) return null;
+  try {
+    const res = await fetch('https://api.github.com/user', {
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return { login: data.login, avatar_url: data.avatar_url };
+    }
+  } catch(e) {}
+  return null;
+}
+
 async function ghLoadConfigFromFirebase() {
   try {
     var localBackup = null;
