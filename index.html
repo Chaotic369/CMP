@@ -768,44 +768,55 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="buildModal">
   <div class="window-header">
-    <div class="win-title"><i class="fa-solid fa-hammer"></i> Build App</div>
+    <div class="win-title"><i class="fa-solid fa-hammer" style="color:var(--blue);"></i> Build App</div>
     <button class="panel-close" id="bmCloseBtn">✕</button>
   </div>
 
-  <div id="bmWrapperSettings">
-     <div class="bm-step" style="margin-top:10px;">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; gap:6px; flex-wrap:wrap;">
-                     <label style="margin-bottom:0;">Workflow YAML</label>
-                     <div style="display:flex; gap:6px;">
-                       <button id="bmUseWrapperYamlBtn" class="btn" style="width:auto; padding:4px 10px; font-size:10px; background:rgba(255,255,255,0.1); border-radius:10px;" title="Fill in the generic HTML wrapper (Cordova) YAML" type="button"><i class="fa-solid fa-cube"></i> HTML Wrapper YML</button>
-                       <button id="bmCopyYamlPromptBtn" class="btn" style="width:auto; padding:4px 10px; font-size:10px; background:rgba(255,255,255,0.1); border-radius:10px;" title="Copy an AI prompt to generate this YAML" type="button"><i class="fa-solid fa-wand-magic-sparkles"></i> Copy AI Prompt</button>
-                     </div>
-                   </div>
-            <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:140px;"></textarea>
-          </div>
-     <div class="gh-row" style="margin-top:10px;"><label>Filename</label><input type="text" id="bmWorkflowFilename" placeholder="custom-build.yml" value="custom-build.yml"></div>
-     <div class="gh-row" style="margin-top:10px;"><label>Artifact Name</label><input type="text" id="bmArtifactName" placeholder="e.g. Android-APK"></div>
-     <div style="display:flex; align-items:center; gap:8px; margin-top:6px;">
-                 <div id="bmExistingWorkflows" style="font-size:10px; color:rgba(255,255,255,0.6); flex:1;">Loading existing workflows...</div>
-                                                   <button id="pullApkLogBtn" class="btn" style="width:auto; padding:4px 8px; font-size:10px; background:rgba(255,255,255,0.1); border-radius:10px; color:var(--red); flex-direction:row; gap:4px;" title="Pull Last Build Log" type="button" onclick="window.pullLastFailedLog()"><i class="fa-solid fa-file-waveform"></i><span class="btn-lbl" style="font-size:9px; max-width:none;">Logs</span></button>
-                                                   <button id="downloadApkBtn" class="btn" style="width:auto; padding:4px 8px; font-size:10px; background:rgba(255,255,255,0.1); border-radius:10px; color:var(--teal); flex-direction:row; gap:4px;" title="Check & Download Latest Build" type="button" onclick="window.checkAndDownloadLastBuild()"><i class="fa-solid fa-file-zipper"></i><span class="btn-lbl" style="font-size:9px; max-width:none;">APK</span></button>
-                                                   <button id="bmManageWorkflowsBtn" class="btn" style="width:auto; padding:4px 8px; font-size:10px; background:rgba(255,255,255,0.1); border-radius:10px; flex-direction:row; gap:4px;" title="View & Delete Workflow Files" type="button"><i class="fa-solid fa-folder-tree"></i><span class="btn-lbl" style="font-size:9px; max-width:none;">Workflows</span></button>
-               </div>
-     <div class="gh-row" style="margin-top:10px;"><label>App Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
-          <div class="gh-row" style="margin-top:10px;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
-          <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:2px;">These are only used if your YAML declares <code>app_name</code> / <code>app_version</code> under <code>on: workflow_dispatch: inputs:</code> — otherwise GitHub ignores them silently.</div>
-               <div class="gh-row" style="margin-top:10px;">
-                 <label>App Icon</label>
-                 <div style="flex:1; display:flex; align-items:center; gap:8px;">
-                   <input type="file" id="bmAppIcon" accept="image/*" style="display:none;" onchange="document.getElementById('bmAppIconLabel').textContent = this.files[0] ? this.files[0].name : 'Optional (auto-scales)';">
-                   <button id="bmAppIconBtn" class="btn" style="width:auto; padding:8px 14px; font-size:11px; background:rgba(255,255,255,0.1); border-radius:12px;" onclick="document.getElementById('bmAppIcon').click()">Choose Image</button>
-                   <span id="bmAppIconLabel" style="font-size:10px; color:rgba(255,255,255,0.6);">Optional (auto-scales)</span>
-                 </div>
-               </div>
-               <div style="font-size:10px; color:rgba(255,255,255,0.5); margin-top:2px;">Uploaded to <code>build-icon.png</code> in your repo root before the build starts — your workflow must reference this path itself if it wants to use it.</div>
-            </div>
+  <div id="bmWrapperSettings" style="display:flex; flex-direction:column; gap:10px;">
+    <!-- Section 1: Workflow Setup -->
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap;">
+        <span style="font-size:11px; font-weight:600; color:var(--blue);"><i class="fa-solid fa-file-code" style="margin-right:5px;"></i>Workflow YAML</span>
+        <div style="display:flex; gap:6px;">
+          <button id="bmUseWrapperYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08);" title="Load HTML wrapper (Cordova) template"><i class="fa-solid fa-cube" style="margin-right:3px;"></i>Template</button>
+          <button id="bmCopyYamlPromptBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08);" title="Copy prompt for AI"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:3px;"></i>AI Prompt</button>
+        </div>
+      </div>
+      <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:110px; margin:0; border-radius:8px;"></textarea>
+      <div class="gh-row" style="margin:0;"><label style="width:75px;">Filename</label><input type="text" id="bmWorkflowFilename" placeholder="custom-build.yml" value="custom-build.yml"></div>
+    </div>
 
-  <div class="gh-actions">
+    <!-- Section 2: Artifact & Quick Actions -->
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+      <div class="gh-row" style="margin:0;"><label style="width:75px;">Artifact</label><input type="text" id="bmArtifactName" placeholder="e.g. Android-APK"></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; padding-top:4px; border-top:1px solid rgba(255,255,255,0.05);">
+        <div id="bmExistingWorkflows" style="font-size:9px; color:rgba(255,255,255,0.5); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Loading workflows...</div>
+        <div style="display:flex; gap:5px; flex-shrink:0;">
+          <button id="pullApkLogBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--red); background:rgba(248,81,73,0.12); border:1px solid rgba(248,81,73,0.25);" type="button" onclick="window.pullLastFailedLog()"><i class="fa-solid fa-file-waveform" style="margin-right:3px;"></i>Logs</button>
+          <button id="downloadApkBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--teal); background:rgba(45,212,191,0.12); border:1px solid rgba(45,212,191,0.25);" type="button" onclick="window.checkAndDownloadLastBuild()"><i class="fa-solid fa-file-zipper" style="margin-right:3px;"></i>APK</button>
+          <button id="bmManageWorkflowsBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);" type="button"><i class="fa-solid fa-folder-tree" style="margin-right:3px;"></i>Files</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: App Details -->
+    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+        <div class="gh-row" style="margin:0;"><label style="width:65px;">Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
+        <div class="gh-row" style="margin:0;"><label style="width:55px;">Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
+      </div>
+      <div class="gh-row" style="margin:0; align-items:center;">
+        <label style="width:65px;">Icon</label>
+        <div style="flex:1; display:flex; align-items:center; gap:8px;">
+          <input type="file" id="bmAppIcon" accept="image/*" style="display:none;" onchange="document.getElementById('bmAppIconLabel').textContent = this.files[0] ? this.files[0].name : 'Optional';">
+          <button id="bmAppIconBtn" type="button" class="btn" style="width:auto; padding:4px 10px; font-size:10px; height:26px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);" onclick="document.getElementById('bmAppIcon').click()"><i class="fa-solid fa-image" style="margin-right:4px;"></i>Choose</button>
+          <span id="bmAppIconLabel" style="font-size:9px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Optional</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gh-actions" style="margin-top:12px;">
       <button id="bmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
       <button id="bmCompileBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.18); border-color: rgba(57, 211, 83, 0.4) !important;"><i class="fa-solid fa-rocket"></i> Start Build</button>
     </div>
