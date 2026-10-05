@@ -774,7 +774,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="ghConfigPanel" style="width:92vw; max-width:440px; padding:16px; box-sizing:border-box;">
   <div class="window-header" style="margin-bottom:12px; padding-bottom:8px;">
-    <div class="win-title"><i class="fa-solid fa-sliders" style="margin-right:6px;"></i> Settings & Integration</div>
+    <div class="win-title">
+      <img id="ghModalAvatar" src="" style="width:16px; height:16px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.25); margin-right:6px; display:none;" alt="Avatar">
+      <i id="ghModalDefaultIcon" class="fa-solid fa-sliders" style="margin-right:6px;"></i> Settings & Integration
+    </div>
     <button class="panel-close" id="ghClosePanelTopBtn" onclick="document.getElementById('ghConfigPanel').classList.remove('open'); document.getElementById('ghConfigPanel').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
 
@@ -1836,6 +1839,20 @@ function applyWallpaper(url) {
 
 function updateConfigButtonAvatar() {
   var btn = document.getElementById('ghSettingsBtn');
+  var modalImg = document.getElementById('ghModalAvatar');
+  var modalIcon = document.getElementById('ghModalDefaultIcon');
+
+  if (modalImg && modalIcon) {
+    if (ghAvatar) {
+      modalImg.src = ghAvatar;
+      modalImg.style.display = 'inline-block';
+      modalIcon.style.display = 'none';
+    } else {
+      modalImg.style.display = 'none';
+      modalIcon.style.display = 'inline-block';
+    }
+  }
+
   if (!btn) return;
   if (ghAvatar) {
     btn.innerHTML = '<img src="' + ghAvatar + '" style="width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.25);" alt="PFP"><span class="btn-lbl">Config</span>';
