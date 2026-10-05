@@ -5480,11 +5480,7 @@ document.getElementById('ghPushBtn').addEventListener('click', function() {
   }
   const ts = new Date().toISOString().replace('T',' ').slice(0,19);
   document.getElementById('commitMsgInput').value = `Update ${ghFilePath || 'workspace'} via AI Compile – ${ts}`;
-  var cmModal = document.getElementById('commitModal');
-  cmModal.classList.add('open');
-  centerModal(cmModal);
-  bringModalToFront(cmModal);
-  $backdrop.classList.add('open');
+  document.getElementById('cmConfirmBtn').click();
 });
 
 document.getElementById('cmCancelBtn').addEventListener('click', function() {
