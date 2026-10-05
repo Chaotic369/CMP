@@ -1027,12 +1027,12 @@ function getFrameDepth() {
       if (depth > 10) break;
     }
   } catch (e) {
-    depth = 3;
+    depth = 0; // Do not assume nested cross-origin is max depth
   }
   return depth;
 }
 var currentNestingDepth = getFrameDepth();
-var MAX_NESTING_DEPTH = 3;
+var MAX_NESTING_DEPTH = 6;
 var SETTINGS_KEY   = 'compiler_settings_v2';
 var MAX_UNDO       = 50;
 var SPLIT_TOKEN    = '===SPLIT===';
