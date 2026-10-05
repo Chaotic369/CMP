@@ -258,9 +258,9 @@ body.hide-btn-labels .btn-lbl {
 
 #toast {
   position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 12px; font-size: 6px; font-weight: 500;
-  background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; color: var(--green);
+  background: #25272c; border: 1px solid rgba(255, 255, 255, 0.12) !important; outline: none !important; color: var(--green);
   z-index: 40000; display: none; max-width: 90vw; text-align: center; white-space: pre-line;
-  box-shadow: none;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
 }
 #toast.show { display: flex; align-items: center; justify-content: center; gap: 10px; }
 #toast.warn { color: var(--amber); }
@@ -270,8 +270,8 @@ body.hide-btn-labels .btn-lbl {
 #toast.err #toastCopyBtn { display: flex; }
 
 #astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal {
-  position: fixed; z-index: 30000; background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px;
-  padding: 14px 18px; color: #ffffff; font-size: 11px; box-shadow: none;
+  position: fixed; z-index: 30000; background: #23252a; border: 1px solid rgba(255, 255, 255, 0.12) !important; outline: none !important; border-radius: 12px;
+  padding: 14px 18px; color: #ffffff; font-size: 11px; box-shadow: 0 12px 40px rgba(0,0,0,0.4);
   max-height: calc(100vh - 40px); overflow-y: auto;
   scrollbar-width: none; -ms-overflow-style: none;
 }
@@ -295,14 +295,14 @@ body.hide-btn-labels .btn-lbl {
 
 #errOverlay {
   position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
-  background: #000000; border: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important; border-radius: 12px;
+  background: #25272c; border: 1px solid rgba(255, 255, 255, 0.12) !important; outline: none !important; border-radius: 12px;
   padding: 16px; color: var(--red); font-size: 6px; font-weight: 500; z-index: 25000;
   width: 90vw; max-width: 480px; display: none; white-space: pre-wrap; max-height: 40vh; overflow-y: auto;
-  box-shadow: none;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
 }
 
 #statusBar {
-  position: fixed; bottom: 0; left: 0; right: 0; height: calc(24px + env(safe-area-inset-bottom, 0px)); background: #000000; border-top: none;
+  position: fixed; bottom: 0; left: 0; right: 0; height: calc(24px + env(safe-area-inset-bottom, 0px)); background: #1a1b1e; border-top: 1px solid rgba(255, 255, 255, 0.06);
   display: flex; align-items: center; padding: 0 12px env(safe-area-inset-bottom, 0px) 12px; gap: 12px; font-size: 9px; font-weight: 500; color: #ffffff; z-index: 9990;
 }
 #statusBar .sb-item { white-space: nowrap; }
@@ -4558,13 +4558,10 @@ document.getElementById('astBtn').addEventListener('click', function() {
   if (isOpen) {
     $astPanel.classList.remove('open');
     $astPanel.style.display = 'none';
-    $backdrop.classList.remove('open');
+    closeTopmostModal();
   } else {
-    $astPanel.classList.add('open');
-    $astPanel.style.display = 'block';
     centerModal($astPanel);
     bringModalToFront($astPanel);
-    $backdrop.classList.add('open');
     if (sourceContent) runASTCheck(sourceContent);
   }
 });
@@ -4574,7 +4571,7 @@ if (astCloseBtnEl) {
   astCloseBtnEl.addEventListener('click', function() {
     $astPanel.classList.remove('open');
     $astPanel.style.display = 'none';
-    $backdrop.classList.remove('open');
+    closeTopmostModal();
   });
 }
 
@@ -4709,13 +4706,10 @@ document.getElementById('logBtn').addEventListener('click', function() {
   if (isOpen) {
     $logPanel.classList.remove('open');
     $logPanel.style.display = 'none';
-    $backdrop.classList.remove('open');
+    closeTopmostModal();
   } else {
-    $logPanel.classList.add('open');
-    $logPanel.style.display = 'block';
     centerModal($logPanel);
     bringModalToFront($logPanel);
-    $backdrop.classList.add('open');
     renderLog();
   }
 });
@@ -4725,7 +4719,7 @@ if (logCloseBtnEl) {
   logCloseBtnEl.addEventListener('click', function() {
     $logPanel.classList.remove('open');
     $logPanel.style.display = 'none';
-    $backdrop.classList.remove('open');
+    closeTopmostModal();
   });
 }
 
