@@ -5711,6 +5711,17 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                           if (el) el.addEventListener('input', saveBuildConfig);
                         });
 
+                        // Auto-sync Artifact Name when App Name changes (unless manually customized)
+                        var appNameInput = document.getElementById('bmAppName');
+                        var artifactNameInput = document.getElementById('bmArtifactName');
+                        if (appNameInput && artifactNameInput) {
+                          appNameInput.addEventListener('input', function() {
+                            var cleanName = this.value.trim().replace(/[\\/:*?"<>|]/g, '-');
+                            artifactNameInput.value = cleanName || 'My-App';
+                            saveBuildConfig();
+                          });
+                        }
+
                         async function pasteToWorkflowYaml() {
                           let text = '';
                           try {
