@@ -57,10 +57,10 @@
 :root {
   --blue: #5c9dff; --green: #39d353; --red: #f85149;
   --amber: #e3b341; --purple: #bc8cff; --teal: #2dd4bf;
-  --surface: #1e1f22; 
-  --elevated: #2b2d31; 
-  --panel: #232428;
-  --border: rgba(255, 255, 255, 0.08);
+  --surface: #0a0a0c; 
+  --elevated: #111215; 
+  --panel: #111215;
+  --border: rgba(255, 255, 255, 0.05);
   --tp: #ffffff; 
   --tm: #ffffff; 
   --td: #ffffff;
@@ -262,20 +262,20 @@ body.hide-btn-labels .btn-lbl {
 
 #toast {
   position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 12px; font-size: 6px; font-weight: 500;
-  background: #25272c; border: 1px solid rgba(255, 255, 255, 0.12) !important; outline: none !important; color: var(--green);
+  background: #111215; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; color: var(--green);
   z-index: 40000; display: none; max-width: 90vw; text-align: center; white-space: pre-line;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.6);
 }
 #toast.show { display: flex; align-items: center; justify-content: center; gap: 10px; }
 #toast.warn { color: var(--amber); }
 #toast.err  { color: var(--red); }
 #toast.info { color: var(--blue); }
-#toastCopyBtn { display: none; background: rgba(255,255,255,0.12); border: none; color: inherit; border-radius: 8px; width: 18px; height: 18px; flex-shrink: 0; align-items: center; justify-content: center; cursor: pointer; font-size: 6px; }
+#toastCopyBtn { display: none; background: rgba(255,255,255,0.08); border: none; color: inherit; border-radius: 8px; width: 18px; height: 18px; flex-shrink: 0; align-items: center; justify-content: center; cursor: pointer; font-size: 6px; }
 #toast.err #toastCopyBtn { display: flex; }
 
 #astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal {
-  position: fixed; z-index: 30000; background: #23252a; border: 1px solid rgba(255, 255, 255, 0.12) !important; outline: none !important; border-radius: 12px;
-  padding: 14px 18px; color: #ffffff; font-size: 11px; box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  position: fixed; z-index: 30000; background: #0f1013; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; border-radius: 12px;
+  padding: 14px 18px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0,0,0,0.7);
   max-height: calc(100vh - 40px); overflow-y: auto;
   scrollbar-width: none; -ms-overflow-style: none;
 }
@@ -299,14 +299,14 @@ body.hide-btn-labels .btn-lbl {
 
 #errOverlay {
   position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
-  background: #25272c; border: 1px solid rgba(255, 255, 255, 0.12) !important; outline: none !important; border-radius: 12px;
+  background: #111215; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; border-radius: 12px;
   padding: 16px; color: var(--red); font-size: 6px; font-weight: 500; z-index: 25000;
   width: 90vw; max-width: 480px; display: none; white-space: pre-wrap; max-height: 40vh; overflow-y: auto;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.7);
 }
 
 #statusBar {
-  position: fixed; bottom: 0; left: 0; right: 0; height: calc(24px + env(safe-area-inset-bottom, 0px)); background: #1a1b1e; border-top: 1px solid rgba(255, 255, 255, 0.06);
+  position: fixed; bottom: 0; left: 0; right: 0; height: calc(24px + env(safe-area-inset-bottom, 0px)); background: #08080a; border-top: 1px solid rgba(255, 255, 255, 0.05);
   display: flex; align-items: center; padding: 0 12px env(safe-area-inset-bottom, 0px) 12px; gap: 12px; font-size: 9px; font-weight: 500; color: #ffffff; z-index: 9990;
 }
 #statusBar .sb-item { white-space: nowrap; }
@@ -458,7 +458,7 @@ input::placeholder, textarea::placeholder {
 #codeEditorActions {
   position: fixed; top: env(safe-area-inset-top, 0px); left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px); z-index: 10000;
   display: none; align-items: center; justify-content: flex-start; gap: 6px; flex-direction: row;
-  height: 42px; background: #1e1f22; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 0 10px;
+  height: 42px; background: #0d0e11; border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0 10px;
 }
 .ce-action-btn {
   min-width: 30px; height: 32px; border-radius: 6px;
@@ -477,9 +477,9 @@ input::placeholder, textarea::placeholder {
 
 #fnrPanel {
   position: fixed; top: calc(36px + env(safe-area-inset-top, 0px)); left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px); z-index: 10001;
-  background: #23252a; border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important; outline: none !important;
+  background: #0f1013; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important;
   padding: 16px 20px; display: none; flex-direction: column; gap: 10px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.6);
 }
 .fnr-row { display: flex; gap: 10px; align-items: center; }
 .fnr-row input { flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.08); color: #fff; padding: 10px 14px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
@@ -905,7 +905,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     #buildProgressOverlay.minimized #bpStepper { margin: 0 !important; }
     #buildProgressOverlay.minimized:hover { background: transparent !important; opacity: 0.8; }
     </style>
-<div id="buildProgressOverlay" style="display:none; position:fixed; width:calc(100vw - 40px); max-width:420px; background:#23252a; border:1px solid rgba(255,255,255,0.12) !important; outline:none !important; border-radius:0px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:0 12px 40px rgba(0,0,0,0.4);">
+<div id="buildProgressOverlay" style="display:none; position:fixed; width:calc(100vw - 40px); max-width:420px; background:#0f1013; border:1px solid rgba(255,255,255,0.08) !important; outline:none !important; border-radius:0px; z-index:50000; flex-direction:column; padding:20px; color:#fff; box-shadow:0 16px 48px rgba(0,0,0,0.7);">
   <div class="window-header" style="margin-bottom:16px; padding-bottom:12px;">
     <div class="win-title" id="bpTitle" style="font-size:15px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</div>
     <div style="display:flex; gap:12px; align-items:center;">
@@ -979,11 +979,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </div>
 
 <style>
-#errLogModal { position: fixed; width: 92vw; max-width: 560px; height: 70vh; display: none; flex-direction: column; gap: 12px; z-index: 32000; background: #23252a; border: 1px solid rgba(255,255,255,0.12); outline: none !important; border-radius: 0px; padding: 20px; color: #ffffff; font-size: 11px; box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+#errLogModal { position: fixed; width: 92vw; max-width: 560px; height: 70vh; display: none; flex-direction: column; gap: 12px; z-index: 32000; background: #0f1013; border: 1px solid rgba(255,255,255,0.08); outline: none !important; border-radius: 0px; padding: 20px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0,0,0,0.7); }
 #errLogModal.open { display: flex; }
 #errLogModal h4 { color: #ffffff; margin: 0 0 4px 0; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; display: flex; align-items: center; flex-shrink: 0; }
 #errLogModal h4 .panel-close { margin-left: auto; }
-#errLogContent { flex: 1; overflow-y: auto; overflow-x: hidden; background: rgba(0,0,0,0.35); border-radius: 0px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; line-height: 1.6; color: var(--red); white-space: pre-wrap; word-break: break-all; margin: 0; border: 1px solid rgba(255,255,255,0.05); }
+#errLogContent { flex: 1; overflow-y: auto; overflow-x: hidden; background: #08080a; border-radius: 0px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; line-height: 1.6; color: var(--red); white-space: pre-wrap; word-break: break-all; margin: 0; border: 1px solid rgba(255,255,255,0.05); }
 </style>
 <div id="errLogModal">
   <div class="window-header">
