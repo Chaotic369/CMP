@@ -906,6 +906,22 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 // ═══════════════════════════════════════════════════════════════════════════
 // CONSTANTS & STATE
 // ═══════════════════════════════════════════════════════════════════════════
+function getFrameDepth() {
+  var depth = 0;
+  var win = window;
+  try {
+    while (win !== win.top) {
+      depth++;
+      win = win.parent;
+      if (depth > 10) break;
+    }
+  } catch (e) {
+    depth = 3;
+  }
+  return depth;
+}
+var currentNestingDepth = getFrameDepth();
+var MAX_NESTING_DEPTH = 3;
 var SETTINGS_KEY   = 'compiler_settings_v2';
 var MAX_UNDO       = 50;
 var SPLIT_TOKEN    = '===SPLIT===';
@@ -1458,12 +1474,15 @@ window.renderBookmarks = function() {
               });
 
               if (newBookmarks.length === ghBookmarkedRepos.length) {
-                ghBookmarkedRepos = newBookmarks;
-                ghSaveConfig();
-              }
-              renderBookmarks();
-            }
-          }
+                              ghBookmarkedRepos = newBookmarks;
+                              if (ghBookmarkedRepos.length > 0 && ghRepo !== ghBookmarkedRepos[0]) {
+                                window.switchRepo(ghBookmarkedRepos[0]);
+                              }
+                              ghSaveConfig();
+                            }
+                            renderBookmarks();
+                          }
+                        }
 
           document.querySelectorAll('.stray-clone-guard').forEach(el => el.remove());
         };
@@ -1723,14 +1742,18 @@ async function ghLoadConfigFromFirebase() {
                 const cfg = await window._fbLoadConfig();
                 console.log('[bookmarks] Firebase config loaded:', cfg);
                 if (cfg) {
-                  ghToken = cfg.token || ghToken;
-                  ghUser = cfg.user || ghUser;
-                  ghRepo = cfg.repo || ghRepo;
-                  ghBranch = cfg.branch || ghBranch;
-                  ghFilePath = cfg.filePath || ghFilePath;
-                  ghRepos = cfg.repos || ghRepos;
-                  ghBookmarkedRepos = cfg.bookmarkedRepos || ghBookmarkedRepos;
-                  console.log('[bookmarks] ghBookmarkedRepos set to:', ghBookmarkedRepos);
+                        ghToken = cfg.token || ghToken;
+                        ghUser = cfg.user || ghUser;
+                        ghBranch = cfg.branch || ghBranch;
+                        ghFilePath = cfg.filePath || ghFilePath;
+                        ghRepos = cfg.repos || ghRepos;
+                        ghBookmarkedRepos = cfg.bookmarkedRepos || ghBookmarkedRepos;
+                        if (ghBookmarkedRepos && ghBookmarkedRepos.length > 0) {
+                          ghRepo = ghBookmarkedRepos[0];
+                        } else {
+                          ghRepo = cfg.repo || ghRepo;
+                        }
+                        console.log('[bookmarks] ghBookmarkedRepos set to:', ghBookmarkedRepos);
         if (cfg.wallpaper !== undefined) {
           settings.wallpaper = cfg.wallpaper;
           localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -4166,6 +4189,17 @@ document.addEventListener('webkitfullscreenchange', function() {
 });
 
 window.addEventListener('DOMContentLoaded', async function() {
+  if (currentNestingDepth >= MAX_NESTING_DEPTH) {
+    console.warn('[IDE] Max nesting depth (' + MAX_NESTING_DEPTH + ') reached. Suppressing child render loop.');
+    var previewFrame = document.getElementById('preview');
+    if (previewFrame) previewFrame.remove();
+    var emptyDiv = document.getElementById('emptyState');
+    if (emptyDiv) {
+      emptyDiv.style.display = 'flex';
+      emptyDiv.textContent = 'Nested preview depth limit reached (max ' + MAX_NESTING_DEPTH + ').';
+    }
+    return;
+  }
   showMenuLoader('Connecting to Firebase...');
   try {
     var s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
@@ -4181,22 +4215,25 @@ window.addEventListener('DOMContentLoaded', async function() {
   while (!window._fbReady && fbWait < 20) { await new Promise(r => setTimeout(r, 50)); fbWait++; }
   
   try {
-    showMenuLoader('Syncing Configuration...');
-        await Promise.race([
-                    ghLoadConfigFromFirebase(),
-                    new Promise(r => setTimeout(r, 15000)).then(() => { ghConfigLoaded = true; })
-                  ]);
-                  renderRepoTabs();
+      showMenuLoader('Syncing Configuration...');
+          await Promise.race([
+                      ghLoadConfigFromFirebase(),
+                      new Promise(r => setTimeout(r, 15000)).then(() => { ghConfigLoaded = true; })
+                    ]);
+          if (ghBookmarkedRepos && ghBookmarkedRepos.length > 0) {
+            ghRepo = ghBookmarkedRepos[0];
+          }
+          renderRepoTabs();
 
-              if (ghRepo && ghToken) {
-                                        showMenuLoader('Loading Repository...');
-                await syncCurrentFile();
-      await fetchFileTree(false, true);
-    } else if (ghRepos.length === 0 && ghToken) {
-      showMenuLoader('Fetching Repositories...');
-      await ghFetchAllRepos();
-    }
-  } catch (err) {
+                if (ghRepo && ghToken) {
+                  showMenuLoader('Loading Repository...');
+                  await fetchFileTree(false, true);
+                  await syncCurrentFile();
+      } else if (ghRepos.length === 0 && ghToken) {
+        showMenuLoader('Fetching Repositories...');
+        await ghFetchAllRepos();
+      }
+    } catch (err) {
     console.error("Init Error:", err);
     toast('Initialization error: ' + (err.message || 'unknown'), 'err', 5000);
   } finally {
@@ -4575,8 +4612,12 @@ function render(src, skipEditorUpdate) {
   }
   
   renderTimer = setTimeout(function() {
-    try {
-      var bridge = [
+      if (currentNestingDepth >= MAX_NESTING_DEPTH) {
+        document.getElementById('sb-status').textContent = 'preview capped';
+        return;
+      }
+      try {
+        var bridge = [
                     '<style>html,body{-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto;}</style>',
                     '<scr' + 'ipt>',
               'window.onerror = function(m,s,l,c,err){',
