@@ -488,30 +488,30 @@ input::placeholder, textarea::placeholder {
 .fnr-btn:hover { background: rgba(255,255,255,0.15); }
 
 /* Dual-Engine Build Modal */
-#buildModal { width: 92vw; max-width: 440px; display: none; flex-direction: column; gap: 10px; z-index: 30000; position: fixed; background: #23252a; border: 1px solid rgba(255, 255, 255, 0.12) !important; outline: none !important; border-radius: 12px; padding: 14px 16px; color: #ffffff; box-shadow: 0 12px 40px rgba(0,0,0,0.4); max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
+#buildModal { width: 92vw; max-width: 440px; display: none; flex-direction: column; gap: 10px; z-index: 30000; position: fixed; background: #23252a; border: none !important; outline: none !important; border-radius: 12px; padding: 14px 16px; color: #ffffff; box-shadow: 0 12px 40px rgba(0,0,0,0.4); max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
 #buildModal.open { display: flex; }
 #buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
-.bm-step label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--blue); }
-.bm-toggle-btn { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 10px; border-radius: 12px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500; }
-.bm-toggle-btn.active { background: rgba(92, 157, 255, 0.2); border-color: var(--blue); }
-.bm-code-box { width: 100%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; padding: 10px; border-radius: 8px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 10px; min-height: 80px; resize: vertical; box-sizing: border-box; }
+.bm-step label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #ffffff; }
+.bm-toggle-btn { flex: 1; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500; }
+.bm-toggle-btn.active { background: rgba(255,255,255,0.1); border-color: #ffffff; }
+.bm-code-box { width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #ffffff; padding: 10px; border-radius: 6px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 10px; min-height: 80px; resize: vertical; box-sizing: border-box; }
 .bm-code-box::-webkit-resizer {
   background-color: rgba(255, 255, 255, 0.18);
-  border-bottom-right-radius: 8px;
-  border-right: 4px solid var(--blue);
-  border-bottom: 4px solid var(--blue);
+  border-bottom-right-radius: 6px;
+  border-right: 4px solid #ffffff;
+  border-bottom: 4px solid #ffffff;
   outline: 2px solid rgba(255, 255, 255, 0.25);
   cursor: se-resize;
   width: 22px;
   height: 22px;
 }
-.bm-permissions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 10px; }
+.bm-permissions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; background: transparent; padding: 6px 0; margin-bottom: 10px; }
 .bm-permissions-grid label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
-.bm-advanced { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 12px; margin-top: 4px; }
+.bm-advanced { background: transparent; padding: 6px 0; margin-top: 4px; }
 .bm-advanced summary { cursor: pointer; font-size: 13px; font-weight: 600; outline: none; user-select: none; }
-.bm-lib-chip { background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 6px 10px; border-radius: 10px; font-size: 11px; cursor: pointer; }
-.bm-lib-chip:hover { background: rgba(255,255,255,0.2); }
-select.bm-select { width: 100%; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 12px; outline: none; font-size: 13px; -webkit-appearance: none; }
+.bm-lib-chip { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+.bm-lib-chip:hover { background: rgba(255,255,255,0.1); border-color: #ffffff; }
+select.bm-select { width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #ffffff; padding: 8px 12px; border-radius: 6px; outline: none; font-size: 12px; -webkit-appearance: none; }
 select.bm-select option { background: var(--elevated); color: #fff; }
 
 /* Cropper Modal */
@@ -721,25 +721,25 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="bulkModal" style="width:92vw; max-width:440px; display:none; flex-direction:column; padding:16px; box-sizing:border-box;">
   <div class="window-header" style="margin-bottom:12px; padding-bottom:8px;">
-    <div class="win-title"><i class="fa-solid fa-cubes" style="color:var(--amber); margin-right:6px;"></i> Bulk Create Files & Folders</div>
+    <div class="win-title"><i class="fa-solid fa-cubes" style="margin-right:6px;"></i> Bulk Create Files & Folders</div>
     <button class="panel-close" onclick="document.getElementById('bulkModal').classList.remove('open'); document.getElementById('bulkModal').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
 
   <div style="display:flex; flex-direction:column; gap:10px;">
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+    <div style="display:flex; flex-direction:column; gap:8px;">
       <div style="display:flex; align-items:center; justify-content:space-between;">
-        <span style="font-size:11px; font-weight:600; color:var(--amber);"><i class="fa-solid fa-folder-tree" style="margin-right:6px;"></i>Project Structure</span>
-        <button id="bulkPasteBtn" type="button" class="btn" style="width:auto; padding:2px 8px; font-size:9px; height:22px; border-radius:6px; color:var(--green); background:rgba(57,211,83,0.12); border:1px solid rgba(57,211,83,0.25);" title="Paste paths from clipboard"><i class="fa-solid fa-paste" style="margin-right:4px;"></i>Paste</button>
+        <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-folder-tree" style="margin-right:6px;"></i>Project Structure</span>
+        <button id="bulkPasteBtn" type="button" class="btn" style="width:auto; padding:2px 8px; font-size:9px; height:22px; border-radius:6px; color:#ffffff; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Paste paths from clipboard"><i class="fa-solid fa-paste" style="margin-right:4px;"></i>Paste</button>
       </div>
       <p style="font-size:10px; color:rgba(255,255,255,0.6); margin:0; line-height:1.4;">One path per line. End with <code>/</code> for empty folders.</p>
-      <textarea id="bulkPathsInput" class="bm-code-box" placeholder="app/build.gradle.kts&#10;app/src/main/AndroidManifest.xml&#10;.github/workflows/android.yml" style="width:100%; height:160px; min-height:120px; margin:0; border-radius:8px; box-sizing:border-box;"></textarea>
+      <textarea id="bulkPathsInput" class="bm-code-box" placeholder="app/build.gradle.kts&#10;app/src/main/AndroidManifest.xml&#10;.github/workflows/android.yml" style="width:100%; height:160px; min-height:120px; margin:0; border-radius:6px; box-sizing:border-box;"></textarea>
     </div>
   </div>
 
   <div class="gh-actions" style="margin-top:12px;">
-    <button id="bulkClearBtn" style="color:var(--red); margin-right:auto; background:rgba(248,81,73,0.15); border-color:rgba(248,81,73,0.3) !important;"><i class="fa-solid fa-trash"></i> Clear</button>
-    <button id="bulkCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
-    <button id="bulkConfirmBtn" style="color:var(--green); background:rgba(57,211,83,0.18); border-color:rgba(57,211,83,0.4) !important;"><i class="fa-solid fa-check"></i> Create Files</button>
+    <button id="bulkClearBtn" style="color:var(--red); margin-right:auto; background:transparent; border:1px solid rgba(248,81,73,0.3) !important;"><i class="fa-solid fa-trash"></i> Clear</button>
+    <button id="bulkCancelBtn" style="background:transparent; border:1px solid rgba(255,255,255,0.2) !important;"><i class="fa-solid fa-xmark"></i> Cancel</button>
+    <button id="bulkConfirmBtn" style="color:#ffffff; background:transparent; border:1px solid rgba(255,255,255,0.3) !important;"><i class="fa-solid fa-check"></i> Create Files</button>
   </div>
 </div>
 
@@ -778,27 +778,27 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <button class="panel-close" id="ghClosePanelTopBtn" onclick="document.getElementById('ghConfigPanel').classList.remove('open'); document.getElementById('ghConfigPanel').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
 
-  <div style="display:flex; flex-direction:column; gap:10px;">
+  <div style="display:flex; flex-direction:column; gap:14px;">
     <!-- GitHub Authentication Section -->
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+    <div style="display:flex; flex-direction:column; gap:8px;">
       <div style="display:flex; align-items:center; justify-content:space-between;">
-        <span style="font-size:11px; font-weight:600; color:#ffffff;"><i class="fa-brands fa-github" style="margin-right:6px;"></i>GitHub Authentication</span>
-        <button id="ghFetchReposBtn" type="button" class="btn" style="width:auto; padding:2px 8px; font-size:9px; height:22px; border-radius:6px; color:#ffffff; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15);" title="Fetch user repositories"><i class="fa-solid fa-arrows-rotate" style="margin-right:4px;"></i>Fetch Repos</button>
+        <span style="font-size:11px; font-weight:600;"><i class="fa-brands fa-github" style="margin-right:6px;"></i>GitHub Authentication</span>
+        <button id="ghFetchReposBtn" type="button" class="btn" style="width:auto; padding:2px 8px; font-size:9px; height:22px; border-radius:6px; color:#ffffff; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Fetch user repositories"><i class="fa-solid fa-arrows-rotate" style="margin-right:4px;"></i>Fetch Repos</button>
       </div>
       <div class="gh-row" style="margin:0;"><label>Token</label><input type="password" id="ghToken" placeholder="ghp_xxxxxxxxxxxx"></div>
       <div class="gh-row" style="margin:0;"><label>User</label><input type="text" id="ghUser" placeholder="github-username"></div>
     </div>
 
     <!-- Repository & Branch Target Section -->
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
-      <span style="font-size:11px; font-weight:600; color:#ffffff;"><i class="fa-solid fa-code-branch" style="margin-right:6px;"></i>Repository Defaults</span>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-code-branch" style="margin-right:6px;"></i>Repository Defaults</span>
       <div class="gh-row" style="margin:0;"><label>Branch</label><input type="text" id="ghBranch" placeholder="main"></div>
       <div class="gh-row" style="margin:0;"><label>File Path</label><input type="text" id="ghFilePath" placeholder="index.html"></div>
     </div>
 
     <!-- Workspace & Preferences Section -->
-    <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
-      <span style="font-size:11px; font-weight:600; color:#ffffff;"><i class="fa-solid fa-desktop" style="margin-right:6px;"></i>Preferences</span>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-desktop" style="margin-right:6px;"></i>Preferences</span>
       <label style="display:flex; align-items:center; justify-content:space-between; cursor:pointer; font-size:11px; color:#ffffff; user-select:none; margin:0; padding:2px 0;">
         <span style="display:flex; align-items:center; gap:6px;"><i class="fa-solid fa-tag" style="font-size:10px; color:rgba(255,255,255,0.6);"></i>Show toolbar button labels</span>
         <input type="checkbox" id="ghShowLabels" style="cursor:pointer; accent-color:#ffffff; width:14px; height:14px;" checked>
@@ -807,8 +807,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
 
   <div class="gh-actions" style="margin-top:12px;">
-      <button id="ghClosePanelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
-      <button id="ghSaveBtn" style="color:var(--green); background:rgba(57,211,83,0.18); border-color:rgba(57,211,83,0.4) !important;"><i class="fa-solid fa-floppy-disk"></i> Save Config</button>
+      <button id="ghClosePanelBtn" style="background:transparent; border:1px solid rgba(255,255,255,0.2) !important;"><i class="fa-solid fa-xmark"></i> Cancel</button>
+      <button id="ghSaveBtn" style="color:var(--green); background:transparent; border:1px solid rgba(57,211,83,0.4) !important;"><i class="fa-solid fa-floppy-disk"></i> Save Config</button>
     </div>
 </div>
 
@@ -846,50 +846,50 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <button class="panel-close" id="bmCloseBtn">✕</button>
   </div>
 
-  <div id="bmWrapperSettings" style="display:flex; flex-direction:column; gap:10px;">
-    <!-- Section 1: Workflow Setup -->
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; box-sizing:border-box;">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap;">
-            <span style="font-size:11px; font-weight:600; color:var(--blue);"><i class="fa-solid fa-file-code" style="margin-right:5px;"></i>Workflow YAML</span>
-            <div style="display:flex; gap:6px;">
-                      <button id="bmPasteYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08); color:var(--green);" title="Paste YAML from clipboard"><i class="fa-solid fa-paste" style="margin-right:3px;"></i>Paste</button>
-                      <button id="bmUseWrapperYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08);" title="Load HTML wrapper (Cordova) template"><i class="fa-solid fa-cube" style="margin-right:3px;"></i>HTML Wrapper</button>
-                      <button id="bmCopyYamlPromptBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08);" title="Copy native app prompt for AI"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:3px;"></i>Native App</button>
+  <div id="bmWrapperSettings" style="display:flex; flex-direction:column; gap:12px;">
+      <!-- Section 1: Workflow Setup -->
+          <div style="display:flex; flex-direction:column; gap:8px; box-sizing:border-box;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap;">
+              <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-file-code" style="margin-right:5px;"></i>Workflow YAML</span>
+              <div style="display:flex; gap:6px;">
+                        <button id="bmPasteYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Paste YAML from clipboard"><i class="fa-solid fa-paste" style="margin-right:3px;"></i>Paste</button>
+                        <button id="bmUseWrapperYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Load HTML wrapper (Cordova) template"><i class="fa-solid fa-cube" style="margin-right:3px;"></i>HTML Wrapper</button>
+                        <button id="bmCopyYamlPromptBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Copy native app prompt for AI"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:3px;"></i>Native App</button>
+                      </div>
                     </div>
-                  </div>
-                  <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:95px; margin:0; border-radius:8px;"></textarea>
-          <div class="gh-row" style="margin:0;"><label>Filename</label><input type="text" id="bmWorkflowFilename" placeholder="custom-build.yml" value="custom-build.yml"></div>
-        </div>
-
-        <!-- Section 2: Quick Actions & Workflows -->
-                <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; box-sizing:border-box;">
-                  <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
-                    <div id="bmExistingWorkflows" style="font-size:9px; color:rgba(255,255,255,0.5); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Loading workflows...</div>
-                    <div style="display:flex; gap:5px; flex-shrink:0;">
-                      <button id="pullApkLogBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--red); background:rgba(248,81,73,0.12); border:1px solid rgba(248,81,73,0.25);" type="button" onclick="window.pullLastFailedLog()"><i class="fa-solid fa-file-waveform" style="margin-right:3px;"></i>Logs</button>
-                      <button id="downloadApkBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--teal); background:rgba(45,212,191,0.12); border:1px solid rgba(45,212,191,0.25);" type="button" onclick="window.checkAndDownloadLastBuild()"><i class="fa-solid fa-file-zipper" style="margin-right:3px;"></i>APK</button>
-                      <button id="bmManageWorkflowsBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);" type="button"><i class="fa-solid fa-folder-tree" style="margin-right:3px;"></i>Files</button>
-                    </div>
-                  </div>
-                </div>
-
-        <!-- Section 3: App Details -->
-        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px; box-sizing:border-box;">
-          <div style="display:flex; flex-direction:column; gap:8px;">
-            <div class="gh-row" style="margin:0;"><label>Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
-            <div class="gh-row" style="margin:0;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
+                    <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:95px; margin:0; border-radius:6px;"></textarea>
+            <div class="gh-row" style="margin:0;"><label>Filename</label><input type="text" id="bmWorkflowFilename" placeholder="custom-build.yml" value="custom-build.yml"></div>
           </div>
-          <div class="gh-row" style="margin:0; align-items:center;">
-            <label>Icon</label>
-            <div style="flex:1; min-width:0; display:flex; align-items:center; gap:8px;">
-              <input type="file" id="bmAppIcon" accept="image/*" style="display:none;">
-              <img id="bmAppIconPreview" style="display:none; width:24px; height:24px; border-radius:6px; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0;">
-              <button id="bmAppIconBtn" type="button" class="btn" style="width:auto; padding:4px 10px; font-size:10px; height:26px; border-radius:6px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12);" onclick="document.getElementById('bmAppIcon').click()"><i class="fa-solid fa-image" style="margin-right:4px;"></i>Choose</button>
-              <span id="bmAppIconLabel" style="font-size:9px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Optional</span>
+
+          <!-- Section 2: Quick Actions & Workflows -->
+                  <div style="display:flex; flex-direction:column; gap:8px; box-sizing:border-box;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
+                      <div id="bmExistingWorkflows" style="font-size:9px; color:rgba(255,255,255,0.5); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Loading workflows...</div>
+                      <div style="display:flex; gap:5px; flex-shrink:0;">
+                        <button id="pullApkLogBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--red); background:transparent; border:1px solid rgba(248,81,73,0.3);" type="button" onclick="window.pullLastFailedLog()"><i class="fa-solid fa-file-waveform" style="margin-right:3px;"></i>Logs</button>
+                        <button id="downloadApkBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--teal); background:transparent; border:1px solid rgba(45,212,191,0.3);" type="button" onclick="window.checkAndDownloadLastBuild()"><i class="fa-solid fa-file-zipper" style="margin-right:3px;"></i>APK</button>
+                        <button id="bmManageWorkflowsBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" type="button"><i class="fa-solid fa-folder-tree" style="margin-right:3px;"></i>Files</button>
+                      </div>
+                    </div>
+                  </div>
+
+          <!-- Section 3: App Details -->
+          <div style="display:flex; flex-direction:column; gap:8px; box-sizing:border-box;">
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <div class="gh-row" style="margin:0;"><label>Name</label><input type="text" id="bmAppName" placeholder="My App" value="My App"></div>
+              <div class="gh-row" style="margin:0;"><label>Version</label><input type="text" id="bmVersion" value="1.0.0"></div>
+            </div>
+            <div class="gh-row" style="margin:0; align-items:center;">
+              <label>Icon</label>
+              <div style="flex:1; min-width:0; display:flex; align-items:center; gap:8px;">
+                <input type="file" id="bmAppIcon" accept="image/*" style="display:none;">
+                <img id="bmAppIconPreview" style="display:none; width:24px; height:24px; border-radius:6px; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0;">
+                <button id="bmAppIconBtn" type="button" class="btn" style="width:auto; padding:4px 10px; font-size:10px; height:26px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" onclick="document.getElementById('bmAppIcon').click()"><i class="fa-solid fa-image" style="margin-right:4px;"></i>Choose</button>
+                <span id="bmAppIconLabel" style="font-size:9px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Optional</span>
+              </div>
             </div>
           </div>
-        </div>
-  </div>
+    </div>
 
   <div class="gh-actions" style="margin-top:12px;">
       <button id="bmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
