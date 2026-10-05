@@ -503,7 +503,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 /* Cropper Modal */
 #iconCropModal {
-  position: fixed; z-index: 45000; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+  position: fixed; z-index: 9999999 !important; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
   display: none; align-items: center; justify-content: center; padding: 16px;
 }
 #iconCropModal.open { display: flex; }
@@ -810,11 +810,15 @@ select.bm-select option { background: var(--elevated); color: #fff; }
           <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap;">
             <span style="font-size:11px; font-weight:600; color:var(--blue);"><i class="fa-solid fa-file-code" style="margin-right:5px;"></i>Workflow YAML</span>
             <div style="display:flex; gap:6px;">
-              <button id="bmUseWrapperYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08);" title="Load HTML wrapper (Cordova) template"><i class="fa-solid fa-cube" style="margin-right:3px;"></i>HTML Wrapper</button>
-              <button id="bmCopyYamlPromptBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08);" title="Copy native app prompt for AI"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:3px;"></i>Native App</button>
-            </div>
-          </div>
-          <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:95px; margin:0; border-radius:8px;"></textarea>
+                      <button id="bmPasteYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08); color:var(--green);" title="Paste YAML from clipboard"><i class="fa-solid fa-paste" style="margin-right:3px;"></i>Paste</button>
+                      <button id="bmUseWrapperYamlBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08);" title="Load HTML wrapper (Cordova) template"><i class="fa-solid fa-cube" style="margin-right:3px;"></i>HTML Wrapper</button>
+                      <button id="bmCopyYamlPromptBtn" type="button" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:rgba(255,255,255,0.08);" title="Copy native app prompt for AI"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:3px;"></i>Native App</button>
+                    </div>
+                  </div>
+                  <div style="position:relative; width:100%;">
+                    <textarea id="bmWorkflowYaml" class="bm-code-box" placeholder="Paste your full GitHub Actions workflow YAML here..." style="min-height:95px; margin:0; border-radius:8px; padding-bottom:30px;"></textarea>
+                    <button id="bmInnerPasteYamlBtn" type="button" class="btn" style="position:absolute; bottom:8px; right:8px; width:auto; padding:2px 8px; font-size:9px; height:20px; border-radius:6px; background:rgba(255,255,255,0.12); color:var(--green); border:1px solid rgba(255,255,255,0.15);" title="Paste YAML from clipboard"><i class="fa-solid fa-paste" style="margin-right:4px;"></i>Paste</button>
+                  </div>
           <div class="gh-row" style="margin:0;"><label>Filename</label><input type="text" id="bmWorkflowFilename" placeholder="custom-build.yml" value="custom-build.yml"></div>
         </div>
 
@@ -5703,9 +5707,41 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
             }
 
             ['bmWorkflowYaml', 'bmWorkflowFilename', 'bmArtifactName', 'bmAppName', 'bmVersion'].forEach(function(id) {
-              var el = document.getElementById(id);
-              if (el) el.addEventListener('input', saveBuildConfig);
-            });
+                          var el = document.getElementById(id);
+                          if (el) el.addEventListener('input', saveBuildConfig);
+                        });
+
+                        async function pasteToWorkflowYaml() {
+                          let text = '';
+                          try {
+                            if (window.AndroidClipboard && typeof window.AndroidClipboard.read === 'function') {
+                              text = window.AndroidClipboard.read();
+                            } else if (navigator.clipboard && navigator.clipboard.readText) {
+                              text = await navigator.clipboard.readText();
+                            }
+                          } catch (err) {
+                            toast('❌ Clipboard read failed: ' + err.message, 'err');
+                            return;
+                          }
+
+                          if (!text || !text.trim()) {
+                            toast('⚠️ Clipboard is empty', 'warn');
+                            return;
+                          }
+
+                          var yamlEl = document.getElementById('bmWorkflowYaml');
+                          if (yamlEl) {
+                            yamlEl.value = text.replace(/^```[a-zA-Z0-9_\-]*\r?\n/, '').replace(/\r?\n```$/, '').trim();
+                            saveBuildConfig();
+                            toast('✅ YAML pasted from clipboard!');
+                          }
+                        }
+
+                        var bmPasteYamlBtnEl = document.getElementById('bmPasteYamlBtn');
+                        if (bmPasteYamlBtnEl) bmPasteYamlBtnEl.addEventListener('click', pasteToWorkflowYaml);
+
+                        var bmInnerPasteYamlBtnEl = document.getElementById('bmInnerPasteYamlBtn');
+                        if (bmInnerPasteYamlBtnEl) bmInnerPasteYamlBtnEl.addEventListener('click', pasteToWorkflowYaml);
 
             // === Dual Engine Build Modal Logic ===
                         document.getElementById('masterBuildBtn').addEventListener('click', () => {
@@ -5941,34 +5977,38 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                   const reader = new FileReader();
                                   reader.onload = function(ev) {
                                     const cropModal = document.getElementById('iconCropModal');
-                                    const cropImg = document.getElementById('iconCropSourceImg');
-                                    cropImg.src = ev.target.result;
-                                    cropModal.classList.add('open');
+                                                const cropImg = document.getElementById('iconCropSourceImg');
+                                                cropImg.src = ev.target.result;
+                                                cropModal.classList.add('open');
+                                                cropModal.style.display = 'flex';
+                                                topModalZ = Math.max(topModalZ + 10, 9999999);
+                                                cropModal.style.zIndex = topModalZ;
 
-                                    if (iconCropperInstance) {
-                                      iconCropperInstance.destroy();
-                                    }
-                                    iconCropperInstance = new Cropper(cropImg, {
-                                      aspectRatio: 1,
-                                      viewMode: 1,
-                                      autoCropArea: 0.95,
-                                      dragMode: 'move',
-                                      cropBoxMovable: true,
-                                      cropBoxResizable: true
-                                    });
+                                                if (iconCropperInstance) {
+                                                  iconCropperInstance.destroy();
+                                                }
+                                                iconCropperInstance = new Cropper(cropImg, {
+                                                  aspectRatio: 1,
+                                                  viewMode: 1,
+                                                  autoCropArea: 0.95,
+                                                  dragMode: 'move',
+                                                  cropBoxMovable: true,
+                                                  cropBoxResizable: true
+                                                });
                                   };
                                   reader.readAsDataURL(file);
                                 });
                               }
 
                               function closeIconCropModal() {
-                                const cropModal = document.getElementById('iconCropModal');
-                                cropModal.classList.remove('open');
-                                if (iconCropperInstance) {
-                                  iconCropperInstance.destroy();
-                                  iconCropperInstance = null;
-                                }
-                              }
+                                      const cropModal = document.getElementById('iconCropModal');
+                                      cropModal.classList.remove('open');
+                                      cropModal.style.display = 'none';
+                                      if (iconCropperInstance) {
+                                        iconCropperInstance.destroy();
+                                        iconCropperInstance = null;
+                                      }
+                                    }
 
                               var cropCloseBtn = document.getElementById('iconCropCloseBtn');
                               if (cropCloseBtn) cropCloseBtn.addEventListener('click', closeIconCropModal);
