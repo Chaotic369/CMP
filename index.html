@@ -402,9 +402,46 @@ input::placeholder, textarea::placeholder {
 .gh-row input { flex: 1; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 14px; border-radius: 20px; outline: none; }
 .gh-row input:focus { background: rgba(255, 255, 255, 0.15); }
 
-.gh-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
-.gh-actions button { background: rgba(255, 255, 255, 0.15); border: none; color: #ffffff; padding: 8px 16px; border-radius: 20px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
-.gh-actions button:hover { background: rgba(255, 255, 255, 0.25); }
+.gh-actions { 
+  display: flex; 
+  align-items: center; 
+  justify-content: flex-end; 
+  gap: 8px; 
+  margin-top: 14px; 
+  flex-wrap: wrap; 
+}
+.gh-actions button { 
+  background: rgba(255, 255, 255, 0.08); 
+  border: 1px solid rgba(255, 255, 255, 0.12) !important; 
+  outline: none !important; 
+  color: #ffffff; 
+  padding: 5px 12px; 
+  border-radius: 8px; 
+  font-size: 10px; 
+  font-weight: 600; 
+  letter-spacing: 0.3px; 
+  cursor: pointer; 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 6px; 
+  height: 28px; 
+  transition: all 0.18s cubic-bezier(0.2, 0, 0.2, 1); 
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); 
+}
+.gh-actions button:hover { 
+  background: rgba(255, 255, 255, 0.15); 
+  border-color: rgba(255, 255, 255, 0.22) !important; 
+  transform: translateY(-1px); 
+}
+.gh-actions button:active { 
+  transform: translateY(0); 
+  background: rgba(255, 255, 255, 0.05); 
+}
+.gh-actions button.btn-primary,
+.gh-actions button[id$="Btn"]:not([id*="Cancel"]):not([id*="Close"]):not([id*="Clear"]) {
+  border-color: rgba(57, 211, 83, 0.3) !important;
+}
 
 #commitMsgInput {
   width: 100%; background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff;
@@ -615,9 +652,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
             <textarea id="nrPasteInput" placeholder="" style="display:none; width:100%; height:120px; background:rgba(255,255,255,0.1); border:none; color:#ffffff; padding:14px; border-radius:4px; margin-bottom:10px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:11px;"></textarea>
   <div class="gh-actions">
-    <button id="nrCancelBtn">✕ Cancel</button>
-    <button id="nrAddBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);">Add</button>
-  </div>
+      <button id="nrCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+      <button id="nrAddBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.18); border-color: rgba(57, 211, 83, 0.4) !important;"><i class="fa-solid fa-folder-plus"></i> Create Repo</button>
+    </div>
 </div>
 
 <div id="bulkModal" style="width: 90vw; max-width: 400px; display: none; flex-direction: column;">
@@ -650,13 +687,13 @@ select.bm-select option { background: var(--elevated); color: #fff; }
           <i class="fa-solid fa-caret-down" id="modalRepoCaret" style="font-size:12px; margin-left:6px; color:rgba(255,255,255,0.6);"></i>
         </span>
       </div>
-      <div style="display:flex; align-items:center; gap:10px;">
-                        <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.2); color:var(--amber); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
-                        <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.2); color:var(--blue); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
-                        <button id="modalRepoBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.25); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteSelectedReposWithWarning()"><i class="fa-solid fa-trash"></i> Delete Repos (<span id="modalRepoBulkCount">0</span>)</button>
-                        <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:none; padding:6px 12px; border-radius:12px; font-size:11px; font-weight:600; cursor:pointer; transition: background 0.2s;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
-                        <button class="panel-close" onclick="window.closeFullTreeModal()">✕</button>
-                      </div>
+      <div style="display:flex; align-items:center; gap:6px;">
+                              <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.15); color:var(--amber); border:1px solid rgba(227,179,65,0.3); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; height:26px;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
+                              <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.15); color:var(--blue); border:1px solid rgba(92,157,255,0.3); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; height:26px;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
+                              <button id="modalRepoBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:1px solid rgba(248,81,73,0.35); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; height:26px;" onclick="window.bulkDeleteSelectedReposWithWarning()"><i class="fa-solid fa-trash"></i> Repos (<span id="modalRepoBulkCount">0</span>)</button>
+                              <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:1px solid rgba(248,81,73,0.35); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; height:26px;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
+                              <button class="panel-close" onclick="window.closeFullTreeModal()">✕</button>
+                            </div>
     </div>
     <div id="fullTreeContent" style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; overflow-x: hidden;"></div>
     <div id="modalRepoList" style="display:none; flex-direction:column; gap:4px; overflow-y:auto; flex:1; padding-right:4px;"></div>
@@ -678,10 +715,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
       </label>
     </div>
     <div class="gh-actions">
-    <button id="ghFetchReposBtn" style="color:var(--teal); margin-right: auto; background: rgba(45, 212, 191, 0.2);"><i class="fa-solid fa-arrows-rotate"></i> Fetch Repos</button>
-    <button id="ghClosePanelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
-    <button id="ghSaveBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-floppy-disk"></i> Save</button>
-  </div>
+        <button id="ghFetchReposBtn" style="color:var(--teal); margin-right: auto; background: rgba(45, 212, 191, 0.15); border-color: rgba(45, 212, 191, 0.35) !important;"><i class="fa-solid fa-arrows-rotate"></i> Fetch Repos</button>
+        <button id="ghClosePanelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+        <button id="ghSaveBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.18); border-color: rgba(57, 211, 83, 0.4) !important;"><i class="fa-solid fa-floppy-disk"></i> Save Config</button>
+      </div>
 </div>
 
 <div id="commitModal">
@@ -691,9 +728,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
   <textarea id="commitMsgInput" placeholder=""></textarea>
   <div class="gh-actions">
-    <button id="cmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
-    <button id="cmConfirmBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-arrow-up-from-bracket"></i> Push</button>
-  </div>
+      <button id="cmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+      <button id="cmConfirmBtn" style="color:var(--blue); background: rgba(92, 157, 255, 0.18); border-color: rgba(92, 157, 255, 0.4) !important;"><i class="fa-solid fa-arrow-up-from-bracket"></i> Commit & Push</button>
+    </div>
 </div>
 
 <div id="buildModal">
@@ -736,9 +773,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
             </div>
 
   <div class="gh-actions">
-    <button id="bmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
-    <button id="bmCompileBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-rocket"></i> Build App</button>
-  </div>
+      <button id="bmCancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+      <button id="bmCompileBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.18); border-color: rgba(57, 211, 83, 0.4) !important;"><i class="fa-solid fa-rocket"></i> Start Build</button>
+    </div>
 </div>
 
 <style>
