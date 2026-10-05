@@ -774,10 +774,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="ghConfigPanel" style="width:92vw; max-width:440px; padding:16px; box-sizing:border-box;">
   <div class="window-header" style="margin-bottom:12px; padding-bottom:8px;">
-    <div class="win-title">
-      <img id="ghModalAvatar" src="" style="width:16px; height:16px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.25); margin-right:6px; display:none;" alt="Avatar">
-      <i id="ghModalDefaultIcon" class="fa-solid fa-sliders" style="margin-right:6px;"></i> Settings & Integration
-    </div>
+    <div class="win-title"><i class="fa-solid fa-sliders" style="margin-right:6px;"></i> Settings & Integration</div>
+    <button class="panel-close" id="ghClosePanelTopBtn" onclick="document.getElementById('ghConfigPanel').classList.remove('open'); document.getElementById('ghConfigPanel').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
+  </div>
     <button class="panel-close" id="ghClosePanelTopBtn" onclick="document.getElementById('ghConfigPanel').classList.remove('open'); document.getElementById('ghConfigPanel').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
   </div>
 
@@ -1340,7 +1339,6 @@ function setMenuScale(scale) {
 // GitHub Vars
 var ghToken = '';
 var ghUser = '';
-var ghAvatar = '';
 var ghRepo = '';
 var ghBranch = 'main';
 var ghFilePath = 'index.html';
@@ -1837,72 +1835,32 @@ function applyWallpaper(url) {
   }
 }
 
-function updateConfigButtonAvatar() {
-  var btn = document.getElementById('ghSettingsBtn');
-  var modalImg = document.getElementById('ghModalAvatar');
-  var modalIcon = document.getElementById('ghModalDefaultIcon');
 
-  if (modalImg && modalIcon) {
-    if (ghAvatar) {
-      modalImg.src = ghAvatar;
-      modalImg.style.display = 'inline-block';
-      modalIcon.style.display = 'none';
-    } else {
-      modalImg.style.display = 'none';
-      modalIcon.style.display = 'inline-block';
-    }
-  }
-
-  if (!btn) return;
-  if (ghAvatar) {
-    btn.innerHTML = '<img src="' + ghAvatar + '" style="width:16px;height:16px;border-radius:50%;object-fit:cover;border:1px solid rgba(255,255,255,0.25);" alt="PFP"><span class="btn-lbl">Config</span>';
-  } else {
-    btn.innerHTML = '<i class="fa-solid fa-gear"></i><span class="btn-lbl">Config</span>';
-  }
-}
-
-async function fetchGitHubProfile(token) {
-  if (!token) return null;
-  try {
-    const res = await fetch('https://api.github.com/user', {
-      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      return { login: data.login, avatar_url: data.avatar_url };
-    }
-  } catch(e) {}
-  return null;
-}
 
 async function ghLoadConfigFromFirebase() {
   try {
     var localBackup = null;
     try { localBackup = JSON.parse(localStorage.getItem('gh_config_backup_v2') || 'null'); } catch(e) {}
     if (localBackup) {
-              ghToken = localBackup.token || ghToken;
-              ghUser = localBackup.user || ghUser;
-              ghAvatar = localBackup.avatar || ghAvatar;
-              ghRepo = localBackup.repo || ghRepo;
-              ghBranch = localBackup.branch || ghBranch;
-              ghFilePath = localBackup.filePath || ghFilePath;
-              ghRepos = localBackup.repos || ghRepos;
-              ghBookmarkedRepos = localBackup.bookmarkedRepos || ghBookmarkedRepos;
-              updateConfigButtonAvatar();
-            }
+                  ghToken = localBackup.token || ghToken;
+                  ghUser = localBackup.user || ghUser;
+                  ghRepo = localBackup.repo || ghRepo;
+                  ghBranch = localBackup.branch || ghBranch;
+                  ghFilePath = localBackup.filePath || ghFilePath;
+                  ghRepos = localBackup.repos || ghRepos;
+                  ghBookmarkedRepos = localBackup.bookmarkedRepos || ghBookmarkedRepos;
+                }
 
-              if (window._fbLoadConfig) {
-                const cfg = await window._fbLoadConfig();
-                console.log('[bookmarks] Firebase config loaded:', cfg);
-                if (cfg) {
-                                        ghToken = cfg.token || ghToken;
-                                        ghUser = cfg.user || ghUser;
-                                        ghAvatar = cfg.avatar || ghAvatar;
-                                        ghBranch = cfg.branch || ghBranch;
-                                        ghFilePath = cfg.filePath || ghFilePath;
-                                        ghRepos = cfg.repos || ghRepos;
-                                        ghBookmarkedRepos = cfg.bookmarkedRepos || ghBookmarkedRepos;
-                                        updateConfigButtonAvatar();
+                  if (window._fbLoadConfig) {
+                    const cfg = await window._fbLoadConfig();
+                    console.log('[bookmarks] Firebase config loaded:', cfg);
+                    if (cfg) {
+                                            ghToken = cfg.token || ghToken;
+                                            ghUser = cfg.user || ghUser;
+                                            ghBranch = cfg.branch || ghBranch;
+                                            ghFilePath = cfg.filePath || ghFilePath;
+                                            ghRepos = cfg.repos || ghRepos;
+                                            ghBookmarkedRepos = cfg.bookmarkedRepos || ghBookmarkedRepos;
                         if (ghBookmarkedRepos && ghBookmarkedRepos.length > 0) {
                           ghRepo = ghBookmarkedRepos[0];
                         } else {
@@ -1920,10 +1878,12 @@ async function ghLoadConfigFromFirebase() {
                   document.getElementById('app-menu').style.setProperty('--user-scale', settings.menuScale);
                 }
                 if (cfg.showLabels !== undefined) {
-                  settings.showLabels = cfg.showLabels;
-                  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-                  applyLabelsState(cfg.showLabels);
-                }
+                                  settings.showLabels = cfg.showLabels;
+                                  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                                  applyLabelsState(cfg.showLabels);
+                                  var chkEl = document.getElementById('ghShowLabels');
+                                  if (chkEl) chkEl.checked = cfg.showLabels !== false;
+                                }
         if (window.self === window.top && cfg.toggleBtnPos && cfg.toggleBtnPos.left !== undefined && cfg.toggleBtnPos.top !== undefined) {
           settings.toggleBtnPos = cfg.toggleBtnPos;
           localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -1956,7 +1916,6 @@ function ghSaveConfig() {
   const cfg = { 
         token: ghToken || '', 
         user: ghUser || '', 
-        avatar: ghAvatar || '',
         repo: ghRepo || '', 
         branch: ghBranch || 'main', 
         filePath: ghFilePath || 'index.html', 
@@ -5293,12 +5252,23 @@ document.getElementById('ghSettingsBtn').addEventListener('click', function() {
   document.getElementById('ghUser').value = ghUser;
   document.getElementById('ghBranch').value = ghBranch;
   document.getElementById('ghFilePath').value = ghFilePath;
-  document.getElementById('ghShowLabels').checked = settings.showLabels !== false;
+  var lblChk = document.getElementById('ghShowLabels');
+  if (lblChk) lblChk.checked = settings.showLabels !== false;
   var ghPanel = document.getElementById('ghConfigPanel');
   ghPanel.classList.add('open');
   centerModal(ghPanel);
   bringModalToFront(ghPanel);
 });
+
+var ghShowLabelsEl = document.getElementById('ghShowLabels');
+if (ghShowLabelsEl) {
+  ghShowLabelsEl.addEventListener('change', function() {
+    settings.showLabels = this.checked;
+    applyLabelsState(this.checked);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    ghSaveConfig();
+  });
+}
 
 document.getElementById('ghClosePanelBtn').addEventListener('click', function() {
   document.getElementById('ghConfigPanel').classList.remove('open');
@@ -5306,7 +5276,7 @@ document.getElementById('ghClosePanelBtn').addEventListener('click', function() 
   $backdrop.classList.remove('open');
 });
 
-document.getElementById('ghSaveBtn').addEventListener('click', async function() {
+document.getElementById('ghSaveBtn').addEventListener('click', function() {
   let newUser = document.getElementById('ghUser').value.trim();
   let newToken = document.getElementById('ghToken').value.trim();
   
@@ -5326,14 +5296,56 @@ document.getElementById('ghSaveBtn').addEventListener('click', async function() 
   ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
   ghFilePath = document.getElementById('ghFilePath').value.trim() || 'index.html';
 
-  if (ghToken) {
-    const profile = await fetchGitHubProfile(ghToken);
-    if (profile) {
-      if (!ghUser) ghUser = profile.login;
-      ghAvatar = profile.avatar_url;
-      updateConfigButtonAvatar();
-    }
+  settings.showLabels = document.getElementById('ghShowLabels').checked;
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  applyLabelsState(settings.showLabels);
+
+  ghSaveConfig();
+  document.getElementById('ghConfigPanel').classList.remove('open');
+  document.getElementById('ghConfigPanel').style.display = 'none';
+  $backdrop.classList.remove('open');
+  toast('💾 GitHub Settings Saved!');
+
+  if (ghToken && ghUser && ghRepos.length === 0) {
+    ghFetchAllRepos();
   }
+});
+
+var ghShowLabelsEl = document.getElementById('ghShowLabels');
+if (ghShowLabelsEl) {
+  ghShowLabelsEl.addEventListener('change', function() {
+    settings.showLabels = this.checked;
+    applyLabelsState(this.checked);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    ghSaveConfig();
+  });
+}
+
+document.getElementById('ghClosePanelBtn').addEventListener('click', function() {
+  document.getElementById('ghConfigPanel').classList.remove('open');
+  document.getElementById('ghConfigPanel').style.display = 'none';
+  $backdrop.classList.remove('open');
+});
+
+document.getElementById('ghSaveBtn').addEventListener('click', function() {
+  let newUser = document.getElementById('ghUser').value.trim();
+  let newToken = document.getElementById('ghToken').value.trim();
+  
+  if ((newUser !== ghUser && newUser !== '') || (newToken !== ghToken && newToken !== '')) {
+    ghRepos = [];
+    ghBookmarkedRepos = [];
+    ghRepo = '';
+    currentDirectory = '';
+    const ftc = document.getElementById('fileTreeContainer');
+    const rtc = document.getElementById('repoTabsContainer');
+    if(ftc) ftc.innerHTML = '';
+    if(rtc) rtc.innerHTML = '';
+  }
+  
+  ghToken = newToken;
+  ghUser = newUser;
+  ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
+  ghFilePath = document.getElementById('ghFilePath').value.trim() || 'index.html';
 
   settings.showLabels = document.getElementById('ghShowLabels').checked;
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
