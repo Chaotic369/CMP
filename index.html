@@ -918,13 +918,12 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     </style>
 <div id="buildProgressOverlay" style="display:none; position:fixed; width:calc(100vw - 40px); max-width:420px; background:#0f1013; border:1px solid rgba(255,255,255,0.12) !important; outline:none !important; border-radius:14px; z-index:50000; flex-direction:column; padding:18px 20px; color:#fff; box-shadow:0 20px 50px rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
   <div class="window-header" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.08);">
-      <div class="win-title" id="bpTitle" style="font-size:13px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</div>
-      <div style="display:flex; gap:10px; align-items:center;">
-        <button class="btn" id="bpCopyLogBtnIcon" style="width:24px; height:24px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:rgba(255,255,255,0.8); font-size:10px;" title="Copy Error Logs"><i class="fa-regular fa-copy"></i></button>
-        <button class="btn" id="bpMinBtnIcon" style="width:24px; height:24px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:rgba(255,255,255,0.8); font-size:10px;" title="Minimize"><i class="fa-solid fa-chevron-right"></i></button>
-        <button class="panel-close" id="bpCloseBtnIcon" style="display:none;">✕</button>
+        <div class="win-title" id="bpTitle" style="font-size:13px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button class="btn" id="bpMinBtnIcon" style="width:24px; height:24px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:rgba(255,255,255,0.8); font-size:10px;" title="Minimize"><i class="fa-solid fa-chevron-right"></i></button>
+          <button class="panel-close" id="bpCloseBtnIcon" style="display:none;">✕</button>
+        </div>
       </div>
-    </div>
   
       <div class="stepper-wrapper" id="bpStepper" style="display:flex; flex-direction:column; gap:12px; margin-bottom:14px; position:relative;">
           <div style="position:absolute; left:11px; top:12px; bottom:12px; width:2px; background:rgba(255,255,255,0.08); z-index:1;">
@@ -957,8 +956,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     </div>
 
     <div id="bpStatusText" style="font-size:11px; margin-bottom:6px; color:var(--blue); font-weight:600; min-height:14px;">Initializing...</div>
-      <div id="bpLogs" style="font-size:9px; color:rgba(255,255,255,0.75); background:#08080a; padding:10px; border-radius:8px; min-height:75px; max-height:130px; overflow-y:auto; white-space:pre-wrap; word-break:break-all; border:1px solid rgba(255,255,255,0.08); font-family:'JetBrains Mono', monospace;"></div>
-        <div style="display:flex; gap:8px; margin-top:12px;">
+          <div style="position:relative;">
+            <div id="bpLogs" style="font-size:9px; color:rgba(255,255,255,0.75); background:#08080a; padding:10px; padding-right:36px; border-radius:8px; min-height:75px; max-height:130px; overflow-y:auto; white-space:pre-wrap; word-break:break-all; border:1px solid rgba(255,255,255,0.08); font-family:'JetBrains Mono', monospace;"></div>
+            <button class="btn" id="bpCopyLogBtnIcon" style="display:none; position:absolute; top:8px; right:12px; width:24px; height:24px; background:rgba(248,81,73,0.15); border:1px solid rgba(248,81,73,0.3); border-radius:6px; color:var(--red); font-size:10px; z-index:10;" title="Copy Error Logs"><i class="fa-regular fa-copy"></i></button>
+          </div>
+            <div style="display:flex; gap:8px; margin-top:12px;">
           <button id="bpCancelBtn" style="flex:1; padding:7px 12px; background:rgba(248,81,73,0.15); border:1px solid rgba(248,81,73,0.3); border-radius:8px; color:var(--red); cursor:pointer; font-weight:600; font-size:11px; transition:all 0.2s;">Cancel Build</button>
                   <button id="bpCloseBtn" style="display:none; flex:1; padding:7px 12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:#fff; cursor:pointer; font-weight:600; font-size:11px; transition:all 0.2s;">Close</button>
                   <button id="bpCopyErrBtn" style="display:none; flex:1; padding:7px 12px; background:rgba(92,157,255,0.15); border:1px solid rgba(92,157,255,0.3); border-radius:8px; color:var(--blue); cursor:pointer; font-weight:600; font-size:11px; transition:all 0.2s;"><i class="fa-regular fa-copy"></i> Copy Error Log</button>
@@ -6390,34 +6392,37 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                     document.getElementById('bpStatusText').textContent = 'Starting build...';
                     document.getElementById('bpStatusText').style.color = 'var(--blue)';
                     document.getElementById('bpLogs').textContent = 'Initializing GitHub Actions...\n';
-                    document.getElementById('bpCloseBtn').style.display = 'none';
-                      if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'block';
-                      if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'none';
-                      if(document.getElementById('bpCopyErrBtn')) document.getElementById('bpCopyErrBtn').style.display = 'none';
-                      updateStepperUI(10, '');
+                                        document.getElementById('bpCloseBtn').style.display = 'none';
+                                          if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'block';
+                                          if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'none';
+                                          if(document.getElementById('bpCopyErrBtn')) document.getElementById('bpCopyErrBtn').style.display = 'none';
+                                          if(document.getElementById('bpCopyLogBtnIcon')) document.getElementById('bpCopyLogBtnIcon').style.display = 'none';
+                                          updateStepperUI(10, '');
                       ov.style.display = 'flex';
                       centerModal(ov);
                       bringModalToFront(ov);
                     }
 
       function updateBuildOverlay(status, pct, stateStr) {
-              document.getElementById('bpStatusText').textContent = status;
-              if (pct) updateStepperUI(pct, stateStr);
-              if (stateStr === 'err') {
-                  document.getElementById('bpStatusText').style.color = 'var(--red)';
-                  if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'none';
-                  document.getElementById('bpCloseBtn').style.display = 'block';
-                  if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
-                  if(document.getElementById('bpCopyErrBtn')) document.getElementById('bpCopyErrBtn').style.display = 'block';
-                } else if (stateStr === 'ok') {
-                  document.getElementById('bpStatusText').style.color = 'var(--green)';
-                  if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'none';
-                  document.getElementById('bpCloseBtn').style.display = 'block';
-                  if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
-                  document.getElementById('bpCloseBtn').textContent = 'Download Ready / Close';
-                  if(document.getElementById('bpCopyErrBtn')) document.getElementById('bpCopyErrBtn').style.display = 'none';
-                }
-              }
+                    document.getElementById('bpStatusText').textContent = status;
+                    if (pct) updateStepperUI(pct, stateStr);
+                    if (stateStr === 'err') {
+                        document.getElementById('bpStatusText').style.color = 'var(--red)';
+                        if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'none';
+                        document.getElementById('bpCloseBtn').style.display = 'block';
+                        if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
+                        if(document.getElementById('bpCopyErrBtn')) document.getElementById('bpCopyErrBtn').style.display = 'block';
+                        if(document.getElementById('bpCopyLogBtnIcon')) document.getElementById('bpCopyLogBtnIcon').style.display = 'flex';
+                      } else if (stateStr === 'ok') {
+                        document.getElementById('bpStatusText').style.color = 'var(--green)';
+                        if(document.getElementById('bpCancelBtn')) document.getElementById('bpCancelBtn').style.display = 'none';
+                        document.getElementById('bpCloseBtn').style.display = 'block';
+                        if(document.getElementById('bpCloseBtnIcon')) document.getElementById('bpCloseBtnIcon').style.display = 'block';
+                        document.getElementById('bpCloseBtn').textContent = 'Download Ready / Close';
+                        if(document.getElementById('bpCopyErrBtn')) document.getElementById('bpCopyErrBtn').style.display = 'none';
+                        if(document.getElementById('bpCopyLogBtnIcon')) document.getElementById('bpCopyLogBtnIcon').style.display = 'none';
+                      }
+                    }
 
       function appendBuildLog(log) {
         const el = document.getElementById('bpLogs');
@@ -6467,17 +6472,19 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
             }
 
             if(document.getElementById('bpCopyLogBtnIcon')) {
-                          document.getElementById('bpCopyLogBtnIcon').addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            const logText = document.getElementById('bpLogs').textContent;
-                            if (!logText || !logText.trim()) { toast('⚠️ No logs to copy', 'warn'); return; }
-                            navigator.clipboard.writeText(logText).then(function() {
-                              toast('📋 Build logs copied to clipboard!');
-                            }).catch(function(err) {
-                              toast('❌ Copy failed: ' + err.message, 'err');
-                            });
-                          });
-                        }
+                                      document.getElementById('bpCopyLogBtnIcon').addEventListener('click', (e) => {
+                                        e.stopPropagation();
+                                        const fullLog = document.getElementById('bpLogs').textContent;
+                                        if (!fullLog || !fullLog.trim()) { toast('⚠️ No error log to copy', 'warn'); return; }
+                                        const traceIdx = fullLog.indexOf('=== ERROR TRACE ===');
+                                        const errText = traceIdx !== -1 ? fullLog.slice(traceIdx) : fullLog;
+                                        navigator.clipboard.writeText(errText).then(function() {
+                                          toast('📋 Error log copied to clipboard!');
+                                        }).catch(function(err) {
+                                          toast('❌ Copy failed: ' + err.message, 'err');
+                                        });
+                                      });
+                                    }
 
                   if(document.getElementById('bpCopyErrBtn')) {
                           document.getElementById('bpCopyErrBtn').addEventListener('click', (e) => {
