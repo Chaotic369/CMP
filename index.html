@@ -891,9 +891,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
             <div class="gh-row" style="margin:0; align-items:center;">
               <label>Icon</label>
               <div style="flex:1; min-width:0; display:flex; align-items:center; gap:8px;">
-                <input type="file" id="bmAppIcon" accept="image/*" style="display:none;">
-                                <button id="bmAppIconBtn" type="button" class="btn" style="width:auto; padding:4px 10px; font-size:10px; height:26px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" onclick="document.getElementById('bmAppIcon').click()"><i class="fa-solid fa-image" style="margin-right:4px;"></i>Choose</button>
-                                                <img id="bmAppIconPreview" style="display:none; width:24px; height:24px; border-radius:6px; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0; cursor:pointer;" title="Tap to view & recrop" onclick="if(window.lastSelectedIconFile) { const dt = new DataTransfer(); dt.items.add(window.lastSelectedIconFile); document.getElementById('bmAppIcon').files = dt.files; document.getElementById('bmAppIcon').dispatchEvent(new Event('change')); }">
+                              <input type="file" id="bmAppIcon" accept="image/*" style="display:none;">
+                                              <button id="bmAppIconBtn" type="button" class="btn" style="width:auto; padding:4px 10px; font-size:10px; height:26px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" onclick="document.getElementById('bmAppIcon').click(); closeTopmostModal(); var am = document.getElementById('app-menu'); if(am && am.classList.contains('open')) document.getElementById('toggleUiBtn').click();"><i class="fa-solid fa-image" style="margin-right:4px;"></i>Choose</button>
+                                                              <img id="bmAppIconPreview" style="display:none; width:24px; height:24px; border-radius:6px; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0; cursor:pointer;" title="Tap to view & recrop" onclick="if(window.lastSelectedIconFile) { const dt = new DataTransfer(); dt.items.add(window.lastSelectedIconFile); document.getElementById('bmAppIcon').files = dt.files; document.getElementById('bmAppIcon').dispatchEvent(new Event('change')); }">
                                                 <span id="bmAppIconLabel" style="font-size:9px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Optional</span>
               </div>
             </div>
@@ -1059,8 +1059,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                       <label style="width:50px; font-size:10px;">Icon</label>
                       <div style="flex:1; min-width:0; display:flex; align-items:center; gap:8px;">
                         <input type="file" id="pwaIconInput" accept="image/*" style="display:none;">
-                        <button id="pwaIconChooseBtn" type="button" class="btn" style="width:auto; padding:4px 10px; font-size:10px; height:26px; background:transparent; border:1px solid rgba(255,255,255,0.2);" onclick="document.getElementById('pwaIconInput').click()"><i class="fa-solid fa-image" style="margin-right:4px;"></i>Choose</button>
-                        <img id="pwaIconPreview" style="display:none; width:24px; height:24px; border-radius:6px; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0; cursor:pointer;" title="Tap to recrop">
+                                                <button id="pwaIconChooseBtn" type="button" class="btn" style="width:auto; padding:4px 10px; font-size:10px; height:26px; background:transparent; border:1px solid rgba(255,255,255,0.2);" onclick="document.getElementById('pwaIconInput').click(); closeTopmostModal(); var am = document.getElementById('app-menu'); if(am && am.classList.contains('open')) document.getElementById('toggleUiBtn').click();"><i class="fa-solid fa-image" style="margin-right:4px;"></i>Choose</button>
+                                                <img id="pwaIconPreview" style="display:none; width:24px; height:24px; border-radius:6px; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0; cursor:pointer;" title="Tap to recrop">
                         <span id="pwaIconLabel" style="font-size:9px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Default Icon</span>
                       </div>
                     </div>
@@ -4388,55 +4388,63 @@ $backdrop.addEventListener('click', function(e) {
         }
 
         window.injectPWASupport = async function() {
-          const rawTitle = document.getElementById('pwaAppNameInput')?.value.trim();
-          const appTitle = rawTitle || (document.getElementById('bmAppName') ? document.getElementById('bmAppName').value.trim() : '') || (ghRepo ? ghRepo.split('/')[1] : 'My App');
-          const pwaRegistration = `<link rel="manifest" href="manifest.webmanifest">\n<script>\nif ('serviceWorker' in navigator) {\n  window.addEventListener('load', () => {\n    navigator.serviceWorker.register('./sw.js').catch(console.error);\n  });\n}\n</` + `script>`;
+                  const rawTitle = document.getElementById('pwaAppNameInput')?.value.trim();
+                  const appTitle = rawTitle || (document.getElementById('bmAppName') ? document.getElementById('bmAppName').value.trim() : '') || (ghRepo ? ghRepo.split('/')[1] : 'My App');
+                  const pwaRegistration = `<link rel="manifest" href="./manifest.json">\n<meta name="theme-color" content="#000000">\n<meta name="mobile-web-app-capable" content="yes">\n<script>\nif ('serviceWorker' in navigator) {\n  window.addEventListener('load', () => {\n    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(console.error);\n  });\n}\n</` + `script>`;
 
-          const swContent = `const CACHE_NAME = 'app-cache-v1';\nconst ASSETS = ['./', './index.html'];\n\nself.addEventListener('install', e => {\n  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));\n});\n\nself.addEventListener('activate', e => {\n  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))));\n  self.clients.claim();\n});\n\nself.addEventListener('fetch', e => {\n  e.respondWith(\n    caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {\n      if (res.status === 200 && e.request.method === 'GET') {\n        const clone = res.clone();\n        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));\n      }\n      return res;\n    }).catch(() => cached))\n  );\n});`;
+                  const swContent = `const CACHE_NAME = 'app-cache-v2';\n\nself.addEventListener('install', e => {\n  e.waitUntil(\n    caches.open(CACHE_NAME).then(c => c.addAll(['./', './index.html', './manifest.json'])).catch(() => {})\n  );\n  self.skipWaiting();\n});\n\nself.addEventListener('activate', e => {\n  e.waitUntil(\n    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))\n  );\n  self.clients.claim();\n});\n\nself.addEventListener('fetch', e => {\n  if (e.request.method !== 'GET') return;\n  e.respondWith(\n    caches.match(e.request).then(cached => {\n      return cached || fetch(e.request).then(res => {\n        if (res && res.status === 200 && res.type === 'basic') {\n          const clone = res.clone();\n          caches.open(CACHE_NAME).then(c => c.put(e.request, clone));\n        }\n        return res;\n      }).catch(() => cached);\n    })\n  );\n});`;
 
-          const webManifest = JSON.stringify({
-            name: appTitle,
-            short_name: appTitle,
-            start_url: "./index.html",
-            display: "standalone",
-            background_color: "#0a0a0c",
-            theme_color: "#000000",
-            icons: [{ src: "build-icon.png", sizes: "512x512", type: "image/png" }]
-          }, null, 2);
+                  const webManifest = JSON.stringify({
+                    id: "./index.html",
+                    name: appTitle,
+                    short_name: appTitle.length > 12 ? appTitle.slice(0, 12) : appTitle,
+                    start_url: "./index.html",
+                    scope: "./",
+                    display: "standalone",
+                    orientation: "portrait-primary",
+                    background_color: "#0a0a0c",
+                    theme_color: "#000000",
+                    icons: [
+                      { src: "build-icon.png", sizes: "512x512", type: "image/png", purpose: "any" },
+                      { src: "build-icon.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
+                    ]
+                  }, null, 2);
 
-          if (ghToken && ghRepo) {
-            showProgress(25);
-            toast('⚡ Uploading PWA assets to repo...', 'info');
-            try {
-              if (pwaCroppedIconBlob) {
-                const iconBase64 = await readFileAsBase64(pwaCroppedIconBlob);
-                await uploadSingleFileToRepo(ghRepo, 'build-icon.png', iconBase64, ghBranch, 'Upload PWA Icon');
-              }
-              showProgress(50);
-              await uploadSingleFileToRepo(ghRepo, 'sw.js', unicodeToBase64(swContent), ghBranch, 'Add PWA Service Worker');
-              showProgress(75);
-              await uploadSingleFileToRepo(ghRepo, 'manifest.webmanifest', unicodeToBase64(webManifest), ghBranch, 'Add Web App Manifest');
-            } catch (err) {
-              toast('⚠ Failed to commit PWA files: ' + err.message, 'warn');
-            }
-            hideProgress();
-          }
+                  if (ghToken && ghRepo) {
+                    showProgress(25);
+                    toast('⚡ Uploading PWA assets to repo...', 'info');
+                    try {
+                      if (pwaCroppedIconBlob) {
+                        const iconBase64 = await readFileAsBase64(pwaCroppedIconBlob);
+                        await uploadSingleFileToRepo(ghRepo, 'build-icon.png', iconBase64, ghBranch, 'Upload PWA Icon');
+                      }
+                      showProgress(50);
+                      await uploadSingleFileToRepo(ghRepo, 'sw.js', unicodeToBase64(swContent), ghBranch, 'Add PWA Service Worker');
+                      showProgress(75);
+                      await uploadSingleFileToRepo(ghRepo, 'manifest.json', unicodeToBase64(webManifest), ghBranch, 'Add Web App Manifest');
+                    } catch (err) {
+                      toast('⚠ Failed to commit PWA files: ' + err.message, 'warn');
+                    }
+                    hideProgress();
+                  }
 
-          if (sourceContent && !sourceContent.includes('navigator.serviceWorker.register')) {
-            pushState();
-            if (/<head[^>]*>/i.test(sourceContent)) {
-              sourceContent = sourceContent.replace(/(<head[^>]*>)/i, `$1\n${pwaRegistration}`);
-            } else {
-              sourceContent = pwaRegistration + '\n' + sourceContent;
-            }
-            render(sourceContent, false);
-            toast('✅ PWA generated with custom icon & name!', 'ok', 4000);
-          } else {
-            toast('✅ PWA files created and already registered in HTML.', 'ok');
-          }
+                  if (sourceContent && !sourceContent.includes('navigator.serviceWorker.register')) {
+                    pushState();
+                    if (/<head[^>]*>/i.test(sourceContent)) {
+                      sourceContent = sourceContent.replace(/(<head[^>]*>)/i, `$1\n${pwaRegistration}`);
+                    } else {
+                      sourceContent = pwaRegistration + '\n' + sourceContent;
+                    }
+                    render(sourceContent, false);
+                    toast('✅ PWA generated with custom icon & name!', 'ok', 4000);
+                  } else {
+                    toast('✅ PWA files created and already registered in HTML.', 'ok');
+                  }
 
-          document.getElementById('moreCloseBtn').click();
-        };
+                  var m = document.getElementById('moreModal');
+                  if (m) { m.classList.remove('open'); m.style.display = 'none'; }
+                  $backdrop.classList.remove('open', 'dimmed');
+                };
 
         var makePwaConfirmBtn = document.getElementById('makePwaConfirmBtn');
         if (makePwaConfirmBtn) makePwaConfirmBtn.addEventListener('click', window.injectPWASupport);
@@ -4819,6 +4827,9 @@ document.getElementById('wpClearBtn').addEventListener('click', function() {
 
 document.getElementById('wpUploadBtn').addEventListener('click', function() {
   document.getElementById('wpFileInput').click();
+  closeTopmostModal();
+  var am = document.getElementById('app-menu');
+  if(am && am.classList.contains('open')) document.getElementById('toggleUiBtn').click();
 });
 
 document.getElementById('wpFileInput').addEventListener('change', function(e) {
