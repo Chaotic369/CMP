@@ -744,10 +744,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
 
   <div class="gh-actions" style="margin-top:12px;">
-    <button id="bulkClearBtn" style="color:var(--red); margin-right:auto; background:transparent; border:1px solid rgba(248,81,73,0.3) !important;"><i class="fa-solid fa-trash"></i> Clear</button>
-    <button id="bulkCancelBtn" style="background:transparent; border:1px solid rgba(255,255,255,0.2) !important;"><i class="fa-solid fa-xmark"></i> Cancel</button>
-    <button id="bulkConfirmBtn" style="color:#ffffff; background:transparent; border:1px solid rgba(255,255,255,0.3) !important;"><i class="fa-solid fa-check"></i> Create Files</button>
-  </div>
+      <button id="bulkCancelBtn" style="background:transparent; border:1px solid rgba(255,255,255,0.2) !important;"><i class="fa-solid fa-xmark"></i> Cancel</button>
+      <button id="bulkConfirmBtn" style="color:#ffffff; background:transparent; border:1px solid rgba(255,255,255,0.3) !important;"><i class="fa-solid fa-check"></i> Create Files</button>
+    </div>
 </div>
 
   <div id="workflowsModal" style="width: 90vw; max-width: 440px; padding: 16px; background: #0f1013; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 12px; box-shadow: 0 16px 48px rgba(0,0,0,0.7); box-sizing: border-box;">
@@ -7034,17 +7033,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                   };
 
       document.getElementById('bulkCancelBtn').addEventListener('click', () => {
-          document.getElementById('bulkModal').classList.remove('open');
-          document.getElementById('bulkModal').style.display = 'none';
-          document.getElementById('menu-backdrop').classList.remove('open');
-      });
-
-      var bulkClearBtnEl = document.getElementById('bulkClearBtn');
-            if (bulkClearBtnEl) {
-              bulkClearBtnEl.addEventListener('click', () => {
-                document.getElementById('bulkPathsInput').value = '';
-              });
-            }
+                document.getElementById('bulkModal').classList.remove('open');
+                document.getElementById('bulkModal').style.display = 'none';
+                document.getElementById('menu-backdrop').classList.remove('open');
+            });
 
             var bulkMiniClearBtnEl = document.getElementById('bulkMiniClearBtn');
             if (bulkMiniClearBtnEl) {
