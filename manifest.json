@@ -1,15 +1,24 @@
 {
-  "name": "AI Compile PRO",
-  "short_name": "AI Compile",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
-  "icons": [
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/3242/3242257.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "manifest_version": 3,
+  "name": "CMP",
+  "version": "1.0.0",
+  "description": "CMP - Sovereign IDE Extension",
+  "permissions": [
+    "sidePanel",
+    "windows",
+    "tabs",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "CMP"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "icons": {
+    "512": "build-icon.png"
+  }
 }
