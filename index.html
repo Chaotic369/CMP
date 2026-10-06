@@ -318,8 +318,8 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 /* Fullscreen UI Adjustments */
 :fullscreen #statusBar, :-webkit-full-screen #statusBar { display: none !important; }
-:fullscreen #codeView, :-webkit-full-screen #codeView { height: auto !important; bottom: 0 !important; }
-:fullscreen #preview, :-webkit-full-screen #preview { height: auto !important; bottom: 0 !important; }
+:fullscreen #codeView, :-webkit-full-screen #codeView { height: calc(100vh - env(safe-area-inset-top, 0px)) !important; height: calc(100dvh - env(safe-area-inset-top, 0px)) !important; bottom: auto !important; }
+:fullscreen #preview, :-webkit-full-screen #preview { height: calc(100vh - env(safe-area-inset-top, 0px)) !important; height: calc(100dvh - env(safe-area-inset-top, 0px)) !important; bottom: auto !important; }
 :fullscreen #toggleUiBtn, :-webkit-full-screen #toggleUiBtn { transform: scale(0.85); transform-origin: bottom right; }
 :fullscreen #app-menu, :-webkit-full-screen #app-menu { transform: scale(calc(var(--user-scale, 1) * 0.85)); }
 :fullscreen #fnrPanel, :-webkit-full-screen #fnrPanel { transform: scale(0.85); transform-origin: top center; }
