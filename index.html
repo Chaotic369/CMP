@@ -1221,8 +1221,12 @@ function bringModalToFront(modal) {
   if (!modal) return;
   modal.style.display = (modal.id === 'astPanel' || modal.id === 'logPanel') ? 'block' : 'flex';
   modal.classList.add('open');
-  $backdrop.classList.add('open', 'dimmed');
-  topModalZ += 2;
+    if ($appMenu && $appMenu.classList.contains('open')) {
+      $appMenu.classList.remove('open');
+      if ($toggleBtn) $toggleBtn.classList.remove('active');
+    }
+    $backdrop.classList.add('open', 'dimmed');
+    topModalZ += 2;
   if (topModalZ >= MAX_WINDOW_Z) {
             var allModals = Array.from(document.querySelectorAll(
                               '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
