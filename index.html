@@ -650,10 +650,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                         <button id="ghPushBtn" class="btn" title="Push to GitHub" disabled style="color:var(--blue);"><i class="fa-solid fa-arrow-up-from-bracket"></i><span class="btn-lbl">Push</span></button>
         <button id="exportBtn" class="btn" title="Export File" style="color:var(--purple);"><i class="fa-solid fa-floppy-disk"></i><span class="btn-lbl">Export</span></button>
                 <button id="liveSiteBtn" class="btn" title="View Live Site in Browser" style="color:var(--blue);"><i class="fa-solid fa-globe"></i><span class="btn-lbl">Live</span></button>
-                <button id="viewBtn" class="btn" title="Toggle View"><i class="fa-solid fa-eye"></i><span class="btn-lbl">View</span></button>
-                <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i><span class="btn-lbl">Wall</span></button>
-        <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i><span class="btn-lbl">Get</span></button>
-        <button id="masterBuildBtn" class="btn" title="GitHub Action (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i><span class="btn-lbl">Action</span></button>
+                                <button id="viewBtn" class="btn" title="Toggle View"><i class="fa-solid fa-eye"></i><span class="btn-lbl">View</span></button>
+                        <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i><span class="btn-lbl">Get</span></button>
+                        <button id="masterBuildBtn" class="btn" title="GitHub Action (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i><span class="btn-lbl">Action</span></button>
                 <button id="moreBtn" class="btn" title="More Tools & Compilers" style="color:var(--teal);"><i class="fa-solid fa-cubes-stacked"></i><span class="btn-lbl">More</span></button>
                                     
                 <button id="buildApkBtn" class="btn" style="display:none;"></button>
@@ -4287,12 +4286,12 @@ $backdrop.addEventListener('click', function(e) {
         });
 
         var moreWallBtnEl = document.getElementById('moreWallBtn');
-        if (moreWallBtnEl) {
-          moreWallBtnEl.addEventListener('click', function() {
-            document.getElementById('moreCloseBtn').click();
-            document.getElementById('wallpaperBtn').click();
-          });
-        }
+            if (moreWallBtnEl) {
+              moreWallBtnEl.addEventListener('click', function() {
+                document.getElementById('moreCloseBtn').click();
+                if (typeof openWallpaperModal === 'function') openWallpaperModal();
+              });
+            }
 
     let pwaCroppedIconBlob = null;
         let pwaLastSelectedIconFile = null;
@@ -4894,14 +4893,17 @@ document.getElementById('liveSiteBtn').addEventListener('click', function() {
 
 
 // Wallpaper UI Triggers
-document.getElementById('wallpaperBtn').addEventListener('click', function() {
+function openWallpaperModal() {
   document.getElementById('wpUrlInput').value = settings.wallpaper || '';
   var wpModal = document.getElementById('wallpaperModal');
   wpModal.classList.add('open');
   centerModal(wpModal);
   bringModalToFront(wpModal);
   $backdrop.classList.add('open');
-});
+}
+
+var mainWpBtn = document.getElementById('wallpaperBtn');
+if (mainWpBtn) mainWpBtn.addEventListener('click', openWallpaperModal);
 
 document.getElementById('wpCancelBtn').addEventListener('click', function() {
   document.getElementById('wallpaperModal').classList.remove('open');
