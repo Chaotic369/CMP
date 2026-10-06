@@ -1089,19 +1089,37 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                 <button id="loadLighthouseBtn" class="btn" style="width:auto; padding:3px 9px; height:24px; font-size:9px; font-weight:600; color:var(--green); border:1px solid rgba(57,211,83,0.3); background:rgba(57,211,83,0.12); border-radius:6px;" title="Load Lighthouse YAML"><i class="fa-solid fa-file-code" style="margin-right:3px;"></i>Load</button>
               </div>
 
-              <!-- Extension Packager -->
-              <div style="background:rgba(255,255,255,0.035); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:8px 10px; display:flex; align-items:center; justify-content:space-between; gap:8px; transition:border-color 0.2s;">
-                <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
-                  <div style="width:26px; height:26px; border-radius:7px; background:rgba(227,179,65,0.12); border:1px solid rgba(227,179,65,0.25); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                    <i class="fa-brands fa-chrome" style="color:var(--amber); font-size:11px;"></i>
-                  </div>
-                  <div style="display:flex; flex-direction:column; gap:1px; min-width:0;">
-                    <div style="font-size:10.5px; font-weight:600; color:#ffffff;">Extension Packager</div>
-                    <div style="font-size:8px; color:rgba(255,255,255,0.45); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Package and zip Manifest V3 extension</div>
-                  </div>
-                </div>
-                <button id="loadExtPackagerBtn" class="btn" style="width:auto; padding:3px 9px; height:24px; font-size:9px; font-weight:600; color:var(--amber); border:1px solid rgba(227,179,65,0.3); background:rgba(227,179,65,0.12); border-radius:6px;" title="Load Extension YAML"><i class="fa-solid fa-file-zipper" style="margin-right:3px;"></i>Load</button>
-              </div>
+              <!-- 1-Click Instant Chrome Extension Builder -->
+                        <div style="background:rgba(255,255,255,0.035); border:1px solid rgba(227,179,65,0.25); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+                          <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+                            <div style="display:flex; align-items:center; gap:8px; flex:1; min-width:0;">
+                              <div style="width:26px; height:26px; border-radius:7px; background:rgba(227,179,65,0.15); border:1px solid rgba(227,179,65,0.3); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                <i class="fa-brands fa-chrome" style="color:var(--amber); font-size:12px;"></i>
+                              </div>
+                              <div style="display:flex; flex-direction:column; gap:1px; min-width:0;">
+                                <div style="font-size:10.5px; font-weight:600; color:#ffffff;">Instant Chrome Extension</div>
+                                <div style="font-size:8px; color:rgba(255,255,255,0.45); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Auto-scaffold MV3, commit, compile & zip</div>
+                              </div>
+                            </div>
+                            <button id="extConfigToggleBtn" class="btn" style="width:auto; padding:3px 9px; height:24px; font-size:9px; font-weight:600; color:var(--amber); border:1px solid rgba(227,179,65,0.3); background:rgba(227,179,65,0.12); border-radius:6px;" title="Toggle Icon / Settings"><i class="fa-solid fa-sliders" style="margin-right:3px;"></i>Icon</button>
+                          </div>
+
+                          <div id="extConfigDrawer" style="display:none; flex-direction:column; gap:8px; padding-top:6px; border-top:1px solid rgba(255,255,255,0.08);">
+                            <div class="gh-row" style="margin:0; align-items:center;">
+                              <label style="width:46px; font-size:9.5px;">Icon</label>
+                              <div style="flex:1; min-width:0; display:flex; align-items:center; gap:8px;">
+                                <input type="file" id="extIconInput" accept="image/*" style="display:none;">
+                                <button id="extIconChooseBtn" type="button" class="btn" style="width:auto; padding:3px 9px; font-size:9px; height:24px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:6px;" onclick="document.getElementById('extIconInput').click();"><i class="fa-solid fa-image" style="margin-right:4px;"></i>Choose</button>
+                                <img id="extIconPreview" style="display:none; width:22px; height:22px; border-radius:5px; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0; cursor:pointer;" title="Tap to recrop">
+                                <span id="extIconLabel" style="font-size:8.5px; color:rgba(255,255,255,0.5); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Default Icon</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <button id="buildExtensionAutoBtn" class="btn" style="width:100%; height:28px; font-size:10px; font-weight:600; color:var(--green); border:1px solid rgba(57,211,83,0.35); background:rgba(57,211,83,0.15); border-radius:7px; display:flex; align-items:center; justify-content:center; gap:5px;" title="1-Tap Build Extension">
+                            <i class="fa-solid fa-bolt"></i> Build & Download Extension
+                          </button>
+                        </div>
             </div>
 
             <!-- Group 2: App Converters & Injection -->
@@ -4728,8 +4746,205 @@ $backdrop.addEventListener('click', function(e) {
         document.getElementById('loadLighthouseBtn').addEventListener('click', window.loadLighthouseWorkflow);
         const loadCloudDeskBtn = document.getElementById('loadCloudDesktopBtn');
         if (loadCloudDeskBtn) loadCloudDeskBtn.addEventListener('click', window.loadCloudDesktopWorkflow);
-        const loadExtPackBtn = document.getElementById('loadExtPackagerBtn');
-        if (loadExtPackBtn) loadExtPackBtn.addEventListener('click', window.loadExtPackagerWorkflow);
+        // --- 1-Click Instant Chrome Extension Builder Engine ---
+            let extCroppedIconBlob = null;
+            let extLastSelectedIconFile = null;
+
+            var extConfigToggleBtn = document.getElementById('extConfigToggleBtn');
+            if (extConfigToggleBtn) {
+              extConfigToggleBtn.addEventListener('click', function() {
+                var drawer = document.getElementById('extConfigDrawer');
+                if (!drawer) return;
+                var isOpen = drawer.style.display === 'flex';
+                drawer.style.display = isOpen ? 'none' : 'flex';
+              });
+            }
+
+            var extIconInput = document.getElementById('extIconInput');
+            if (extIconInput) {
+              extIconInput.addEventListener('change', function(e) {
+                var file = e.target.files[0];
+                if (!file) return;
+                extLastSelectedIconFile = file;
+
+                var reader = new FileReader();
+                reader.onload = function(ev) {
+                  var cropModal = document.getElementById('iconCropModal');
+                  var cropImg = document.getElementById('iconCropSourceImg');
+                  cropImg.src = ev.target.result;
+                  cropModal.classList.add('open');
+                  cropModal.style.display = 'flex';
+                  topModalZ = Math.max(topModalZ + 10, 9999999);
+                  cropModal.style.zIndex = topModalZ;
+
+                  if (iconCropperInstance) iconCropperInstance.destroy();
+                  iconCropperInstance = new Cropper(cropImg, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    autoCropArea: 0.95,
+                    dragMode: 'move',
+                    cropBoxMovable: true,
+                    cropBoxResizable: true
+                  });
+
+                  window._cropperSourceTarget = 'extension';
+                };
+                reader.readAsDataURL(file);
+              });
+            }
+
+            // Connect Extension cropper result
+            var origCropApply = document.getElementById('iconCropApplyBtn');
+            if (origCropApply) {
+              origCropApply.addEventListener('click', function() {
+                if (!iconCropperInstance || window._cropperSourceTarget !== 'extension') return;
+                const canvas = iconCropperInstance.getCroppedCanvas({ width: 512, height: 512, imageSmoothingQuality: 'high' });
+                canvas.toBlob(function(blob) {
+                  extCroppedIconBlob = blob;
+                  const preview = document.getElementById('extIconPreview');
+                  const label = document.getElementById('extIconLabel');
+                  if (preview) { preview.src = canvas.toDataURL('image/png'); preview.style.display = 'block'; }
+                  if (label) label.textContent = 'Custom Icon Ready';
+                  window._cropperSourceTarget = null;
+                  closeIconCropModal();
+                  toast('✅ Extension icon cropped');
+                }, 'image/png');
+              }, true);
+            }
+
+            window.buildChromeExtensionAuto = async function() {
+              if (!ghToken || !ghRepo) {
+                toast('❌ Select a repo and configure token first', 'warn');
+                return;
+              }
+
+              // Close More Modal & start build overlay
+              document.getElementById('moreModal').classList.remove('open');
+              document.getElementById('moreModal').style.display = 'none';
+      
+              const appName = (ghRepo.split('/')[1] || 'My App').replace(/[-_]/g, ' ');
+              const title = 'Packaging Chrome Extension: ' + appName;
+              showBuildOverlay(title);
+              updateBuildOverlay('Generating Extension Manifest & Logic...', 15);
+
+              try {
+                // 1. Prepare manifest.json
+                const manifestObj = {
+                  manifest_version: 3,
+                  name: appName,
+                  version: "1.0.0",
+                  description: appName + " - Sovereign IDE Extension",
+                  permissions: ["sidePanel", "windows", "tabs", "storage"],
+                  background: { service_worker: "background.js" },
+                  action: { default_title: appName },
+                  side_panel: { default_path: "index.html" },
+                  icons: { "512": "build-icon.png" }
+                };
+                const manifestStr = JSON.stringify(manifestObj, null, 2);
+
+                // 2. Prepare background.js (Side Panel + Window Controller)
+                const bgJs = [
+                  'chrome.action.onClicked.addListener(async (tab) => {',
+                  '  if (chrome.sidePanel?.open) {',
+                  '    await chrome.sidePanel.open({ windowId: tab.windowId });',
+                  '  } else {',
+                  '    chrome.windows.create({ url: chrome.runtime.getURL("index.html"), type: "popup", width: 780, height: 960 });',
+                  '  }',
+                  '});',
+                  'chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {',
+                  '  if (message.action === "toggle_fullscreen" && sender.tab?.windowId) {',
+                  '    chrome.windows.get(sender.tab.windowId, (win) => {',
+                  '      chrome.windows.update(win.id, { state: win.state === "fullscreen" ? "normal" : "fullscreen" });',
+                  '    });',
+                  '  }',
+                  '});'
+                ].join('\n');
+
+                // 3. Prepare Workflow YAML
+                const workflowYaml = [
+                  'name: Package Chrome Extension',
+                  'on:',
+                  '  workflow_dispatch:',
+                  'jobs:',
+                  '  package:',
+                  '    runs-on: ubuntu-latest',
+                  '    steps:',
+                  '      - uses: actions/checkout@v4',
+                  '      - name: Bundle Extension ZIP',
+                  '        run: |',
+                  '          mkdir -p dist',
+                  '          zip -r "dist/chrome-extension.zip" . -x "*.git*" -x "*.github*" -x "dist/*" -x "node_modules/*"',
+                  '      - uses: actions/upload-artifact@v4',
+                  '        with:',
+                  '          name: Chrome-Extension-v1.0.0',
+                  '          path: dist/*.zip',
+                  '          if-no-files-found: error'
+                ].join('\n');
+
+                // 4. Resolve Icon (Custom Cropped or Auto-generated Canvas)
+                let iconBlob = extCroppedIconBlob || croppedIconBlob;
+                if (!iconBlob) {
+                  const canvas = document.createElement('canvas');
+                  canvas.width = 512; canvas.height = 512;
+                  const ctx = canvas.getContext('2d');
+                  ctx.fillStyle = '#111215';
+                  ctx.fillRect(0, 0, 512, 512);
+                  ctx.fillStyle = '#e3b341';
+                  ctx.font = 'bold 260px sans-serif';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.fillText(appName.charAt(0).toUpperCase() || 'E', 256, 256 + 18);
+                  iconBlob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+                }
+                const iconBase64 = await readFileAsBase64(iconBlob);
+
+                // 5. Commit all files in one single batch commit
+                updateBuildOverlay('Committing Manifest, Service Worker & Workflow...', 25);
+                appendBuildLog('Bundling manifest.json, background.js, build-icon.png, and workflow...');
+
+                const commitFiles = [
+                  { path: 'manifest.json', base64Content: unicodeToBase64(manifestStr) },
+                  { path: 'background.js', base64Content: unicodeToBase64(bgJs) },
+                  { path: 'build-icon.png', base64Content: iconBase64 },
+                  { path: '.github/workflows/package-extension.yml', base64Content: unicodeToBase64(workflowYaml) }
+                ];
+
+                await uploadFilesAsSingleCommit(ghRepo, ghBranch, commitFiles, 'Configure & Package Chrome Extension (MV3)');
+                appendBuildLog('✅ All 4 files committed atomically.');
+
+                // 6. Dispatch workflow
+                updateBuildOverlay('Dispatching GitHub Actions runner...', 35);
+                await new Promise(r => setTimeout(r, 6000));
+
+                const filename = 'package-extension.yml';
+                let dispatched = false;
+                for (let attempt = 1; attempt <= 6; attempt++) {
+                  const res = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${filename}/dispatches`, {
+                    method: 'POST',
+                    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ref: ghBranch })
+                  });
+                  if (res.ok) { dispatched = true; break; }
+                  appendBuildLog('Retrying dispatch (' + attempt + '/6)...');
+                  await new Promise(r => setTimeout(r, 4000));
+                }
+
+                if (!dispatched) throw new Error('Could not dispatch package-extension.yml');
+
+                // 7. Track runner and auto-download artifact
+                updateBuildOverlay('Compiling & Zipping on Ubuntu runner...', 45);
+                appendBuildLog('Workflow dispatched. Awaiting artifact generation...');
+                localStorage.setItem('active_build_v1', JSON.stringify({ title, workflowFile: filename, artifactName: 'Chrome-Extension-v1.0.0', startTime: Date.now() }));
+                pollOverlayStatus(filename, 'Chrome-Extension-v1.0.0');
+
+              } catch (err) {
+                updateBuildOverlay('Extension Build Failed', 100, 'err');
+                appendBuildLog('ERROR: ' + err.message);
+              }
+            };
+
+            var buildExtAutoBtn = document.getElementById('buildExtensionAutoBtn');
+            if (buildExtAutoBtn) buildExtAutoBtn.addEventListener('click', window.buildChromeExtensionAuto);
 
   // VIEW MODE TOGGLE
   document.getElementById('viewBtn').addEventListener('click', function() {
