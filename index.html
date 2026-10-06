@@ -270,7 +270,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #toastCopyBtn { display: none; background: rgba(255,255,255,0.08); border: none; color: inherit; border-radius: 8px; width: 18px; height: 18px; flex-shrink: 0; align-items: center; justify-content: center; cursor: pointer; font-size: 6px; }
 #toast.err #toastCopyBtn { display: flex; }
 
-#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal, #branchModal {
+#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal, #branchModal, #moreModal {
   position: fixed; z-index: 30000; background: #0f1013; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; border-radius: 12px;
   padding: 14px 18px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0,0,0,0.7);
   max-height: calc(100vh - 40px); overflow-y: auto;
@@ -279,7 +279,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #astPanel::-webkit-scrollbar, #logPanel::-webkit-scrollbar, #ghConfigPanel::-webkit-scrollbar,
 #commitModal::-webkit-scrollbar, #newRepoModal::-webkit-scrollbar, #wallpaperModal::-webkit-scrollbar,
 #buildModal::-webkit-scrollbar, #workflowsModal::-webkit-scrollbar, #fullTreeModal::-webkit-scrollbar,
-#bulkModal::-webkit-scrollbar, #errLogModal::-webkit-scrollbar, #branchModal::-webkit-scrollbar {
+#bulkModal::-webkit-scrollbar, #errLogModal::-webkit-scrollbar, #branchModal::-webkit-scrollbar, #moreModal::-webkit-scrollbar {
   display: none; width: 0; height: 0;
 }
 #astPanel, #logPanel { width: calc(100vw - 40px); max-width: 420px; max-height: 48vh; overflow-y: auto; display: none; line-height: 1.6; }
@@ -287,7 +287,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal { width: 90vw; max-width: 420px; display: none; flex-direction: column; gap: 12px; }
 #ghConfigPanel.open, #commitModal.open, #newRepoModal.open, #wallpaperModal.open,
-#buildModal.open, #workflowsModal.open, #fullTreeModal.open, #bulkModal.open, #errLogModal.open, #branchModal.open { display: flex !important; flex-direction: column !important; }
+#buildModal.open, #workflowsModal.open, #fullTreeModal.open, #bulkModal.open, #errLogModal.open, #branchModal.open, #moreModal.open { display: flex !important; flex-direction: column !important; }
 #astPanel.open, #logPanel.open { display: block !important; }
 
 #astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
@@ -648,13 +648,14 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i><span class="btn-lbl">Wall</span></button>
         <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i><span class="btn-lbl">Get</span></button>
         <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i><span class="btn-lbl">Build</span></button>
+                <button id="moreBtn" class="btn" title="More Tools & Compilers" style="color:var(--teal);"><i class="fa-solid fa-cubes-stacked"></i><span class="btn-lbl">More</span></button>
                                     
-        <button id="buildApkBtn" class="btn" style="display:none;"></button>
-        <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
-        <div style="grid-column: 1 / -1; grid-row: 3; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05);">
-          <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
-          <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
-        </div>
+                <button id="buildApkBtn" class="btn" style="display:none;"></button>
+                <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
+                <div style="grid-column: 1 / -1; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05); margin-top: 2px;">
+                  <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
+                  <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
+                </div>
     </div>
   
                                                         <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0; position: relative; max-height: 100%;">
@@ -1023,12 +1024,55 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     </div>
     <div style="font-size:10px; color:rgba(255,255,255,0.5); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Repository Branches</div>
     <div id="branchModalList" style="display:flex; flex-direction:column; gap:4px; max-height:45vh; overflow-y:auto; padding-right:2px;">
-      <div style="color:rgba(255,255,255,0.5); font-size:11px;">Loading branches...</div>
+          <div style="color:rgba(255,255,255,0.5); font-size:11px;">Loading branches...</div>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<div id="statusBar">
+    <div id="moreModal" style="width:92vw; max-width:440px; display:none; flex-direction:column; padding:16px; box-sizing:border-box;">
+      <div class="window-header" style="margin-bottom:12px; padding-bottom:8px;">
+        <div class="win-title"><i class="fa-solid fa-cubes-stacked" style="color:var(--teal); margin-right:6px;"></i> More Tools & Compilers</div>
+        <button class="panel-close" id="moreCloseBtn">✕</button>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
+            <div style="font-size:11px; font-weight:600; color:#ffffff;"><i class="fa-brands fa-chrome" style="color:var(--amber); margin-right:6px;"></i>Chrome Extension (MV3)</div>
+            <div style="font-size:9px; color:rgba(255,255,255,0.5);">Auto-generates manifest.json & zips workspace for side-loading.</div>
+          </div>
+          <button id="packExtensionBtn" class="btn" style="width:auto; padding:4px 10px; height:26px; font-size:10px; color:var(--amber); border:1px solid rgba(227,179,65,0.3); background:rgba(227,179,65,0.15);" title="Download MV3 Extension ZIP"><i class="fa-solid fa-file-zipper" style="margin-right:4px;"></i>Pack ZIP</button>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
+            <div style="font-size:11px; font-weight:600; color:#ffffff;"><i class="fa-solid fa-mobile-screen-button" style="color:var(--purple); margin-right:6px;"></i>Instant PWA</div>
+            <div style="font-size:9px; color:rgba(255,255,255,0.5);">Injects offline Service Worker & Web Manifest into repo.</div>
+          </div>
+          <button id="makePwaBtn" class="btn" style="width:auto; padding:4px 10px; height:26px; font-size:10px; color:var(--purple); border:1px solid rgba(188,140,255,0.3); background:rgba(188,140,255,0.15);" title="Inject PWA to Repo"><i class="fa-solid fa-bolt" style="margin-right:4px;"></i>Make PWA</button>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
+            <div style="font-size:11px; font-weight:600; color:#ffffff;"><i class="fa-solid fa-camera-retro" style="color:var(--blue); margin-right:6px;"></i>Playwright Visual Testing</div>
+            <div style="font-size:9px; color:rgba(255,255,255,0.5);">Auto-captures desktop & mobile 1080p screenshots via Actions.</div>
+          </div>
+          <button id="loadPlaywrightBtn" class="btn" style="width:auto; padding:4px 10px; height:26px; font-size:10px; color:var(--blue); border:1px solid rgba(92,157,255,0.3); background:rgba(92,157,255,0.15);" title="Load Playwright YAML"><i class="fa-solid fa-file-code" style="margin-right:4px;"></i>Load YAML</button>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+          <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
+            <div style="font-size:11px; font-weight:600; color:#ffffff;"><i class="fa-solid fa-gauge-high" style="color:var(--green); margin-right:6px;"></i>Lighthouse CI Audit</div>
+            <div style="font-size:9px; color:rgba(255,255,255,0.5);">Audits performance, PWA, SEO & accessibility metrics.</div>
+          </div>
+          <button id="loadLighthouseBtn" class="btn" style="width:auto; padding:4px 10px; height:26px; font-size:10px; color:var(--green); border:1px solid rgba(57,211,83,0.3); background:rgba(57,211,83,0.15);" title="Load Lighthouse YAML"><i class="fa-solid fa-file-code" style="margin-right:4px;"></i>Load YAML</button>
+        </div>
+      </div>
+      <div class="gh-actions" style="margin-top:14px;">
+        <button id="moreCancelBtn"><i class="fa-solid fa-xmark"></i> Close</button>
+      </div>
+    </div>
+
+    <div id="statusBar">
   <span class="sb-item" id="sb-branch" style="cursor:pointer; color:var(--teal); font-weight:600;" onclick="window.openBranchModal()"><i class="fa-solid fa-code-branch"></i> <span id="sb-branch-val">main</span></span>
   <span class="sb-sep">|</span>
   <span class="sb-item" id="sb-lines">– lines</span>
@@ -1113,10 +1157,10 @@ function bringModalToFront(modal) {
   topModalZ += 2;
   if (topModalZ >= MAX_WINDOW_Z) {
             var allModals = Array.from(document.querySelectorAll(
-                  '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
-                  '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
-                  '#errLogModal, #buildProgressOverlay, #branchModal'
-                      ));
+                              '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
+                              '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
+                              '#errLogModal, #buildProgressOverlay, #branchModal, #moreModal'
+                                  ));
           allModals.sort(function(a, b) {
       return (parseInt(window.getComputedStyle(a).zIndex) || 30000) - 
              (parseInt(window.getComputedStyle(b).zIndex) || 30000);
@@ -1161,10 +1205,10 @@ function centerModal(el) {
   }
   
   var openModals = Array.from(document.querySelectorAll(
-          '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
-          '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
-          '#errLogModal, #buildProgressOverlay, #branchModal'
-            )).filter(function(m) {
+            '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
+            '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
+            '#errLogModal, #buildProgressOverlay, #branchModal, #moreModal'
+              )).filter(function(m) {
         return m !== el && window.getComputedStyle(m).display !== 'none' && m.offsetWidth > 0;
   }).map(function(m) {
     var r = m.getBoundingClientRect();
@@ -3926,10 +3970,10 @@ function toggleMenu() {
 $toggleBtn.addEventListener('click', function(e) { if (isDragging) return; toggleMenu(); });
 function closeTopmostModal() {
   var modalSelectors = [
-      '#astPanel', '#logPanel', '#ghConfigPanel', '#commitModal', '#newRepoModal',
-      '#wallpaperModal', '#buildModal', '#workflowsModal', '#fullTreeModal', '#bulkModal',
-      '#errLogModal', '#buildProgressOverlay', '#branchModal'
-        ];
+        '#astPanel', '#logPanel', '#ghConfigPanel', '#commitModal', '#newRepoModal',
+        '#wallpaperModal', '#buildModal', '#workflowsModal', '#fullTreeModal', '#bulkModal',
+        '#errLogModal', '#buildProgressOverlay', '#branchModal', '#moreModal'
+          ];
   var openModals = Array.from(document.querySelectorAll(modalSelectors.join(', '))).filter(function(m) {
     return m.classList.contains('open') || (m.style.display !== 'none' && window.getComputedStyle(m).display !== 'none');
   });
@@ -4158,11 +4202,248 @@ $backdrop.addEventListener('click', function(e) {
   };
 
   document.getElementById('branchCloseBtn').addEventListener('click', () => {
-    const modal = document.getElementById('branchModal');
-    modal.classList.remove('open');
-    modal.style.display = 'none';
-    document.getElementById('menu-backdrop').classList.remove('open');
-  });
+      const modal = document.getElementById('branchModal');
+      modal.classList.remove('open');
+      modal.style.display = 'none';
+      document.getElementById('menu-backdrop').classList.remove('open');
+    });
+
+    document.getElementById('moreBtn').addEventListener('click', function() {
+      var modal = document.getElementById('moreModal');
+      centerModal(modal);
+      bringModalToFront(modal);
+    });
+
+    document.getElementById('moreCloseBtn').addEventListener('click', function() {
+      var modal = document.getElementById('moreModal');
+      modal.classList.remove('open');
+      modal.style.display = 'none';
+      closeTopmostModal();
+    });
+
+    document.getElementById('moreCancelBtn').addEventListener('click', function() {
+      document.getElementById('moreCloseBtn').click();
+    });
+
+    window.exportAsChromeExtension = async function() {
+      if (!window.JSZip) { toast('❌ JSZip not loaded', 'err'); return; }
+      toast('📦 Bundling Manifest V3 Extension...', 'info');
+      showProgress(20);
+
+      const zip = new JSZip();
+      const appTitle = (document.getElementById('bmAppName') ? document.getElementById('bmAppName').value.trim() : '') || (ghRepo ? ghRepo.split('/')[1] : 'My Extension');
+      const cleanId = appTitle.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+      let hasManifest = currentTreeFiles.some(f => f.path.toLowerCase() === 'manifest.json') || !!(window.workspaceFiles && window.workspaceFiles['manifest.json']);
+
+      if (!hasManifest) {
+        const mv3Manifest = {
+          manifest_version: 3,
+          name: appTitle,
+          version: "1.0.0",
+          description: appTitle + " packaged via AI Compile PRO",
+          action: {
+            default_popup: (ghFilePath && ghFilePath.endsWith('.html')) ? ghFilePath : "index.html",
+            default_title: appTitle
+          },
+          permissions: ["storage"],
+          host_permissions: ["<all_urls>"]
+        };
+        zip.file("manifest.json", JSON.stringify(mv3Manifest, null, 2));
+      }
+
+      if (sourceContent) {
+        zip.file(ghFilePath || "index.html", sourceContent);
+      }
+
+      if (window.workspaceFiles) {
+        for (let p in window.workspaceFiles) {
+          if (p !== ghFilePath) zip.file(p, window.workspaceFiles[p].content);
+        }
+      }
+
+      if (ghToken && ghRepo && currentTreeFiles.length > 0) {
+        const filesToPack = currentTreeFiles.filter(f => f.type === 'blob' && f.path !== ghFilePath && (!window.workspaceFiles || !window.workspaceFiles[f.path]));
+        for (let i = 0; i < filesToPack.length; i++) {
+          const file = filesToPack[i];
+          showProgress(20 + Math.round(((i + 1) / filesToPack.length) * 65));
+          try {
+            const getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${file.path}?ref=${ghBranch}`, {
+              headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+            });
+            if (getRes.ok) {
+              const data = await getRes.json();
+              zip.file(file.path, data.content.replace(/\s/g, ''), { base64: true });
+            }
+          } catch (e) {
+            console.warn('Skipping file in extension pack:', file.path);
+          }
+        }
+      }
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${cleanId}_v3_extension.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      hideProgress();
+      toast('✅ Extension ZIP ready! Unzip & load in chrome://extensions', 'ok', 5000);
+    };
+
+    window.injectPWASupport = async function() {
+      const appTitle = (document.getElementById('bmAppName') ? document.getElementById('bmAppName').value.trim() : '') || (ghRepo ? ghRepo.split('/')[1] : 'My App');
+      const pwaRegistration = `<link rel="manifest" href="manifest.webmanifest">\n<script>\nif ('serviceWorker' in navigator) {\n  window.addEventListener('load', () => {\n    navigator.serviceWorker.register('./sw.js').catch(console.error);\n  });\n}\n</` + `script>`;
+
+      const swContent = `const CACHE_NAME = 'app-cache-v1';\nconst ASSETS = ['./', './index.html'];\n\nself.addEventListener('install', e => {\n  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));\n});\n\nself.addEventListener('activate', e => {\n  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))));\n  self.clients.claim();\n});\n\nself.addEventListener('fetch', e => {\n  e.respondWith(\n    caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {\n      if (res.status === 200 && e.request.method === 'GET') {\n        const clone = res.clone();\n        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));\n      }\n      return res;\n    }).catch(() => cached))\n  );\n});`;
+
+      const webManifest = JSON.stringify({
+        name: appTitle,
+        short_name: appTitle,
+        start_url: "./index.html",
+        display: "standalone",
+        background_color: "#0a0a0c",
+        theme_color: "#000000",
+        icons: [{ src: "build-icon.png", sizes: "512x512", type: "image/png" }]
+      }, null, 2);
+
+      if (ghToken && ghRepo) {
+        showProgress(25);
+        toast('⚡ Uploading sw.js and manifest.webmanifest to repo...', 'info');
+        try {
+          await uploadSingleFileToRepo(ghRepo, 'sw.js', unicodeToBase64(swContent), ghBranch, 'Add PWA Service Worker');
+          showProgress(60);
+          await uploadSingleFileToRepo(ghRepo, 'manifest.webmanifest', unicodeToBase64(webManifest), ghBranch, 'Add Web App Manifest');
+        } catch (err) {
+          toast('⚠ Failed to commit PWA files: ' + err.message, 'warn');
+        }
+        hideProgress();
+      }
+
+      if (sourceContent && !sourceContent.includes('navigator.serviceWorker.register')) {
+        pushState();
+        if (/<head[^>]*>/i.test(sourceContent)) {
+          sourceContent = sourceContent.replace(/(<head[^>]*>)/i, `$1\n${pwaRegistration}`);
+        } else {
+          sourceContent = pwaRegistration + '\n' + sourceContent;
+        }
+        render(sourceContent, false);
+        toast('✅ PWA files generated & registered into HTML!', 'ok', 4000);
+      } else {
+        toast('✅ PWA files created and already registered in HTML.', 'ok');
+      }
+    };
+
+    window.loadPlaywrightWorkflow = function() {
+      const yaml = [
+        "name: Playwright Visual Tests",
+        "on:",
+        "  workflow_dispatch:",
+        "    inputs:",
+        "      app_name:",
+        "        description: 'Test Suite Name'",
+        "        required: false",
+        "        default: 'Visual Audit'",
+        "jobs:",
+        "  test:",
+        "    runs-on: ubuntu-latest",
+        "    steps:",
+        "      - uses: actions/checkout@v4",
+        "      - uses: actions/setup-node@v4",
+        "        with:",
+        "          node-version: 20",
+        "      - name: Install Playwright",
+        "        run: |",
+        "          npm init -y",
+        "          npm install playwright",
+        "          npx playwright install --with-deps chromium",
+        "      - name: Run Viewport Captures",
+        "        shell: bash",
+        "        run: |",
+        "          mkdir -p screenshots",
+        "          node - << 'EOF'",
+        "          const { chromium, devices } = require('playwright');",
+        "          (async () => {",
+        "            const browser = await chromium.launch();",
+        "            const page = await browser.newPage({ viewport: { width: 1920, height: 1080 } });",
+        "            await page.goto(`file://${process.cwd()}/index.html`, { waitUntil: 'load' });",
+        "            await page.screenshot({ path: 'screenshots/desktop-1080p.png', fullPage: true });",
+        "            const mob = await browser.newPage({ ...devices['Pixel 7'] });",
+        "            await mob.goto(`file://${process.cwd()}/index.html`, { waitUntil: 'load' });",
+        "            await mob.screenshot({ path: 'screenshots/mobile-pixel7.png', fullPage: true });",
+        "            await browser.close();",
+        "          })();",
+        "          EOF",
+        "      - name: Upload Screenshots",
+        "        uses: actions/upload-artifact@v4",
+        "        with:",
+        "          name: Visual-Screenshots",
+        "          path: screenshots/",
+        "          if-no-files-found: error"
+      ].join('\n');
+
+      document.getElementById('bmWorkflowYaml').value = yaml;
+      document.getElementById('bmWorkflowFilename').value = 'playwright-tests.yml';
+      saveBuildConfig();
+      document.getElementById('moreCloseBtn').click();
+      document.getElementById('masterBuildBtn').click();
+      toast('✅ Playwright Visual Tests YAML loaded into Build App!');
+    };
+
+    window.loadLighthouseWorkflow = function() {
+      const yaml = [
+        "name: Lighthouse CI Web Audit",
+        "on:",
+        "  workflow_dispatch:",
+        "    inputs:",
+        "      audit_url:",
+        "        description: 'Target URL (blank for GitHub Pages)'",
+        "        required: false",
+        "        default: ''",
+        "jobs:",
+        "  lighthouse:",
+        "    runs-on: ubuntu-latest",
+        "    steps:",
+        "      - uses: actions/checkout@v4",
+        "      - uses: actions/setup-node@v4",
+        "        with:",
+        "          node-version: 20",
+        "      - name: Install Lighthouse",
+        "        run: npm install -g @lhci/cli chrome-launcher",
+        "      - name: Run Lighthouse Audit",
+        "        shell: bash",
+        "        run: |",
+        "          TARGET=\"${{ github.event.inputs.audit_url }}\"",
+        "          if [ -z \"$TARGET\" ]; then",
+        "            REPO_NAME=\"${GITHUB_REPOSITORY#*/}\"",
+        "            TARGET=\"https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPO_NAME}/\"",
+        "          fi",
+        "          echo \"Auditing URL: $TARGET\"",
+        "          lhci collect --url=\"$TARGET\" --settings.chromeFlags=\"--no-sandbox --headless\"",
+        "          lhci upload --target=filesystem --outputDir=./lighthouse-report || true",
+        "      - name: Upload Audit HTML Report",
+        "        uses: actions/upload-artifact@v4",
+        "        with:",
+        "          name: Lighthouse-Report",
+        "          path: ./lighthouse-report/",
+        "          if-no-files-found: warn"
+      ].join('\n');
+
+      document.getElementById('bmWorkflowYaml').value = yaml;
+      document.getElementById('bmWorkflowFilename').value = 'lighthouse-audit.yml';
+      saveBuildConfig();
+      document.getElementById('moreCloseBtn').click();
+      document.getElementById('masterBuildBtn').click();
+      toast('✅ Lighthouse CI Web Audit YAML loaded into Build App!');
+    };
+
+    document.getElementById('packExtensionBtn').addEventListener('click', window.exportAsChromeExtension);
+    document.getElementById('makePwaBtn').addEventListener('click', window.injectPWASupport);
+    document.getElementById('loadPlaywrightBtn').addEventListener('click', window.loadPlaywrightWorkflow);
+    document.getElementById('loadLighthouseBtn').addEventListener('click', window.loadLighthouseWorkflow);
 
   // VIEW MODE TOGGLE
   document.getElementById('viewBtn').addEventListener('click', function() {
@@ -7285,7 +7566,7 @@ updateMenuPosition();
 [
   'astPanel', 'logPanel', 'ghConfigPanel', 'commitModal',
     'newRepoModal', 'wallpaperModal', 'bulkModal', 'workflowsModal',
-    'fullTreeModal', 'buildModal', 'buildProgressOverlay', 'errLogModal', 'branchModal'
+    'fullTreeModal', 'buildModal', 'buildProgressOverlay', 'errLogModal', 'branchModal', 'moreModal'
 ].forEach(function(id) {
   var el = document.getElementById(id);
   if (el) {
