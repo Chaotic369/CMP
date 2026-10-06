@@ -624,8 +624,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         <button id="fullScreenBtn" class="btn" title="Full Screen"><i class="fa-solid fa-expand"></i><span class="btn-lbl">Full</span></button>
   
         <button id="ghSettingsBtn" class="btn" title="GitHub Settings"><i class="fa-solid fa-gear"></i><span class="btn-lbl">Config</span></button>
-        <button id="ghSyncBtn" class="btn" title="Sync & Fetch Repos" style="color:var(--teal);"><i class="fa-solid fa-arrows-rotate"></i><span class="btn-lbl">Sync</span></button>
-        <button id="ghPushBtn" class="btn" title="Push to GitHub" disabled style="color:var(--blue);"><i class="fa-solid fa-arrow-up-from-bracket"></i><span class="btn-lbl">Push</span></button>
+                <button id="ghSyncBtn" class="btn" title="Sync & Fetch Repos" style="color:var(--teal);"><i class="fa-solid fa-arrows-rotate"></i><span class="btn-lbl">Sync</span></button>
+                <button id="ghBranchBtn" class="btn" title="Branch Management" style="color:var(--amber);" onclick="window.openBranchModal()"><i class="fa-solid fa-code-branch"></i><span class="btn-lbl">Branch</span></button>
+                <button id="ghPushBtn" class="btn" title="Push to GitHub" disabled style="color:var(--blue);"><i class="fa-solid fa-arrow-up-from-bracket"></i><span class="btn-lbl">Push</span></button>
         <button id="exportBtn" class="btn" title="Export File" style="color:var(--purple);"><i class="fa-solid fa-floppy-disk"></i><span class="btn-lbl">Export</span></button>
   
         <button id="astBtn" class="btn" title="AST Guard Logs" style="color:var(--amber);"><i class="fa-solid fa-brain"></i><span class="btn-lbl">AST</span></button>
@@ -986,9 +987,27 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
 </div>
 
+<div id="branchModal" style="width:92vw; max-width:440px; display:none; flex-direction:column; padding:16px; box-sizing:border-box;">
+  <div class="window-header" style="margin-bottom:12px; padding-bottom:8px;">
+    <div class="win-title"><i class="fa-solid fa-code-branch" style="color:var(--amber); margin-right:6px;"></i> Branch Manager</div>
+    <button class="panel-close" id="branchCloseBtn">✕</button>
+  </div>
 
+  <div style="display:flex; flex-direction:column; gap:12px;">
+    <div style="display:flex; gap:6px;">
+      <input type="text" id="newBranchNameInput" placeholder="new-branch-name" style="flex:1; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.12); color:#fff; padding:6px 10px; border-radius:8px; font-size:11px; outline:none;">
+      <button id="createBranchBtn" class="btn" style="width:auto; padding:0 12px; height:28px; background:rgba(57,211,83,0.2); border:1px solid rgba(57,211,83,0.4); color:var(--green); font-size:10px; font-weight:600;"><i class="fa-solid fa-plus" style="margin-right:4px;"></i>Create</button>
+    </div>
+    <div style="font-size:10px; color:rgba(255,255,255,0.5); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Repository Branches</div>
+    <div id="branchModalList" style="display:flex; flex-direction:column; gap:4px; max-height:45vh; overflow-y:auto; padding-right:2px;">
+      <div style="color:rgba(255,255,255,0.5); font-size:11px;">Loading branches...</div>
+    </div>
+  </div>
+</div>
 
 <div id="statusBar">
+  <span class="sb-item" id="sb-branch" style="cursor:pointer; color:var(--teal); font-weight:600;" onclick="window.openBranchModal()"><i class="fa-solid fa-code-branch"></i> <span id="sb-branch-val">main</span></span>
+  <span class="sb-sep">|</span>
   <span class="sb-item" id="sb-lines">– lines</span>
   <span class="sb-sep">|</span>
   <span class="sb-item" id="sb-size">– KB</span>
@@ -1001,6 +1020,26 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         </div>
 
 <script>
+function unicodeToBase64(str) {
+  const utf8Bytes = new TextEncoder().encode(str);
+  const CHUNK_SIZE = 0x8000;
+  let binary = '';
+  for (let i = 0; i < utf8Bytes.length; i += CHUNK_SIZE) {
+    binary += String.fromCharCode.apply(null, utf8Bytes.subarray(i, i + CHUNK_SIZE));
+  }
+  return btoa(binary);
+}
+
+function base64ToUnicode(base64Str) {
+  const cleanB64 = base64Str.replace(/\s/g, '');
+  const binaryString = atob(cleanB64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // CONSTANTS & STATE
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2465,10 +2504,10 @@ document.getElementById('nrAddBtn').addEventListener('click', async function() {
             } else {
                 toast('⏳ Committing index.html...', 'info');
                 addLog('info', 'Preparing to commit index.html to repository');
-                let base64Content = btoa(unescape(encodeURIComponent(fileContent)));
+                let base64Content = unicodeToBase64(fileContent);
 
-                try {
-                    let res = await fetch(`https://api.github.com/repos/${newRepoName}/contents/index.html`, {
+                                try {
+                                    let res = await fetch(`https://api.github.com/repos/${newRepoName}/contents/index.html`, {
                         method: 'PUT',
                         headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
                         body: JSON.stringify({ message: `Initial commit: index.html`, content: base64Content, branch: 'main' })
@@ -3709,6 +3748,9 @@ window.addEventListener('message', function(e) {
 });
 
 function updateStatusBar() {
+  const sbBranch = document.getElementById('sb-branch-val');
+  if (sbBranch) sbBranch.textContent = ghBranch || 'main';
+
   var lines = sourceContent ? sourceContent.split('\n').length : 0;
   var kb    = (sourceContent.length / 1024).toFixed(1);
   document.getElementById('sb-lines').textContent = lines + ' lines';
@@ -3947,11 +3989,129 @@ $backdrop.addEventListener('click', function(e) {
   }
   
   handle.addEventListener('pointerup', endResize);
-  handle.addEventListener('pointercancel', endResize);
-})();
+    handle.addEventListener('pointercancel', endResize);
+  })();
 
-// VIEW MODE TOGGLE
-document.getElementById('viewBtn').addEventListener('click', function() {
+  window.openBranchModal = async function() {
+    if (!ghToken || !ghRepo) { 
+      toast('❌ Select a repo and configure token first', 'warn'); 
+      return; 
+    }
+    const modal = document.getElementById('branchModal');
+    centerModal(modal);
+    bringModalToFront(modal);
+    $backdrop.classList.add('open');
+    await window.refreshBranchesList();
+  };
+
+  window.refreshBranchesList = async function() {
+    const listEl = document.getElementById('branchModalList');
+    listEl.innerHTML = '<div style="color:rgba(255,255,255,0.5); font-size:11px; padding:8px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Fetching branches...</div>';
+    try {
+      const res = await fetch(`https://api.github.com/repos/${ghRepo}/branches?per_page=100`, {
+        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+        cache: 'no-store'
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const branches = await res.json();
+    
+      listEl.innerHTML = branches.map(b => {
+        const isCurrent = b.name === ghBranch;
+        return `
+          <div class="repo-item" style="display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:8px; background:${isCurrent ? 'rgba(45,212,191,0.15)' : 'rgba(255,255,255,0.04)'}; border:1px solid ${isCurrent ? 'rgba(45,212,191,0.3)' : 'transparent'}; cursor:pointer;" onclick="window.switchBranch('${b.name}')">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <i class="fa-solid fa-code-branch" style="color:${isCurrent ? 'var(--teal)' : 'rgba(255,255,255,0.5)'}; font-size:11px;"></i>
+              <span style="font-size:11px; font-weight:${isCurrent ? '600' : '400'}; color:#ffffff;">${b.name}</span>
+              ${isCurrent ? '<span style="font-size:8px; background:var(--teal); color:#000; padding:1px 5px; border-radius:4px; font-weight:700;">CURRENT</span>' : ''}
+            </div>
+            ${!isCurrent ? `<button class="repo-btn del" style="font-size:10px;" title="Delete Branch" onclick="window.deleteBranch('${b.name}', event)"><i class="fa-solid fa-trash"></i></button>` : ''}
+          </div>
+        `;
+      }).join('');
+    } catch (err) {
+      listEl.innerHTML = `<div style="color:var(--red); font-size:11px; padding:8px;">Failed: ${err.message}</div>`;
+    }
+  };
+
+  window.switchBranch = async function(branchName) {
+    if (branchName === ghBranch) {
+      document.getElementById('branchCloseBtn').click();
+      return;
+    }
+    showProgress(30);
+    toast(`Switching to branch: ${branchName}...`, 'info');
+    ghBranch = branchName;
+    document.getElementById('ghBranch').value = branchName;
+    const sbBranch = document.getElementById('sb-branch-val');
+    if (sbBranch) sbBranch.textContent = branchName;
+  
+    ghSaveConfig();
+    document.getElementById('branchCloseBtn').click();
+  
+    window._treeCache = {};
+    await fetchFileTree(false, true);
+    await syncCurrentFile();
+    hideProgress();
+    toast(`Switched to branch '${branchName}'`, 'ok');
+  };
+
+  document.getElementById('createBranchBtn').addEventListener('click', async function() {
+    const input = document.getElementById('newBranchNameInput');
+    const branchName = input.value.trim().replace(/\s+/g, '-');
+    if (!branchName) { toast('❌ Enter branch name', 'warn'); return; }
+
+    showProgress(20);
+    try {
+      const refRes = await fetch(`https://api.github.com/repos/${ghRepo}/git/ref/heads/${ghBranch}`, {
+        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+      });
+      if (!refRes.ok) throw new Error('Could not fetch base branch ref');
+      const refData = await refRes.json();
+      const sha = refData.object.sha;
+
+      const createRes = await fetch(`https://api.github.com/repos/${ghRepo}/git/refs`, {
+        method: 'POST',
+        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref: `refs/heads/${branchName}`, sha: sha })
+      });
+      if (!createRes.ok) throw new Error(await createRes.text());
+
+      input.value = '';
+      toast(`Branch '${branchName}' created!`, 'ok');
+      await window.switchBranch(branchName);
+    } catch (err) {
+      toast(`Failed to create branch: ${err.message}`, 'err');
+    }
+    hideProgress();
+  });
+
+  window.deleteBranch = async function(branchName, e) {
+    if (e) e.stopPropagation();
+    if (!confirm(`Delete remote branch '${branchName}'? This cannot be undone.`)) return;
+    showProgress(30);
+    try {
+      const res = await fetch(`https://api.github.com/repos/${ghRepo}/git/refs/heads/${branchName}`, {
+        method: 'DELETE',
+        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      toast(`Branch '${branchName}' deleted`, 'ok');
+      await window.refreshBranchesList();
+    } catch (err) {
+      toast(`Delete failed: ${err.message}`, 'err');
+    }
+    hideProgress();
+  };
+
+  document.getElementById('branchCloseBtn').addEventListener('click', () => {
+    const modal = document.getElementById('branchModal');
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+    document.getElementById('menu-backdrop').classList.remove('open');
+  });
+
+  // VIEW MODE TOGGLE
+  document.getElementById('viewBtn').addEventListener('click', function() {
   if (viewMode === 'preview') {
     viewMode = 'code';
     $pv.style.display = 'none';
@@ -5288,9 +5448,24 @@ function readFileAsBase64(file) {
   });
 }
 
+async function mapConcurrent(items, limit, fn) {
+  const results = [];
+  let index = 0;
+  async function worker() {
+    while (index < items.length) {
+      const i = index++;
+      results[i] = await fn(items[i], i);
+    }
+  }
+  const workers = Array.from({ length: Math.min(limit, items.length) }, () => worker());
+  await Promise.all(workers);
+  return results;
+}
+
 async function uploadFilesAsSingleCommit(repo, branch, files, commitMessage) {
   var refRes = await fetch(`https://api.github.com/repos/${repo}/git/ref/heads/${branch}`, {
-    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+    cache: 'no-store'
   });
   if (!refRes.ok) throw new Error('Failed to get branch ref: ' + await refRes.text());
   var refData = await refRes.json();
@@ -5305,12 +5480,17 @@ async function uploadFilesAsSingleCommit(repo, branch, files, commitMessage) {
 
   var blobResults = [];
   var failedFiles = [];
-  for (var i = 0; i < files.length; i++) {
-    var f = files[i];
+
+  await mapConcurrent(files, 5, async (f, idx) => {
     try {
+      showProgress(30 + Math.round(((idx + 1) / files.length) * 45));
       var blobRes = await fetch(`https://api.github.com/repos/${repo}/git/blobs`, {
         method: 'POST',
-        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        headers: { 
+          Authorization: `token ${ghToken}`, 
+          Accept: 'application/vnd.github.v3+json', 
+          'Content-Type': 'application/json' 
+        },
         body: JSON.stringify({ content: f.base64Content, encoding: 'base64' })
       });
       if (!blobRes.ok) throw new Error(await blobRes.text());
@@ -5319,7 +5499,7 @@ async function uploadFilesAsSingleCommit(repo, branch, files, commitMessage) {
     } catch (e) {
       failedFiles.push({ path: f.path, error: e.message });
     }
-  }
+  });
 
   if (blobResults.length === 0) {
     throw new Error('All blob uploads failed.');
@@ -5622,10 +5802,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
         let sha = null;
         const getUrl = `https://api.github.com/repos/${ghRepo}/contents/${f.path}?ref=${ghBranch}`;
         const getRes = await fetch(getUrl, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }, cache: 'no-store' });
-        if (getRes.ok) sha = (await getRes.json()).sha;
+                if (getRes.ok) sha = (await getRes.json()).sha;
         
-        const encoded = btoa(unescape(encodeURIComponent(f.content)));
-        const body = { message: msg, content: encoded, branch: ghBranch };
+                const encoded = unicodeToBase64(f.content);
+                const body = { message: msg, content: encoded, branch: ghBranch };
         if (sha) body.sha = sha;
 
         const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${f.path}`, {
@@ -5647,10 +5827,10 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
     } else {
         toast(`⬆ Pushing ${filesToCommit.length} files to GitHub...`, 'info');
         let uploadArray = filesToCommit.map(f => ({
-            path: f.path,
-            base64Content: btoa(unescape(encodeURIComponent(f.content)))
-        }));
-        let batchResult = await uploadFilesAsSingleCommit(ghRepo, ghBranch, uploadArray, msg);
+                    path: f.path,
+                    base64Content: unicodeToBase64(f.content)
+                }));
+                let batchResult = await uploadFilesAsSingleCommit(ghRepo, ghBranch, uploadArray, msg);
         
         toast(`✅ Pushed ${batchResult.uploaded} files to GitHub!`);
         addLog('ok', `Pushed ${batchResult.uploaded} files to ${ghRepo} in one commit.`);
@@ -6307,9 +6487,9 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                 appendBuildLog(sha ? 'Existing workflow file found — will overwrite.' : 'No existing workflow file — will create new.');
                 updateBuildOverlay('Writing workflow file...', 20);
 
-                const encodedWf = btoa(unescape(encodeURIComponent(yamlContent)));
-                const body = { message: (sha ? 'Update' : 'Create') + ' ' + filename + ' via AI Compile', content: encodedWf, branch: ghBranch };
-                if (sha) body.sha = sha;
+                                const encodedWf = unicodeToBase64(yamlContent);
+                                const body = { message: (sha ? 'Update' : 'Create') + ' ' + filename + ' via AI Compile', content: encodedWf, branch: ghBranch };
+                                if (sha) body.sha = sha;
 
                 const putRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${workflowPath}`, {
                   method: 'PUT',
@@ -7007,7 +7187,7 @@ updateMenuPosition();
 [
   'astPanel', 'logPanel', 'ghConfigPanel', 'commitModal',
     'newRepoModal', 'wallpaperModal', 'bulkModal', 'workflowsModal',
-    'fullTreeModal', 'buildModal', 'buildProgressOverlay', 'errLogModal'
+    'fullTreeModal', 'buildModal', 'buildProgressOverlay', 'errLogModal', 'branchModal'
 ].forEach(function(id) {
   var el = document.getElementById(id);
   if (el) {
