@@ -647,7 +647,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         <button id="logBtn" class="btn" title="System Logs"><i class="fa-solid fa-file-lines"></i><span class="btn-lbl">Logs</span></button>
         <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i><span class="btn-lbl">Wall</span></button>
         <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i><span class="btn-lbl">Get</span></button>
-        <button id="masterBuildBtn" class="btn" title="Build App (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i><span class="btn-lbl">Build</span></button>
+        <button id="masterBuildBtn" class="btn" title="GitHub Action (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i><span class="btn-lbl">Action</span></button>
                 <button id="moreBtn" class="btn" title="More Tools & Compilers" style="color:var(--teal);"><i class="fa-solid fa-cubes-stacked"></i><span class="btn-lbl">More</span></button>
                                     
                 <button id="buildApkBtn" class="btn" style="display:none;"></button>
@@ -853,7 +853,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="buildModal">
   <div class="window-header">
-    <div class="win-title"><i class="fa-solid fa-hammer" style="color:var(--blue);"></i> Build App</div>
+    <div class="win-title"><i class="fa-solid fa-hammer" style="color:var(--blue);"></i> GitHub Action</div>
     <button class="panel-close" id="bmCloseBtn">✕</button>
   </div>
 
@@ -878,10 +878,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:6px;">
                       <div id="bmExistingWorkflows" style="font-size:9px; color:rgba(255,255,255,0.5); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Loading workflows...</div>
                       <div style="display:flex; gap:5px; flex-shrink:0;">
-                        <button id="pullApkLogBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--red); background:transparent; border:1px solid rgba(248,81,73,0.3);" type="button" onclick="window.pullLastFailedLog()"><i class="fa-solid fa-file-waveform" style="margin-right:3px;"></i>Logs</button>
-                        <button id="downloadApkBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--teal); background:transparent; border:1px solid rgba(45,212,191,0.3);" type="button" onclick="window.checkAndDownloadLastBuild()"><i class="fa-solid fa-file-zipper" style="margin-right:3px;"></i>APK</button>
-                        <button id="bmManageWorkflowsBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" type="button"><i class="fa-solid fa-folder-tree" style="margin-right:3px;"></i>Files</button>
-                      </div>
+                                              <button id="pullApkLogBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--red); background:transparent; border:1px solid rgba(248,81,73,0.3);" type="button" onclick="window.pullLastFailedLog()"><i class="fa-solid fa-file-waveform" style="margin-right:3px;"></i>Logs</button>
+                                              <button id="downloadApkBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--teal); background:transparent; border:1px solid rgba(45,212,191,0.3);" type="button" onclick="window.checkAndDownloadLastBuild()"><i class="fa-solid fa-file-zipper" style="margin-right:3px;"></i>Artifact</button>
+                                              <button id="bmManageWorkflowsBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" type="button"><i class="fa-solid fa-folder-tree" style="margin-right:3px;"></i>Files</button>
+                                            </div>
                     </div>
                   </div>
 
@@ -904,9 +904,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     </div>
 
   <div class="gh-actions" style="margin-top:12px;">
-        <button id="bmCancelBtn" style="background:transparent; border:1px solid rgba(255,255,255,0.2) !important;"><i class="fa-solid fa-xmark"></i> Cancel</button>
-        <button id="bmCompileBtn" style="color:var(--green); background:transparent; border:1px solid rgba(57, 211, 83, 0.4) !important;"><i class="fa-solid fa-rocket"></i> Start Build</button>
-      </div>
+          <button id="bmCancelBtn" style="background:transparent; border:1px solid rgba(255,255,255,0.2) !important;"><i class="fa-solid fa-xmark"></i> Cancel</button>
+          <button id="bmCompileBtn" style="color:var(--green); background:transparent; border:1px solid rgba(57, 211, 83, 0.4) !important;"><i class="fa-solid fa-rocket"></i> Start Action</button>
+        </div>
 </div>
 
 <style>
@@ -4387,11 +4387,11 @@ $backdrop.addEventListener('click', function(e) {
 
       document.getElementById('bmWorkflowYaml').value = yaml;
       document.getElementById('bmWorkflowFilename').value = 'playwright-tests.yml';
-      saveBuildConfig();
-      document.getElementById('moreCloseBtn').click();
-      document.getElementById('masterBuildBtn').click();
-      toast('✅ Playwright Visual Tests YAML loaded into Build App!');
-    };
+          saveBuildConfig();
+          document.getElementById('moreCloseBtn').click();
+          document.getElementById('masterBuildBtn').click();
+          toast('✅ Playwright Visual Tests YAML loaded into GitHub Action!');
+        };
 
     window.loadLighthouseWorkflow = function() {
       const yaml = [
@@ -4434,11 +4434,11 @@ $backdrop.addEventListener('click', function(e) {
 
       document.getElementById('bmWorkflowYaml').value = yaml;
       document.getElementById('bmWorkflowFilename').value = 'lighthouse-audit.yml';
-      saveBuildConfig();
-      document.getElementById('moreCloseBtn').click();
-      document.getElementById('masterBuildBtn').click();
-      toast('✅ Lighthouse CI Web Audit YAML loaded into Build App!');
-    };
+          saveBuildConfig();
+          document.getElementById('moreCloseBtn').click();
+          document.getElementById('masterBuildBtn').click();
+          toast('✅ Lighthouse CI Web Audit YAML loaded into GitHub Action!');
+        };
 
     document.getElementById('packExtensionBtn').addEventListener('click', window.exportAsChromeExtension);
     document.getElementById('makePwaBtn').addEventListener('click', window.injectPWASupport);
@@ -6420,8 +6420,8 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                         var bmUseWrapperYamlBtnEl = document.getElementById('bmUseWrapperYamlBtn');
                                                       if (bmUseWrapperYamlBtnEl) bmUseWrapperYamlBtnEl.addEventListener('click', function() {
                                                         var wrapperYaml = [
-                                                          "name: Build APK (HTML Wrapper)",
-                                                          "on:",
+                                                                                                                  "name: Build Artifact (HTML Wrapper)",
+                                                                                                                  "on:",
                                                           "  workflow_dispatch:",
                                                           "    inputs:",
                                                           "      app_name:",
@@ -6456,8 +6456,8 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                                                             "          node-version: '20'",
                                                                                             "      - name: Install Cordova",
                                                                                             "        run: npm install -g cordova",
-                                                                                            "      - name: Build APK",
-                                                                                            "        shell: bash",
+                                                                                            "      - name: Build Artifact",
+                                                                                                                                                                                        "        shell: bash",
                                                                                             "        run: |",
                                                                                             "          set -e",
                                                                                             "          export CI=true",
@@ -6491,8 +6491,8 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                                                             "          PYEOF",
                                                                                             "          cordova platform add android@13.0.0 --no-telemetry",
                                                                                             "          cordova build android --no-telemetry",
-                                                                                            "      - name: Upload APK",
-                                                                                            "        uses: actions/upload-artifact@v4",
+                                                                                            "      - name: Upload Artifact",
+                                                                                                                                                                                        "        uses: actions/upload-artifact@v4",
                                                                                             "        with:",
                                                                                             "          name: Android-APK",
                                                                                             "          path: /tmp/app/platforms/android/app/build/outputs/apk/debug/app-debug.apk",
