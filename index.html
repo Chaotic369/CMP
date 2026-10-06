@@ -4524,20 +4524,20 @@ window.addEventListener('DOMContentLoaded', async function() {
                       new Promise(r => setTimeout(r, 15000)).then(() => { ghConfigLoaded = true; })
                     ]);
           if (ghBookmarkedRepos && ghBookmarkedRepos.length > 0) {
-            ghRepo = ghBookmarkedRepos[0];
-          }
-          renderRepoTabs();
+                      ghRepo = ghBookmarkedRepos[0];
+                    }
+                    renderRepoTabs();
 
-                if (ghRepo && ghToken) {
-                  showMenuLoader('Loading Repository...');
-                  await fetchFileTree(false, true);
-                  await syncCurrentFile();
-      } else if (ghRepos.length === 0 && ghToken) {
-        showMenuLoader('Fetching Repositories...');
-        await ghFetchAllRepos();
-      }
-    } catch (err) {
-    console.error("Init Error:", err);
+                    if (ghRepo && ghToken) {
+                      showMenuLoader('Loading Repository...');
+                      await fetchFileTree(false, true);
+                      // Auto-load file removed to open to wallpaper by default
+                    } else if (ghRepos.length === 0 && ghToken) {
+                      showMenuLoader('Fetching Repositories...');
+                      await ghFetchAllRepos();
+                    }
+              } catch (err) {
+              console.error("Init Error:", err);
     toast('Initialization error: ' + (err.message || 'unknown'), 'err', 5000);
   } finally {
     hideMenuLoader();
@@ -7305,6 +7305,7 @@ document.getElementById('menu-backdrop').classList.remove('open');
 
 
 sourceContent = '';
+fileName = 'ready';
 render('', false); 
 addLog('info', 'AI Compile PRO Sovereign IDE ready.');
 </script>
