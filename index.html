@@ -698,15 +698,18 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <input type="file" id="nrFileInput" accept=".html,.htm" style="display:none;">
 
     <label id="nrFilesLabel" for="nrFilesInput" style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(255,255,255,0.04); padding:20px 14px; border-radius:10px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1.5px dashed rgba(188,140,255,0.4); transition: all 0.2s;">
-      <i class="fa-solid fa-file-zipper" style="font-size:22px; color:var(--purple);"></i>
-      <span id="nrFilesNameDisplay" style="font-size:10px; font-weight:500;">Select ZIP archive or project files</span>
-      <span style="font-size:8px; color:rgba(255,255,255,0.5);">ZIP archives auto-extract and preserve folder structure</span>
-    </label>
-    <input type="file" id="nrFilesInput" multiple style="display:none;">
+          <i class="fa-solid fa-file-zipper" style="font-size:22px; color:var(--purple);"></i>
+          <span id="nrFilesNameDisplay" style="font-size:10px; font-weight:500;">Select ZIP archive or project files</span>
+          <span style="font-size:8px; color:rgba(255,255,255,0.5);">ZIP archives auto-extract and preserve folder structure</span>
+        </label>
+        <input type="file" id="nrFilesInput" multiple style="display:none;">
 
-    <textarea id="nrPasteInput" placeholder="<!-- Paste your HTML / code here -->" style="display:none; width:100%; height:130px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#ffffff; padding:12px; border-radius:8px; margin-bottom:10px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:10px;"></textarea>
+        <div id="nrPasteContainer" style="display:none; position:relative; width:100%; margin-bottom:10px;">
+          <textarea id="nrPasteInput" placeholder="<!-- Paste your HTML / code here -->" style="width:100%; height:130px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); color:#ffffff; padding:12px; border-radius:8px; resize:vertical; outline:none; font-family:'JetBrains Mono', monospace; font-size:10px; display:block; box-sizing:border-box; margin:0;"></textarea>
+          <button id="nrMiniPasteBtn" type="button" class="btn" style="position:absolute; top:8px; right:18px; width:auto; padding:2px 8px; font-size:9px; height:22px; border-radius:6px; color:#ffffff; background:rgba(22,22,22,0.8); border:1px solid rgba(255,255,255,0.2);"><i class="fa-solid fa-paste" style="margin-right:4px;"></i>Paste</button>
+        </div>
 
-    <div id="nrEmptyNotice" style="display:none; padding:18px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; text-align:center; margin-bottom:10px; font-size:10px; color:rgba(255,255,255,0.7); flex-direction:column; gap:4px; align-items:center;">
+        <div id="nrEmptyNotice" style="display:none; padding:18px 14px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; text-align:center; margin-bottom:10px; font-size:10px; color:rgba(255,255,255,0.7); flex-direction:column; gap:4px; align-items:center;">
       <i class="fa-solid fa-folder-open" style="font-size:22px; color:var(--amber); margin-bottom:4px;"></i>
       <div>Creates a clean, blank repository.</div>
       <div style="font-size:8px; color:rgba(255,255,255,0.4);">No starter files or template commits will be generated.</div>
@@ -2269,12 +2272,12 @@ function setNrSourceTab(source) {
   localStorage.setItem('nrSource_pref', source);
 
   var fileLabel = document.getElementById('nrFileLabel');
-  var pasteInput = document.getElementById('nrPasteInput');
+  var pasteContainer = document.getElementById('nrPasteContainer');
   var filesLabel = document.getElementById('nrFilesLabel');
   var emptyNotice = document.getElementById('nrEmptyNotice');
 
   if (fileLabel) fileLabel.style.display = (source === 'upload') ? 'flex' : 'none';
-  if (pasteInput) pasteInput.style.display = (source === 'paste') ? 'block' : 'none';
+  if (pasteContainer) pasteContainer.style.display = (source === 'paste') ? 'block' : 'none';
   if (filesLabel) filesLabel.style.display = (source === 'files') ? 'flex' : 'none';
   if (emptyNotice) emptyNotice.style.display = (source === 'empty') ? 'flex' : 'none';
 
@@ -2792,16 +2795,13 @@ window.createNewFile = async function() {
                         };
 
 async function handleRepoUpload(e) {
-  var files = Array.from(e.target.files || []);
-  if (!files.length) return;
-  if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
+      var files = Array.from(e.target.files || []);
+      if (!files.length) return;
+      if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
 
-  let baseDir = '';
-  if (ghFilePath && ghFilePath.includes('/')) {
-     baseDir = ghFilePath.substring(0, ghFilePath.lastIndexOf('/') + 1);
-  }
+      let baseDir = currentDirectory ? currentDirectory + '/' : '';
 
-  let confirmMsg = files.length === 1
+      let confirmMsg = files.length === 1
     ? `Upload "${files[0].name}" to "${baseDir || '/'}"?`
     : `Upload ${files.length} items to "${baseDir || '/'}"?`;
   if (!confirm(confirmMsg)) { e.target.value = ''; return; }
@@ -7032,27 +7032,50 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
       }
 
       var bulkPasteBtnEl = document.getElementById('bulkPasteBtn');
-      if (bulkPasteBtnEl) {
-        bulkPasteBtnEl.addEventListener('click', async () => {
-          try {
-            let text = '';
-            if (window.AndroidClipboard && typeof window.AndroidClipboard.read === 'function') {
-              text = window.AndroidClipboard.read();
-            } else if (navigator.clipboard && navigator.clipboard.readText) {
-              text = await navigator.clipboard.readText();
+            if (bulkPasteBtnEl) {
+              bulkPasteBtnEl.addEventListener('click', async () => {
+                try {
+                  let text = '';
+                  if (window.AndroidClipboard && typeof window.AndroidClipboard.read === 'function') {
+                    text = window.AndroidClipboard.read();
+                  } else if (navigator.clipboard && navigator.clipboard.readText) {
+                    text = await navigator.clipboard.readText();
+                  }
+                  if (text && text.trim()) {
+                    const input = document.getElementById('bulkPathsInput');
+                    input.value = (input.value ? input.value + '\n' : '') + text.trim();
+                    toast('✅ Paths pasted!');
+                  } else {
+                    toast('⚠️ Clipboard is empty', 'warn');
+                  }
+                } catch(err) {
+                  toast('❌ Clipboard read failed: ' + err.message, 'err');
+                }
+              });
             }
-            if (text && text.trim()) {
-              const input = document.getElementById('bulkPathsInput');
-              input.value = (input.value ? input.value + '\n' : '') + text.trim();
-              toast('✅ Paths pasted!');
-            } else {
-              toast('⚠️ Clipboard is empty', 'warn');
+
+            var nrMiniPasteBtnEl = document.getElementById('nrMiniPasteBtn');
+            if (nrMiniPasteBtnEl) {
+              nrMiniPasteBtnEl.addEventListener('click', async () => {
+                try {
+                  let text = '';
+                  if (window.AndroidClipboard && typeof window.AndroidClipboard.read === 'function') {
+                    text = window.AndroidClipboard.read();
+                  } else if (navigator.clipboard && navigator.clipboard.readText) {
+                    text = await navigator.clipboard.readText();
+                  }
+                  if (text && text.trim()) {
+                    const input = document.getElementById('nrPasteInput');
+                    input.value = (input.value ? input.value + '\n' : '') + text.trim();
+                    toast('✅ Code pasted!');
+                  } else {
+                    toast('⚠️ Clipboard is empty', 'warn');
+                  }
+                } catch(err) {
+                  toast('❌ Clipboard read failed: ' + err.message, 'err');
+                }
+              });
             }
-          } catch(err) {
-            toast('❌ Clipboard read failed: ' + err.message, 'err');
-          }
-        });
-      }
 
 document.getElementById('bulkConfirmBtn').addEventListener('click', async () => {
     const input = document.getElementById('bulkPathsInput').value;
