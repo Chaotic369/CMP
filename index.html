@@ -740,13 +740,13 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   </div>
 </div>
 
-  <div id="workflowsModal" style="width: 90vw; max-width: 420px;">
-      <div class="window-header">
-        <div class="win-title"><i class="fa-solid fa-folder-tree"></i> Workflow Files</div>
+  <div id="workflowsModal" style="width: 90vw; max-width: 440px; padding: 16px; background: #0f1013; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 12px; box-shadow: 0 16px 48px rgba(0,0,0,0.7); box-sizing: border-box;">
+      <div class="window-header" style="margin-bottom: 12px; padding-bottom: 8px;">
+        <div class="win-title"><i class="fa-solid fa-folder-tree" style="margin-right: 6px;"></i> Workflow Files</div>
         <button class="panel-close" id="wfModalCloseBtn">✕</button>
       </div>
-    <div id="workflowsModalList">Loading...</div>
-  </div>
+      <div id="workflowsModalList" style="display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; padding-right: 2px;">Loading...</div>
+    </div>
 
   <div id="fullTreeModal" style="width: 95vw; max-width: 650px; height: 85vh; display: flex; flex-direction: column;">
     <div class="window-header">
