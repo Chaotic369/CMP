@@ -768,12 +768,20 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </div>
 
   <div id="workflowsModal" style="width: 90vw; max-width: 440px; padding: 16px; background: #0f1013; border: none !important; border-radius: 14px; box-shadow: 0 16px 48px rgba(0,0,0,0.7); box-sizing: border-box;">
-      <div class="window-header" style="margin-bottom: 12px; padding-bottom: 8px;">
-        <div class="win-title"><i class="fa-solid fa-folder-tree" style="margin-right: 6px;"></i> Workflow Files</div>
-        <button class="panel-close" id="wfModalCloseBtn">✕</button>
+        <div class="window-header" style="margin-bottom: 12px; padding-bottom: 8px;">
+          <div class="win-title"><i class="fa-solid fa-folder-tree" style="margin-right: 6px;"></i> Workflow Files</div>
+          <button class="panel-close" id="wfModalCloseBtn">✕</button>
+        </div>
+        <div id="workflowsModalList" style="display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; padding-right: 2px;">Loading...</div>
       </div>
-      <div id="workflowsModalList" style="display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; padding-right: 2px;">Loading...</div>
-    </div>
+
+    <div id="artifactsModal" style="width: 90vw; max-width: 440px; padding: 16px; background: #0f1013; border: none !important; border-radius: 14px; box-shadow: 0 16px 48px rgba(0,0,0,0.7); box-sizing: border-box; display: none; flex-direction: column; z-index: 30000; position: fixed; max-height: 85vh;">
+        <div class="window-header" style="margin-bottom: 12px; padding-bottom: 8px;">
+          <div class="win-title"><i class="fa-solid fa-box-archive" style="margin-right: 6px; color: var(--teal);"></i> Available Artifacts</div>
+          <button class="panel-close" id="artModalCloseBtn">✕</button>
+        </div>
+        <div id="artifactsModalList" style="display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; padding-right: 2px;">Loading...</div>
+      </div>
 
   <div id="fullTreeModal" style="width: 95vw; max-width: 650px; height: 85vh; display: flex; flex-direction: column;">
     <div class="window-header">
@@ -884,8 +892,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                       <div id="bmExistingWorkflows" style="font-size:9px; color:rgba(255,255,255,0.5); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Loading workflows...</div>
                       <div style="display:flex; gap:5px; flex-shrink:0;">
                                               <button id="pullApkLogBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--red); background:transparent; border:1px solid rgba(248,81,73,0.3);" type="button" onclick="window.pullLastFailedLog()"><i class="fa-solid fa-file-waveform" style="margin-right:3px;"></i>Logs</button>
-                                              <button id="downloadApkBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--teal); background:transparent; border:1px solid rgba(45,212,191,0.3);" type="button" onclick="window.checkAndDownloadLastBuild()"><i class="fa-solid fa-file-zipper" style="margin-right:3px;"></i>Artifact</button>
-                                              <button id="bmManageWorkflowsBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" type="button"><i class="fa-solid fa-folder-tree" style="margin-right:3px;"></i>Files</button>
+                                                                                            <button id="downloadApkBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; color:var(--teal); background:transparent; border:1px solid rgba(45,212,191,0.3);" type="button" onclick="window.openArtifactsModal()"><i class="fa-solid fa-file-zipper" style="margin-right:3px;"></i>Artifacts</button>
+                                                                                            <button id="bmManageWorkflowsBtn" class="btn" style="width:auto; padding:3px 8px; font-size:9px; height:24px; border-radius:6px; background:transparent; border:1px solid rgba(255,255,255,0.2);" type="button"><i class="fa-solid fa-folder-tree" style="margin-right:3px;"></i>Files</button>
                                             </div>
                     </div>
                   </div>
@@ -1219,8 +1227,8 @@ function bringModalToFront(modal) {
             var allModals = Array.from(document.querySelectorAll(
                               '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
                               '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
-                              '#errLogModal, #buildProgressOverlay, #branchModal, #moreModal'
-                                  ));
+                                                            '#errLogModal, #buildProgressOverlay, #branchModal, #moreModal, #artifactsModal'
+                                                                ));
           allModals.sort(function(a, b) {
       return (parseInt(window.getComputedStyle(a).zIndex) || 30000) - 
              (parseInt(window.getComputedStyle(b).zIndex) || 30000);
@@ -1266,9 +1274,9 @@ function centerModal(el) {
   
   var openModals = Array.from(document.querySelectorAll(
             '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
-            '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
-            '#errLogModal, #buildProgressOverlay, #branchModal, #moreModal'
-              )).filter(function(m) {
+                        '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
+                        '#errLogModal, #buildProgressOverlay, #branchModal, #moreModal, #artifactsModal'
+                          )).filter(function(m) {
         return m !== el && window.getComputedStyle(m).display !== 'none' && m.offsetWidth > 0;
   }).map(function(m) {
     var r = m.getBoundingClientRect();
@@ -4057,11 +4065,11 @@ function toggleMenu() {
 }
 $toggleBtn.addEventListener('click', function(e) { if (isDragging) return; toggleMenu(); });
 function closeTopmostModal() {
-  var modalSelectors = [
-        '#astPanel', '#logPanel', '#ghConfigPanel', '#commitModal', '#newRepoModal',
-        '#wallpaperModal', '#buildModal', '#workflowsModal', '#fullTreeModal', '#bulkModal',
-        '#errLogModal', '#buildProgressOverlay', '#branchModal', '#moreModal'
-          ];
+      var modalSelectors = [
+            '#astPanel', '#logPanel', '#ghConfigPanel', '#commitModal', '#newRepoModal',
+            '#wallpaperModal', '#buildModal', '#workflowsModal', '#fullTreeModal', '#bulkModal',
+            '#errLogModal', '#buildProgressOverlay', '#branchModal', '#moreModal', '#artifactsModal'
+              ];
   var openModals = Array.from(document.querySelectorAll(modalSelectors.join(', '))).filter(function(m) {
     return m.classList.contains('open') || (m.style.display !== 'none' && window.getComputedStyle(m).display !== 'none');
   });
