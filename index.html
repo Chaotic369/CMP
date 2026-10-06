@@ -1032,13 +1032,32 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         <button class="panel-close" id="moreCloseBtn">✕</button>
       </div>
       <div style="display:flex; flex-direction:column; gap:10px;">
-        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-          <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
-            <div style="font-size:11px; font-weight:600; color:#ffffff;"><i class="fa-brands fa-chrome" style="color:var(--amber); margin-right:6px;"></i>Chrome Extension (MV3)</div>
-            <div style="font-size:9px; color:rgba(255,255,255,0.5);">Auto-generates manifest.json & zips workspace for side-loading.</div>
-          </div>
-          <button id="packExtensionBtn" class="btn" style="width:auto; padding:4px 10px; height:26px; font-size:10px; color:var(--amber); border:1px solid rgba(227,179,65,0.3); background:rgba(227,179,65,0.15);" title="Download MV3 Extension ZIP"><i class="fa-solid fa-file-zipper" style="margin-right:4px;"></i>Pack ZIP</button>
-        </div>
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                    <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
+                      <div style="font-size:11px; font-weight:600; color:#ffffff;"><i class="fa-brands fa-chrome" style="color:var(--amber); margin-right:6px;"></i>Chrome Extension (MV3)</div>
+                      <div style="font-size:9px; color:rgba(255,255,255,0.5);">Compiles workspace to loadable MV3 Extension (Window/Panel/Popup).</div>
+                    </div>
+                    <button id="extConfigToggleBtn" class="btn" style="width:auto; padding:4px 10px; height:26px; font-size:10px; color:var(--amber); border:1px solid rgba(227,179,65,0.3); background:rgba(227,179,65,0.15);"><i class="fa-solid fa-sliders" style="margin-right:4px;"></i>Configure</button>
+                  </div>
+                  <div id="extExpandDrawer" style="display:none; flex-direction:column; gap:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08);">
+                    <div class="gh-row" style="margin:0;">
+                      <label style="width:55px; font-size:10px;">Display</label>
+                      <select id="extTargetMode" class="bm-select" style="padding:4px 8px; font-size:10px; height:26px;">
+                        <option value="window">Standalone Desktop Window</option>
+                        <option value="sidepanel">Chrome Side Panel</option>
+                        <option value="popup">Toolbar Action Popup</option>
+                      </select>
+                    </div>
+                    <div class="gh-row" style="margin:0;">
+                      <label style="width:55px; font-size:10px;">Name</label>
+                      <input type="text" id="extAppNameInput" placeholder="My Extension" style="font-size:10px; padding:5px 8px;">
+                    </div>
+                    <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:4px;">
+                      <button id="packExtensionBtn" class="btn" style="width:auto; padding:5px 14px; height:28px; font-size:10px; font-weight:600; color:var(--green); border:1px solid rgba(57,211,83,0.4); background:rgba(57,211,83,0.15);"><i class="fa-solid fa-file-zipper" style="margin-right:5px;"></i>Compile & Download ZIP</button>
+                    </div>
+                  </div>
+                </div>
 
         <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:8px;">
                   <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
@@ -4254,74 +4273,112 @@ $backdrop.addEventListener('click', function(e) {
       document.getElementById('moreCloseBtn').click();
     });
 
-    window.exportAsChromeExtension = async function() {
-      if (!window.JSZip) { toast('❌ JSZip not loaded', 'err'); return; }
-      toast('📦 Bundling Manifest V3 Extension...', 'info');
-      showProgress(20);
-
-      const zip = new JSZip();
-      const appTitle = (document.getElementById('bmAppName') ? document.getElementById('bmAppName').value.trim() : '') || (ghRepo ? ghRepo.split('/')[1] : 'My Extension');
-      const cleanId = appTitle.toLowerCase().replace(/[^a-z0-9]/g, '_');
-
-      let hasManifest = currentTreeFiles.some(f => f.path.toLowerCase() === 'manifest.json') || !!(window.workspaceFiles && window.workspaceFiles['manifest.json']);
-
-      if (!hasManifest) {
-        const mv3Manifest = {
-          manifest_version: 3,
-          name: appTitle,
-          version: "1.0.0",
-          description: appTitle + " packaged via AI Compile PRO",
-          action: {
-            default_popup: (ghFilePath && ghFilePath.endsWith('.html')) ? ghFilePath : "index.html",
-            default_title: appTitle
-          },
-          permissions: ["storage"],
-          host_permissions: ["<all_urls>"]
-        };
-        zip.file("manifest.json", JSON.stringify(mv3Manifest, null, 2));
-      }
-
-      if (sourceContent) {
-        zip.file(ghFilePath || "index.html", sourceContent);
-      }
-
-      if (window.workspaceFiles) {
-        for (let p in window.workspaceFiles) {
-          if (p !== ghFilePath) zip.file(p, window.workspaceFiles[p].content);
-        }
-      }
-
-      if (ghToken && ghRepo && currentTreeFiles.length > 0) {
-        const filesToPack = currentTreeFiles.filter(f => f.type === 'blob' && f.path !== ghFilePath && (!window.workspaceFiles || !window.workspaceFiles[f.path]));
-        for (let i = 0; i < filesToPack.length; i++) {
-          const file = filesToPack[i];
-          showProgress(20 + Math.round(((i + 1) / filesToPack.length) * 65));
-          try {
-            const getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${file.path}?ref=${ghBranch}`, {
-              headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
-            });
-            if (getRes.ok) {
-              const data = await getRes.json();
-              zip.file(file.path, data.content.replace(/\s/g, ''), { base64: true });
+    var extToggleBtn = document.getElementById('extConfigToggleBtn');
+        if (extToggleBtn) {
+          extToggleBtn.addEventListener('click', function() {
+            var drawer = document.getElementById('extExpandDrawer');
+            if (!drawer) return;
+            var isOpen = drawer.style.display === 'flex';
+            drawer.style.display = isOpen ? 'none' : 'flex';
+            this.innerHTML = isOpen ? '<i class="fa-solid fa-sliders" style="margin-right:4px;"></i>Configure' : '<i class="fa-solid fa-chevron-up" style="margin-right:4px;"></i>Collapse';
+            var nameInput = document.getElementById('extAppNameInput');
+            if (!nameInput.value) {
+              nameInput.value = (document.getElementById('bmAppName') ? document.getElementById('bmAppName').value.trim() : '') || (ghRepo ? ghRepo.split('/')[1] : 'My App');
             }
-          } catch (e) {
-            console.warn('Skipping file in extension pack:', file.path);
-          }
+          });
         }
-      }
 
-      const blob = await zip.generateAsync({ type: "blob" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${cleanId}_v3_extension.zip`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      hideProgress();
-      toast('✅ Extension ZIP ready! Unzip & load in chrome://extensions', 'ok', 5000);
-    };
+        window.exportAsChromeExtension = async function() {
+          if (!window.JSZip) { toast('❌ JSZip not loaded', 'err'); return; }
+          toast('📦 Compiling Manifest V3 Extension...', 'info');
+          showProgress(15);
+
+          const zip = new JSZip();
+          const rawTitle = document.getElementById('extAppNameInput')?.value.trim();
+          const appTitle = rawTitle || (document.getElementById('bmAppName') ? document.getElementById('bmAppName').value.trim() : '') || (ghRepo ? ghRepo.split('/')[1] : 'My Extension');
+          const cleanId = appTitle.toLowerCase().replace(/[^a-z0-9]/g, '_');
+          const targetMode = document.getElementById('extTargetMode')?.value || 'window';
+          const rootHtml = (ghFilePath && ghFilePath.endsWith('.html')) ? ghFilePath : 'index.html';
+
+          // Build Manifest V3 structure
+          const mv3Manifest = {
+            manifest_version: 3,
+            name: appTitle,
+            version: "1.0.0",
+            description: appTitle + " generated via AI Compile PRO",
+            permissions: ["storage", "unlimitedStorage"],
+            host_permissions: ["<all_urls>"]
+          };
+
+          if (targetMode === 'popup') {
+            mv3Manifest.action = {
+              default_title: appTitle,
+              default_popup: rootHtml
+            };
+          } else if (targetMode === 'sidepanel') {
+            mv3Manifest.permissions.push("sidePanel");
+            mv3Manifest.side_panel = { default_path: rootHtml };
+            mv3Manifest.action = { default_title: "Open " + appTitle };
+            mv3Manifest.background = { service_worker: "background.js" };
+            zip.file("background.js", `chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);`);
+          } else {
+            // Standalone Window Mode
+            mv3Manifest.action = { default_title: "Launch " + appTitle };
+            mv3Manifest.background = { service_worker: "background.js" };
+            zip.file("background.js", `chrome.action.onClicked.addListener(() => {
+      chrome.windows.create({
+        url: chrome.runtime.getURL("${rootHtml}"),
+        type: "popup",
+        width: 1280,
+        height: 800
+      });
+    });`);
+          }
+
+          zip.file("manifest.json", JSON.stringify(mv3Manifest, null, 2));
+
+          // Pack active editor and workspace files
+          if (sourceContent) {
+            zip.file(ghFilePath || "index.html", sourceContent);
+          }
+          if (window.workspaceFiles) {
+            for (let p in window.workspaceFiles) {
+              if (p !== ghFilePath) zip.file(p, window.workspaceFiles[p].content);
+            }
+          }
+
+          // Pack remote GitHub repo files
+          if (ghToken && ghRepo && currentTreeFiles.length > 0) {
+            const filesToPack = currentTreeFiles.filter(f => f.type === 'blob' && f.path !== ghFilePath && (!window.workspaceFiles || !window.workspaceFiles[f.path]));
+            for (let i = 0; i < filesToPack.length; i++) {
+              const file = filesToPack[i];
+              showProgress(15 + Math.round(((i + 1) / filesToPack.length) * 75));
+              try {
+                const getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${file.path}?ref=${ghBranch}`, {
+                  headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
+                });
+                if (getRes.ok) {
+                  const data = await getRes.json();
+                  zip.file(file.path, data.content.replace(/\s/g, ''), { base64: true });
+                }
+              } catch (e) {
+                console.warn('Skipping file in extension pack:', file.path);
+              }
+            }
+          }
+
+          const blob = await zip.generateAsync({ type: "blob" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${cleanId}_v3_extension.zip`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          hideProgress();
+          toast('✅ Extension compiled! Extract & load unpacked in chrome://extensions', 'ok', 5000);
+        };
 
     let pwaCroppedIconBlob = null;
         let pwaLastSelectedIconFile = null;
