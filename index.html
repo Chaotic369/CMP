@@ -280,7 +280,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #toast.err #toastCopyBtn { display: flex; }
 
 #astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal, #branchModal, #moreModal {
-  position: fixed; z-index: 30000; background: #0f1013; border: none !important; outline: none !important; border-radius: 12px;
+  position: fixed; z-index: 30000; background: #0f1013; border: none !important; outline: none !important; border-radius: 14px;
   padding: 14px 18px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0,0,0,0.7);
   max-height: calc(100vh - 40px); overflow-y: auto;
   scrollbar-width: none; -ms-overflow-style: none;
@@ -305,7 +305,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 #errOverlay {
   position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
-  background: #111215; border: none !important; outline: none !important; border-radius: 12px;
+  background: #111215; border: none !important; outline: none !important; border-radius: 14px;
   padding: 16px; color: var(--red); font-size: 6px; font-weight: 500; z-index: 25000;
   width: 90vw; max-width: 480px; display: none; white-space: pre-wrap; max-height: 40vh; overflow-y: auto;
   box-shadow: 0 16px 48px rgba(0,0,0,0.7);
@@ -381,10 +381,10 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 .window-resize-handle {
   position: absolute;
-  bottom: -4px;
-  left: -4px;
-  width: 34px;
-  height: 34px;
+  bottom: 0;
+  left: 0;
+  width: 26px;
+  height: 26px;
   cursor: sw-resize;
   z-index: 10001;
   pointer-events: auto;
@@ -392,13 +392,13 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 }
 .window-resize-handle .resize-corner {
   position: absolute;
-  bottom: 10px;
-  left: 10px;
+  bottom: 5px;
+  left: 5px;
   width: 14px;
   height: 14px;
-  border-bottom: 2.5px solid rgba(255, 255, 255, 0.35) !important;
-  border-left: 2.5px solid rgba(255, 255, 255, 0.35) !important;
-  border-bottom-left-radius: 6px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.35) !important;
+  border-left: 2px solid rgba(255, 255, 255, 0.35) !important;
+  border-bottom-left-radius: 10px;
   box-shadow: none;
 }
 input::placeholder, textarea::placeholder {
@@ -507,7 +507,7 @@ input:not([type="file"]):not(#aiInstruction):focus, textarea:focus, select:focus
 .fnr-btn:hover { background: rgba(255,255,255,0.15); }
 
 /* Dual-Engine Build Modal */
-#buildModal { width: 92vw; max-width: 440px; display: none; flex-direction: column; gap: 10px; z-index: 30000; position: fixed; background: #0f1013; border: none !important; outline: none !important; border-radius: 12px; padding: 14px 16px; color: #ffffff; box-shadow: 0 16px 48px rgba(0,0,0,0.7); max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
+#buildModal { width: 92vw; max-width: 440px; display: none; flex-direction: column; gap: 10px; z-index: 30000; position: fixed; background: #0f1013; border: none !important; outline: none !important; border-radius: 14px; padding: 14px 16px; color: #ffffff; box-shadow: 0 16px 48px rgba(0,0,0,0.7); max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
 #buildModal.open { display: flex; }
 #buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 16px; font-weight: 600; border: none !important; padding-bottom: 12px; }
 .bm-step label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #ffffff; }
@@ -539,7 +539,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 }
 #iconCropModal.open { display: flex; }
 #iconCropBox {
-  background: #23252a; border: none !important; border-radius: 12px;
+  background: #23252a; border: none !important; border-radius: 14px;
   width: 90vw; max-width: 380px; display: flex; flex-direction: column; overflow: hidden;
 }
 #iconCropImgContainer {
@@ -767,7 +767,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
       </div>
 </div>
 
-  <div id="workflowsModal" style="width: 90vw; max-width: 440px; padding: 16px; background: #0f1013; border: 1px solid rgba(255,255,255,0.08) !important; border-radius: 12px; box-shadow: 0 16px 48px rgba(0,0,0,0.7); box-sizing: border-box;">
+  <div id="workflowsModal" style="width: 90vw; max-width: 440px; padding: 16px; background: #0f1013; border: none !important; border-radius: 14px; box-shadow: 0 16px 48px rgba(0,0,0,0.7); box-sizing: border-box;">
       <div class="window-header" style="margin-bottom: 12px; padding-bottom: 8px;">
         <div class="win-title"><i class="fa-solid fa-folder-tree" style="margin-right: 6px;"></i> Workflow Files</div>
         <button class="panel-close" id="wfModalCloseBtn">✕</button>
@@ -998,7 +998,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </div>
 
 <style>
-#errLogModal { position: fixed; width: 92vw; max-width: 560px; height: 70vh; display: none; flex-direction: column; gap: 12px; z-index: 32000; background: #0f1013; border: none !important; outline: none !important; border-radius: 0px; padding: 20px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0,0,0,0.7); }
+#errLogModal { position: fixed; width: 92vw; max-width: 560px; height: 70vh; display: none; flex-direction: column; gap: 12px; z-index: 32000; background: #0f1013; border: none !important; outline: none !important; border-radius: 14px; padding: 20px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0,0,0,0.7); }
 #errLogModal.open { display: flex; }
 #errLogModal h4 { color: #ffffff; margin: 0 0 4px 0; font-size: 14px; font-weight: 600; border: none !important; padding-bottom: 12px; display: flex; align-items: center; flex-shrink: 0; }
 #errLogModal h4 .panel-close { margin-left: auto; }
