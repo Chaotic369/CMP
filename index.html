@@ -1114,15 +1114,18 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
             <!-- Group 3: Diagnostics & Utilities -->
                         <div style="display:flex; flex-direction:column; gap:6px;">
-                          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                <button id="moreAstBtn" class="btn" style="width:100%; height:34px; border-radius:9px; background:rgba(227,179,65,0.1); border:1px solid rgba(227,179,65,0.25); color:var(--amber); font-size:10px; font-weight:600; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;" title="AST Guard Logs">
-                  <i class="fa-solid fa-brain"></i> AST Guard
-                </button>
-                <button id="moreLogBtn" class="btn" style="width:100%; height:34px; border-radius:9px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#ffffff; font-size:10px; font-weight:600; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;" title="System Logs">
-                  <i class="fa-solid fa-file-lines"></i> System Logs
-                </button>
-              </div>
-            </div>
+                          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+                            <button id="moreAstBtn" class="btn" style="width:100%; height:34px; border-radius:9px; background:rgba(227,179,65,0.1); border:1px solid rgba(227,179,65,0.25); color:var(--amber); font-size:10px; font-weight:600; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;" title="AST Guard Logs">
+                              <i class="fa-solid fa-brain"></i> AST
+                            </button>
+                            <button id="moreLogBtn" class="btn" style="width:100%; height:34px; border-radius:9px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); color:#ffffff; font-size:10px; font-weight:600; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;" title="System Logs">
+                              <i class="fa-solid fa-file-lines"></i> Logs
+                            </button>
+                            <button id="moreWallBtn" class="btn" style="width:100%; height:34px; border-radius:9px; background:rgba(188,140,255,0.1); border:1px solid rgba(188,140,255,0.25); color:var(--purple); font-size:10px; font-weight:600; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:6px;" title="Workspace Wallpaper">
+                              <i class="fa-solid fa-image"></i> Wall
+                            </button>
+                          </div>
+                        </div>
           </div>
 
           <div class="gh-actions" style="margin-top:12px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08);">
@@ -4280,8 +4283,16 @@ $backdrop.addEventListener('click', function(e) {
     });
 
     document.getElementById('moreCancelBtn').addEventListener('click', function() {
-      document.getElementById('moreCloseBtn').click();
-    });
+          document.getElementById('moreCloseBtn').click();
+        });
+
+        var moreWallBtnEl = document.getElementById('moreWallBtn');
+        if (moreWallBtnEl) {
+          moreWallBtnEl.addEventListener('click', function() {
+            document.getElementById('moreCloseBtn').click();
+            document.getElementById('wallpaperBtn').click();
+          });
+        }
 
     let pwaCroppedIconBlob = null;
         let pwaLastSelectedIconFile = null;
