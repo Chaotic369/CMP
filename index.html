@@ -4311,63 +4311,78 @@ $backdrop.addEventListener('click', function(e) {
         }
 
         window.injectPWASupport = async function() {
-                  const rawTitle = document.getElementById('pwaAppNameInput')?.value.trim();
-                  const appTitle = rawTitle || (document.getElementById('bmAppName') ? document.getElementById('bmAppName').value.trim() : '') || (ghRepo ? ghRepo.split('/')[1] : 'My App');
-                  const pwaRegistration = `<link rel="manifest" href="./manifest.json">\n<meta name="theme-color" content="#000000">\n<meta name="mobile-web-app-capable" content="yes">\n<script>\nif ('serviceWorker' in navigator) {\n  window.addEventListener('load', () => {\n    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(console.error);\n  });\n}\n</` + `script>`;
+                          const rawTitle = document.getElementById('pwaAppNameInput')?.value.trim();
+                          const appTitle = rawTitle || (document.getElementById('bmAppName') ? document.getElementById('bmAppName').value.trim() : '') || (ghRepo ? ghRepo.split('/')[1] : 'My App');
+                          const pwaRegistration = `<link rel="manifest" href="./manifest.json">\n<meta name="theme-color" content="#000000">\n<meta name="mobile-web-app-capable" content="yes">\n<script>\nif ('serviceWorker' in navigator) {\n  window.addEventListener('load', () => {\n    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(console.error);\n  });\n}\n</` + `script>`;
 
-                  const swContent = `const CACHE_NAME = 'app-cache-v2';\n\nself.addEventListener('install', e => {\n  e.waitUntil(\n    caches.open(CACHE_NAME).then(c => c.addAll(['./', './index.html', './manifest.json'])).catch(() => {})\n  );\n  self.skipWaiting();\n});\n\nself.addEventListener('activate', e => {\n  e.waitUntil(\n    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))\n  );\n  self.clients.claim();\n});\n\nself.addEventListener('fetch', e => {\n  if (e.request.method !== 'GET') return;\n  e.respondWith(\n    caches.match(e.request).then(cached => {\n      return cached || fetch(e.request).then(res => {\n        if (res && res.status === 200 && res.type === 'basic') {\n          const clone = res.clone();\n          caches.open(CACHE_NAME).then(c => c.put(e.request, clone));\n        }\n        return res;\n      }).catch(() => cached);\n    })\n  );\n});`;
+                          const swContent = `const CACHE_NAME = 'app-cache-v3-${Date.now()}';\nconst ASSETS = ['./', './index.html', './manifest.json', './build-icon.png'];\n\nself.addEventListener('install', e => {\n  self.skipWaiting();\n  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).catch(() => {}));\n});\n\nself.addEventListener('activate', e => {\n  self.clients.claim();\n  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))));\n});\n\nself.addEventListener('fetch', e => {\n  if (e.request.method !== 'GET') return;\n  e.respondWith(\n    fetch(e.request).then(res => {\n      const clone = res.clone();\n      caches.open(CACHE_NAME).then(c => c.put(e.request, clone));\n      return res;\n    }).catch(() => caches.match(e.request).then(cached => cached || caches.match('./index.html')))\n  );\n});`;
 
-                  const webManifest = JSON.stringify({
-                    id: "./index.html",
-                    name: appTitle,
-                    short_name: appTitle.length > 12 ? appTitle.slice(0, 12) : appTitle,
-                    start_url: "./index.html",
-                    scope: "./",
-                    display: "standalone",
-                    orientation: "portrait-primary",
-                    background_color: "#0a0a0c",
-                    theme_color: "#000000",
-                    icons: [
-                      { src: "build-icon.png", sizes: "512x512", type: "image/png", purpose: "any" },
-                      { src: "build-icon.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
-                    ]
-                  }, null, 2);
+                          const webManifest = JSON.stringify({
+                            name: appTitle,
+                            short_name: appTitle.length > 12 ? appTitle.slice(0, 12) : appTitle,
+                            start_url: ".",
+                            scope: ".",
+                            display: "standalone",
+                            orientation: "portrait-primary",
+                            background_color: "#0a0a0c",
+                            theme_color: "#000000",
+                            icons: [
+                              { src: "build-icon.png", sizes: "512x512", type: "image/png", purpose: "any" },
+                              { src: "build-icon.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
+                            ]
+                          }, null, 2);
 
-                  if (ghToken && ghRepo) {
-                    showProgress(25);
-                    toast('⚡ Uploading PWA assets to repo...', 'info');
-                    try {
-                      if (pwaCroppedIconBlob) {
-                        const iconBase64 = await readFileAsBase64(pwaCroppedIconBlob);
-                        await uploadSingleFileToRepo(ghRepo, 'build-icon.png', iconBase64, ghBranch, 'Upload PWA Icon');
-                      }
-                      showProgress(50);
-                      await uploadSingleFileToRepo(ghRepo, 'sw.js', unicodeToBase64(swContent), ghBranch, 'Add PWA Service Worker');
-                      showProgress(75);
-                      await uploadSingleFileToRepo(ghRepo, 'manifest.json', unicodeToBase64(webManifest), ghBranch, 'Add Web App Manifest');
-                    } catch (err) {
-                      toast('⚠ Failed to commit PWA files: ' + err.message, 'warn');
-                    }
-                    hideProgress();
-                  }
+                          if (ghToken && ghRepo) {
+                            showProgress(25);
+                            toast('⚡ Uploading PWA assets to repo...', 'info');
+                            try {
+                              let iconBlobToUpload = pwaCroppedIconBlob;
+                      
+                              // Auto-generate a fallback icon if user skipped the image cropper
+                              if (!iconBlobToUpload) {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = 512; canvas.height = 512;
+                                const ctx = canvas.getContext('2d');
+                                ctx.fillStyle = '#111215';
+                                ctx.fillRect(0, 0, 512, 512);
+                                ctx.fillStyle = '#39d353';
+                                ctx.font = 'bold 280px sans-serif';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(appTitle.charAt(0).toUpperCase() || 'A', 256, 256 + 20);
+                                iconBlobToUpload = await new Promise(r => canvas.toBlob(r, 'image/png'));
+                              }
+                      
+                              const iconBase64 = await readFileAsBase64(iconBlobToUpload);
+                              await uploadSingleFileToRepo(ghRepo, 'build-icon.png', iconBase64, ghBranch, 'Upload PWA Icon');
+                      
+                              showProgress(50);
+                              await uploadSingleFileToRepo(ghRepo, 'sw.js', unicodeToBase64(swContent), ghBranch, 'Add PWA Service Worker');
+                              showProgress(75);
+                              await uploadSingleFileToRepo(ghRepo, 'manifest.json', unicodeToBase64(webManifest), ghBranch, 'Add Web App Manifest');
+                            } catch (err) {
+                              toast('⚠ Failed to commit PWA files: ' + err.message, 'warn');
+                            }
+                            hideProgress();
+                          }
 
-                  if (sourceContent && !sourceContent.includes('navigator.serviceWorker.register')) {
-                    pushState();
-                    if (/<head[^>]*>/i.test(sourceContent)) {
-                      sourceContent = sourceContent.replace(/(<head[^>]*>)/i, `$1\n${pwaRegistration}`);
-                    } else {
-                      sourceContent = pwaRegistration + '\n' + sourceContent;
-                    }
-                    render(sourceContent, false);
-                    toast('✅ PWA generated with custom icon & name!', 'ok', 4000);
-                  } else {
-                    toast('✅ PWA files created and already registered in HTML.', 'ok');
-                  }
+                          if (sourceContent && !sourceContent.includes('navigator.serviceWorker.register')) {
+                            pushState();
+                            if (/<head[^>]*>/i.test(sourceContent)) {
+                              sourceContent = sourceContent.replace(/(<head[^>]*>)/i, `$1\n${pwaRegistration}`);
+                            } else {
+                              sourceContent = pwaRegistration + '\n' + sourceContent;
+                            }
+                            render(sourceContent, false);
+                            toast('✅ PWA generated with valid icon & manifest!', 'ok', 4000);
+                          } else {
+                            toast('✅ PWA files created and already registered in HTML.', 'ok');
+                          }
 
-                  var m = document.getElementById('moreModal');
-                  if (m) { m.classList.remove('open'); m.style.display = 'none'; }
-                  $backdrop.classList.remove('open', 'dimmed');
-                };
+                          var m = document.getElementById('moreModal');
+                          if (m) { m.classList.remove('open'); m.style.display = 'none'; }
+                          $backdrop.classList.remove('open', 'dimmed');
+                        };
 
         var makePwaConfirmBtn = document.getElementById('makePwaConfirmBtn');
         if (makePwaConfirmBtn) makePwaConfirmBtn.addEventListener('click', window.injectPWASupport);
