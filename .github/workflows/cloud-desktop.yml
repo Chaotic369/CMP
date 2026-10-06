@@ -1,0 +1,81 @@
+name: On-Demand Cloud Desktop
+on:
+  workflow_dispatch:
+    inputs:
+      resolution:
+        description: 'Screen Resolution (WxHxDepth)'
+        required: false
+        default: '1280x720x24'
+      session_hours:
+        description: 'Session Duration (Hours, max 6)'
+        required: false
+        default: '2'
+
+jobs:
+  desktop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Install Desktop Stack & Cloudflared
+        run: |
+          export DEBIAN_FRONTEND=noninteractive
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends \
+            xvfb x11vnc openbox novnc websockify xterm chromium-browser curl jq
+          
+          # Install Cloudflare tunnel agent
+          curl -sL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared
+          sudo chmod +x /usr/local/bin/cloudflared
+
+      - name: Initialize Virtual Display & Window Manager
+        run: |
+          Xvfb :99 -screen 0 ${{ github.event.inputs.resolution }} &
+          sleep 2
+          export DISPLAY=:99
+          openbox-session &
+          xterm -geometry 90x28+20+20 &
+
+      - name: Launch VNC Server & WebSocket Bridge
+        run: |
+          export DISPLAY=:99
+          mkdir -p ~/.vnc
+          x11vnc -storepasswd "aicompiler" ~/.vnc/passwd
+          
+          # Run x11vnc bound to virtual screen
+          x11vnc -display :99 -forever -shared -rfbauth ~/.vnc/passwd -rfbport 5900 &
+          sleep 2
+          
+          # Expose VNC via noVNC WebSocket on port 6080
+          websockify --web /usr/share/novnc 6080 localhost:5900 &
+          sleep 2
+
+      - name: Establish HTTPS Tunnel
+        run: |
+          cloudflared tunnel --url http://127.0.0.1:6080 --logfile /tmp/tunnel.log &
+          
+          TUNNEL_URL=""
+          for i in {1..30}; do
+            TUNNEL_URL=$(grep -oE 'https://[a-zA-Z0-9-]+\.trycloudflare\.com' /tmp/tunnel.log | head -n 1 || true)
+            if [ -n "$TUNNEL_URL" ]; then break; fi
+            sleep 2
+          done
+          
+          if [ -z "$TUNNEL_URL" ]; then
+            echo "::error::Failed to establish Cloudflare tunnel"
+            exit 1
+          fi
+          
+          FULL_URL="${TUNNEL_URL}/vnc.html?autoconnect=true&resize=scale&password=aicompiler"
+          echo "STREAM_URL=${FULL_URL}" >> $GITHUB_ENV
+          echo "================================================================"
+          echo "CLOUD_DESKTOP_READY: ${FULL_URL}"
+          echo "================================================================"
+          echo "::notice title=Cloud Desktop Ready::${FULL_URL}"
+
+      - name: Keep Runner Alive
+        run: |
+          echo "Desktop running. Target URL: ${{ env.STREAM_URL }}"
+          SECONDS=$(( ${{ github.event.inputs.session_hours }} * 3600 ))
+          sleep $SECONDS
