@@ -396,7 +396,9 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   left: 10px;
   width: 14px;
   height: 14px;
-  border: none !important;
+  border-bottom: 2.5px solid rgba(255, 255, 255, 0.35) !important;
+  border-left: 2.5px solid rgba(255, 255, 255, 0.35) !important;
+  border-bottom-left-radius: 6px;
   box-shadow: none;
 }
 input::placeholder, textarea::placeholder {
@@ -609,8 +611,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </button>
 <div id="app-menu">
       <div id="menu-resize-handle" style="position: absolute; bottom: 0; left: 0; width: 20px; height: 20px; cursor: sw-resize; z-index: 10001; pointer-events: auto; touch-action: none;" title="Drag to Resize">
-              <div style="position: absolute; bottom: 4px; left: 4px; width: 12px; height: 12px; border-bottom: 2.5px solid rgba(160, 160, 160, 0.8); border-left: 2.5px solid rgba(160, 160, 160, 0.8); border-bottom-left-radius: 8px; box-shadow: none;"></div>
-            </div>
+                    <div style="position: absolute; bottom: 4px; left: 4px; width: 12px; height: 12px; border-bottom: 2px solid rgba(255, 255, 255, 0.35) !important; border-left: 2px solid rgba(255, 255, 255, 0.35) !important; border-bottom-left-radius: 5px; box-shadow: none;"></div>
+                  </div>
             <div id="app-menu-loader" style="display: none; position: absolute; inset: 0; z-index: 10000; background: #000000; border-radius: 12px; align-items: center; justify-content: center; flex-direction: column; gap: 10px;">
                       <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 6px; color: var(--blue);"></i>
                     <span id="app-menu-loader-text" style="font-size: 6px; font-weight: 600; color: #ffffff; letter-spacing: 0.5px;">Connecting...</span>
