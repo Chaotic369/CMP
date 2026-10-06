@@ -1040,13 +1040,36 @@ select.bm-select option { background: var(--elevated); color: #fff; }
           <button id="packExtensionBtn" class="btn" style="width:auto; padding:4px 10px; height:26px; font-size:10px; color:var(--amber); border:1px solid rgba(227,179,65,0.3); background:rgba(227,179,65,0.15);" title="Download MV3 Extension ZIP"><i class="fa-solid fa-file-zipper" style="margin-right:4px;"></i>Pack ZIP</button>
         </div>
 
-        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-          <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
-            <div style="font-size:11px; font-weight:600; color:#ffffff;"><i class="fa-solid fa-mobile-screen-button" style="color:var(--purple); margin-right:6px;"></i>Instant PWA</div>
-            <div style="font-size:9px; color:rgba(255,255,255,0.5);">Injects offline Service Worker & Web Manifest into repo.</div>
-          </div>
-          <button id="makePwaBtn" class="btn" style="width:auto; padding:4px 10px; height:26px; font-size:10px; color:var(--purple); border:1px solid rgba(188,140,255,0.3); background:rgba(188,140,255,0.15);" title="Inject PWA to Repo"><i class="fa-solid fa-bolt" style="margin-right:4px;"></i>Make PWA</button>
-        </div>
+        <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:8px;">
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                    <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
+                      <div style="font-size:11px; font-weight:600; color:#ffffff;"><i class="fa-solid fa-mobile-screen-button" style="color:var(--purple); margin-right:6px;"></i>Instant PWA</div>
+                      <div style="font-size:9px; color:rgba(255,255,255,0.5);">Injects offline Service Worker & Web Manifest into repo.</div>
+                    </div>
+                    <button id="makePwaToggleBtn" class="btn" style="width:auto; padding:4px 10px; height:26px; font-size:10px; color:var(--purple); border:1px solid rgba(188,140,255,0.3); background:rgba(188,140,255,0.15);" title="Configure PWA"><i class="fa-solid fa-sliders" style="margin-right:4px;"></i>Configure</button>
+                  </div>
+
+                  <div id="pwaExpandDrawer" style="display:none; flex-direction:column; gap:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08);">
+                    <div class="gh-row" style="margin:0;">
+                      <label style="width:50px; font-size:10px;">Name</label>
+                      <input type="text" id="pwaAppNameInput" placeholder="My Progressive App" style="font-size:10px; padding:6px 10px;">
+                    </div>
+
+                    <div class="gh-row" style="margin:0; align-items:center;">
+                      <label style="width:50px; font-size:10px;">Icon</label>
+                      <div style="flex:1; min-width:0; display:flex; align-items:center; gap:8px;">
+                        <input type="file" id="pwaIconInput" accept="image/*" style="display:none;">
+                        <button id="pwaIconChooseBtn" type="button" class="btn" style="width:auto; padding:4px 10px; font-size:10px; height:26px; background:transparent; border:1px solid rgba(255,255,255,0.2);" onclick="document.getElementById('pwaIconInput').click()"><i class="fa-solid fa-image" style="margin-right:4px;"></i>Choose</button>
+                        <img id="pwaIconPreview" style="display:none; width:24px; height:24px; border-radius:6px; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0; cursor:pointer;" title="Tap to recrop">
+                        <span id="pwaIconLabel" style="font-size:9px; color:rgba(255,255,255,0.6); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1;">Default Icon</span>
+                      </div>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:4px;">
+                      <button id="makePwaConfirmBtn" class="btn" style="width:auto; padding:5px 14px; height:28px; font-size:10px; font-weight:600; color:var(--green); border:1px solid rgba(57,211,83,0.4); background:rgba(57,211,83,0.15);"><i class="fa-solid fa-bolt" style="margin-right:5px;"></i>Generate & Inject PWA</button>
+                    </div>
+                  </div>
+                </div>
 
         <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
           <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
@@ -4300,48 +4323,123 @@ $backdrop.addEventListener('click', function(e) {
       toast('✅ Extension ZIP ready! Unzip & load in chrome://extensions', 'ok', 5000);
     };
 
-    window.injectPWASupport = async function() {
-      const appTitle = (document.getElementById('bmAppName') ? document.getElementById('bmAppName').value.trim() : '') || (ghRepo ? ghRepo.split('/')[1] : 'My App');
-      const pwaRegistration = `<link rel="manifest" href="manifest.webmanifest">\n<script>\nif ('serviceWorker' in navigator) {\n  window.addEventListener('load', () => {\n    navigator.serviceWorker.register('./sw.js').catch(console.error);\n  });\n}\n</` + `script>`;
+    let pwaCroppedIconBlob = null;
+        let pwaLastSelectedIconFile = null;
 
-      const swContent = `const CACHE_NAME = 'app-cache-v1';\nconst ASSETS = ['./', './index.html'];\n\nself.addEventListener('install', e => {\n  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));\n});\n\nself.addEventListener('activate', e => {\n  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))));\n  self.clients.claim();\n});\n\nself.addEventListener('fetch', e => {\n  e.respondWith(\n    caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {\n      if (res.status === 200 && e.request.method === 'GET') {\n        const clone = res.clone();\n        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));\n      }\n      return res;\n    }).catch(() => cached))\n  );\n});`;
+        var pwaToggleBtn = document.getElementById('makePwaToggleBtn');
+        if (pwaToggleBtn) {
+          pwaToggleBtn.addEventListener('click', function() {
+            var drawer = document.getElementById('pwaExpandDrawer');
+            if (!drawer) return;
+            var isOpen = drawer.style.display === 'flex';
+            drawer.style.display = isOpen ? 'none' : 'flex';
+            this.innerHTML = isOpen ? '<i class="fa-solid fa-sliders" style="margin-right:4px;"></i>Configure' : '<i class="fa-solid fa-chevron-up" style="margin-right:4px;"></i>Collapse';
 
-      const webManifest = JSON.stringify({
-        name: appTitle,
-        short_name: appTitle,
-        start_url: "./index.html",
-        display: "standalone",
-        background_color: "#0a0a0c",
-        theme_color: "#000000",
-        icons: [{ src: "build-icon.png", sizes: "512x512", type: "image/png" }]
-      }, null, 2);
-
-      if (ghToken && ghRepo) {
-        showProgress(25);
-        toast('⚡ Uploading sw.js and manifest.webmanifest to repo...', 'info');
-        try {
-          await uploadSingleFileToRepo(ghRepo, 'sw.js', unicodeToBase64(swContent), ghBranch, 'Add PWA Service Worker');
-          showProgress(60);
-          await uploadSingleFileToRepo(ghRepo, 'manifest.webmanifest', unicodeToBase64(webManifest), ghBranch, 'Add Web App Manifest');
-        } catch (err) {
-          toast('⚠ Failed to commit PWA files: ' + err.message, 'warn');
+            var nameInput = document.getElementById('pwaAppNameInput');
+            if (!nameInput.value) {
+              nameInput.value = (document.getElementById('bmAppName') ? document.getElementById('bmAppName').value.trim() : '') || (ghRepo ? ghRepo.split('/')[1] : 'My App');
+            }
+          });
         }
-        hideProgress();
-      }
 
-      if (sourceContent && !sourceContent.includes('navigator.serviceWorker.register')) {
-        pushState();
-        if (/<head[^>]*>/i.test(sourceContent)) {
-          sourceContent = sourceContent.replace(/(<head[^>]*>)/i, `$1\n${pwaRegistration}`);
-        } else {
-          sourceContent = pwaRegistration + '\n' + sourceContent;
+        var pwaIconInput = document.getElementById('pwaIconInput');
+        if (pwaIconInput) {
+          pwaIconInput.addEventListener('change', function(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+            pwaLastSelectedIconFile = file;
+
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+              var cropModal = document.getElementById('iconCropModal');
+              var cropImg = document.getElementById('iconCropSourceImg');
+              cropImg.src = ev.target.result;
+              cropModal.classList.add('open');
+              cropModal.style.display = 'flex';
+              topModalZ = Math.max(topModalZ + 10, 9999999);
+              cropModal.style.zIndex = topModalZ;
+
+              if (iconCropperInstance) iconCropperInstance.destroy();
+              iconCropperInstance = new Cropper(cropImg, {
+                aspectRatio: 1,
+                viewMode: 1,
+                autoCropArea: 0.95,
+                dragMode: 'move',
+                cropBoxMovable: true,
+                cropBoxResizable: true
+              });
+
+              window._cropperSourceTarget = 'pwa';
+            };
+            reader.readAsDataURL(file);
+          });
         }
-        render(sourceContent, false);
-        toast('✅ PWA files generated & registered into HTML!', 'ok', 4000);
-      } else {
-        toast('✅ PWA files created and already registered in HTML.', 'ok');
-      }
-    };
+
+        var pwaPreviewImg = document.getElementById('pwaIconPreview');
+        if (pwaPreviewImg) {
+          pwaPreviewImg.addEventListener('click', function() {
+            if (pwaLastSelectedIconFile) {
+              var dt = new DataTransfer();
+              dt.items.add(pwaLastSelectedIconFile);
+              document.getElementById('pwaIconInput').files = dt.files;
+              document.getElementById('pwaIconInput').dispatchEvent(new Event('change'));
+            }
+          });
+        }
+
+        window.injectPWASupport = async function() {
+          const rawTitle = document.getElementById('pwaAppNameInput')?.value.trim();
+          const appTitle = rawTitle || (document.getElementById('bmAppName') ? document.getElementById('bmAppName').value.trim() : '') || (ghRepo ? ghRepo.split('/')[1] : 'My App');
+          const pwaRegistration = `<link rel="manifest" href="manifest.webmanifest">\n<script>\nif ('serviceWorker' in navigator) {\n  window.addEventListener('load', () => {\n    navigator.serviceWorker.register('./sw.js').catch(console.error);\n  });\n}\n</` + `script>`;
+
+          const swContent = `const CACHE_NAME = 'app-cache-v1';\nconst ASSETS = ['./', './index.html'];\n\nself.addEventListener('install', e => {\n  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));\n});\n\nself.addEventListener('activate', e => {\n  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))));\n  self.clients.claim();\n});\n\nself.addEventListener('fetch', e => {\n  e.respondWith(\n    caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {\n      if (res.status === 200 && e.request.method === 'GET') {\n        const clone = res.clone();\n        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));\n      }\n      return res;\n    }).catch(() => cached))\n  );\n});`;
+
+          const webManifest = JSON.stringify({
+            name: appTitle,
+            short_name: appTitle,
+            start_url: "./index.html",
+            display: "standalone",
+            background_color: "#0a0a0c",
+            theme_color: "#000000",
+            icons: [{ src: "build-icon.png", sizes: "512x512", type: "image/png" }]
+          }, null, 2);
+
+          if (ghToken && ghRepo) {
+            showProgress(25);
+            toast('⚡ Uploading PWA assets to repo...', 'info');
+            try {
+              if (pwaCroppedIconBlob) {
+                const iconBase64 = await readFileAsBase64(pwaCroppedIconBlob);
+                await uploadSingleFileToRepo(ghRepo, 'build-icon.png', iconBase64, ghBranch, 'Upload PWA Icon');
+              }
+              showProgress(50);
+              await uploadSingleFileToRepo(ghRepo, 'sw.js', unicodeToBase64(swContent), ghBranch, 'Add PWA Service Worker');
+              showProgress(75);
+              await uploadSingleFileToRepo(ghRepo, 'manifest.webmanifest', unicodeToBase64(webManifest), ghBranch, 'Add Web App Manifest');
+            } catch (err) {
+              toast('⚠ Failed to commit PWA files: ' + err.message, 'warn');
+            }
+            hideProgress();
+          }
+
+          if (sourceContent && !sourceContent.includes('navigator.serviceWorker.register')) {
+            pushState();
+            if (/<head[^>]*>/i.test(sourceContent)) {
+              sourceContent = sourceContent.replace(/(<head[^>]*>)/i, `$1\n${pwaRegistration}`);
+            } else {
+              sourceContent = pwaRegistration + '\n' + sourceContent;
+            }
+            render(sourceContent, false);
+            toast('✅ PWA generated with custom icon & name!', 'ok', 4000);
+          } else {
+            toast('✅ PWA files created and already registered in HTML.', 'ok');
+          }
+
+          document.getElementById('moreCloseBtn').click();
+        };
+
+        var makePwaConfirmBtn = document.getElementById('makePwaConfirmBtn');
+        if (makePwaConfirmBtn) makePwaConfirmBtn.addEventListener('click', window.injectPWASupport);
 
     window.loadPlaywrightWorkflow = function() {
       const yaml = [
@@ -4447,8 +4545,7 @@ $backdrop.addEventListener('click', function(e) {
         };
 
     document.getElementById('packExtensionBtn').addEventListener('click', window.exportAsChromeExtension);
-    document.getElementById('makePwaBtn').addEventListener('click', window.injectPWASupport);
-    document.getElementById('loadPlaywrightBtn').addEventListener('click', window.loadPlaywrightWorkflow);
+        document.getElementById('loadPlaywrightBtn').addEventListener('click', window.loadPlaywrightWorkflow);
     document.getElementById('loadLighthouseBtn').addEventListener('click', window.loadLighthouseWorkflow);
 
   // VIEW MODE TOGGLE
@@ -6622,17 +6719,31 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                     imageSmoothingQuality: 'high'
                                   });
                                   canvas.toBlob(function(blob) {
-                                    croppedIconBlob = blob;
-                                    const preview = document.getElementById('bmAppIconPreview');
-                                    const label = document.getElementById('bmAppIconLabel');
-                                    if (preview) {
-                                      preview.src = canvas.toDataURL('image/png');
-                                      preview.style.display = 'block';
-                                    }
-                                    if (label) label.textContent = 'Cropped (512x512)';
-                                    closeIconCropModal();
-                                    toast('✅ Icon cropped & ready for build');
-                                  }, 'image/png');
+                                                                      if (window._cropperSourceTarget === 'pwa') {
+                                                                        pwaCroppedIconBlob = blob;
+                                                                        const pwaPreview = document.getElementById('pwaIconPreview');
+                                                                        const pwaLabel = document.getElementById('pwaIconLabel');
+                                                                        if (pwaPreview) {
+                                                                          pwaPreview.src = canvas.toDataURL('image/png');
+                                                                          pwaPreview.style.display = 'block';
+                                                                        }
+                                                                        if (pwaLabel) pwaLabel.textContent = 'Cropped (512x512)';
+                                                                        window._cropperSourceTarget = null;
+                                                                        closeIconCropModal();
+                                                                        toast('✅ PWA Icon cropped & ready');
+                                                                      } else {
+                                                                        croppedIconBlob = blob;
+                                                                        const preview = document.getElementById('bmAppIconPreview');
+                                                                        const label = document.getElementById('bmAppIconLabel');
+                                                                        if (preview) {
+                                                                          preview.src = canvas.toDataURL('image/png');
+                                                                          preview.style.display = 'block';
+                                                                        }
+                                                                        if (label) label.textContent = 'Cropped (512x512)';
+                                                                        closeIconCropModal();
+                                                                        toast('✅ Icon cropped & ready for build');
+                                                                      }
+                                                                    }, 'image/png');
                                 });
                               }
 
