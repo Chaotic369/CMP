@@ -270,7 +270,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #toastCopyBtn { display: none; background: rgba(255,255,255,0.08); border: none; color: inherit; border-radius: 8px; width: 18px; height: 18px; flex-shrink: 0; align-items: center; justify-content: center; cursor: pointer; font-size: 6px; }
 #toast.err #toastCopyBtn { display: flex; }
 
-#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal {
+#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal, #branchModal {
   position: fixed; z-index: 30000; background: #0f1013; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; border-radius: 12px;
   padding: 14px 18px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0,0,0,0.7);
   max-height: calc(100vh - 40px); overflow-y: auto;
@@ -279,7 +279,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #astPanel::-webkit-scrollbar, #logPanel::-webkit-scrollbar, #ghConfigPanel::-webkit-scrollbar,
 #commitModal::-webkit-scrollbar, #newRepoModal::-webkit-scrollbar, #wallpaperModal::-webkit-scrollbar,
 #buildModal::-webkit-scrollbar, #workflowsModal::-webkit-scrollbar, #fullTreeModal::-webkit-scrollbar,
-#bulkModal::-webkit-scrollbar, #errLogModal::-webkit-scrollbar {
+#bulkModal::-webkit-scrollbar, #errLogModal::-webkit-scrollbar, #branchModal::-webkit-scrollbar {
   display: none; width: 0; height: 0;
 }
 #astPanel, #logPanel { width: calc(100vw - 40px); max-width: 420px; max-height: 48vh; overflow-y: auto; display: none; line-height: 1.6; }
@@ -287,7 +287,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal { width: 90vw; max-width: 420px; display: none; flex-direction: column; gap: 12px; }
 #ghConfigPanel.open, #commitModal.open, #newRepoModal.open, #wallpaperModal.open,
-#buildModal.open, #workflowsModal.open, #fullTreeModal.open, #bulkModal.open, #errLogModal.open { display: flex !important; flex-direction: column !important; }
+#buildModal.open, #workflowsModal.open, #fullTreeModal.open, #bulkModal.open, #errLogModal.open, #branchModal.open { display: flex !important; flex-direction: column !important; }
 #astPanel.open, #logPanel.open { display: block !important; }
 
 #astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
@@ -602,8 +602,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                             <button id="repoAddBtn" class="btn" title="Create New Repo" style="display:flex;"><i class="fa-solid fa-folder-plus"></i><span class="btn-lbl">New</span></button>
                             <button id="fileUploadBtn" class="btn" title="Upload File to Repo" style="display:flex;" onclick="document.getElementById('repoUploadInput').click()"><i class="fa-solid fa-file-arrow-up"></i><span class="btn-lbl">Upload</span></button>
                             <button id="bulkFileAddBtn" class="btn" title="Bulk Create Files & Folders" style="display:flex; color:var(--amber);" onclick="window.openBulkModal()"><i class="fa-solid fa-file-circle-plus"></i><span class="btn-lbl">Bulk</span></button>
-                            <button id="fullTreeBtn" class="btn" title="Show Full Tree Popup" style="display:flex; color:var(--teal); position:relative; z-index:10005; cursor:pointer; pointer-events:auto;" onclick="window.openFullTreeModal()"><i class="fa-solid fa-sitemap"></i><span class="btn-lbl">Tree</span></button>
-                                                                                                                                                                                  <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
+                                                        <button id="fullTreeBtn" class="btn" title="Show Full Tree Popup" style="display:flex; color:var(--teal); position:relative; z-index:10005; cursor:pointer; pointer-events:auto;" onclick="window.openFullTreeModal()"><i class="fa-solid fa-sitemap"></i><span class="btn-lbl">Tree</span></button>
+                                                        <button id="ghBranchBtn" class="btn" title="Branch Management" style="display:flex; color:var(--amber); position:relative; z-index:10005; cursor:pointer; pointer-events:auto;" onclick="window.openBranchModal()"><i class="fa-solid fa-code-branch"></i><span class="btn-lbl">Branch</span></button>
+                                                                                                                                                                                                              <input type="file" id="repoUploadInput" style="display:none;" multiple accept="*/*">
                                 <input type="file" id="repoZipUploadInput" style="display:none;" accept=".zip">
                               </div>
     <div id="sidebarContent">
@@ -624,9 +625,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         <button id="fullScreenBtn" class="btn" title="Full Screen"><i class="fa-solid fa-expand"></i><span class="btn-lbl">Full</span></button>
   
         <button id="ghSettingsBtn" class="btn" title="GitHub Settings"><i class="fa-solid fa-gear"></i><span class="btn-lbl">Config</span></button>
-                <button id="ghSyncBtn" class="btn" title="Sync & Fetch Repos" style="color:var(--teal);"><i class="fa-solid fa-arrows-rotate"></i><span class="btn-lbl">Sync</span></button>
-                <button id="ghBranchBtn" class="btn" title="Branch Management" style="color:var(--amber);" onclick="window.openBranchModal()"><i class="fa-solid fa-code-branch"></i><span class="btn-lbl">Branch</span></button>
-                <button id="ghPushBtn" class="btn" title="Push to GitHub" disabled style="color:var(--blue);"><i class="fa-solid fa-arrow-up-from-bracket"></i><span class="btn-lbl">Push</span></button>
+                        <button id="ghSyncBtn" class="btn" title="Sync & Fetch Repos" style="color:var(--teal);"><i class="fa-solid fa-arrows-rotate"></i><span class="btn-lbl">Sync</span></button>
+                        <button id="ghPushBtn" class="btn" title="Push to GitHub" disabled style="color:var(--blue);"><i class="fa-solid fa-arrow-up-from-bracket"></i><span class="btn-lbl">Push</span></button>
         <button id="exportBtn" class="btn" title="Export File" style="color:var(--purple);"><i class="fa-solid fa-floppy-disk"></i><span class="btn-lbl">Export</span></button>
   
         <button id="astBtn" class="btn" title="AST Guard Logs" style="color:var(--amber);"><i class="fa-solid fa-brain"></i><span class="btn-lbl">AST</span></button>
@@ -1089,11 +1089,11 @@ function bringModalToFront(modal) {
   $backdrop.classList.add('open', 'dimmed');
   topModalZ += 2;
   if (topModalZ >= MAX_WINDOW_Z) {
-      var allModals = Array.from(document.querySelectorAll(
-            '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
-            '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
-            '#errLogModal, #buildProgressOverlay'
-                ));
+            var allModals = Array.from(document.querySelectorAll(
+                  '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
+                  '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
+                  '#errLogModal, #buildProgressOverlay, #branchModal'
+                      ));
           allModals.sort(function(a, b) {
       return (parseInt(window.getComputedStyle(a).zIndex) || 30000) - 
              (parseInt(window.getComputedStyle(b).zIndex) || 30000);
@@ -1138,10 +1138,10 @@ function centerModal(el) {
   }
   
   var openModals = Array.from(document.querySelectorAll(
-        '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
-        '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
-        '#errLogModal, #buildProgressOverlay'
-          )).filter(function(m) {
+          '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
+          '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
+          '#errLogModal, #buildProgressOverlay, #branchModal'
+            )).filter(function(m) {
         return m !== el && window.getComputedStyle(m).display !== 'none' && m.offsetWidth > 0;
   }).map(function(m) {
     var r = m.getBoundingClientRect();
@@ -2224,12 +2224,14 @@ function updateRepoSidebar() {
   if (bContainer) bContainer.classList.add('mini');
   
   if (addRepoBtn) addRepoBtn.style.display = 'flex';
-  if (uploadBtn) uploadBtn.style.display = 'flex';
-  if (bulkAddBtn) bulkAddBtn.style.display = 'flex';
-  const fullTreeBtn = document.getElementById('fullTreeBtn');
-  if (fullTreeBtn) fullTreeBtn.style.display = 'flex';
+        if (uploadBtn) uploadBtn.style.display = 'flex';
+        if (bulkAddBtn) bulkAddBtn.style.display = 'flex';
+        const fullTreeBtn = document.getElementById('fullTreeBtn');
+        if (fullTreeBtn) fullTreeBtn.style.display = 'flex';
+        const ghBranchBtn = document.getElementById('ghBranchBtn');
+        if (ghBranchBtn) ghBranchBtn.style.display = 'flex';
 
-      if (repoCollapsed) {
+        if (repoCollapsed) {
             btn.innerHTML = '<i class="fa-solid fa-chevron-left"></i><span class="btn-lbl">Hide</span>';
             container.classList.add('mini');
             if (backToReposBtn) backToReposBtn.style.display = 'none';
@@ -3906,7 +3908,7 @@ function closeTopmostModal() {
   var modalSelectors = [
       '#astPanel', '#logPanel', '#ghConfigPanel', '#commitModal', '#newRepoModal',
       '#wallpaperModal', '#buildModal', '#workflowsModal', '#fullTreeModal', '#bulkModal',
-      '#errLogModal', '#buildProgressOverlay'
+      '#errLogModal', '#buildProgressOverlay', '#branchModal'
         ];
   var openModals = Array.from(document.querySelectorAll(modalSelectors.join(', '))).filter(function(m) {
     return m.classList.contains('open') || (m.style.display !== 'none' && window.getComputedStyle(m).display !== 'none');
