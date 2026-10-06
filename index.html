@@ -1097,9 +1097,9 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                 <i class="fa-brands fa-chrome" style="color:var(--amber); font-size:12px;"></i>
                               </div>
                               <div style="display:flex; flex-direction:column; gap:1px; min-width:0;">
-                                <div style="font-size:10.5px; font-weight:600; color:#ffffff;">Instant Chrome Extension</div>
-                                <div style="font-size:8px; color:rgba(255,255,255,0.45); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Auto-scaffold MV3, commit, compile & zip</div>
-                              </div>
+                                                <div style="font-size:10.5px; font-weight:600; color:#ffffff;">Instant Chrome Extension</div>
+                                                <div style="font-size:8px; color:rgba(255,255,255,0.45); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Online MV3 tab launcher (Titanium/Chrome ready)</div>
+                                              </div>
                             </div>
                             <button id="extConfigToggleBtn" class="btn" style="width:auto; padding:3px 9px; height:24px; font-size:9px; font-weight:600; color:var(--amber); border:1px solid rgba(227,179,65,0.3); background:rgba(227,179,65,0.12); border-radius:6px;" title="Toggle Icon / Settings"><i class="fa-solid fa-sliders" style="margin-right:3px;"></i>Icon</button>
                           </div>
@@ -4828,58 +4828,73 @@ $backdrop.addEventListener('click', function(e) {
               updateBuildOverlay('Generating Extension Manifest & Logic...', 15);
 
               try {
-                // 1. Prepare manifest.json
-                const manifestObj = {
-                  manifest_version: 3,
-                  name: appName,
-                  version: "1.0.0",
-                  description: appName + " - Sovereign IDE Extension",
-                  permissions: ["sidePanel", "windows", "tabs", "storage"],
-                  background: { service_worker: "background.js" },
-                  action: { default_title: appName },
-                  side_panel: { default_path: "index.html" },
-                  icons: { "512": "build-icon.png" }
-                };
-                const manifestStr = JSON.stringify(manifestObj, null, 2);
+                const repoShort = ghRepo.split('/')[1] || ghRepo;
+                        const targetOnlineUrl = `https://${ghUser}.github.io/${repoShort}/`;
 
-                // 2. Prepare background.js (Side Panel + Window Controller)
-                const bgJs = [
-                  'chrome.action.onClicked.addListener(async (tab) => {',
-                  '  if (chrome.sidePanel?.open) {',
-                  '    await chrome.sidePanel.open({ windowId: tab.windowId });',
-                  '  } else {',
-                  '    chrome.windows.create({ url: chrome.runtime.getURL("index.html"), type: "popup", width: 780, height: 960 });',
-                  '  }',
-                  '});',
-                  'chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {',
-                  '  if (message.action === "toggle_fullscreen" && sender.tab?.windowId) {',
-                  '    chrome.windows.get(sender.tab.windowId, (win) => {',
-                  '      chrome.windows.update(win.id, { state: win.state === "fullscreen" ? "normal" : "fullscreen" });',
-                  '    });',
-                  '  }',
-                  '});'
-                ].join('\n');
+                        // Ensure GitHub Pages is active for this repository
+                        try {
+                          await fetch(`https://api.github.com/repos/${ghRepo}/pages`, {
+                            method: 'POST',
+                            headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ source: { branch: ghBranch || 'main', path: '/' } })
+                          });
+                        } catch (pagesErr) {}
 
-                // 3. Prepare Workflow YAML
-                const workflowYaml = [
-                  'name: Package Chrome Extension',
-                  'on:',
-                  '  workflow_dispatch:',
-                  'jobs:',
-                  '  package:',
-                  '    runs-on: ubuntu-latest',
-                  '    steps:',
-                  '      - uses: actions/checkout@v4',
-                  '      - name: Bundle Extension ZIP',
-                  '        run: |',
-                  '          mkdir -p dist',
-                  '          zip -r "dist/chrome-extension.zip" . -x "*.git*" -x "*.github*" -x "dist/*" -x "node_modules/*"',
-                  '      - uses: actions/upload-artifact@v4',
-                  '        with:',
-                  '          name: Chrome-Extension-v1.0.0',
-                  '          path: dist/*.zip',
-                  '          if-no-files-found: error'
-                ].join('\n');
+                        // 1. Prepare manifest.json (Online Web Launcher for Titanium & Chrome)
+                        const manifestObj = {
+                          manifest_version: 3,
+                          name: appName,
+                          version: "1.0.0",
+                          description: appName + " - Sovereign IDE Web Launcher",
+                          permissions: ["tabs"],
+                          action: { default_title: "Open " + appName },
+                          background: { service_worker: "background.js" },
+                          icons: { "512": "build-icon.png" }
+                        };
+                        const manifestStr = JSON.stringify(manifestObj, null, 2);
+
+                        // 2. Prepare background.js (Opens live online tab, focusing existing if open)
+                        const bgJs = [
+                          'const TARGET_URL = "' + targetOnlineUrl + '";',
+                          '',
+                          'chrome.action.onClicked.addListener(async (tab) => {',
+                          '  try {',
+                          '    const tabs = await chrome.tabs.query({ url: TARGET_URL + "*" });',
+                          '    if (tabs && tabs.length > 0) {',
+                          '      await chrome.tabs.update(tabs[0].id, { active: true });',
+                          '    } else {',
+                          '      await chrome.tabs.create({ url: TARGET_URL });',
+                          '    }',
+                          '  } catch (e) {',
+                          '    chrome.tabs.create({ url: TARGET_URL });',
+                          '  }',
+                          '});'
+                        ].join('\n');
+
+                        // 3. Prepare Workflow YAML (Stages clean folder directly; eliminates nested zip)
+                                        const workflowYaml = [
+                                          'name: Package Chrome Extension',
+                                          'on:',
+                                          '  workflow_dispatch:',
+                                          'jobs:',
+                                          '  package:',
+                                          '    runs-on: ubuntu-latest',
+                                          '    steps:',
+                                          '      - uses: actions/checkout@v4',
+                                          '      - name: Stage Extension Files',
+                                          '        run: |',
+                                          '          mkdir -p extension-dist',
+                                          '          cp manifest.json background.js extension-dist/',
+                                          '          if [ -f "build-icon.png" ]; then',
+                                          '            cp build-icon.png extension-dist/',
+                                          '          fi',
+                                          '      - name: Upload Extension Artifact',
+                                          '        uses: actions/upload-artifact@v4',
+                                          '        with:',
+                                          '          name: Chrome-Extension-v1.0.0',
+                                          '          path: extension-dist/',
+                                          '          if-no-files-found: error'
+                                        ].join('\n');
 
                 // 4. Resolve Icon (Custom Cropped or Auto-generated Canvas)
                 let iconBlob = extCroppedIconBlob || croppedIconBlob;
