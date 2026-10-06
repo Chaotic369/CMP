@@ -3216,38 +3216,36 @@ window.fetchLatestFailedLog = async function(workflowFile) {
   if (elContentReset) elContentReset.textContent = 'Fetching latest run...';
   showProgress(20);
   try {
-    toast('🔄 Checking latest run...', 'info');
-    const runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${workflowFile}/runs?per_page=1`, {
-          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
-          cache: 'no-store'
-        });
-        if (!runsRes.ok) {
-          let detail = '';
-          try { const errJson = await runsRes.json(); detail = errJson.message || ''; } catch(e) {}
-          throw new Error(`Failed to fetch runs (${runsRes.status} ${runsRes.statusText})` + (detail ? `: ${detail}` : '') + (runsRes.status === 404 ? ` — check that ${workflowFile} exists in ${ghRepo}` : ''));
-        }
-        const runsData = await runsRes.json();
-        if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) {
-          toast('❌ No runs found for this workflow.', 'warn');
-          hideProgress();
-          return;
-        }
-        const run = runsData.workflow_runs[0];
-        if (run.status !== 'completed') {
-          toast(`⏳ Latest run is still ${run.status}.`, 'info');
-          hideProgress();
-          return;
-        }
-        if (run.conclusion === 'cancelled') {
-              toast(`ℹ Latest run was cancelled before completing — no job logs to show.`, 'info');
-              hideProgress();
-              return;
-            }
-            if (run.conclusion !== 'failure') {
-              toast(`ℹ Latest run concluded: ${run.conclusion} (not a failure).`, 'info');
-              hideProgress();
-              return;
-            }
+    toast('🔄 Checking latest runs...', 'info');
+    let runsData = null;
+
+    if (workflowFile) {
+      const cleanWf = workflowFile.replace(/^\.github\/workflows\//, '');
+      const runsRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${cleanWf}/runs?per_page=5`, {
+        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+        cache: 'no-store'
+      });
+      if (runsRes.ok) {
+        runsData = await runsRes.json();
+      }
+    }
+
+    if (!runsData || !runsData.workflow_runs || runsData.workflow_runs.length === 0) {
+      const fallbackRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/runs?per_page=15`, {
+        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+        cache: 'no-store'
+      });
+      if (!fallbackRes.ok) throw new Error(`Failed to fetch workflow runs (${fallbackRes.status})`);
+      runsData = await fallbackRes.json();
+    }
+
+    if (!runsData.workflow_runs || runsData.workflow_runs.length === 0) {
+      toast('❌ No runs found for this repository.', 'warn');
+      hideProgress();
+      return;
+    }
+
+    const run = runsData.workflow_runs.find(r => r.conclusion === 'failure') || runsData.workflow_runs[0];
 
             toast('🔄 Fetching failure logs...', 'info');
                         let jobsData = null;
