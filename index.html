@@ -3357,15 +3357,45 @@ window.checkAndDownloadLatest = async function(workflowFile) {
               return;
             }
             const artRes = await fetch(run.artifacts_url, { headers: { Authorization: `token ${ghToken}` }});
-        const artData = await artRes.json();
-        if (artData.artifacts && artData.artifacts.length > 0) {
-          window.location.href = `https://github.com/${ghRepo}/actions/runs/${run.id}/artifacts/${artData.artifacts[0].id}`;
-          toast('✅ Auto-downloading latest build...', 'ok');
-        } else {
-          window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
-          toast('✅ Opened latest run (no artifacts found).', 'ok');
-        }
-      } catch(e) {
+                    const artData = await artRes.json();
+                    if (artData.artifacts && artData.artifacts.length > 0) {
+                      const artifact = artData.artifacts[0];
+                      toast('⏳ Downloading artifact securely...', 'info');
+                      const dlRes = await fetch(artifact.archive_download_url, { headers: { Authorization: `token ${ghToken}` } });
+                      if (!dlRes.ok) throw new Error('Failed to fetch artifact blob');
+                      const blob = await dlRes.blob();
+          
+                      try {
+                        if (window.showSaveFilePicker) {
+                            const handle = await window.showSaveFilePicker({
+                                suggestedName: artifact.name + '.zip',
+                                types: [{ description: 'ZIP Archive', accept: { 'application/zip': ['.zip'] } }]
+                            });
+                            const writable = await handle.createWritable();
+                            await writable.write(blob);
+                            await writable.close();
+                            toast('✅ Artifact saved securely!', 'ok');
+                            hideProgress();
+                            return;
+                        }
+                      } catch(e) {
+                        if (e.name === 'AbortError') { hideProgress(); return; }
+                      }
+          
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.style.display = 'none';
+                      a.href = url;
+                      a.download = artifact.name + '.zip';
+                      document.body.appendChild(a);
+                      a.click();
+                      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 5000);
+                      toast('✅ Artifact downloaded!', 'ok');
+                    } else {
+                      window.open(`https://github.com/${ghRepo}/actions/runs/${run.id}`, '_blank');
+                      toast('✅ Opened latest run (no artifacts found).', 'ok');
+                    }
+                  } catch(e) {
               toast('❌ Error: ' + e.message, 'err');
             }
         hideProgress();
@@ -7189,16 +7219,32 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
               appendBuildLog(`[${new Date().toLocaleTimeString()}] Conclusion: SUCCESS`);
         
               let artRes = await fetch(run.artifacts_url, { headers: { Authorization: `token ${ghToken}` }});
-                            let artData = await artRes.json();
-                            let artifact = artData.artifacts.find(a => a.name === artifactName || a.name === 'Android-APK' || a.name.toLowerCase() === artifactName.toLowerCase());
-                            if (!artifact && artData.artifacts.length > 0) artifact = artData.artifacts[0];
-                            if (!artifact) throw new Error('Artifact not found in success run.');
+                                          let artData = await artRes.json();
+                                          let artifact = artData.artifacts.find(a => a.name === artifactName || a.name === 'Android-APK' || a.name.toLowerCase() === artifactName.toLowerCase());
+                                          if (!artifact && artData.artifacts.length > 0) artifact = artData.artifacts[0];
+                                          if (!artifact) throw new Error('Artifact not found in success run.');
         
-              appendBuildLog(`Triggering automatic native download...`);
-                                                        const directDownloadUrl = `https://github.com/${ghRepo}/actions/runs/${run.id}/artifacts/${artifact.id}`;
-                                                        window.location.href = directDownloadUrl;
-                                                        updateBuildOverlay('Build Complete! Download should start automatically.', 100, 'ok');
-            } else {
+                            appendBuildLog(`Fetching artifact securely via API...`);
+                            try {
+                                const dlRes = await fetch(artifact.archive_download_url, { headers: { Authorization: `token ${ghToken}` } });
+                                if (!dlRes.ok) throw new Error(dlRes.statusText);
+                                const blob = await dlRes.blob();
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.style.display = 'none';
+                                a.href = url;
+                                a.download = artifact.name + '.zip';
+                                document.body.appendChild(a);
+                                a.click();
+                                setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 5000);
+                                updateBuildOverlay('Build Complete! Artifact downloaded automatically.', 100, 'ok');
+                                appendBuildLog(`✅ Artifact downloaded successfully.`);
+                            } catch(dlErr) {
+                                appendBuildLog(`❌ Secure download failed: ${dlErr.message}. Falling back to browser URL...`);
+                                window.location.href = `https://github.com/${ghRepo}/actions/runs/${run.id}/artifacts/${artifact.id}`;
+                                updateBuildOverlay('Build Complete! Browser download initiated.', 100, 'ok');
+                            }
+                          } else {
                           updateBuildOverlay(`Build Failed (${run.conclusion})`, 100, 'err');
                           appendBuildLog(`\n[${new Date().toLocaleTimeString()}] CONCLUSION: ${run.conclusion.toUpperCase()}\nFetching detailed error logs from GitHub...`);
         
