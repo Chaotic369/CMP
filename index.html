@@ -4006,34 +4006,66 @@ $backdrop.addEventListener('click', function(e) {
     await window.refreshBranchesList();
   };
 
-  window.refreshBranchesList = async function() {
-    const listEl = document.getElementById('branchModalList');
-    listEl.innerHTML = '<div style="color:rgba(255,255,255,0.5); font-size:11px; padding:8px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Fetching branches...</div>';
-    try {
-      const res = await fetch(`https://api.github.com/repos/${ghRepo}/branches?per_page=100`, {
-        headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
-        cache: 'no-store'
-      });
-      if (!res.ok) throw new Error(await res.text());
-      const branches = await res.json();
+  window.deployBranch = async function(branchName, e) {
+      if (e) e.stopPropagation();
+      if (!confirm(`Deploy the '${branchName}' branch to your live site?`)) return;
     
-      listEl.innerHTML = branches.map(b => {
-        const isCurrent = b.name === ghBranch;
-        return `
-          <div class="repo-item" style="display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:8px; background:${isCurrent ? 'rgba(45,212,191,0.15)' : 'rgba(255,255,255,0.04)'}; border:1px solid ${isCurrent ? 'rgba(45,212,191,0.3)' : 'transparent'}; cursor:pointer;" onclick="window.switchBranch('${b.name}')">
-            <div style="display:flex; align-items:center; gap:8px;">
-              <i class="fa-solid fa-code-branch" style="color:${isCurrent ? 'var(--teal)' : 'rgba(255,255,255,0.5)'}; font-size:11px;"></i>
-              <span style="font-size:11px; font-weight:${isCurrent ? '600' : '400'}; color:#ffffff;">${b.name}</span>
-              ${isCurrent ? '<span style="font-size:8px; background:var(--teal); color:#000; padding:1px 5px; border-radius:4px; font-weight:700;">CURRENT</span>' : ''}
+      showProgress(30);
+      toast(`⏳ Configuring Pages to deploy '${branchName}'...`, 'info');
+    
+      try {
+        const res = await fetch(`https://api.github.com/repos/${ghRepo}/pages`, {
+          method: 'PUT',
+          headers: { 
+            Authorization: `token ${ghToken}`, 
+            Accept: 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ source: { branch: branchName, path: '/' } })
+        });
+      
+        if (!res.ok) throw new Error(await res.text());
+      
+        toast(`✅ Live site is now deploying from '${branchName}'!`, 'ok', 4000);
+      } catch (err) {
+        toast(`❌ Deploy failed: ${err.message}`, 'err');
+      }
+      hideProgress();
+    };
+
+    window.refreshBranchesList = async function() {
+      const listEl = document.getElementById('branchModalList');
+      listEl.innerHTML = '<div style="color:rgba(255,255,255,0.5); font-size:11px; padding:8px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Fetching branches...</div>';
+      try {
+        const res = await fetch(`https://api.github.com/repos/${ghRepo}/branches?per_page=100`, {
+          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' },
+          cache: 'no-store'
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const branches = await res.json();
+    
+        listEl.innerHTML = branches.map(b => {
+          const isCurrent = b.name === ghBranch;
+          return `
+            <div class="repo-item" style="display:flex; align-items:center; justify-content:space-between; padding:8px 10px; border-radius:8px; background:${isCurrent ? 'rgba(45,212,191,0.15)' : 'rgba(255,255,255,0.04)'}; border:1px solid ${isCurrent ? 'rgba(45,212,191,0.3)' : 'transparent'}; cursor:pointer;" onclick="window.switchBranch('${b.name}')">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <i class="fa-solid fa-code-branch" style="color:${isCurrent ? 'var(--teal)' : 'rgba(255,255,255,0.5)'}; font-size:11px;"></i>
+                <span style="font-size:11px; font-weight:${isCurrent ? '600' : '400'}; color:#ffffff;">${b.name}</span>
+                ${isCurrent ? '<span style="font-size:8px; background:var(--teal); color:#000; padding:1px 5px; border-radius:4px; font-weight:700;">CURRENT</span>' : ''}
+              </div>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button class="repo-btn" style="font-size:10px; color:var(--blue); background:rgba(92, 157, 255, 0.1); padding: 4px 8px; border-radius: 6px;" title="Deploy this branch" onclick="window.deployBranch('${b.name}', event)">
+                  <i class="fa-solid fa-globe" style="margin-right: 4px;"></i> Deploy
+                </button>
+                ${!isCurrent ? `<button class="repo-btn del" style="font-size:10px;" title="Delete Branch" onclick="window.deleteBranch('${b.name}', event)"><i class="fa-solid fa-trash"></i></button>` : ''}
+              </div>
             </div>
-            ${!isCurrent ? `<button class="repo-btn del" style="font-size:10px;" title="Delete Branch" onclick="window.deleteBranch('${b.name}', event)"><i class="fa-solid fa-trash"></i></button>` : ''}
-          </div>
-        `;
-      }).join('');
-    } catch (err) {
-      listEl.innerHTML = `<div style="color:var(--red); font-size:11px; padding:8px;">Failed: ${err.message}</div>`;
-    }
-  };
+          `;
+        }).join('');
+      } catch (err) {
+        listEl.innerHTML = `<div style="color:var(--red); font-size:11px; padding:8px;">Failed: ${err.message}</div>`;
+      }
+    };
 
   window.switchBranch = async function(branchName) {
     if (branchName === ghBranch) {
