@@ -640,11 +640,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                         <button id="ghSyncBtn" class="btn" title="Sync & Fetch Repos" style="color:var(--teal);"><i class="fa-solid fa-arrows-rotate"></i><span class="btn-lbl">Sync</span></button>
                         <button id="ghPushBtn" class="btn" title="Push to GitHub" disabled style="color:var(--blue);"><i class="fa-solid fa-arrow-up-from-bracket"></i><span class="btn-lbl">Push</span></button>
         <button id="exportBtn" class="btn" title="Export File" style="color:var(--purple);"><i class="fa-solid fa-floppy-disk"></i><span class="btn-lbl">Export</span></button>
-  
-                <button id="astBtn" class="btn" title="AST Guard Logs" style="color:var(--amber);"><i class="fa-solid fa-brain"></i><span class="btn-lbl">AST</span></button>
                 <button id="liveSiteBtn" class="btn" title="View Live Site in Browser" style="color:var(--blue);"><i class="fa-solid fa-globe"></i><span class="btn-lbl">Live</span></button>
                 <button id="viewBtn" class="btn" title="Toggle View"><i class="fa-solid fa-eye"></i><span class="btn-lbl">View</span></button>
-                <button id="logBtn" class="btn" title="System Logs"><i class="fa-solid fa-file-lines"></i><span class="btn-lbl">Logs</span></button>
                 <button id="wallpaperBtn" class="btn" title="Set Workspace Wallpaper" style="color:var(--purple);"><i class="fa-solid fa-image"></i><span class="btn-lbl">Wall</span></button>
         <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i><span class="btn-lbl">Get</span></button>
         <button id="masterBuildBtn" class="btn" title="GitHub Action (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i><span class="btn-lbl">Action</span></button>
@@ -1067,21 +1064,14 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                   <button id="loadLighthouseBtn" class="btn" style="width:auto; padding:4px 10px; height:26px; font-size:10px; color:var(--green); border:1px solid rgba(57,211,83,0.3); background:rgba(57,211,83,0.15);" title="Load Lighthouse YAML"><i class="fa-solid fa-file-code" style="margin-right:4px;"></i>Load YAML</button>
                 </div>
 
-                <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-                  <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
-                    <div style="font-size:11px; font-weight:600; color:#ffffff;"><i class="fa-solid fa-brain" style="color:var(--amber); margin-right:6px;"></i>AST Guard</div>
-                    <div style="font-size:9px; color:rgba(255,255,255,0.5);">Validates code integrity and syntax balance.</div>
-                  </div>
-                  <button id="moreAstBtn" class="btn" style="width:auto; padding:4px 10px; height:26px; font-size:10px; color:var(--amber); border:1px solid rgba(227,179,65,0.3); background:rgba(227,179,65,0.15);" title="Open AST Guard"><i class="fa-solid fa-brain" style="margin-right:4px;"></i>Open</button>
-                          </div>
-
-                          <div style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
-                            <div style="display:flex; flex-direction:column; gap:2px; flex:1; min-width:0;">
-                              <div style="font-size:11px; font-weight:600; color:#ffffff;"><i class="fa-solid fa-file-lines" style="color:var(--td); margin-right:6px;"></i>System Logs</div>
-                              <div style="font-size:9px; color:rgba(255,255,255,0.5);">View IDE operation history and errors.</div>
-                            </div>
-                            <button id="moreLogBtn" class="btn" style="width:auto; padding:4px 10px; height:26px; font-size:10px; color:#ffffff; border:1px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.15);" title="Open System Logs"><i class="fa-solid fa-file-lines" style="margin-right:4px;"></i>View</button>
-                          </div>
+                <div style="display:flex; gap:8px; margin-top:2px;">
+                  <button id="moreAstBtn" class="btn" style="flex:1; width:auto; height:32px; border-radius:8px; background:rgba(227,179,65,0.12); border:1px solid rgba(227,179,65,0.3); color:var(--amber); font-size:11px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px;" title="AST Guard Logs">
+                    <i class="fa-solid fa-brain"></i> AST Guard
+                  </button>
+                  <button id="moreLogBtn" class="btn" style="flex:1; width:auto; height:32px; border-radius:8px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); color:#ffffff; font-size:11px; font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px;" title="System Logs">
+                    <i class="fa-solid fa-file-lines"></i> System Logs
+                  </button>
+                </div>
               </div>
               <div class="gh-actions" style="margin-top:14px;">
         <button id="moreCancelBtn"><i class="fa-solid fa-xmark"></i> Close</button>
@@ -5272,7 +5262,8 @@ function openAstPanel() {
     if (sourceContent) runASTCheck(sourceContent);
   }
 }
-document.getElementById('astBtn').addEventListener('click', openAstPanel);
+var astBtnEl = document.getElementById('astBtn');
+if (astBtnEl) astBtnEl.addEventListener('click', openAstPanel);
 var moreAstBtn = document.getElementById('moreAstBtn');
 if (moreAstBtn) moreAstBtn.addEventListener('click', openAstPanel);
 
@@ -5428,7 +5419,8 @@ function openLogPanel() {
     renderLog();
   }
 }
-document.getElementById('logBtn').addEventListener('click', openLogPanel);
+var logBtnEl = document.getElementById('logBtn');
+if (logBtnEl) logBtnEl.addEventListener('click', openLogPanel);
 var moreLogBtn = document.getElementById('moreLogBtn');
 if (moreLogBtn) moreLogBtn.addEventListener('click', openLogPanel);
 
