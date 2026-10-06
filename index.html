@@ -6884,18 +6884,34 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                 await new Promise(r => setTimeout(r, 8000));
 
                                 var dispatchSuccess = false;
-                                                var dispatchErr = '';
-                                                for (var retry = 1; retry <= 8; retry++) {
-                                                  const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${filename}/dispatches`, {
-                                                    method: 'POST',
-                                                    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-                                                    body: JSON.stringify({ ref: ghBranch, inputs: { app_name: appName, app_version: appVersion } })
-                                                  });
-                                                  if (dispatchRes.ok) { dispatchSuccess = true; break; }
-                                                  try { dispatchErr = dispatchRes.status + ' ' + (await dispatchRes.text()); } catch (e) { dispatchErr = String(dispatchRes.status); }
-                                                  appendBuildLog('Dispatch retry ' + retry + ': ' + dispatchErr);
-                                                  await new Promise(r => setTimeout(r, 6000));
-                                                }
+                                                                var dispatchErr = '';
+                                                                var dispatchBody = { ref: ghBranch };
+
+                                                                try {
+                                                                  var hasInputs = /workflow_dispatch:[\s\S]*?inputs:/i.test(yamlContent);
+                                                                  if (hasInputs) {
+                                                                    dispatchBody.inputs = {};
+                                                                    if (/app_name:/i.test(yamlContent)) dispatchBody.inputs.app_name = appName;
+                                                                    if (/app_version:/i.test(yamlContent)) dispatchBody.inputs.app_version = appVersion;
+                                                                    if (/audit_url:/i.test(yamlContent)) {
+                                                                      var defaultTarget = ghUser && ghRepo ? `https://${ghUser}.github.io/${ghRepo.split('/')[1]}/` : '';
+                                                                      dispatchBody.inputs.audit_url = defaultTarget;
+                                                                    }
+                                                                    if (Object.keys(dispatchBody.inputs).length === 0) delete dispatchBody.inputs;
+                                                                  }
+                                                                } catch (e) {}
+
+                                                                for (var retry = 1; retry <= 8; retry++) {
+                                                                  const dispatchRes = await fetch(`https://api.github.com/repos/${ghRepo}/actions/workflows/${filename}/dispatches`, {
+                                                                    method: 'POST',
+                                                                    headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                                                                    body: JSON.stringify(dispatchBody)
+                                                                  });
+                                                                  if (dispatchRes.ok) { dispatchSuccess = true; break; }
+                                                                  try { dispatchErr = dispatchRes.status + ' ' + (await dispatchRes.text()); } catch (e) { dispatchErr = String(dispatchRes.status); }
+                                                                  appendBuildLog('Dispatch retry ' + retry + ': ' + dispatchErr);
+                                                                  await new Promise(r => setTimeout(r, 6000));
+                                                                }
 
                                                 if (!dispatchSuccess) throw new Error('Failed to trigger workflow dispatch. GitHub said: ' + dispatchErr);
 
