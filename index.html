@@ -60,13 +60,21 @@
   --surface: #0a0a0c; 
   --elevated: #111215; 
   --panel: #111215;
-  --border: rgba(255, 255, 255, 0.05);
+  --border: transparent;
   --tp: #ffffff; 
   --tm: #ffffff; 
   --td: #ffffff;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  border: none !important;
+  outline: none !important;
+}
+
 html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surface); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #ffffff; }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -83,7 +91,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
   right: env(safe-area-inset-right, 0px);
   width: 100% !important;
   height: calc(100vh - 24px - env(safe-area-inset-bottom, 0px)) !important;
-  border: none; background: transparent; z-index: 1; display: none; -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto; color-scheme: dark;
+  border: none !important; background: transparent; z-index: 1; display: none; -webkit-touch-callout: default; -webkit-user-select: auto; user-select: auto; color-scheme: dark;
 }
 
 #codeView {
@@ -92,11 +100,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
   width: 100%;
   height: calc(100vh - 24px - env(safe-area-inset-bottom, 0px));
   background: #08080a; color: #ffffff; font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  padding: 50px 20px 20px 20px; border: none; outline: none; resize: none; z-index: 1; display: none; white-space: pre; overflow: auto;
+  padding: 50px 20px 20px 20px; border: none !important; outline: none !important; resize: none; z-index: 1; display: none; white-space: pre; overflow: auto;
   -webkit-user-select: auto; user-select: auto;
 }
 
-#fring { position: fixed; inset: 0; z-index: 99; border: 3px solid var(--green); pointer-events: none; opacity: 0; }
+#fring { position: fixed; inset: 0; z-index: 99; border: none !important; pointer-events: none; opacity: 0; }
 #fring.on { opacity: 1; }
 #menu-backdrop { position: fixed; inset: 0; z-index: 29990; background: transparent; display: none; }
 #menu-backdrop.open { display: block; }
@@ -140,8 +148,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 
 /* Squircle Base Buttons */
 button.btn {
-  background: rgba(255, 255, 255, 0.08); border: none; color: #ffffff; border-radius: 6px; font-size: 8px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; outline: none;
+  background: rgba(255, 255, 255, 0.08); border: none !important; color: #ffffff; border-radius: 6px; font-size: 8px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; outline: none !important;
 }
 button.btn:hover { background: rgba(255, 255, 255, 0.15); }
 button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; color: rgba(255,255,255,0.5); }
@@ -182,7 +190,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #bulkFileAddBtn { width: 18px; font-size: 6px; color: var(--purple); }
 
 #repoSidebar { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; height: fit-content; }
-#sidebarContent { display: flex; flex-direction: column; width: 140px; height: auto; max-height: 260px; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 4px; overflow-x: hidden; overflow-y: auto; }
+#sidebarContent { display: flex; flex-direction: column; width: 140px; height: auto; max-height: 260px; border: none !important; padding-right: 4px; overflow-x: hidden; overflow-y: auto; }
 #sidebarContent.mini { height: 108px; max-height: 108px !important; width: 75px !important; padding-right: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
 #sidebarContent.full-tree-active:not(.mini) { max-height: 85vh !important; height: 85vh !important; width: 280px !important; }
 #sidebarContent.mini .repo-name { font-size: 8px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 1; color: #ffffff; margin-top: 0; }
@@ -190,7 +198,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #sidebarContent.mini .repo-item { padding: 0px 4px; margin-bottom: 0px; justify-content: flex-start; text-align: left; flex-direction: row; min-height: 14px; line-height: 14px; }
 #sidebarContent.mini #repoTabsContainer { display: flex !important; flex-direction: column; gap: 0px; max-height: none !important; height: auto; overflow-y: visible; justify-content: flex-start; margin: 0; flex-shrink: 0; }
 
-#bookmarkContent { display: flex; flex-direction: column; width: 140px; height: fit-content; max-height: 45vh; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 4px; overflow-x: hidden; }
+#bookmarkContent { display: flex; flex-direction: column; width: 140px; height: fit-content; max-height: 45vh; border: none !important; padding-left: 4px; overflow-x: hidden; }
 #bookmarkContent .repo-item { background: transparent; border-radius: 8px; margin-bottom: 2px; }
 #bookmarkContent .repo-item:active { background: rgba(255,255,255,0.15); }
 #bookmarkContent .repo-item.active { background: rgba(255,255,255,0.15); }
@@ -210,6 +218,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   margin-bottom: 2px;
   background: rgba(255,255,255,0.05);
   border-radius: 6px;
+  border: none !important;
   font-size: 8px;
   color: rgba(255,255,255,0.7);
 }
@@ -218,7 +227,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 }
 #directoryNav button {
   background: transparent;
-  border: none;
+  border: none !important;
   color: rgba(255,255,255,0.6);
   cursor: pointer;
   font-size: 8px;
@@ -235,10 +244,10 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   font-family: 'JetBrains Mono', monospace;
 }
 
-#fileTreeContainer { display: none; flex-direction: column; gap: 0px; flex: 1; min-height: 40px; max-height: 100%; overflow-y: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2px; margin-top: 2px; }
+#fileTreeContainer { display: none; flex-direction: column; gap: 0px; flex: 1; min-height: 40px; max-height: 100%; overflow-y: auto; border: none !important; padding-top: 2px; margin-top: 2px; }
 
 .repo-item {
-  padding: 0px 6px; font-size: 7px; border-radius: 8px; border: none; background: transparent;
+  padding: 0px 6px; font-size: 7px; border-radius: 8px; border: none !important; background: transparent;
   cursor: pointer; text-align: left; font-weight: 500;
   display: flex; align-items: center; justify-content: space-between; gap: 4px; user-select: none; color: #ffffff;
   min-height: 12px; line-height: 12px;
@@ -246,20 +255,20 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 .repo-item.file-item { padding: 3px 6px; border-radius: 6px; }
 .repo-item.ready-to-drag { background: rgba(255,255,255,0.1); cursor: grab; }
 .repo-item.ready-to-drag:active { cursor: grabbing; }
-.repo-item.drag-over { border: 1px dashed var(--green); background: rgba(255,255,255,0.05); opacity: 0.8; }
+.repo-item.drag-over { background: rgba(255,255,255,0.05); opacity: 0.8; }
 .repo-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; pointer-events: none; color: #ffffff; opacity: 1; }
 .repo-item.active { background: rgba(255,255,255,0.15); color: #ffffff; font-weight: 600; }
 
 .repo-actions { display: none; align-items: center; gap: 3px; }
 .repo-item.active .repo-actions { display: flex; }
-.repo-btn { background: transparent; border: none; color: #ffffff; cursor: pointer; padding: 2px 4px; font-size: 6px; border-radius: 6px; }
+.repo-btn { background: transparent; border: none !important; color: #ffffff; cursor: pointer; padding: 2px 4px; font-size: 6px; border-radius: 6px; }
 .repo-btn.del { color: var(--red); }
 
 #main-controls { display: grid; grid-template-columns: repeat(5, 24px); grid-auto-rows: 24px; gap: 4px; align-content: start; flex-shrink: 0; height: fit-content; }
 
 #toast {
   position: fixed; top: 40px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 12px; font-size: 6px; font-weight: 500;
-  background: #111215; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; color: var(--green);
+  background: #111215; border: none !important; outline: none !important; color: var(--green);
   z-index: 40000; display: none; max-width: 90vw; text-align: center; white-space: pre-line;
   box-shadow: 0 8px 30px rgba(0,0,0,0.6);
 }
@@ -267,11 +276,11 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #toast.warn { color: var(--amber); }
 #toast.err  { color: var(--red); }
 #toast.info { color: var(--blue); }
-#toastCopyBtn { display: none; background: rgba(255,255,255,0.08); border: none; color: inherit; border-radius: 8px; width: 18px; height: 18px; flex-shrink: 0; align-items: center; justify-content: center; cursor: pointer; font-size: 6px; }
+#toastCopyBtn { display: none; background: rgba(255,255,255,0.08); border: none !important; color: inherit; border-radius: 8px; width: 18px; height: 18px; flex-shrink: 0; align-items: center; justify-content: center; cursor: pointer; font-size: 6px; }
 #toast.err #toastCopyBtn { display: flex; }
 
 #astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal, #branchModal, #moreModal {
-  position: fixed; z-index: 30000; background: #0f1013; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; border-radius: 12px;
+  position: fixed; z-index: 30000; background: #0f1013; border: none !important; outline: none !important; border-radius: 12px;
   padding: 14px 18px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0,0,0,0.7);
   max-height: calc(100vh - 40px); overflow-y: auto;
   scrollbar-width: none; -ms-overflow-style: none;
@@ -290,20 +299,20 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #buildModal.open, #workflowsModal.open, #fullTreeModal.open, #bulkModal.open, #errLogModal.open, #branchModal.open, #moreModal.open { display: flex !important; flex-direction: column !important; }
 #astPanel.open, #logPanel.open { display: block !important; }
 
-#astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; }
+#astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border: none !important; padding-bottom: 12px; }
 .ast-ok { color: var(--green); } .ast-warn { color: var(--amber); } .ast-err { color: var(--red); font-weight: bold; }
 .log-ok { color: var(--green); } .log-warn { color: var(--amber); } .log-err { color: var(--red); } .log-info { color: var(--blue); }
 
 #errOverlay {
   position: fixed; top: 50px; left: 50%; transform: translateX(-50%);
-  background: #111215; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; border-radius: 12px;
+  background: #111215; border: none !important; outline: none !important; border-radius: 12px;
   padding: 16px; color: var(--red); font-size: 6px; font-weight: 500; z-index: 25000;
   width: 90vw; max-width: 480px; display: none; white-space: pre-wrap; max-height: 40vh; overflow-y: auto;
   box-shadow: 0 16px 48px rgba(0,0,0,0.7);
 }
 
 #statusBar {
-  position: fixed; bottom: 0; left: 0; right: 0; height: calc(24px + env(safe-area-inset-bottom, 0px)); background: #08080a; border-top: 1px solid rgba(255, 255, 255, 0.05);
+  position: fixed; bottom: 0; left: 0; right: 0; height: calc(24px + env(safe-area-inset-bottom, 0px)); background: #08080a; border: none !important;
   display: flex; align-items: center; padding: 0 12px env(safe-area-inset-bottom, 0px) 12px; gap: 12px; font-size: 9px; font-weight: 500; color: #ffffff; z-index: 9990;
 }
 #statusBar .sb-item { white-space: nowrap; }
@@ -312,7 +321,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 #progressBar {
   position: fixed; top: 0; left: 0; height: 3px; background: var(--blue); z-index: 30000;
-  width: 0%; display: none; box-shadow: none;
+  width: 0%; display: none; box-shadow: none; border: none !important;
 }
 #progressBar.active { display: block; }
 
@@ -331,7 +340,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   gap: 8px;
   margin-bottom: 10px;
   padding-bottom: 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border: none !important;
   user-select: none;
   touch-action: none;
   cursor: move;
@@ -356,7 +365,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   font-size: 10px;
   line-height: 1;
   padding: 2px 4px;
-  border: none;
+  border: none !important;
   background: transparent;
   border-radius: 4px;
   display: flex;
@@ -387,9 +396,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   left: 10px;
   width: 14px;
   height: 14px;
-  border-bottom: 3px solid rgba(160, 160, 160, 0.8);
-  border-left: 3px solid rgba(160, 160, 160, 0.8);
-  border-bottom-left-radius: 14px;
+  border: none !important;
   box-shadow: none;
 }
 input::placeholder, textarea::placeholder {
@@ -401,20 +408,21 @@ input::placeholder, textarea::placeholder {
 
 input:not([type="file"]):not(#aiInstruction), textarea, select {
   background: #08080a !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border: none !important;
+  outline: none !important;
   color: #ffffff !important;
 }
 
 input:not([type="file"]):not(#aiInstruction):focus, textarea:focus, select:focus {
   background: #0f1013 !important;
-  border-color: rgba(255, 255, 255, 0.25) !important;
+  border: none !important;
   outline: none !important;
 }
 
 .gh-row { display: flex; gap: 8px; align-items: center; width: 100%; box-sizing: border-box; }
 .gh-row label { width: 68px; flex-shrink: 0; color: #ffffff; font-size: 11px; font-weight: 500; }
-.gh-row input { flex: 1; min-width: 0; background: #08080a; border: 1px solid rgba(255, 255, 255, 0.12); color: #ffffff; padding: 7px 12px; border-radius: 10px; outline: none; font-size: 11px; box-sizing: border-box; }
-.gh-row input:focus { background: #0f1013; border-color: rgba(255, 255, 255, 0.25); }
+.gh-row input { flex: 1; min-width: 0; background: #08080a; border: none !important; color: #ffffff; padding: 7px 12px; border-radius: 10px; outline: none !important; font-size: 11px; box-sizing: border-box; }
+.gh-row input:focus { background: #0f1013; border: none !important; }
 
 .gh-actions { 
   display: flex; 
@@ -426,7 +434,7 @@ input:not([type="file"]):not(#aiInstruction):focus, textarea:focus, select:focus
 }
 .gh-actions button { 
   background: rgba(255, 255, 255, 0.08); 
-  border: 1px solid rgba(255, 255, 255, 0.12) !important; 
+  border: none !important; 
   outline: none !important; 
   color: #ffffff; 
   padding: 5px 12px; 
@@ -445,7 +453,7 @@ input:not([type="file"]):not(#aiInstruction):focus, textarea:focus, select:focus
 }
 .gh-actions button:hover { 
   background: rgba(255, 255, 255, 0.15); 
-  border-color: rgba(255, 255, 255, 0.22) !important; 
+  border: none !important; 
   transform: translateY(-1px); 
 }
 .gh-actions button:active { 
@@ -454,20 +462,20 @@ input:not([type="file"]):not(#aiInstruction):focus, textarea:focus, select:focus
 }
 .gh-actions button.btn-primary,
 .gh-actions button[id$="Btn"]:not([id*="Cancel"]):not([id*="Close"]):not([id*="Clear"]) {
-  border-color: rgba(57, 211, 83, 0.3) !important;
+  border: none !important;
 }
 
 #commitMsgInput {
-  width: 100%; background: #08080a; border: 1px solid rgba(255, 255, 255, 0.12); color: #ffffff;
-  padding: 14px; border-radius: 20px; min-height: 90px; resize: vertical; outline: none;
+  width: 100%; background: #08080a; border: none !important; color: #ffffff;
+  padding: 14px; border-radius: 20px; min-height: 90px; resize: vertical; outline: none !important;
 }
-#commitMsgInput:focus { background: #0f1013; border-color: rgba(255, 255, 255, 0.25); }
+#commitMsgInput:focus { background: #0f1013; border: none !important; }
 
 /* Find and Replace Panel & Code Actions */
 #codeEditorActions {
   position: fixed; top: env(safe-area-inset-top, 0px); left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px); z-index: 10000;
   display: none; align-items: center; justify-content: flex-start; gap: 6px; flex-direction: row;
-  height: 42px; background: #0d0e11; border-bottom: 1px solid rgba(255,255,255,0.06); padding: 0 10px;
+  height: 42px; background: #0d0e11; border: none !important; padding: 0 10px;
 }
 .ce-action-btn {
   min-width: 30px; height: 32px; border-radius: 6px;
@@ -486,30 +494,29 @@ input:not([type="file"]):not(#aiInstruction):focus, textarea:focus, select:focus
 
 #fnrPanel {
   position: fixed; top: calc(36px + env(safe-area-inset-top, 0px)); left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px); z-index: 10001;
-  background: #0f1013; border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important;
+  background: #0f1013; border: none !important; outline: none !important;
   padding: 16px 20px; display: none; flex-direction: column; gap: 10px;
   box-shadow: 0 12px 30px rgba(0,0,0,0.6);
 }
 .fnr-row { display: flex; gap: 10px; align-items: center; }
-.fnr-row input { flex: 1; background: #08080a; border: 1px solid rgba(255,255,255,0.12); color: #fff; padding: 10px 14px; border-radius: 12px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
-.fnr-row input:focus { background: #0f1013; border-color: rgba(255,255,255,0.25); }
-.fnr-btn { background: rgba(255,255,255,0.08); border: none; color: #fff; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.fnr-row input { flex: 1; background: #08080a; border: none !important; color: #fff; padding: 10px 14px; border-radius: 12px; outline: none !important; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+.fnr-row input:focus { background: #0f1013; border: none !important; }
+.fnr-btn { background: rgba(255,255,255,0.08); border: none !important; color: #fff; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
 .fnr-btn:hover { background: rgba(255,255,255,0.15); }
 
 /* Dual-Engine Build Modal */
-#buildModal { width: 92vw; max-width: 440px; display: none; flex-direction: column; gap: 10px; z-index: 30000; position: fixed; background: #0f1013; border: 1px solid rgba(255, 255, 255, 0.08) !important; outline: none !important; border-radius: 12px; padding: 14px 16px; color: #ffffff; box-shadow: 0 16px 48px rgba(0,0,0,0.7); max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
+#buildModal { width: 92vw; max-width: 440px; display: none; flex-direction: column; gap: 10px; z-index: 30000; position: fixed; background: #0f1013; border: none !important; outline: none !important; border-radius: 12px; padding: 14px 16px; color: #ffffff; box-shadow: 0 16px 48px rgba(0,0,0,0.7); max-height: 85vh; overflow-y: auto; box-sizing: border-box; }
 #buildModal.open { display: flex; }
-#buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 16px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 12px; }
+#buildModal h4 { color: #ffffff; margin-bottom: 12px; font-size: 16px; font-weight: 600; border: none !important; padding-bottom: 12px; }
 .bm-step label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #ffffff; }
-.bm-toggle-btn { flex: 1; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500; }
-.bm-toggle-btn.active { background: rgba(255,255,255,0.08); border-color: #ffffff; }
-.bm-code-box { width: 100%; background: #08080a; border: 1px solid rgba(255,255,255,0.12); color: #ffffff; padding: 10px; border-radius: 6px; outline: none; font-family: 'JetBrains Mono', monospace; font-size: 10px; min-height: 80px; resize: vertical; box-sizing: border-box; }
+.bm-toggle-btn { flex: 1; background: transparent; border: none !important; color: #fff; padding: 10px; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: 13px; font-weight: 500; }
+.bm-toggle-btn.active { background: rgba(255,255,255,0.08); border: none !important; }
+.bm-code-box { width: 100%; background: #08080a; border: none !important; color: #ffffff; padding: 10px; border-radius: 6px; outline: none !important; font-family: 'JetBrains Mono', monospace; font-size: 10px; min-height: 80px; resize: vertical; box-sizing: border-box; }
 .bm-code-box::-webkit-resizer {
   background-color: rgba(255, 255, 255, 0.18);
   border-bottom-right-radius: 6px;
-  border-right: 4px solid #ffffff;
-  border-bottom: 4px solid #ffffff;
-  outline: 2px solid rgba(255, 255, 255, 0.25);
+  border: none !important;
+  outline: none !important;
   cursor: se-resize;
   width: 22px;
   height: 22px;
@@ -517,10 +524,10 @@ input:not([type="file"]):not(#aiInstruction):focus, textarea:focus, select:focus
 .bm-permissions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; background: transparent; padding: 6px 0; margin-bottom: 10px; }
 .bm-permissions-grid label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .bm-advanced { background: transparent; padding: 6px 0; margin-top: 4px; }
-.bm-advanced summary { cursor: pointer; font-size: 13px; font-weight: 600; outline: none; user-select: none; }
-.bm-lib-chip { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
-.bm-lib-chip:hover { background: rgba(255,255,255,0.1); border-color: #ffffff; }
-select.bm-select { width: 100%; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #ffffff; padding: 8px 12px; border-radius: 6px; outline: none; font-size: 12px; -webkit-appearance: none; }
+.bm-advanced summary { cursor: pointer; font-size: 13px; font-weight: 600; outline: none !important; user-select: none; }
+.bm-lib-chip { background: transparent; border: none !important; color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+.bm-lib-chip:hover { background: rgba(255,255,255,0.1); border: none !important; }
+select.bm-select { width: 100%; background: transparent; border: none !important; color: #ffffff; padding: 8px 12px; border-radius: 6px; outline: none !important; font-size: 12px; -webkit-appearance: none; }
 select.bm-select option { background: var(--elevated); color: #fff; }
 
 /* Cropper Modal */
@@ -530,7 +537,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 }
 #iconCropModal.open { display: flex; }
 #iconCropBox {
-  background: #23252a; border: 1px solid rgba(255,255,255,0.12); border-radius: 12px;
+  background: #23252a; border: none !important; border-radius: 12px;
   width: 90vw; max-width: 380px; display: flex; flex-direction: column; overflow: hidden;
 }
 #iconCropImgContainer {
@@ -649,7 +656,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                     
                 <button id="buildApkBtn" class="btn" style="display:none;"></button>
                 <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
-                <div style="grid-column: 1 / -1; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: 1px solid rgba(255,255,255,0.05); margin-top: 2px;">
+                <div style="grid-column: 1 / -1; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: none; margin-top: 2px;">
                   <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
                   <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
                 </div>
@@ -700,18 +707,18 @@ select.bm-select option { background: var(--elevated); color: #fff; }
       <input type="hidden" id="nrSourceVal" value="upload">
     </div>
   
-    <label id="nrFileLabel" for="nrFileInput" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(255,255,255,0.04); padding:20px 14px; border-radius:10px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1.5px dashed rgba(92,157,255,0.4); transition: all 0.2s;">
-      <i class="fa-solid fa-cloud-arrow-up" style="font-size:22px; color:var(--blue);"></i>
-      <span id="nrFileNameDisplay" style="font-size:10px; font-weight:500;">Click to select HTML file</span>
-      <span style="font-size:8px; color:rgba(255,255,255,0.5);">Auto-deploys as index.html</span>
-    </label>
-    <input type="file" id="nrFileInput" accept=".html,.htm" style="display:none;">
-
-    <label id="nrFilesLabel" for="nrFilesInput" style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(255,255,255,0.04); padding:20px 14px; border-radius:10px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: 1.5px dashed rgba(188,140,255,0.4); transition: all 0.2s;">
-          <i class="fa-solid fa-file-zipper" style="font-size:22px; color:var(--purple);"></i>
-          <span id="nrFilesNameDisplay" style="font-size:10px; font-weight:500;">Select ZIP archive or project files</span>
-          <span style="font-size:8px; color:rgba(255,255,255,0.5);">ZIP archives auto-extract and preserve folder structure</span>
+    <label id="nrFileLabel" for="nrFileInput" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(255,255,255,0.04); padding:20px 14px; border-radius:10px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: none; transition: all 0.2s;">
+          <i class="fa-solid fa-cloud-arrow-up" style="font-size:22px; color:var(--blue);"></i>
+          <span id="nrFileNameDisplay" style="font-size:10px; font-weight:500;">Click to select HTML file</span>
+          <span style="font-size:8px; color:rgba(255,255,255,0.5);">Auto-deploys as index.html</span>
         </label>
+        <input type="file" id="nrFileInput" accept=".html,.htm" style="display:none;">
+
+        <label id="nrFilesLabel" for="nrFilesInput" style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:8px; background:rgba(255,255,255,0.04); padding:20px 14px; border-radius:10px; color:#ffffff; cursor:pointer; margin-bottom:10px; border: none; transition: all 0.2s;">
+              <i class="fa-solid fa-file-zipper" style="font-size:22px; color:var(--purple);"></i>
+              <span id="nrFilesNameDisplay" style="font-size:10px; font-weight:500;">Select ZIP archive or project files</span>
+              <span style="font-size:8px; color:rgba(255,255,255,0.5);">ZIP archives auto-extract and preserve folder structure</span>
+            </label>
         <input type="file" id="nrFilesInput" multiple style="display:none;">
 
         <div id="nrPasteContainer" style="display:none; position:relative; width:100%; margin-bottom:10px;">
@@ -908,14 +915,14 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <style>
     #buildProgressOverlay { transition: none !important; }
-    #buildProgressOverlay.minimized { width: 48px !important; top: calc(20px + env(safe-area-inset-top, 0px)) !important; left: auto !important; right: calc(20px + env(safe-area-inset-right, 0px)) !important; transform: none !important; background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; border: none !important; padding: 12px !important; cursor: pointer; }
-    #buildProgressOverlay.minimized > div:not(#bpStepper), #buildProgressOverlay.minimized > button { display: none !important; }
-    #buildProgressOverlay.minimized .step-item > div:nth-child(2) { display: none !important; }
-    #buildProgressOverlay.minimized #bpStepper { margin: 0 !important; }
-    #buildProgressOverlay.minimized:hover { background: transparent !important; opacity: 0.8; }
-    </style>
-<div id="buildProgressOverlay" style="display:none; position:fixed; width:calc(100vw - 40px); max-width:420px; background:#0f1013; border:1px solid rgba(255,255,255,0.12) !important; outline:none !important; border-radius:14px; z-index:50000; flex-direction:column; padding:18px 20px; color:#fff; box-shadow:0 20px 50px rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
-  <div class="window-header" style="margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.08);">
+        #buildProgressOverlay.minimized { width: 48px !important; top: calc(20px + env(safe-area-inset-top, 0px)) !important; left: auto !important; right: calc(20px + env(safe-area-inset-right, 0px)) !important; transform: none !important; background: transparent !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; box-shadow: none !important; border: none !important; padding: 12px !important; cursor: pointer; }
+        #buildProgressOverlay.minimized > div:not(#bpStepper), #buildProgressOverlay.minimized > button { display: none !important; }
+        #buildProgressOverlay.minimized .step-item > div:nth-child(2) { display: none !important; }
+        #buildProgressOverlay.minimized #bpStepper { margin: 0 !important; }
+        #buildProgressOverlay.minimized:hover { background: transparent !important; opacity: 0.8; }
+        </style>
+    <div id="buildProgressOverlay" style="display:none; position:fixed; width:calc(100vw - 40px); max-width:420px; background:#0f1013; border:none !important; outline:none !important; border-radius:14px; z-index:50000; flex-direction:column; padding:18px 20px; color:#fff; box-shadow:0 20px 50px rgba(0,0,0,0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+      <div class="window-header" style="margin-bottom:14px; padding-bottom:10px; border:none !important;">
         <div class="win-title" id="bpTitle" style="font-size:13px; font-weight:600;"><i class="fa-solid fa-hammer" style="color:var(--blue); margin-right:8px;"></i>Building...</div>
         <div style="display:flex; gap:10px; align-items:center;">
           <button class="btn" id="bpMinBtnIcon" style="width:24px; height:24px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:rgba(255,255,255,0.8); font-size:10px;" title="Minimize"><i class="fa-solid fa-chevron-right"></i></button>
@@ -990,11 +997,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 </div>
 
 <style>
-#errLogModal { position: fixed; width: 92vw; max-width: 560px; height: 70vh; display: none; flex-direction: column; gap: 12px; z-index: 32000; background: #0f1013; border: 1px solid rgba(255,255,255,0.08); outline: none !important; border-radius: 0px; padding: 20px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0,0,0,0.7); }
+#errLogModal { position: fixed; width: 92vw; max-width: 560px; height: 70vh; display: none; flex-direction: column; gap: 12px; z-index: 32000; background: #0f1013; border: none !important; outline: none !important; border-radius: 0px; padding: 20px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0,0,0,0.7); }
 #errLogModal.open { display: flex; }
-#errLogModal h4 { color: #ffffff; margin: 0 0 4px 0; font-size: 14px; font-weight: 600; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 12px; display: flex; align-items: center; flex-shrink: 0; }
+#errLogModal h4 { color: #ffffff; margin: 0 0 4px 0; font-size: 14px; font-weight: 600; border: none !important; padding-bottom: 12px; display: flex; align-items: center; flex-shrink: 0; }
 #errLogModal h4 .panel-close { margin-left: auto; }
-#errLogContent { flex: 1; overflow-y: auto; overflow-x: hidden; background: #08080a; border-radius: 0px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; line-height: 1.6; color: var(--red); white-space: pre-wrap; word-break: break-all; margin: 0; border: 1px solid rgba(255,255,255,0.05); }
+#errLogContent { flex: 1; overflow-y: auto; overflow-x: hidden; background: #08080a; border-radius: 0px; padding: 12px; font-family: 'JetBrains Mono', monospace; font-size: 10px; line-height: 1.6; color: var(--red); white-space: pre-wrap; word-break: break-all; margin: 0; border: none !important; }
 </style>
 <div id="errLogModal">
   <div class="window-header">
