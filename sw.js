@@ -1,4 +1,4 @@
-const CACHE_NAME = 'app-cache-v3-1791352390605';
+const CACHE_NAME = 'app-cache-v3-1791352568892';
 const ASSETS = ['./', './index.html', './manifest.json', './build-icon.png'];
 
 self.addEventListener('install', e => {
