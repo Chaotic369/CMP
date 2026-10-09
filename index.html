@@ -5122,17 +5122,8 @@ async function executeGeminiMagicEdit() {
     durationBadge.textContent = ((performance.now() - startTime) / 1000).toFixed(2) + 's';
   }, 50);
 
-  .\n\n" : "") +
-      "=== INSTRUCTIONS ===\n" + instruction + "\n\n" +
-      "=== CODE SECTION ===\n" + section;
-  ===SPLIT===
-    const promptText = SUPER_PROMPT + "\n\n" +
-      "CRITICAL RULES:\n" +
-      "1. The OLD block MUST be an EXACT copy of the characters CURRENTLY existing in the provided code below.\n" +
-      "2. Do NOT invent an imaginary OLD block.\n" +
-      "3. Format: EXACT_EXISTING_OLD_CODE\n===SPLIT===\nNEW_DESIRED_CODE\n\n" +
-      (isSubSection ? "TARGET CODE SECTION:\n" : "ENTIRE FILE:\n") + section + "\n\n" +
-      "USER REQUEST:\n" + instruction; ===SPLIT===.\n\n" : "") +
+  const promptText = SUPER_PROMPT + "\n\n" +
+    (isSubSection ? "NOTE: You are provided with the relevant target section of the file. Return EXACT find-and-replace block using ===SPLIT===.\n\n" : "") +
     "=== INSTRUCTIONS ===\n" + instruction + "\n\n" +
     "=== CODE SECTION ===\n" + section;
 
