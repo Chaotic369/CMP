@@ -829,12 +829,13 @@ select.bm-select option { background: var(--elevated); color: #fff; }
           <div class="gh-row" style="margin:0;"><label>File Path</label><input type="text" id="ghFilePath" placeholder="index.html"></div>
         </div>
 
-        <!-- Hugging Face AI Configuration -->
-        <div style="display:flex; flex-direction:column; gap:8px;">
-          <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-brain" style="margin-right:6px; color:var(--purple);"></i>AI Code Engine</span>
-          <div class="gh-row" style="margin:0;"><label>HF Token</label><input type="password" id="hfToken" placeholder="hf_xxxxxxxxxxxx"></div>
-          <div class="gh-row" style="margin:0;"><label>Model</label><input type="text" id="hfModel" placeholder="Qwen/Qwen2.5-Coder-32B-Instruct"></div>
-        </div>
+        <!-- Gemini AI Configuration -->
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-brain" style="margin-right:6px; color:var(--blue);"></i>Gemini Code Engine</span>
+              <div class="gh-row" style="margin:0;"><label>Endpoint</label><input type="text" id="aiEndpoint" placeholder="https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"></div>
+              <div class="gh-row" style="margin:0;"><label>API Key</label><input type="password" id="hfToken" placeholder="AIzaSy..."></div>
+              <div class="gh-row" style="margin:0;"><label>Model</label><input type="text" id="hfModel" placeholder="gemini-2.5-pro"></div>
+            </div>
 
     </div>
 
@@ -1512,9 +1513,10 @@ var ghBookmarkedRepos = [];
 var repoCollapsed = localStorage.getItem('repo_collapsed') === 'false' ? false : true;
 var ghConfigLoaded = false;
 
-// Hugging Face AI Vars
+// AI Engine Vars
+var aiEndpoint = localStorage.getItem('ai_endpoint_v1') || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
 var hfToken = localStorage.getItem('hf_token_v1') || '';
-var hfModel = localStorage.getItem('hf_model_v1') || 'Qwen/Qwen2.5-Coder-32B-Instruct';
+var hfModel = localStorage.getItem('hf_model_v1') || 'gemini-2.5-pro';
 
 
 
@@ -2032,8 +2034,9 @@ async function ghLoadConfigFromFirebase() {
                                                 ghFilePath = cfg.filePath || ghFilePath;
                                                 ghRepos = cfg.repos || ghRepos;
                                                 ghBookmarkedRepos = cfg.bookmarkedRepos || ghBookmarkedRepos;
-                                                hfToken = cfg.hfToken || hfToken;
-                                                hfModel = cfg.hfModel || hfModel;
+                                                aiEndpoint = cfg.aiEndpoint || aiEndpoint;
+                                                                                            hfToken = cfg.hfToken || hfToken;
+                                                                                            hfModel = cfg.hfModel || hfModel;
                         if (ghBookmarkedRepos && ghBookmarkedRepos.length > 0) {
                           ghRepo = ghBookmarkedRepos[0];
                         } else {
@@ -2088,9 +2091,10 @@ function ghSaveConfig() {
                   filePath: ghFilePath || 'index.html', 
                   repos: ghRepos || [], 
                   bookmarkedRepos: ghBookmarkedRepos || [], 
-                  hfToken: hfToken || '',
-                  hfModel: hfModel || 'Qwen/Qwen2.5-Coder-32B-Instruct',
-                  wallpaper: settings.wallpaper || '',
+                                  aiEndpoint: aiEndpoint || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+                                  hfToken: hfToken || '',
+                                  hfModel: hfModel || 'gemini-2.5-pro',
+                                  wallpaper: settings.wallpaper || '',
                   toggleBtnPos: settings.toggleBtnPos || null,
                   menuScale: settings.menuScale || 1
                 };
@@ -5058,14 +5062,15 @@ async function requestAICodePatch() {
     "=== CURRENT SOURCE ===\n" + (sourceContent ? sourceContent : "(No source loaded)");
 
   try {
-    var response = await fetch("https://router.huggingface.co/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + hfToken,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: hfModel || "Qwen/Qwen2.5-Coder-32B-Instruct",
+    var endpoint = aiEndpoint || "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+        var response = await fetch(endpoint, {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + hfToken,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: hfModel || "gemini-2.5-pro",
         messages: [
           {
             role: "system",
@@ -6098,10 +6103,12 @@ document.getElementById('ghSettingsBtn').addEventListener('click', function() {
   document.getElementById('ghUser').value = ghUser;
   document.getElementById('ghBranch').value = ghBranch;
   document.getElementById('ghFilePath').value = ghFilePath;
-  var hfTokEl = document.getElementById('hfToken');
-  var hfModEl = document.getElementById('hfModel');
-  if (hfTokEl) hfTokEl.value = hfToken;
-  if (hfModEl) hfModEl.value = hfModel || 'Qwen/Qwen2.5-Coder-32B-Instruct';
+  var aiEndEl = document.getElementById('aiEndpoint');
+    var hfTokEl = document.getElementById('hfToken');
+    var hfModEl = document.getElementById('hfModel');
+    if (aiEndEl) aiEndEl.value = aiEndpoint || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+    if (hfTokEl) hfTokEl.value = hfToken;
+    if (hfModEl) hfModEl.value = hfModel || 'gemini-2.5-pro';
   var ghPanel = document.getElementById('ghConfigPanel');
   ghPanel.classList.add('open');
   centerModal(ghPanel);
@@ -6143,16 +6150,21 @@ document.getElementById('ghSaveBtn').addEventListener('click', function() {
     ghUser = newUser;
     ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
       ghFilePath = document.getElementById('ghFilePath').value.trim() || 'index.html';
-    var hfTokEl = document.getElementById('hfToken');
-    var hfModEl = document.getElementById('hfModel');
-    if (hfTokEl) {
-      hfToken = hfTokEl.value.trim();
-      localStorage.setItem('hf_token_v1', hfToken);
-    }
-    if (hfModEl) {
-      hfModel = hfModEl.value.trim() || 'Qwen/Qwen2.5-Coder-32B-Instruct';
-      localStorage.setItem('hf_model_v1', hfModel);
-    }
+    var aiEndEl = document.getElementById('aiEndpoint');
+      var hfTokEl = document.getElementById('hfToken');
+      var hfModEl = document.getElementById('hfModel');
+      if (aiEndEl) {
+        aiEndpoint = aiEndEl.value.trim() || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+        localStorage.setItem('ai_endpoint_v1', aiEndpoint);
+      }
+      if (hfTokEl) {
+        hfToken = hfTokEl.value.trim();
+        localStorage.setItem('hf_token_v1', hfToken);
+      }
+      if (hfModEl) {
+        hfModel = hfModEl.value.trim() || 'gemini-2.5-pro';
+        localStorage.setItem('hf_model_v1', hfModel);
+      }
 
       ghSaveConfig();
   document.getElementById('ghConfigPanel').classList.remove('open');
