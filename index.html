@@ -658,9 +658,10 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                 <button id="buildApkBtn" class="btn" style="display:none;"></button>
                 <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
                 <div style="grid-column: 1 / -1; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: none; margin-top: 2px;">
-                  <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
-                  <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
-                </div>
+                                  <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
+                                  <button id="aiSendBtn" class="btn" title="Send to AI" style="color: var(--teal); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-wand-magic-sparkles" style="font-size: 6px;"></i></button>
+                                  <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
+                                </div>
     </div>
   
                                                         <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0; position: relative; max-height: 100%;">
@@ -822,11 +823,18 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     </div>
 
     <!-- Repository & Branch Target Section -->
-    <div style="display:flex; flex-direction:column; gap:8px;">
-      <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-code-branch" style="margin-right:6px;"></i>Repository Defaults</span>
-      <div class="gh-row" style="margin:0;"><label>Branch</label><input type="text" id="ghBranch" placeholder="main"></div>
-      <div class="gh-row" style="margin:0;"><label>File Path</label><input type="text" id="ghFilePath" placeholder="index.html"></div>
-    </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-code-branch" style="margin-right:6px;"></i>Repository Defaults</span>
+          <div class="gh-row" style="margin:0;"><label>Branch</label><input type="text" id="ghBranch" placeholder="main"></div>
+          <div class="gh-row" style="margin:0;"><label>File Path</label><input type="text" id="ghFilePath" placeholder="index.html"></div>
+        </div>
+
+        <!-- Hugging Face AI Configuration -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-brain" style="margin-right:6px; color:var(--purple);"></i>AI Code Engine</span>
+          <div class="gh-row" style="margin:0;"><label>HF Token</label><input type="password" id="hfToken" placeholder="hf_xxxxxxxxxxxx"></div>
+          <div class="gh-row" style="margin:0;"><label>Model</label><input type="text" id="hfModel" placeholder="Qwen/Qwen2.5-Coder-32B-Instruct"></div>
+        </div>
 
     </div>
 
@@ -1504,6 +1512,10 @@ var ghBookmarkedRepos = [];
 var repoCollapsed = localStorage.getItem('repo_collapsed') === 'false' ? false : true;
 var ghConfigLoaded = false;
 
+// Hugging Face AI Vars
+var hfToken = localStorage.getItem('hf_token_v1') || '';
+var hfModel = localStorage.getItem('hf_model_v1') || 'Qwen/Qwen2.5-Coder-32B-Instruct';
+
 
 
 let dragSrcEl = null;
@@ -1999,25 +2011,29 @@ async function ghLoadConfigFromFirebase() {
     var localBackup = null;
     try { localBackup = JSON.parse(localStorage.getItem('gh_config_backup_v2') || 'null'); } catch(e) {}
     if (localBackup) {
-                  ghToken = localBackup.token || ghToken;
-                  ghUser = localBackup.user || ghUser;
-                  ghRepo = localBackup.repo || ghRepo;
-                  ghBranch = localBackup.branch || ghBranch;
-                  ghFilePath = localBackup.filePath || ghFilePath;
-                  ghRepos = localBackup.repos || ghRepos;
-                  ghBookmarkedRepos = localBackup.bookmarkedRepos || ghBookmarkedRepos;
-                }
+                      ghToken = localBackup.token || ghToken;
+                      ghUser = localBackup.user || ghUser;
+                      ghRepo = localBackup.repo || ghRepo;
+                      ghBranch = localBackup.branch || ghBranch;
+                      ghFilePath = localBackup.filePath || ghFilePath;
+                      ghRepos = localBackup.repos || ghRepos;
+                      ghBookmarkedRepos = localBackup.bookmarkedRepos || ghBookmarkedRepos;
+                      hfToken = localBackup.hfToken || hfToken;
+                      hfModel = localBackup.hfModel || hfModel;
+                    }
 
-                  if (window._fbLoadConfig) {
-                    const cfg = await window._fbLoadConfig();
-                    console.log('[bookmarks] Firebase config loaded:', cfg);
-                    if (cfg) {
-                                            ghToken = cfg.token || ghToken;
-                                            ghUser = cfg.user || ghUser;
-                                            ghBranch = cfg.branch || ghBranch;
-                                            ghFilePath = cfg.filePath || ghFilePath;
-                                            ghRepos = cfg.repos || ghRepos;
-                                            ghBookmarkedRepos = cfg.bookmarkedRepos || ghBookmarkedRepos;
+                      if (window._fbLoadConfig) {
+                        const cfg = await window._fbLoadConfig();
+                        console.log('[bookmarks] Firebase config loaded:', cfg);
+                        if (cfg) {
+                                                ghToken = cfg.token || ghToken;
+                                                ghUser = cfg.user || ghUser;
+                                                ghBranch = cfg.branch || ghBranch;
+                                                ghFilePath = cfg.filePath || ghFilePath;
+                                                ghRepos = cfg.repos || ghRepos;
+                                                ghBookmarkedRepos = cfg.bookmarkedRepos || ghBookmarkedRepos;
+                                                hfToken = cfg.hfToken || hfToken;
+                                                hfModel = cfg.hfModel || hfModel;
                         if (ghBookmarkedRepos && ghBookmarkedRepos.length > 0) {
                           ghRepo = ghBookmarkedRepos[0];
                         } else {
@@ -2065,17 +2081,19 @@ async function ghLoadConfigFromFirebase() {
 function ghSaveConfig() {
   if (ghUser) localStorage.setItem('gh_active_user', ghUser);
   const cfg = { 
-        token: ghToken || '', 
-                user: ghUser || '', 
-                repo: ghRepo || '', 
-                branch: ghBranch || 'main', 
-                filePath: ghFilePath || 'index.html', 
-                repos: ghRepos || [], 
-                bookmarkedRepos: ghBookmarkedRepos || [], 
-                wallpaper: settings.wallpaper || '',
-                toggleBtnPos: settings.toggleBtnPos || null,
-                menuScale: settings.menuScale || 1
-              };
+          token: ghToken || '', 
+                  user: ghUser || '', 
+                  repo: ghRepo || '', 
+                  branch: ghBranch || 'main', 
+                  filePath: ghFilePath || 'index.html', 
+                  repos: ghRepos || [], 
+                  bookmarkedRepos: ghBookmarkedRepos || [], 
+                  hfToken: hfToken || '',
+                  hfModel: hfModel || 'Qwen/Qwen2.5-Coder-32B-Instruct',
+                  wallpaper: settings.wallpaper || '',
+                  toggleBtnPos: settings.toggleBtnPos || null,
+                  menuScale: settings.menuScale || 1
+                };
   try { localStorage.setItem('gh_config_backup_v2', JSON.stringify(cfg)); } catch(e) {}
   if (!ghConfigLoaded) {
     console.warn('[ghSaveConfig] Blocked Firebase save — config has not finished loading from Firebase yet.');
@@ -5010,6 +5028,92 @@ document.getElementById('payloadBtn').addEventListener('click', function() {
   });
 });
 
+async function requestAICodePatch() {
+  syncEditorToSource();
+  var instruction = document.getElementById('aiInstruction').value.trim();
+  if (!instruction) {
+    toast('⚠️ Enter instructions first', 'warn');
+    document.getElementById('aiInstruction').focus();
+    return;
+  }
+  if (!hfToken) {
+    toast('❌ Configure Hugging Face token in Settings (Config) first', 'warn');
+    document.getElementById('ghSettingsBtn').click();
+    return;
+  }
+
+  var btn = document.getElementById('aiSendBtn');
+  var origIcon = btn ? btn.innerHTML : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin" style="font-size:6px;"></i>';
+  }
+
+  showProgress(25);
+  toast('🤖 AI is drafting the code patch...', 'info', 7000);
+  addLog('info', 'Querying ' + hfModel + ' via Hugging Face Router...');
+
+  var payloadPrompt = SUPER_PROMPT + "\n\n" +
+    "=== INSTRUCTIONS ===\n" + instruction + "\n\n" +
+    "=== CURRENT SOURCE ===\n" + (sourceContent ? sourceContent : "(No source loaded)");
+
+  try {
+    var response = await fetch("https://router.huggingface.co/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + hfToken,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: hfModel || "Qwen/Qwen2.5-Coder-32B-Instruct",
+        messages: [
+          {
+            role: "system",
+            content: "You are an autonomous code surgeon. You MUST output ONLY raw combined Find-and-Replace code blocks using the ===SPLIT=== format specified in the prompt."
+          },
+          {
+            role: "user",
+            content: payloadPrompt
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 4096
+      })
+    });
+
+    if (!response.ok) {
+      var errData = await response.text();
+      throw new Error("API " + response.status + ": " + errData);
+    }
+
+    showProgress(75);
+    var data = await response.json();
+    var patchText = (data.choices && data.choices[0] && data.choices[0].message)
+      ? data.choices[0].message.content
+      : "";
+
+    if (!patchText.trim()) throw new Error("Model returned empty response.");
+
+    doPaste(patchText);
+    toast('✅ AI Patch Applied & Live Preview Updated!', 'ok', 3500);
+    document.getElementById('aiInstruction').value = '';
+  } catch (err) {
+    toast('❌ AI Patch failed: ' + err.message, 'err', 8000);
+    addLog('err', 'HF Engine Error: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origIcon;
+    }
+    hideProgress();
+  }
+}
+
+var aiSendBtn = document.getElementById('aiSendBtn');
+if (aiSendBtn) {
+  aiSendBtn.addEventListener('click', requestAICodePatch);
+}
+
 
 
 document.getElementById('fullScreenBtn').addEventListener('click', function() {
@@ -5994,6 +6098,10 @@ document.getElementById('ghSettingsBtn').addEventListener('click', function() {
   document.getElementById('ghUser').value = ghUser;
   document.getElementById('ghBranch').value = ghBranch;
   document.getElementById('ghFilePath').value = ghFilePath;
+  var hfTokEl = document.getElementById('hfToken');
+  var hfModEl = document.getElementById('hfModel');
+  if (hfTokEl) hfTokEl.value = hfToken;
+  if (hfModEl) hfModEl.value = hfModel || 'Qwen/Qwen2.5-Coder-32B-Instruct';
   var ghPanel = document.getElementById('ghConfigPanel');
   ghPanel.classList.add('open');
   centerModal(ghPanel);
@@ -6032,11 +6140,21 @@ document.getElementById('ghSaveBtn').addEventListener('click', function() {
   }
   
   ghToken = newToken;
-  ghUser = newUser;
-  ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
-    ghFilePath = document.getElementById('ghFilePath').value.trim() || 'index.html';
+    ghUser = newUser;
+    ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
+      ghFilePath = document.getElementById('ghFilePath').value.trim() || 'index.html';
+    var hfTokEl = document.getElementById('hfToken');
+    var hfModEl = document.getElementById('hfModel');
+    if (hfTokEl) {
+      hfToken = hfTokEl.value.trim();
+      localStorage.setItem('hf_token_v1', hfToken);
+    }
+    if (hfModEl) {
+      hfModel = hfModEl.value.trim() || 'Qwen/Qwen2.5-Coder-32B-Instruct';
+      localStorage.setItem('hf_model_v1', hfModel);
+    }
 
-    ghSaveConfig();
+      ghSaveConfig();
   document.getElementById('ghConfigPanel').classList.remove('open');
   document.getElementById('ghConfigPanel').style.display = 'none';
   $backdrop.classList.remove('open');
