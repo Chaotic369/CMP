@@ -1019,17 +1019,21 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                 </div>
               </div>
 
-<div id="liveEditModal" style="position: fixed; z-index: 45000; background: #0f1013; border-radius: 14px; padding: 14px 18px; color: #ffffff; font-size: 11px; width: 90vw; max-width: 460px; max-height: 70vh; display: none; flex-direction: column; gap: 8px; box-shadow: 0 16px 48px rgba(0,0,0,0.85);">
-  <div class="window-header">
-    <div class="win-title"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--teal);"></i> AI Live Stream Changes</div>
-    <span id="aiDurationBadge" style="font-size: 9px; color: var(--green); font-family: monospace; font-weight: 600;">0.00s</span>
+<div id="liveEditModal" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 45000; background: #0f1013; border-radius: 14px; padding: 14px 16px; color: #ffffff; font-size: 11px; width: 92vw; max-width: 440px; max-height: 75vh; display: none; flex-direction: column; gap: 8px; box-shadow: 0 20px 60px rgba(0,0,0,0.9); box-sizing: border-box; margin: 0;">
+  <div class="window-header" style="margin-bottom: 4px; padding-bottom: 6px;">
+    <div class="win-title" style="font-size: 11px;"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--teal); margin-right: 6px;"></i> AI Live Stream</div>
+    <span id="aiDurationBadge" style="font-size: 9px; color: var(--green); font-family: monospace; font-weight: 600; margin-left: auto; margin-right: 8px;">0.00s</span>
     <button class="panel-close" id="liveEditCloseBtn">✕</button>
   </div>
-  <div style="width: 100%; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden;">
+  <div style="width: 100%; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin-bottom: 2px;">
     <div id="aiStreamProgressBar" style="width: 0%; height: 100%; background: var(--teal); transition: width 0.1s linear;"></div>
   </div>
-  <div id="liveEditStatus" style="font-size: 10px; color: var(--blue); font-weight: 500;">Streaming response...</div>
-  <pre id="liveEditStreamBox" style="flex: 1; max-height: 220px; overflow: auto; background: #08080a; border-radius: 8px; padding: 10px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; line-height: 1.4; color: #ffffff; white-space: pre-wrap; word-break: break-all; margin: 0;"></pre>
+  <div id="liveEditStatus" style="font-size: 9.5px; color: var(--blue); font-weight: 500; min-height: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Streaming response...</div>
+  <pre id="liveEditStreamBox" style="flex: 1; min-height: 110px; max-height: 200px; overflow-y: auto; background: #08080a; border-radius: 8px; padding: 8px 10px; font-family: 'JetBrains Mono', monospace; font-size: 9px; line-height: 1.4; color: #ffffff; white-space: pre-wrap; word-break: break-all; margin: 0; border: 1px solid rgba(255,255,255,0.06);"></pre>
+  <div class="gh-actions" style="margin-top: 4px; padding-top: 0; display: flex; justify-content: flex-end; gap: 6px;">
+    <button id="liveEditApplyManualBtn" class="btn" style="width: auto; height: 24px; padding: 0 10px; font-size: 9px; color: var(--green); background: rgba(57,211,83,0.15); border: 1px solid rgba(57,211,83,0.3); border-radius: 6px;"><i class="fa-solid fa-check" style="margin-right: 4px;"></i>Apply Now</button>
+    <button id="liveEditDismissBtn" class="btn" style="width: auto; height: 24px; padding: 0 8px; font-size: 9px; color: #ffffff; background: rgba(255,255,255,0.08); border-radius: 6px;"><i class="fa-solid fa-xmark"></i></button>
+  </div>
 </div>
 
 <div id="astPanel">
@@ -1280,10 +1284,10 @@ function bringModalToFront(modal) {
     topModalZ += 2;
   if (topModalZ >= MAX_WINDOW_Z) {
             var allModals = Array.from(document.querySelectorAll(
-                              '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
-                              '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
-                                                            '#errLogModal, #buildProgressOverlay, #branchModal, #moreModal, #artifactsModal'
-                                                                ));
+                                          '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, ' +
+                                          '#wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, ' +
+                                          '#errLogModal, #buildProgressOverlay, #branchModal, #moreModal, #artifactsModal, #liveEditModal'
+                                                                            ));
           allModals.sort(function(a, b) {
       return (parseInt(window.getComputedStyle(a).zIndex) || 30000) - 
              (parseInt(window.getComputedStyle(b).zIndex) || 30000);
@@ -4129,10 +4133,10 @@ function toggleMenu() {
 $toggleBtn.addEventListener('click', function(e) { if (isDragging) return; toggleMenu(); });
 function closeTopmostModal() {
       var modalSelectors = [
-            '#astPanel', '#logPanel', '#ghConfigPanel', '#commitModal', '#newRepoModal',
-            '#wallpaperModal', '#buildModal', '#workflowsModal', '#fullTreeModal', '#bulkModal',
-            '#errLogModal', '#buildProgressOverlay', '#branchModal', '#moreModal', '#artifactsModal'
-              ];
+                  '#astPanel', '#logPanel', '#ghConfigPanel', '#commitModal', '#newRepoModal',
+                  '#wallpaperModal', '#buildModal', '#workflowsModal', '#fullTreeModal', '#bulkModal',
+                  '#errLogModal', '#buildProgressOverlay', '#branchModal', '#moreModal', '#artifactsModal', '#liveEditModal'
+                    ];
   var openModals = Array.from(document.querySelectorAll(modalSelectors.join(', '))).filter(function(m) {
     return m.classList.contains('open') || (m.style.display !== 'none' && window.getComputedStyle(m).display !== 'none');
   });
@@ -5118,8 +5122,17 @@ async function executeGeminiMagicEdit() {
     durationBadge.textContent = ((performance.now() - startTime) / 1000).toFixed(2) + 's';
   }, 50);
 
-  const promptText = SUPER_PROMPT + "\n\n" +
-    (isSubSection ? "NOTE: You are provided with the relevant target section of the file. Return EXACT find-and-replace block using ===SPLIT===.\n\n" : "") +
+  .\n\n" : "") +
+      "=== INSTRUCTIONS ===\n" + instruction + "\n\n" +
+      "=== CODE SECTION ===\n" + section;
+  ===SPLIT===
+    const promptText = SUPER_PROMPT + "\n\n" +
+      "CRITICAL RULES:\n" +
+      "1. The OLD block MUST be an EXACT copy of the characters CURRENTLY existing in the provided code below.\n" +
+      "2. Do NOT invent an imaginary OLD block.\n" +
+      "3. Format: EXACT_EXISTING_OLD_CODE\n===SPLIT===\nNEW_DESIRED_CODE\n\n" +
+      (isSubSection ? "TARGET CODE SECTION:\n" : "ENTIRE FILE:\n") + section + "\n\n" +
+      "USER REQUEST:\n" + instruction; ===SPLIT===.\n\n" : "") +
     "=== INSTRUCTIONS ===\n" + instruction + "\n\n" +
     "=== CODE SECTION ===\n" + section;
 
@@ -5176,29 +5189,57 @@ async function executeGeminiMagicEdit() {
     }
 
     clearInterval(timerInterval);
-    const totalTime = ((performance.now() - startTime) / 1000).toFixed(2);
-    durationBadge.textContent = totalTime + 's';
-    streamBar.style.width = '100%';
-    statusEl.textContent = `Completed in ${totalTime}s. Applying patch...`;
+        const totalTime = ((performance.now() - startTime) / 1000).toFixed(2);
+        durationBadge.textContent = totalTime + 's';
+        streamBar.style.width = '100%';
+        statusEl.textContent = `Completed in ${totalTime}s. Applying in editor...`;
 
-    // Apply parsed patches
-    doPaste(accumulatedText);
-    toast(`⚡ Magic Edit Applied in ${totalTime}s!`, 'ok');
-  } catch(e) {
-    clearInterval(timerInterval);
-    statusEl.textContent = 'Failed: ' + e.message;
-    toast('❌ Gemini Error: ' + e.message, 'err', 6000);
-    addLog('err', 'Gemini AI Error: ' + e.message);
-  }
-}
+        // Strip code fences if the model output wrapped backticks
+        var cleanedPatch = accumulatedText.replace(/^```[a-zA-Z0-9_\-]*\r?\n/, '').replace(/\r?\n```[\s\S]*$/, '').trim();
 
-document.getElementById('magicWandBtn').addEventListener('click', executeGeminiMagicEdit);
+        // Direct in-place apply without pushing/committing
+        doPaste(cleanedPatch);
 
-document.getElementById('liveEditCloseBtn').addEventListener('click', function() {
-  const m = document.getElementById('liveEditModal');
-  m.classList.remove('open');
-  m.style.display = 'none';
-});
+        // Keep changes flagged locally in workspace without auto-commit
+        if (window.workspaceFiles && window.workspaceFiles[ghFilePath]) {
+          window.workspaceFiles[ghFilePath].content = sourceContent;
+          window.workspaceFiles[ghFilePath].modified = true;
+        }
+        updateStatusBar();
+
+        toast(`⚡ Magic Edit Applied in ${totalTime}s! (Unsaved local edit)`, 'ok');
+      } catch(e) {
+        clearInterval(timerInterval);
+        statusEl.textContent = 'Failed: ' + e.message;
+        toast('❌ Gemini Error: ' + e.message, 'err', 6000);
+        addLog('err', 'Gemini AI Error: ' + e.message);
+      }
+    }
+
+    document.getElementById('magicWandBtn').addEventListener('click', executeGeminiMagicEdit);
+
+    function hideLiveEditModal() {
+      const m = document.getElementById('liveEditModal');
+      if (m) {
+        m.classList.remove('open');
+        m.style.display = 'none';
+      }
+    }
+
+    document.getElementById('liveEditCloseBtn').addEventListener('click', hideLiveEditModal);
+    var dismissBtn = document.getElementById('liveEditDismissBtn');
+    if (dismissBtn) dismissBtn.addEventListener('click', hideLiveEditModal);
+
+    var applyManualBtn = document.getElementById('liveEditApplyManualBtn');
+    if (applyManualBtn) {
+      applyManualBtn.addEventListener('click', function() {
+        var code = document.getElementById('liveEditStreamBox').textContent;
+        if (code) {
+          doPaste(code.replace(/^```[a-zA-Z0-9_\-]*\r?\n/, '').replace(/\r?\n```[\s\S]*$/, '').trim());
+          hideLiveEditModal();
+        }
+      });
+    }
 
 document.getElementById('payloadBtn').addEventListener('click', function() {
   syncEditorToSource();
