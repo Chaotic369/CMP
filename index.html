@@ -5232,6 +5232,14 @@ async function executeGeminiMagicEdit() {
       });
     }
 
+    (function initLiveEditModalControls() {
+      var m = document.getElementById('liveEditModal');
+      if (m) {
+        makeWindowDraggable(m);
+        makeWindowResizable(m);
+      }
+    })();
+
 document.getElementById('payloadBtn').addEventListener('click', function() {
   syncEditorToSource();
   var instruction = document.getElementById('aiInstruction').value.trim();
