@@ -657,10 +657,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                     
                 <button id="buildApkBtn" class="btn" style="display:none;"></button>
                 <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
-                <div style="grid-column: 1 / -1; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: none; margin-top: 2px;">
-                  <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
-                  <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
-                </div>
+                <div style="grid-column: 1 / -1; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 22px; padding: 0 3px 0 0; box-sizing: border-box; border: none; margin-top: 2px; gap: 2px;">
+                                  <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 6px; height: 20px; line-height: 20px;">
+                                  <button id="magicWandBtn" class="btn" title="Magic AI Edit" style="color: var(--teal); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-wand-magic-sparkles" style="font-size: 6px;"></i></button>
+                                  <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 18px; height: 18px; min-width: 18px; flex-shrink: 0; background: transparent; padding:0; margin:0; display:flex; align-items:center; justify-content:center; border-radius: 50%;"><i class="fa-solid fa-rocket" style="font-size: 6px;"></i></button>
+                                </div>
     </div>
   
                                                         <div id="bookmarkSidebar" style="display: none; flex-direction: row; gap: 8px; flex-shrink: 0; position: relative; max-height: 100%;">
@@ -822,11 +823,25 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     </div>
 
     <!-- Repository & Branch Target Section -->
-    <div style="display:flex; flex-direction:column; gap:8px;">
-      <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-code-branch" style="margin-right:6px;"></i>Repository Defaults</span>
-      <div class="gh-row" style="margin:0;"><label>Branch</label><input type="text" id="ghBranch" placeholder="main"></div>
-      <div class="gh-row" style="margin:0;"><label>File Path</label><input type="text" id="ghFilePath" placeholder="index.html"></div>
-    </div>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-code-branch" style="margin-right:6px;"></i>Repository Defaults</span>
+          <div class="gh-row" style="margin:0;"><label>Branch</label><input type="text" id="ghBranch" placeholder="main"></div>
+          <div class="gh-row" style="margin:0;"><label>File Path</label><input type="text" id="ghFilePath" placeholder="index.html"></div>
+        </div>
+
+        <!-- Gemini AI Configuration -->
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px; color:var(--teal);"></i>Gemini AI Engine</span>
+          <div class="gh-row" style="margin:0;"><label>API Key</label><input type="password" id="geminiApiKey" placeholder="AIzaSy..."></div>
+          <div class="gh-row" style="margin:0;">
+            <label>Model</label>
+            <select id="geminiModelSelect" style="flex: 1; min-width: 0; background: #08080a; border: none; color: #ffffff; padding: 7px 12px; border-radius: 10px; outline: none; font-size: 11px;">
+              <option value="gemini-2.5-flash">Gemini 2.5 Flash (Fastest)</option>
+              <option value="gemini-2.5-pro">Gemini 2.5 Pro (Reasoning)</option>
+              <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+            </select>
+          </div>
+        </div>
 
     </div>
 
@@ -980,6 +995,19 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                   <button id="bpCopyErrBtn" style="display:none; flex:1; padding:7px 12px; background:rgba(92,157,255,0.15); border:1px solid rgba(92,157,255,0.3); border-radius:8px; color:var(--blue); cursor:pointer; font-weight:600; font-size:11px; transition:all 0.2s;"><i class="fa-regular fa-copy"></i> Copy Error Log</button>
                 </div>
               </div>
+
+<div id="liveEditModal" style="position: fixed; z-index: 45000; background: #0f1013; border-radius: 14px; padding: 14px 18px; color: #ffffff; font-size: 11px; width: 90vw; max-width: 460px; max-height: 70vh; display: none; flex-direction: column; gap: 8px; box-shadow: 0 16px 48px rgba(0,0,0,0.85);">
+  <div class="window-header">
+    <div class="win-title"><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--teal);"></i> AI Live Stream Changes</div>
+    <span id="aiDurationBadge" style="font-size: 9px; color: var(--green); font-family: monospace; font-weight: 600;">0.00s</span>
+    <button class="panel-close" id="liveEditCloseBtn">✕</button>
+  </div>
+  <div style="width: 100%; height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden;">
+    <div id="aiStreamProgressBar" style="width: 0%; height: 100%; background: var(--teal); transition: width 0.1s linear;"></div>
+  </div>
+  <div id="liveEditStatus" style="font-size: 10px; color: var(--blue); font-weight: 500;">Streaming response...</div>
+  <pre id="liveEditStreamBox" style="flex: 1; max-height: 220px; overflow: auto; background: #08080a; border-radius: 8px; padding: 10px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; line-height: 1.4; color: #ffffff; white-space: pre-wrap; word-break: break-all; margin: 0;"></pre>
+</div>
 
 <div id="astPanel">
   <div class="window-header">
@@ -1493,7 +1521,7 @@ function setMenuScale(scale) {
   }
 }
 
-// GitHub Vars
+// GitHub & AI Vars
 var ghToken = '';
 var ghUser = '';
 var ghRepo = '';
@@ -1503,6 +1531,8 @@ var ghRepos = [];
 var ghBookmarkedRepos = [];
 var repoCollapsed = localStorage.getItem('repo_collapsed') === 'false' ? false : true;
 var ghConfigLoaded = false;
+var geminiApiKey = localStorage.getItem('gemini_api_key_v1') || '';
+var geminiModel = localStorage.getItem('gemini_model_v1') || 'gemini-2.5-flash';
 
 
 
@@ -1999,25 +2029,29 @@ async function ghLoadConfigFromFirebase() {
     var localBackup = null;
     try { localBackup = JSON.parse(localStorage.getItem('gh_config_backup_v2') || 'null'); } catch(e) {}
     if (localBackup) {
-                  ghToken = localBackup.token || ghToken;
-                  ghUser = localBackup.user || ghUser;
-                  ghRepo = localBackup.repo || ghRepo;
-                  ghBranch = localBackup.branch || ghBranch;
-                  ghFilePath = localBackup.filePath || ghFilePath;
-                  ghRepos = localBackup.repos || ghRepos;
-                  ghBookmarkedRepos = localBackup.bookmarkedRepos || ghBookmarkedRepos;
-                }
+                      ghToken = localBackup.token || ghToken;
+                      ghUser = localBackup.user || ghUser;
+                      ghRepo = localBackup.repo || ghRepo;
+                      ghBranch = localBackup.branch || ghBranch;
+                      ghFilePath = localBackup.filePath || ghFilePath;
+                      ghRepos = localBackup.repos || ghRepos;
+                      ghBookmarkedRepos = localBackup.bookmarkedRepos || ghBookmarkedRepos;
+                      geminiApiKey = localBackup.geminiApiKey || geminiApiKey;
+                      geminiModel = localBackup.geminiModel || geminiModel;
+                    }
 
                   if (window._fbLoadConfig) {
                     const cfg = await window._fbLoadConfig();
                     console.log('[bookmarks] Firebase config loaded:', cfg);
                     if (cfg) {
                                             ghToken = cfg.token || ghToken;
-                                            ghUser = cfg.user || ghUser;
-                                            ghBranch = cfg.branch || ghBranch;
-                                            ghFilePath = cfg.filePath || ghFilePath;
-                                            ghRepos = cfg.repos || ghRepos;
-                                            ghBookmarkedRepos = cfg.bookmarkedRepos || ghBookmarkedRepos;
+                                                                                        ghUser = cfg.user || ghUser;
+                                                                                        ghBranch = cfg.branch || ghBranch;
+                                                                                        ghFilePath = cfg.filePath || ghFilePath;
+                                                                                        ghRepos = cfg.repos || ghRepos;
+                                                                                        ghBookmarkedRepos = cfg.bookmarkedRepos || ghBookmarkedRepos;
+                                                                                        geminiApiKey = cfg.geminiApiKey || geminiApiKey;
+                                                                                        geminiModel = cfg.geminiModel || geminiModel;
                         if (ghBookmarkedRepos && ghBookmarkedRepos.length > 0) {
                           ghRepo = ghBookmarkedRepos[0];
                         } else {
@@ -2065,17 +2099,19 @@ async function ghLoadConfigFromFirebase() {
 function ghSaveConfig() {
   if (ghUser) localStorage.setItem('gh_active_user', ghUser);
   const cfg = { 
-        token: ghToken || '', 
-                user: ghUser || '', 
-                repo: ghRepo || '', 
-                branch: ghBranch || 'main', 
-                filePath: ghFilePath || 'index.html', 
-                repos: ghRepos || [], 
-                bookmarkedRepos: ghBookmarkedRepos || [], 
-                wallpaper: settings.wallpaper || '',
-                toggleBtnPos: settings.toggleBtnPos || null,
-                menuScale: settings.menuScale || 1
-              };
+          token: ghToken || '', 
+                  user: ghUser || '', 
+                  repo: ghRepo || '', 
+                  branch: ghBranch || 'main', 
+                  filePath: ghFilePath || 'index.html', 
+                  repos: ghRepos || [], 
+                  bookmarkedRepos: ghBookmarkedRepos || [], 
+                  wallpaper: settings.wallpaper || '',
+                  toggleBtnPos: settings.toggleBtnPos || null,
+                  menuScale: settings.menuScale || 1,
+                  geminiApiKey: geminiApiKey || '',
+                  geminiModel: geminiModel || 'gemini-2.5-flash'
+                };
   try { localStorage.setItem('gh_config_backup_v2', JSON.stringify(cfg)); } catch(e) {}
   if (!ghConfigLoaded) {
     console.warn('[ghSaveConfig] Blocked Firebase save — config has not finished loading from Firebase yet.');
@@ -4997,6 +5033,149 @@ document.getElementById('wpFileInput').addEventListener('change', function(e) {
 
 var SUPER_PROMPT = 'Give me the results as Combined Find-and-Replace blocks. Put the old code and the new code inside a single code block separated by exactly ===SPLIT=== on its own line so I only have to click \'copy\' once.\n\nThe 20 Surgery Scenarios You Must Handle:\nScenario 1 (The Swap): Just changing one value or line for another.\nScenario 2 (The Excision): Deleting code while keeping the rest of the file clean. The NEW block must be completely empty – no placeholder comment, no blank lines, nothing.\nScenario 3 (The Injection): "Bolting on" brand new features to existing code.\nScenario 4 (The Interceptor): Adding a safety check or a rule inside an existing process.\nScenario 5 (The Migration): Moving a button or a piece of logic from one place to another.\nScenario 6 (The Refactor): Rewriting a complex math formula or a loop to make it faster.\nScenario 7 (The Sweep): Renaming a specific word/variable everywhere it appears.\nScenario 8 (The Database Bump): Updating saved data settings so the app doesn\'t crash on old info.\nScenario 9 (The Link Shift): Changing where the app connects to (APIs, URLs, or Tokens).\nScenario 10 (The Sync): If you change the "Brain" (Web Worker), you must also fix the "Body" (Main Script).\nScenario 11 (The Layer Fix): Fixing UI issues where things are hidden or unclickable.\nScenario 12 (The Attribute Patch): For changes inside an HTML tag\'s attributes (style, class, data-*), include only that specific tag as the OLD block.\nScenario 13 (The Nuke Warning): If the requested change requires replacing more than 60% of the file, state that in plain text before any code block, then ask for confirmation.\nScenario 14 (The Encoding Fix): If pasted code contains garbled unicode, mojibake, or HTML entities used as code (& < etc), restore the correct characters before applying.\nScenario 15 (The Dedup): If a variable or function is defined more than once in the same scope after your edit, remove the duplicate. Never declare the same identifier twice.\nScenario 16 (The Guard Wrap): If adding async/await or Promise chains, always add .catch() or try/catch – never leave a Promise unhandled.\nScenario 17 (The CSS Cascade Fix): When fixing a style, check if the same property is set elsewhere (inline style, other rule) and neutralize the conflict.\nScenario 18 (The Event Leak): If removing or replacing a DOM element that had event listeners, ensure the listeners are removed first to prevent memory leaks.\nScenario 19 (The Scope Escape): If any variable declared inside a function or block with const/let gets re-executed, move it outside or convert to var.\nScenario 20 (The Rollback Hook): If your patch changes critical state logic (localStorage keys, data schema, core calculations), output a second ===BLOCK=== that is the reverse patch so it can be undone cleanly.\n\nStrict Code Rules:\n- Never convert inline <script> to external <script src="">. All JS must stay inline.\n- If the OLD block text appears more than once in the file, expand it to include enough surrounding lines to make it uniquely identifiable.\n- Never reformat or change indentation style. Match the existing tabs/spaces exactly.\n- The string ===SPLIT=== must never appear inside the OLD or NEW code itself.\n- Never leave any bracket } or parenthesis ) unclosed.\n- Never add import/require statements unless the environment already uses modules.\n- Never remove error handling that already exists.\n- Preserve all existing comments unless asked to remove them.\n\nOutput Rules:\n- Response must contain ONLY the code block(s). No warnings, no annotations, no symbols.\n- If you have a concern about the existing code, state it in plain text BEFORE the code block.\n- For multiple independent fixes, separate each OLD===SPLIT===NEW pair with ===BLOCK===.';
 
+function getFocusedCodeContext(src, instruction) {
+  if (!src) return { section: '', isSubSection: false };
+  if (src.length < 5000) return { section: src, isSubSection: false };
+
+  // If user selected code in Code View, prioritize selection
+  if (viewMode === 'code' && $codeView.selectionStart !==$codeView.selectionEnd) {
+    const sel = $codeView.value.substring($codeView.selectionStart, $codeView.selectionEnd).trim();
+    if (sel.length > 20) return { section: sel, isSubSection: true };
+  }
+
+  // Find targeted identifiers or keywords from instruction
+  const terms = (instruction || '').match(/[a-zA-Z0-9_\-\.]{4,}/g) || [];
+  for (let term of terms) {
+    let idx = src.indexOf(term);
+    if (idx !== -1) {
+      let start = Math.max(0, src.lastIndexOf('\n', Math.max(0, idx - 1200)));
+      let end = Math.min(src.length, src.indexOf('\n', Math.min(src.length, idx + 1800)));
+      if (end === -1) end = src.length;
+      return { section: src.substring(start, end), isSubSection: true };
+    }
+  }
+
+  // Fallback to tail/head preview section
+  return { section: src.substring(0, 4500), isSubSection: false };
+}
+
+async function executeGeminiMagicEdit() {
+  syncEditorToSource();
+  if (!geminiApiKey) {
+    toast('❌ Configure Gemini API Key in Settings first', 'warn');
+    document.getElementById('ghSettingsBtn').click();
+    return;
+  }
+  const instruction = document.getElementById('aiInstruction').value.trim();
+  if (!instruction) {
+    toast('❌ Enter instructions in the AI prompt box first', 'warn');
+    document.getElementById('aiInstruction').focus();
+    return;
+  }
+
+  const { section, isSubSection } = getFocusedCodeContext(sourceContent, instruction);
+  const startTime = performance.now();
+
+  const liveModal = document.getElementById('liveEditModal');
+  const streamBox = document.getElementById('liveEditStreamBox');
+  const statusEl = document.getElementById('liveEditStatus');
+  const durationBadge = document.getElementById('aiDurationBadge');
+  const streamBar = document.getElementById('aiStreamProgressBar');
+
+  streamBox.textContent = '';
+  statusEl.textContent = 'Connecting to Gemini Stream...';
+  durationBadge.textContent = '0.00s';
+  streamBar.style.width = '15%';
+
+  centerModal(liveModal);
+  bringModalToFront(liveModal);
+
+  let timerInterval = setInterval(() => {
+    durationBadge.textContent = ((performance.now() - startTime) / 1000).toFixed(2) + 's';
+  }, 50);
+
+  const promptText = SUPER_PROMPT + "\n\n" +
+    (isSubSection ? "NOTE: You are provided with the relevant target section of the file. Return EXACT find-and-replace block using ===SPLIT===.\n\n" : "") +
+    "=== INSTRUCTIONS ===\n" + instruction + "\n\n" +
+    "=== CODE SECTION ===\n" + section;
+
+  try {
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:streamGenerateContent?alt=sse&key=${geminiApiKey}`;
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: promptText }] }],
+        generationConfig: {
+          maxOutputTokens: 1500,
+          temperature: 0.2
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errDetail = await response.text();
+      throw new Error(`HTTP ${response.status}: ${errDetail}`);
+    }
+
+    statusEl.textContent = 'Streaming changes in real time...';
+    streamBar.style.width = '45%';
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+    let accumulatedText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (let line of lines) {
+        if (line.startsWith('data: ')) {
+          const jsonStr = line.replace(/^data:\s*/, '').trim();
+          if (jsonStr === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const chunk = parsed.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            if (chunk) {
+              accumulatedText += chunk;
+              streamBox.textContent = accumulatedText;
+              streamBox.scrollTop = streamBox.scrollHeight;
+              streamBar.style.width = Math.min(95, 45 + (accumulatedText.length / 30)) + '%';
+            }
+          } catch(err) {}
+        }
+      }
+    }
+
+    clearInterval(timerInterval);
+    const totalTime = ((performance.now() - startTime) / 1000).toFixed(2);
+    durationBadge.textContent = totalTime + 's';
+    streamBar.style.width = '100%';
+    statusEl.textContent = `Completed in ${totalTime}s. Applying patch...`;
+
+    // Apply parsed patches
+    doPaste(accumulatedText);
+    toast(`⚡ Magic Edit Applied in ${totalTime}s!`, 'ok');
+  } catch(e) {
+    clearInterval(timerInterval);
+    statusEl.textContent = 'Failed: ' + e.message;
+    toast('❌ Gemini Error: ' + e.message, 'err', 6000);
+    addLog('err', 'Gemini AI Error: ' + e.message);
+  }
+}
+
+document.getElementById('magicWandBtn').addEventListener('click', executeGeminiMagicEdit);
+
+document.getElementById('liveEditCloseBtn').addEventListener('click', function() {
+  const m = document.getElementById('liveEditModal');
+  m.classList.remove('open');
+  m.style.display = 'none';
+});
+
 document.getElementById('payloadBtn').addEventListener('click', function() {
   syncEditorToSource();
   var instruction = document.getElementById('aiInstruction').value.trim();
@@ -5994,6 +6173,8 @@ document.getElementById('ghSettingsBtn').addEventListener('click', function() {
   document.getElementById('ghUser').value = ghUser;
   document.getElementById('ghBranch').value = ghBranch;
   document.getElementById('ghFilePath').value = ghFilePath;
+  document.getElementById('geminiApiKey').value = geminiApiKey;
+  document.getElementById('geminiModelSelect').value = geminiModel;
   var ghPanel = document.getElementById('ghConfigPanel');
   ghPanel.classList.add('open');
   centerModal(ghPanel);
@@ -6019,6 +6200,10 @@ document.getElementById('ghClosePanelBtn').addEventListener('click', function() 
 document.getElementById('ghSaveBtn').addEventListener('click', function() {
   let newUser = document.getElementById('ghUser').value.trim();
   let newToken = document.getElementById('ghToken').value.trim();
+  geminiApiKey = document.getElementById('geminiApiKey').value.trim();
+  geminiModel = document.getElementById('geminiModelSelect').value || 'gemini-2.5-flash';
+  localStorage.setItem('gemini_api_key_v1', geminiApiKey);
+  localStorage.setItem('gemini_model_v1', geminiModel);
   
   if ((newUser !== ghUser && newUser !== '') || (newToken !== ghToken && newToken !== '')) {
     ghRepos = [];
