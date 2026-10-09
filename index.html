@@ -5019,19 +5019,113 @@ document.getElementById('wpFileInput').addEventListener('change', function(e) {
 
 var SUPER_PROMPT = 'Give me the results as Combined Find-and-Replace blocks. Put the old code and the new code inside a single code block separated by exactly ===SPLIT=== on its own line so I only have to click \'copy\' once.\n\nThe 20 Surgery Scenarios You Must Handle:\nScenario 1 (The Swap): Just changing one value or line for another.\nScenario 2 (The Excision): Deleting code while keeping the rest of the file clean. The NEW block must be completely empty – no placeholder comment, no blank lines, nothing.\nScenario 3 (The Injection): "Bolting on" brand new features to existing code.\nScenario 4 (The Interceptor): Adding a safety check or a rule inside an existing process.\nScenario 5 (The Migration): Moving a button or a piece of logic from one place to another.\nScenario 6 (The Refactor): Rewriting a complex math formula or a loop to make it faster.\nScenario 7 (The Sweep): Renaming a specific word/variable everywhere it appears.\nScenario 8 (The Database Bump): Updating saved data settings so the app doesn\'t crash on old info.\nScenario 9 (The Link Shift): Changing where the app connects to (APIs, URLs, or Tokens).\nScenario 10 (The Sync): If you change the "Brain" (Web Worker), you must also fix the "Body" (Main Script).\nScenario 11 (The Layer Fix): Fixing UI issues where things are hidden or unclickable.\nScenario 12 (The Attribute Patch): For changes inside an HTML tag\'s attributes (style, class, data-*), include only that specific tag as the OLD block.\nScenario 13 (The Nuke Warning): If the requested change requires replacing more than 60% of the file, state that in plain text before any code block, then ask for confirmation.\nScenario 14 (The Encoding Fix): If pasted code contains garbled unicode, mojibake, or HTML entities used as code (& < etc), restore the correct characters before applying.\nScenario 15 (The Dedup): If a variable or function is defined more than once in the same scope after your edit, remove the duplicate. Never declare the same identifier twice.\nScenario 16 (The Guard Wrap): If adding async/await or Promise chains, always add .catch() or try/catch – never leave a Promise unhandled.\nScenario 17 (The CSS Cascade Fix): When fixing a style, check if the same property is set elsewhere (inline style, other rule) and neutralize the conflict.\nScenario 18 (The Event Leak): If removing or replacing a DOM element that had event listeners, ensure the listeners are removed first to prevent memory leaks.\nScenario 19 (The Scope Escape): If any variable declared inside a function or block with const/let gets re-executed, move it outside or convert to var.\nScenario 20 (The Rollback Hook): If your patch changes critical state logic (localStorage keys, data schema, core calculations), output a second ===BLOCK=== that is the reverse patch so it can be undone cleanly.\n\nStrict Code Rules:\n- Never convert inline <script> to external <script src="">. All JS must stay inline.\n- If the OLD block text appears more than once in the file, expand it to include enough surrounding lines to make it uniquely identifiable.\n- Never reformat or change indentation style. Match the existing tabs/spaces exactly.\n- The string ===SPLIT=== must never appear inside the OLD or NEW code itself.\n- Never leave any bracket } or parenthesis ) unclosed.\n- Never add import/require statements unless the environment already uses modules.\n- Never remove error handling that already exists.\n- Preserve all existing comments unless asked to remove them.\n\nOutput Rules:\n- Response must contain ONLY the code block(s). No warnings, no annotations, no symbols.\n- If you have a concern about the existing code, state it in plain text BEFORE the code block.\n- For multiple independent fixes, separate each OLD===SPLIT===NEW pair with ===BLOCK===.';
 
+NEW blocks. Keep OLD chunks as small as possible to ensure fast generation."
+          },
+          {
+            role: "user",
+            content: payloadPrompt
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 1536
+      })
+    });
+
+    if (!response.ok) {
+      var errData = await response.text();
+      throw new Error("API " + response.status + ": " + errData);
+    }
+
+    showProgress(85);
+    var data = await response.json();
+    var patchText = (data.choices && data.choices[0] && data.choices[0].message)
+      ? data.choices[0].message.content
+      : "";
+
+    if (!patchText.trim()) throw new Error("Model returned empty response.");
+
+    doPaste(patchText);
+    toast('⚡ Applied in record time!', 'ok', 3000);
+    document.getElementById('aiInstruction').value = '';
+  } catch (err) {
+    toast('❌ AI Patch failed: ' + err.message, 'err', 8000);
+    addLog('err', 'AI Engine Error: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origIcon;
+    }
+    hideProgress();
+  }
+} ===SPLIT=== format specified in the prompt."
+          },
+          {
+            role: "user",
+            content: payloadPrompt
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 4096
+      })
+    });
+
+    if (!response.ok) {
+      var errData = await response.text();
+      throw new Error("API " + response.status + ": " + errData);
+    }
+
+    showProgress(75);
+    var data = await response.json();
+    var patchText = (data.choices && data.choices[0] && data.choices[0].message)
+      ? data.choices[0].message.content
+      : "";
+
+    if (!patchText.trim()) throw new Error("Model returned empty response.");
+
+    doPaste(patchText);
+    toast('✅ AI Patch Applied & Live Preview Updated!', 'ok', 3500);
+    document.getElementById('aiInstruction').value = '';
+  } catch (err) {
+    toast('❌ AI Patch failed: ' + err.message, 'err', 8000);
+    addLog('err', 'HF Engine Error: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origIcon;
+    }
+    hideProgress();
+  }
+}
+
+var aiSendBtn = document.getElementById('aiSendBtn');
+if (aiSendBtn) {
+  aiSendBtn.addEventListener('click', requestAICodePatch);
+}
+===SPLIT===
+document.getElementById('payloadBtn').addEventListener('click', function() {
+  syncEditorToSource();
+  var instruction = document.getElementById('aiInstruction').value.trim();
+  var payload = SUPER_PROMPT + "\n\n";
+  if (instruction) payload += "=== INSTRUCTIONS ===\n" + instruction + "\n\n";
+  payload += "=== CURRENT SOURCE ===\n" + (sourceContent ? sourceContent : "(No source loaded)");
+  navigator.clipboard.writeText(payload).then(function() {
+    toast('🚀 Payload Copied!');
+  }).catch(function() {
+    toast('❌ Failed to copy payload', 'err');
+  });
+});
+
 function extractRelevantContext(src, prompt) {
   if (!src) return "(No source loaded)";
   
-  // If the user selected text in the Code View, prioritize that exact snippet
   if (viewMode === 'code' && $codeView.selectionStart !== $codeView.selectionEnd) {
     var sel = $codeView.value.substring($codeView.selectionStart, $codeView.selectionEnd).trim();
     if (sel.length > 20) return "=== FOCUSED TARGET SELECTION ===\n" + sel;
   }
   
   var lines = src.split('\n');
-  if (lines.length <= 250) return src; // Small file: pass whole code
+  if (lines.length <= 250) return src;
 
-  // Extract unique identifiers/words from user instructions
   var terms = prompt.toLowerCase().match(/[a-zA-Z0-9_\-\.]{3,}/g) || [];
   var matchedLineIdxs = new Set();
   
@@ -5039,7 +5133,6 @@ function extractRelevantContext(src, prompt) {
     var lower = line.toLowerCase();
     for (var t of terms) {
       if (lower.includes(t)) {
-        // Collect 15 lines before and after matches for local scope
         for (var k = Math.max(0, idx - 15); k <= Math.min(lines.length - 1, idx + 15); k++) {
           matchedLineIdxs.add(k);
         }
@@ -5060,7 +5153,6 @@ function extractRelevantContext(src, prompt) {
     return chunks.join('\n');
   }
 
-  // Fallback: Head 120 lines + Tail 120 lines to keep request lightweight
   return lines.slice(0, 120).join('\n') + 
     "\n/* ... [Skipped Middle Lines for Low Latency] ... */\n" + 
     lines.slice(-120).join('\n');
@@ -5110,6 +5202,49 @@ async function requestAICodePatch() {
           {
             role: "system",
             content: "You are an autonomous code surgeon. Generate minimal, concise surgical diffs strictly using OLD===SPLIT===NEW blocks. Keep OLD chunks as small as possible to ensure fast generation."
+          },
+          {
+            role: "user",
+            content: payloadPrompt
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 1536
+      })
+    });
+
+    if (!response.ok) {
+      var errData = await response.text();
+      throw new Error("API " + response.status + ": " + errData);
+    }
+
+    showProgress(85);
+    var data = await response.json();
+    var patchText = (data.choices && data.choices[0] && data.choices[0].message)
+      ? data.choices[0].message.content
+      : "";
+
+    if (!patchText.trim()) throw new Error("Model returned empty response.");
+
+    doPaste(patchText);
+    toast('⚡ Applied in record time!', 'ok', 3000);
+    document.getElementById('aiInstruction').value = '';
+  } catch (err) {
+    toast('❌ AI Patch failed: ' + err.message, 'err', 8000);
+    addLog('err', 'AI Engine Error: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = origIcon;
+    }
+    hideProgress();
+  }
+}
+
+var aiSendBtn = document.getElementById('aiSendBtn');
+if (aiSendBtn) {
+  aiSendBtn.addEventListener('click', requestAICodePatch);
+}===SPLIT===NEW blocks. Keep OLD chunks as small as possible to ensure fast generation."
           },
           {
             role: "user",
@@ -6537,30 +6672,30 @@ document.getElementById('ghSaveBtn').addEventListener('click', function() {
   }
   
   ghToken = newToken;
-    ghUser = newUser;
-    ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
-      ghFilePath = document.getElementById('ghFilePath').value.trim() || 'index.html';
-    var aiEndEl = document.getElementById('aiEndpoint');
-      var hfTokEl = document.getElementById('hfToken');
-      var hfModEl = document.getElementById('hfModel');
-      if (aiEndEl) {
-        aiEndpoint = aiEndEl.value.trim() || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
-        localStorage.setItem('ai_endpoint_v1', aiEndpoint);
-      }
-      if (hfTokEl) {
-        hfToken = hfTokEl.value.trim();
-        localStorage.setItem('hf_token_v1', hfToken);
-      }
-      if (hfModEl) {
-        hfModel = hfModEl.value.trim() || 'gemini-2.5-pro';
-        localStorage.setItem('hf_model_v1', hfModel);
-      }
+  ghUser = newUser;
+  ghBranch = document.getElementById('ghBranch').value.trim() || 'main';
+  ghFilePath = document.getElementById('ghFilePath').value.trim() || 'index.html';
+  var aiEndEl = document.getElementById('aiEndpoint');
+  var hfTokEl = document.getElementById('hfToken');
+  var hfModEl = document.getElementById('hfModel');
+  if (aiEndEl) {
+    aiEndpoint = aiEndEl.value.trim() || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions';
+    localStorage.setItem('ai_endpoint_v1', aiEndpoint);
+  }
+  if (hfTokEl) {
+    hfToken = hfTokEl.value.trim();
+    localStorage.setItem('hf_token_v1', hfToken);
+  }
+  if (hfModEl) {
+    hfModel = hfModEl.value.trim() || 'gemini-2.5-flash';
+    localStorage.setItem('hf_model_v1', hfModel);
+  }
 
-      ghSaveConfig();
+  ghSaveConfig();
   document.getElementById('ghConfigPanel').classList.remove('open');
   document.getElementById('ghConfigPanel').style.display = 'none';
   $backdrop.classList.remove('open');
-  toast('💾 GitHub Settings Saved!');
+  toast('💾 Settings Saved!');
 
   if (ghToken && ghUser && ghRepos.length === 0) {
     ghFetchAllRepos();
