@@ -4934,13 +4934,12 @@ function showLockWarning() {
   }
 }
 $codeView.addEventListener('click', showLockWarning);
-$codeView.addEventListener('keydown', function(e) {
-  $codeView.addEventListener('click', showLockWarning);$codeView.addEventListener('scroll', function() {
-    if ($codeGutter)$codeGutter.scrollTop = this.scrollTop;
-  });
+$codeView.addEventListener('scroll', function() {
+  if ($codeGutter) $codeGutter.scrollTop = this.scrollTop;
+});
 
-  $codeView.addEventListener('keydown', function(e) {
-    if (isCodeLocked) {
+$codeView.addEventListener('keydown', function(e) {
+  if (isCodeLocked) {
       if (!e.ctrlKey && !e.metaKey && e.key.length === 1) {
         showLockWarning();
       }
