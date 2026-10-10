@@ -713,6 +713,35 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
                       <div id="toast"><span id="toastMsg"></span><button id="toastCopyBtn" title="Copy Error"><i class="fa-regular fa-copy"></i></button></div>
 
+                      <div id="appConfirmModal" style="position:fixed; z-index:90000; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); display:none; align-items:center; justify-content:center; padding:16px;">
+                        <div style="background:#0f1013; border-radius:14px; width:90vw; max-width:380px; padding:16px; box-shadow:0 20px 50px rgba(0,0,0,0.8); display:flex; flex-direction:column; gap:12px;">
+                          <div style="display:flex; align-items:center; gap:8px; font-weight:600; font-size:12px; color:#ffffff;">
+                            <i class="fa-solid fa-triangle-exclamation" style="color:var(--amber);"></i>
+                            <span id="appConfirmTitle">Confirmation</span>
+                          </div>
+                          <div id="appConfirmMessage" style="font-size:10px; color:rgba(255,255,255,0.75); line-height:1.5; white-space:pre-wrap; word-break:break-word;"></div>
+                          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+                            <button id="appConfirmCancelBtn" class="btn" style="width:auto; padding:0 12px; height:26px; font-size:9.5px; border-radius:7px; background:rgba(255,255,255,0.08); color:#fff;"><i class="fa-solid fa-xmark" style="margin-right:4px;"></i>Cancel</button>
+                            <button id="appConfirmOkBtn" class="btn" style="width:auto; padding:0 14px; height:26px; font-size:9.5px; border-radius:7px; font-weight:600; color:var(--red); background:rgba(248,81,73,0.18);"><i class="fa-solid fa-check" style="margin-right:4px;"></i>Confirm</button>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div id="appPromptModal" style="position:fixed; z-index:90001; inset:0; background:rgba(0,0,0,0.65); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); display:none; align-items:center; justify-content:center; padding:16px;">
+                        <div style="background:#0f1013; border-radius:14px; width:90vw; max-width:380px; padding:16px; box-shadow:0 20px 50px rgba(0,0,0,0.8); display:flex; flex-direction:column; gap:12px;">
+                          <div style="display:flex; align-items:center; gap:8px; font-weight:600; font-size:12px; color:#ffffff;">
+                            <i class="fa-solid fa-keyboard" style="color:var(--teal);"></i>
+                            <span id="appPromptTitle">Input Required</span>
+                          </div>
+                          <div id="appPromptMessage" style="font-size:10px; color:rgba(255,255,255,0.75); line-height:1.4; white-space:pre-wrap; word-break:break-word;"></div>
+                          <input type="text" id="appPromptInput" style="width:100%; background:#08080a; border:1px solid rgba(255,255,255,0.15) !important; color:#ffffff; padding:8px 12px; border-radius:8px; font-size:11px; outline:none; box-sizing:border-box; font-family:'JetBrains Mono', monospace;">
+                          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:4px;">
+                            <button id="appPromptCancelBtn" class="btn" style="width:auto; padding:0 12px; height:26px; font-size:9.5px; border-radius:7px; background:rgba(255,255,255,0.08); color:#fff;"><i class="fa-solid fa-xmark" style="margin-right:4px;"></i>Cancel</button>
+                            <button id="appPromptOkBtn" class="btn" style="width:auto; padding:0 14px; height:26px; font-size:9.5px; border-radius:7px; font-weight:600; color:var(--green); background:rgba(57,211,83,0.18);"><i class="fa-solid fa-check" style="margin-right:4px;"></i>OK</button>
+                          </div>
+                        </div>
+                      </div>
+
 
 
 <div id="wallpaperModal">
@@ -1253,6 +1282,81 @@ function base64ToUnicode(base64Str) {
   }
   return new TextDecoder('utf-8').decode(bytes);
 }
+
+// In-app asynchronous prompt & confirm replacements
+window.inAppConfirm = function(message, title = 'Confirmation') {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('appConfirmModal');
+    const msgEl = document.getElementById('appConfirmMessage');
+    const titleEl = document.getElementById('appConfirmTitle');
+    const okBtn = document.getElementById('appConfirmOkBtn');
+    const cancelBtn = document.getElementById('appConfirmCancelBtn');
+
+    if (!modal || !msgEl || !okBtn || !cancelBtn) {
+      resolve(true);
+      return;
+    }
+
+    msgEl.textContent = message;
+    if (titleEl) titleEl.textContent = title;
+    modal.style.display = 'flex';
+
+    function cleanUp(result) {
+      modal.style.display = 'none';
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      resolve(result);
+    }
+    function onOk() { cleanUp(true); }
+    function onCancel() { cleanUp(false); }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+  });
+};
+
+window.inAppPrompt = function(message, defaultValue = '', title = 'Input Required') {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('appPromptModal');
+    const msgEl = document.getElementById('appPromptMessage');
+    const titleEl = document.getElementById('appPromptTitle');
+    const input = document.getElementById('appPromptInput');
+    const okBtn = document.getElementById('appPromptOkBtn');
+    const cancelBtn = document.getElementById('appPromptCancelBtn');
+
+    if (!modal || !msgEl || !input || !okBtn || !cancelBtn) {
+      resolve(null);
+      return;
+    }
+
+    msgEl.textContent = message;
+    if (titleEl) titleEl.textContent = title;
+    input.value = defaultValue;
+    modal.style.display = 'flex';
+    setTimeout(() => { input.focus(); input.select(); }, 60);
+
+    function cleanUp(val) {
+      modal.style.display = 'none';
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      input.removeEventListener('keydown', onKey);
+      resolve(val);
+    }
+    function onOk() { cleanUp(input.value); }
+    function onCancel() { cleanUp(null); }
+    function onKey(e) {
+      if (e.key === 'Enter') { e.preventDefault(); onOk(); }
+      else if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
+    }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    input.addEventListener('keydown', onKey);
+  });
+};
+
+// Override standard browser window blockers
+window.confirm = (msg) => { console.warn('Sync confirm redirected to toast; use await inAppConfirm()'); toast(msg, 'warn'); return true; };
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CONSTANTS & STATE
@@ -2865,7 +2969,7 @@ window.renameRepo = async function(full_name, e) {
     e.stopPropagation();
     if (!ghToken) return;
     let currentName = full_name.split('/')[1];
-    let newName = prompt('Rename repository (Note: this breaks old links):', currentName);
+    let newName = await window.inAppPrompt('Rename repository (Note: this breaks old links):', currentName, 'Rename Repository');
     if (!newName || newName === currentName) return;
     showProgress(30);
     try {
@@ -2913,7 +3017,7 @@ window.executeBulkRepoDelete = async function() {
         window.toggleRepoBulkMode();
         return;
     }
-    if (!confirm(`Delete ${window.selectedBulkRepos.size} repositories? This cannot be undone.`)) return;
+    if (!(await window.inAppConfirm(`Delete ${window.selectedBulkRepos.size} repositories? This cannot be undone.`, 'Delete Repositories'))) return;
     showProgress(10);
     let deleted = 0;
     let failed = 0;
@@ -2947,7 +3051,7 @@ window.executeBulkRepoDelete = async function() {
 window.deleteRepo = async function(full_name, e) {
     e.stopPropagation();
     if (!ghToken) return;
-    let conf = prompt(`WARNING: Deleting ${full_name}.\nType the repo name to confirm:`);
+    let conf = await window.inAppPrompt(`WARNING: Deleting ${full_name}.\nType the repo name to confirm:`, '', 'Delete Repository');
     if (conf !== full_name.split('/')[1] && conf !== full_name) {
         if(conf !== null) toast('❌ Name mismatch, deletion cancelled.', 'warn');
         return;
