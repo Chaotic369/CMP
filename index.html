@@ -5147,6 +5147,231 @@ var SUPER_PROMPT = 'Give me the results as Combined Find-and-Replace blocks. Put
 ===SPLIT===
 */
 function getFocusedCodeContext(src, instruction) {
+  if (!src) return { section: '', isSubSection: false, startIndex: 0, endIndex: 0 };
+
+  // 1. If the user highlighted a chunk in Code View, edit exactly that slice
+  if (viewMode === 'code' && $codeView.selectionStart !== $codeView.selectionEnd) {
+    const sStart = $codeView.selectionStart;
+    const sEnd = $codeView.selectionEnd;
+    const sel = src.substring(sStart, sEnd);
+    if (sel.trim().length > 5) {
+      return { section: sel, isSubSection: true, startIndex: sStart, endIndex: sEnd };
+    }
+  }
+
+  // Small file: send all of it
+  if (src.length < 8000) return { section: src, isSubSection: false, startIndex: 0, endIndex: src.length };
+
+  // 2. Find a keyword from the instruction and slice a ~4KB window around it
+  const lowerSrc = src.toLowerCase();
+  const lowerInst = (instruction || '').toLowerCase();
+  const searchTerms = lowerInst.match(/[a-z0-9_\-\.]{3,}/g) || [];
+
+  for (let term of searchTerms) {
+    let target = term;
+    if (term === 'bg' || term === 'background' || term === 'theme') target = '<body';
+    const idx = lowerSrc.indexOf(target);
+    if (idx !== -1) {
+      let start = src.lastIndexOf('\n', Math.max(0, idx - 1500));
+      start = start === -1 ? 0 : start + 1;            // begin at a line start
+      let end = src.indexOf('\n', Math.min(src.length, idx + 2500));
+      if (end === -1) end = src.length;                // end just before a newline
+      return { section: src.substring(start, end), isSubSection: true, startIndex: start, endIndex: end };
+    }
+  }
+
+  // 3. Fallback: top of the file
+  let fbEnd = src.indexOf('\n', 8000);
+  if (fbEnd === -1) fbEnd = src.length;
+  return { section: src.substring(0, fbEnd), isSubSection: true, startIndex: 0, endIndex: fbEnd };
+}
+
+async function executeGeminiMagicEdit() {
+  syncEditorToSource();
+  if (!geminiApiKey) {
+    toast('❌ Configure Gemini API Key in Settings first', 'warn');
+    document.getElementById('ghSettingsBtn').click();
+    return;
+  }
+  const instruction = document.getElementById('aiInstruction').value.trim();
+  if (!instruction) {
+    toast('❌ Enter instructions in the AI prompt box first', 'warn');
+    document.getElementById('aiInstruction').focus();
+    return;
+  }
+  if (!sourceContent) {
+    toast('❌ Load a file first', 'warn');
+    return;
+  }
+
+  const ctx = getFocusedCodeContext(sourceContent, instruction);
+  const section = ctx.section;
+  const isSubSection = ctx.isSubSection;
+  const startIndex = ctx.startIndex;
+  const endIndex = ctx.endIndex;
+  const startTime = performance.now();
+
+  const liveModal = document.getElementById('liveEditModal');
+  const streamBox = document.getElementById('liveEditStreamBox');
+  const statusEl = document.getElementById('liveEditStatus');
+  const durationBadge = document.getElementById('aiDurationBadge');
+  const streamBar = document.getElementById('aiStreamProgressBar');
+
+  let cleanModelName = (geminiModel || 'gemini-2.5-flash').replace(/^models\//, '');
+  if (cleanModelName === 'custom') cleanModelName = 'gemini-2.5-flash';
+
+  streamBox.textContent = '';
+  statusEl.textContent = '[' + cleanModelName + '] Editing code directly...';
+  durationBadge.textContent = '0.00s';
+  streamBar.style.width = '15%';
+
+  centerModal(liveModal);
+  bringModalToFront(liveModal);
+
+  let timerInterval = setInterval(function() {
+    durationBadge.textContent = ((performance.now() - startTime) / 1000).toFixed(2) + 's';
+  }, 50);
+
+  const systemPrompt = "You are an automated code rewriting tool. Directly rewrite the provided code section according to the user's instructions.\n" +
+    "CRITICAL RULES:\n" +
+    "- Return the COMPLETE modified section (every line, changed or not) inside a single markdown code fence (```).\n" +
+    "- Never abbreviate, never use placeholders like '// rest of code'.\n" +
+    "- Do NOT explain, apologize, or add commentary.\n" +
+    "- Keep unchanged parts of the provided snippet exactly as they are.\n" +
+    "- Output ONLY code.";
+
+  const userPrompt = "USER INSTRUCTION:\n" + instruction + "\n\n" +
+    "TARGET CODE TO EDIT DIRECTLY:\n" + section;
+
+  try {
+    const endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' +
+      encodeURIComponent(cleanModelName) + ':streamGenerateContent?alt=sse&key=' + encodeURIComponent(geminiApiKey);
+
+    // Enough room for the whole section to come back (a too-small limit truncates and destroys code)
+    const genConfig = { maxOutputTokens: 16384, temperature: 0.1 };
+    if (cleanModelName.indexOf('2.5') !== -1) {
+      genConfig.thinkingConfig = { thinkingBudget: 0 };
+    }
+
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+        generationConfig: genConfig
+      })
+    });
+
+    if (!response.ok) {
+      const errDetail = await response.text();
+      throw new Error('HTTP ' + response.status + ': ' + errDetail);
+    }
+
+    statusEl.textContent = 'Streaming code directly...';
+    streamBar.style.width = '45%';
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+    let accumulatedText = '';
+    let finishReason = '';
+
+    function handleLine(line) {
+      line = line.trim();
+      if (line.indexOf('data:') !== 0) return;
+      const jsonStr = line.replace(/^data:\s*/, '');
+      if (!jsonStr || jsonStr === '[DONE]') return;
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const cand = parsed.candidates && parsed.candidates[0];
+        if (!cand) return;
+        if (cand.finishReason) finishReason = cand.finishReason;
+        const parts = (cand.content && cand.content.parts) || [];
+        let chunk = '';
+        for (let p of parts) { if (p.text && !p.thought) chunk += p.text; }
+        if (chunk) {
+          accumulatedText += chunk;
+          streamBox.textContent = accumulatedText;
+          streamBox.scrollTop = streamBox.scrollHeight;
+          streamBar.style.width = Math.min(95, 45 + (accumulatedText.length / 30)) + '%';
+        }
+      } catch (err) {}
+    }
+
+    while (true) {
+      const r = await reader.read();
+      if (r.done) break;
+      buffer += decoder.decode(r.value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (let line of lines) handleLine(line);
+    }
+    if (buffer) handleLine(buffer);
+
+    clearInterval(timerInterval);
+    const totalTime = ((performance.now() - startTime) / 1000).toFixed(2);
+    durationBadge.textContent = totalTime + 's';
+    streamBar.style.width = '100%';
+
+    // Safety 1: never apply a cut-off answer
+    if (finishReason && finishReason !== 'STOP') {
+      throw new Error('AI output was cut off (' + finishReason + '). Nothing applied. Try a smaller selection.');
+    }
+
+    // Extract code inside the fence
+    let newSnippet;
+    const fenceMatch = accumulatedText.match(/```[a-zA-Z0-9_\-]*[ \t]*\r?\n([\s\S]*?)\r?\n?```/);
+    if (fenceMatch) {
+      newSnippet = fenceMatch[1];
+    } else {
+      newSnippet = accumulatedText.replace(/^```[a-zA-Z0-9_\-]*\r?\n/, '').replace(/\r?\n```[\s\S]*$/, '');
+    }
+    newSnippet = newSnippet.replace(/\r\n/g, '\n');
+
+    // Keep the original section's leading/trailing whitespace so surrounding code isn't disturbed
+    const lead = (section.match(/^\s*/) || [''])[0];
+    const trail = (section.match(/\s*$/) || [''])[0];
+    newSnippet = lead + newSnippet.trim() + trail;
+
+    // Safety 2: refuse empty / suspiciously short results
+    if (!newSnippet.trim()) {
+      throw new Error('AI returned empty code. Nothing applied.');
+    }
+    if (section.length > 300 && newSnippet.length < section.length * 0.4) {
+      throw new Error('AI result is much shorter than the original (' + newSnippet.length + ' vs ' + section.length + ' chars). Nothing applied.');
+    }
+
+    statusEl.textContent = 'Completed in ' + totalTime + 's. Applied to code.';
+
+    // Save state so Undo works
+    pushState();
+
+    if (isSubSection) {
+      sourceContent = sourceContent.slice(0, startIndex) + newSnippet + sourceContent.slice(endIndex);
+    } else {
+      sourceContent = newSnippet;
+    }
+
+    render(sourceContent, false);
+    updateStatusBar();
+
+    if (window.workspaceFiles && window.workspaceFiles[ghFilePath]) {
+      window.workspaceFiles[ghFilePath].content = sourceContent;
+      window.workspaceFiles[ghFilePath].modified = true;
+    }
+
+    toast('⚡ Direct AI Edit Applied in ' + totalTime + 's! (Undo available)', 'ok');
+  } catch (e) {
+    clearInterval(timerInterval);
+    statusEl.textContent = 'Failed: ' + e.message;
+    toast('❌ Gemini Error: ' + e.message, 'err', 6000);
+    addLog('err', 'Gemini AI Error: ' + e.message);
+  }
+}
+
+/* OLD DISABLED VERSION (safe to delete)
+function getFocusedCodeContext(src, instruction) {
   if (!src) return { section: '', isSubSection: false };
   if (src.length < 10000) return { section: src, isSubSection: false };
 
