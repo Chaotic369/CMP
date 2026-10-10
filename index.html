@@ -4912,11 +4912,33 @@ let $fnrReplace = document.getElementById('fnrReplace');
 document.getElementById('searchCodeBtn').addEventListener('click', () => {
   document.getElementById('fnrPanel').style.display = 'flex';
   $codeView.style.paddingTop = '196px';
-  if ($codeGutter) $codeGutter.style.paddingTop = '196px';$fnrFind.focus();
-  if ($codeView.selectionStart !==$codeView.selectionEnd) {
-    $fnrFind.value =$codeView.value.substring($codeView.selectionStart, $codeView.selectionEnd);
+  if ($codeGutter) $codeGutter.style.paddingTop = '196px';
+  $fnrFind.focus();
+  if ($codeView.selectionStart !== $codeView.selectionEnd) {
+    $fnrFind.value = $codeView.value.substring($codeView.selectionStart, $codeView.selectionEnd);
     doCodeSearch();
   }
+});
+
+document.getElementById('gotoLineBtn').addEventListener('click', () => {
+  var numStr = prompt('Enter line number to jump to:');
+  if (!numStr) return;
+  var targetLine = parseInt(numStr, 10);
+  var lines = $codeView.value.split('\n');
+  if (isNaN(targetLine) || targetLine < 1 || targetLine > lines.length) {
+    toast('⚠️ Invalid line number', 'warn');
+    return;
+  }
+  var charIndex = 0;
+  for (var i = 0; i < targetLine - 1; i++) {
+    charIndex += lines[i].length + 1;
+  }
+  $codeView.focus();
+  $codeView.setSelectionRange(charIndex, charIndex);
+  var offset = document.getElementById('fnrPanel').style.display === 'flex' ? 100 : 18;
+  $codeView.scrollTop = (targetLine - 1) * 19 - ($codeView.clientHeight / 2) + offset;
+  if ($codeGutter) $codeGutter.scrollTop = $codeView.scrollTop;
+  toast('📍 Jumped to line ' + targetLine);
 });
 
 let isCodeLocked = true;
