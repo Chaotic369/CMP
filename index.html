@@ -4910,7 +4910,15 @@ document.getElementById('cePasteCodeBtn').addEventListener('click', async functi
   sourceContent = $codeView.value;
   $codeView.selectionStart = $codeView.selectionEnd = start + text.length;
   $codeView.focus();
-  syncEditorToSource();
+  
+  window.workspaceFiles = window.workspaceFiles || {};
+  if (ghFilePath) {
+    window.workspaceFiles[ghFilePath] = window.workspaceFiles[ghFilePath] || {};
+    window.workspaceFiles[ghFilePath].content = sourceContent;
+    window.workspaceFiles[ghFilePath].modified = true;
+  }
+  render(sourceContent, true);
+  updateStatusBar();
   toast('📋 Pasted into editor');
 });
 
