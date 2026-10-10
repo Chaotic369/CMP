@@ -2050,16 +2050,18 @@ window.renderBookmarks = function() {
 
     // Lock in any Code View edits before pushing, exporting, or checking AST
     function syncEditorToSource() {
-      if (viewMode === 'code' && $codeView.value !== sourceContent) {
-        pushState();
-        sourceContent = $codeView.value;
-        if (window.workspaceFiles && window.workspaceFiles[ghFilePath]) {
-            window.workspaceFiles[ghFilePath].content = sourceContent;
-            window.workspaceFiles[ghFilePath].modified = true;
+          if (viewMode === 'code' && $codeView.value !== sourceContent) {
+            pushState();
+            sourceContent = $codeView.value;
+            window.workspaceFiles = window.workspaceFiles || {};
+            if (ghFilePath) {
+                window.workspaceFiles[ghFilePath] = window.workspaceFiles[ghFilePath] || {};
+                window.workspaceFiles[ghFilePath].content = sourceContent;
+                window.workspaceFiles[ghFilePath].modified = true;
+            }
+            render(sourceContent, true);
+          }
         }
-        render(sourceContent, true);
-      }
-    }
 
 // Wallpaper Logic
 function applyWallpaper(url) {
@@ -5390,12 +5392,14 @@ async function executeGeminiMagicEdit() {
     render(sourceContent, false);
     updateStatusBar();
 
-    if (window.workspaceFiles && window.workspaceFiles[ghFilePath]) {
-      window.workspaceFiles[ghFilePath].content = sourceContent;
-      window.workspaceFiles[ghFilePath].modified = true;
-    }
+    window.workspaceFiles = window.workspaceFiles || {};
+        if (ghFilePath) {
+          window.workspaceFiles[ghFilePath] = window.workspaceFiles[ghFilePath] || {};
+          window.workspaceFiles[ghFilePath].content = sourceContent;
+          window.workspaceFiles[ghFilePath].modified = true;
+        }
 
-    toast('⚡ Direct AI Edit Applied in ' + totalTime + 's! (Undo available)', 'ok');
+        toast('⚡ Direct AI Edit Applied in ' + totalTime + 's! (Undo available)', 'ok');
   } catch (e) {
     clearInterval(timerInterval);
     statusEl.textContent = 'Failed: ' + e.message;
@@ -5920,11 +5924,13 @@ async function executeGeminiMagicEdit() {
         sourceContent = sourceContent.slice(0, ctx.startIndex) + newSection + sourceContent.slice(ctx.endIndex);
         render(sourceContent, false);
         updateStatusBar();
-        if (window.workspaceFiles && window.workspaceFiles[ghFilePath]) {
-          window.workspaceFiles[ghFilePath].content = sourceContent;
-          window.workspaceFiles[ghFilePath].modified = true;
-        }
-        statusEl.textContent = 'Applied ' + res.count + ' edit(s) in ' + totalTime + 's.';
+                window.workspaceFiles = window.workspaceFiles || {};
+                if (ghFilePath) {
+                  window.workspaceFiles[ghFilePath] = window.workspaceFiles[ghFilePath] || {};
+                  window.workspaceFiles[ghFilePath].content = sourceContent;
+                  window.workspaceFiles[ghFilePath].modified = true;
+                }
+                statusEl.textContent = 'Applied ' + res.count + ' edit(s) in ' + totalTime + 's.';
         toast('⚡ Applied ' + res.count + ' edit(s) in ' + totalTime + 's (Undo available)', 'ok');
       } catch (e) {
         clearInterval(timerInterval);
@@ -6322,17 +6328,21 @@ document.getElementById('exportBtn').addEventListener('click', function() {
 })();
 
 function fixEncoding(src) {
-  return src
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&nbsp;/g, ' ')
+  var text = src
     .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"');
+  if (text.indexOf('<') !== -1 && !/<[a-zA-Z!/]/.test(text)) {
+    return text
+      .replace(/&/g, '&')
+      .replace(/</g, '<')
+      .replace(/>/g, '>')
+      .replace(/"/g, '"')
+      .replace(/'/g, "'")
+      .replace(/'/g, "'")
+      .replace(/ /g, ' ');
+  }
+  return text;
 }
 
 function syncUndoRedo() {
@@ -6451,9 +6461,9 @@ function render(src, skipEditorUpdate) {
                         if (isHtmlExt || /<!doctype|<html/i.test(src)) {
                                 $pv.srcdoc = src.replace(/<head([^>]*)>/i, '<head$1>' + bridge) || bridge + src;
                               } else {
-                                var safeText = String(src).replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
-                                $pv.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8">' + bridge + '<style>body{background:transparent;color:#eee;font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;margin:0;}</style></head><body>' + safeText + '</body></html>';
-                              }
+                                                              var safeText = String(src).replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+                                                              $pv.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8">' + bridge + '<style>body{background:transparent;color:#eee;font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;margin:0;}</style></head><body>' + safeText + '</body></html>';
+                                                            }
                 } catch(e) {
       showErr('Render engine error: ' + e.message);
     }
@@ -6654,7 +6664,7 @@ if (logCloseBtnEl) {
 }
 
 function escHtml(s) {
-  return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>');
+  return String(s).replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
 }
 
 /* --- JS FIX: Using safe hex codes instead of literal backticks to stop markdown corruption --- */
@@ -6870,6 +6880,12 @@ function autoLockAndApply(parsed, blockNum) {
   }
   pushState();
   sourceContent = result.newContent;
+  window.workspaceFiles = window.workspaceFiles || {};
+  if (ghFilePath) {
+    window.workspaceFiles[ghFilePath] = window.workspaceFiles[ghFilePath] || {};
+    window.workspaceFiles[ghFilePath].content = sourceContent;
+    window.workspaceFiles[ghFilePath].modified = true;
+  }
   render(sourceContent, false);
   updateStatusBar();
   addLog('ok', 'Block ' + blockNum + ' applied.');
