@@ -4879,27 +4879,29 @@ $backdrop.addEventListener('click', function(e) {
             
 
   // VIEW MODE TOGGLE
-  document.getElementById('viewBtn').addEventListener('click', function() {
-  if (viewMode === 'preview') {
-    viewMode = 'code';
-    $pv.style.display = 'none';
-    $codeView.style.display = 'block';
-    document.getElementById('codeEditorActions').style.display = 'flex';
-    $codeView.value = sourceContent;
-    this.style.color = 'var(--amber)';
-  } else {
-      viewMode = 'preview';
-      $codeView.style.display = 'none';
-      document.getElementById('codeEditorActions').style.display = 'none';
-      document.getElementById('fnrPanel').style.display = 'none';
-      $codeView.style.paddingTop = '50px';
-      $pv.style.display = 'block';
+    document.getElementById('viewBtn').addEventListener('click', function() {
+    if (viewMode === 'preview') {
+      viewMode = 'code';
+      $pv.style.display = 'none';
+      $codeView.style.display = 'block';
+      document.getElementById('codeEditorActions').style.display = 'flex';
+      $codeView.value = sourceContent;
+      updateCodeGutter();
+      this.style.color = 'var(--amber)';
+    } else {
+        viewMode = 'preview';
+        $codeView.style.display = 'none';
+        if ($codeGutter) $codeGutter.style.display = 'none';
+        document.getElementById('codeEditorActions').style.display = 'none';
+        document.getElementById('fnrPanel').style.display = 'none';
+        $codeView.style.paddingTop = '50px';
+        $pv.style.display = 'block';
     
-      syncEditorToSource();
-    toast('Applied manual edits.');
-    this.style.color = '#ffffff';
-  }
-});
+        syncEditorToSource();
+      toast('Applied manual edits.');
+      this.style.color = '#ffffff';
+    }
+  });
 
 // Find & Replace Logic
 let fnrMatches = [];
