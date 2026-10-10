@@ -133,6 +133,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
   opacity: 0.3; cursor: not-allowed; pointer-events: none; color: rgba(255, 255, 255, 0.5);
 }
 #quickPushBtn {
+  display: none;
   color: var(--blue);
 }
 #toggleUiBtn.active {
@@ -2166,7 +2167,7 @@ async function ghLoadConfigFromFirebase() {
                   targetEl.style.bottom = 'auto';
                 }
                 document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
-                if (document.getElementById('quickPushBtn')) document.getElementById('quickPushBtn').disabled = !ghRepo || !ghToken;
+                        updateStatusBar();
         if (window.renderBookmarks) window.renderBookmarks();
       }
       ghConfigLoaded = true;
@@ -4058,12 +4059,16 @@ function updateStatusBar() {
         else { sb.textContent = 'AST: ⚠'; sb.className = 'sb-item sb-warn'; sb.style.color = ''; }
       }
 
-  var canPush = !!(ghRepo && ghToken);
-  var qPush = document.getElementById('quickPushBtn');
-  if (qPush) qPush.disabled = !canPush;
-  var gPush = document.getElementById('ghPushBtn');
-  if (gPush) gPush.disabled = !canPush;
-}
+  var hasChanges = (wsMod > 0) || (!!sourceContent && sourceContent !== lastSavedContent) || (viewMode === 'code' && !!$codeView.value && $codeView.value !== lastSavedContent);
+    var canPush = !!(ghRepo && ghToken && hasChanges);
+    var qPush = document.getElementById('quickPushBtn');
+    if (qPush) {
+      qPush.style.display = canPush ? 'flex' : 'none';
+      qPush.disabled = !canPush;
+    }
+    var gPush = document.getElementById('ghPushBtn');
+    if (gPush) gPush.disabled = !(ghRepo && ghToken);
+  }
 
     function flash(color) {
   var c = color || 'var(--green)';
@@ -4982,7 +4987,10 @@ document.getElementById('fnrClose').addEventListener('click', () => {
 });
 
 $fnrFind.addEventListener('input', doCodeSearch);
-$codeView.addEventListener('input', doCodeSearch);
+$codeView.addEventListener('input', function() {
+  doCodeSearch();
+  updateStatusBar();
+});
 function doCodeSearch() {
   let text = $codeView.value;
   let q = $fnrFind.value;
