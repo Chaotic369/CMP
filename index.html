@@ -5830,7 +5830,10 @@ async function executeGeminiMagicEdit() {
         '- Touch only lines that must change. Never repeat unchanged lines. Use the smallest range possible.\n' +
         '- New lines are raw code with NO line numbers, keeping the file\'s indentation style.\n' +
         '- Ranges must not overlap. Line numbers refer to the numbered code you were given.\n' +
-        '- No explanations, no code fences. If nothing needs to change output: @@ none';
+        '- No explanations, no code fences. If nothing needs to change output: @@ none\n' +
+                '- NEVER output <!DOCTYPE>, <html>, <head> or <body> tags. Never close or reopen <style> or <script> unless you are replacing the very line that contains it.\n' +
+                '- Put code where it belongs: CSS only inside <style>, JS only inside <script>, HTML elements only inside <body>. Before choosing a line number, look at the nearest lines above it and confirm you are inside the right block.\n' +
+                '- A feature that needs HTML and JS must be two separate @@ blocks, each placed at its own correct line. Add only what was asked and leave everything else untouched.';
 
       var userPrompt = 'INSTRUCTION:\n' + instruction + '\n\nCODE:\n' + numbered;
 
