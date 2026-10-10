@@ -570,9 +570,13 @@ select.bm-select option { background: var(--elevated); color: #fff; }
     <span class="ce-lbl">Select</span>
   </button>
   <button class="ce-action-btn" id="copyCodeBtn" title="Copy Whole Code">
-    <i class="fa-regular fa-copy"></i>
-    <span class="ce-lbl">Copy</span>
-  </button>
+      <i class="fa-regular fa-copy"></i>
+      <span class="ce-lbl">Copy</span>
+    </button>
+    <button class="ce-action-btn" id="cePasteCodeBtn" title="Paste to Editor">
+      <i class="fa-regular fa-paste"></i>
+      <span class="ce-lbl">Paste</span>
+    </button>
   <button class="ce-action-btn" id="lockCodeBtn" title="Unlock Editor" style="color:var(--amber);">
     <span id="lockCodeIcon"><i class="fa-solid fa-lock"></i></span>
     <span class="ce-lbl" id="lockCodeLbl">Lock</span>
@@ -4873,6 +4877,41 @@ document.getElementById('copyCodeBtn').addEventListener('click', function() {
   }).catch(err => {
     toast('❌ Copy failed: ' + err.message, 'err');
   });
+});
+
+document.getElementById('cePasteCodeBtn').addEventListener('click', async function() {
+  if (isCodeLocked) {
+    toast('🔒 Editor is locked. Unlock it first to paste.', 'warn');
+    return;
+  }
+  let text = '';
+  try {
+    if (window.AndroidClipboard && typeof window.AndroidClipboard.read === 'function') {
+      text = window.AndroidClipboard.read();
+    } else if (navigator.clipboard && navigator.clipboard.readText) {
+      text = await navigator.clipboard.readText();
+    } else {
+      toast('Clipboard API unavailable.', 'warn');
+      return;
+    }
+  } catch (err) {
+    toast('❌ Paste failed: ' + err.message, 'err');
+    return;
+  }
+  if (!text) {
+    toast('⚠️ Clipboard is empty', 'warn');
+    return;
+  }
+  pushState();
+  const start = $codeView.selectionStart;
+  const end = $codeView.selectionEnd;
+  const val = $codeView.value;
+  $codeView.value = val.substring(0, start) + text + val.substring(end);
+  sourceContent = $codeView.value;
+  $codeView.selectionStart = $codeView.selectionEnd = start + text.length;
+  $codeView.focus();
+  syncEditorToSource();
+  toast('📋 Pasted into editor');
 });
 
 document.getElementById('selectAllCodeBtn').addEventListener('click', function() {
