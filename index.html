@@ -111,17 +111,29 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 #menu-backdrop.dimmed { background: rgba(0, 0, 0, 0.6); }
 
 /* Action Pop Up Button */
-#toggleUiBtn {
-  position: fixed; bottom: calc(130px + 24px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 999999 !important; width: 24px; height: 24px; border-radius: 6px;
+/* Floating Action Pop Up & External Push Dock */
+#fabContainer {
+  position: fixed; bottom: calc(130px + 24px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 999999 !important;
+  display: flex; align-items: center; gap: 6px; user-select: none; touch-action: none;
+}
+.fab-btn {
+  width: 24px; height: 24px; border-radius: 6px;
   background: rgba(22, 22, 22, 0.65); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; user-select: none; touch-action: none;
-  color: #ffffff; font-size: 6px;
+  cursor: pointer; user-select: none;
+  color: #ffffff; font-size: 8px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s, color 0.2s;
 }
-#toggleUiBtn:hover {
+.fab-btn:hover {
   background: rgba(33, 33, 33, 0.75);
+}
+.fab-btn:disabled {
+  opacity: 0.3; cursor: not-allowed; pointer-events: none; color: rgba(255, 255, 255, 0.5);
+}
+#quickPushBtn {
+  color: var(--blue);
 }
 #toggleUiBtn.active {
   background: rgba(22, 22, 22, 0.85);
@@ -329,7 +341,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 :fullscreen #statusBar, :-webkit-full-screen #statusBar { display: none !important; }
 :fullscreen #codeView, :-webkit-full-screen #codeView { height: calc(100vh - env(safe-area-inset-top, 0px)) !important; height: calc(100dvh - env(safe-area-inset-top, 0px)) !important; bottom: auto !important; }
 :fullscreen #preview, :-webkit-full-screen #preview { height: calc(100vh - env(safe-area-inset-top, 0px)) !important; height: calc(100dvh - env(safe-area-inset-top, 0px)) !important; bottom: auto !important; }
-:fullscreen #toggleUiBtn, :-webkit-full-screen #toggleUiBtn { transform: scale(0.85); transform-origin: bottom right; }
+:fullscreen #fabContainer, :-webkit-full-screen #fabContainer { transform: scale(0.85); transform-origin: bottom right; }
 :fullscreen #app-menu, :-webkit-full-screen #app-menu { transform: scale(calc(var(--user-scale, 1) * 0.85)); }
 :fullscreen #fnrPanel, :-webkit-full-screen #fnrPanel { transform: scale(0.85); transform-origin: top center; }
 
@@ -610,9 +622,14 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <div id="fring"></div>
 <div id="menu-backdrop"></div>
 
-<button id="toggleUiBtn" title="Toggle Menu">
-  <i class="fa-solid fa-plus"></i>
-</button>
+<div id="fabContainer">
+  <button id="quickPushBtn" class="fab-btn" title="Push to GitHub" disabled>
+    <i class="fa-solid fa-arrow-up-from-bracket"></i>
+  </button>
+  <button id="toggleUiBtn" class="fab-btn" title="Toggle Menu">
+    <i class="fa-solid fa-plus"></i>
+  </button>
+</div>
 <div id="app-menu">
       <div id="menu-resize-handle" style="position: absolute; bottom: 0; left: 0; width: 26px; height: 26px; cursor: sw-resize; z-index: 10001; pointer-events: auto; touch-action: none;" title="Drag to Resize">
                     <div style="position: absolute; bottom: 5px; left: 5px; width: 14px; height: 14px; border-bottom: 2px solid rgba(255, 255, 255, 0.35) !important; border-left: 2px solid rgba(255, 255, 255, 0.35) !important; border-bottom-left-radius: 10px; box-shadow: none;"></div>
@@ -2135,19 +2152,21 @@ async function ghLoadConfigFromFirebase() {
                 }
                 
         if (window.self === window.top && cfg.toggleBtnPos && cfg.toggleBtnPos.left !== undefined && cfg.toggleBtnPos.top !== undefined) {
-          settings.toggleBtnPos = cfg.toggleBtnPos;
-          localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-          var margin = 15;
-          var maxX = window.innerWidth - $toggleBtn.offsetWidth - margin;
-          var maxY = window.innerHeight - $toggleBtn.offsetHeight - margin;
-          var safeX = Math.max(margin, Math.min(cfg.toggleBtnPos.left, maxX));
-          var safeY = Math.max(margin, Math.min(cfg.toggleBtnPos.top, maxY));
-          $toggleBtn.style.left = safeX + 'px';
-          $toggleBtn.style.top = safeY + 'px';
-          $toggleBtn.style.right = 'auto';
-          $toggleBtn.style.bottom = 'auto';
-        }
-        document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
+                  settings.toggleBtnPos = cfg.toggleBtnPos;
+                  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+                  var margin = 15;
+                  var targetEl = $fabContainer || $toggleBtn;
+                  var maxX = window.innerWidth - targetEl.offsetWidth - margin;
+                  var maxY = window.innerHeight - targetEl.offsetHeight - margin;
+                  var safeX = Math.max(margin, Math.min(cfg.toggleBtnPos.left, maxX));
+                  var safeY = Math.max(margin, Math.min(cfg.toggleBtnPos.top, maxY));
+                  targetEl.style.left = safeX + 'px';
+                  targetEl.style.top = safeY + 'px';
+                  targetEl.style.right = 'auto';
+                  targetEl.style.bottom = 'auto';
+                }
+                document.getElementById('ghPushBtn').disabled = !ghRepo || !ghToken;
+                if (document.getElementById('quickPushBtn')) document.getElementById('quickPushBtn').disabled = !ghRepo || !ghToken;
         if (window.renderBookmarks) window.renderBookmarks();
       }
       ghConfigLoaded = true;
@@ -3908,7 +3927,9 @@ var $errText     = document.getElementById('errText');
 var $logPanel    = document.getElementById('logPanel');
 var $logContent  = document.getElementById('logContent');
 var $progress    = document.getElementById('progressBar');
+var $fabContainer= document.getElementById('fabContainer');
 var $toggleBtn   = document.getElementById('toggleUiBtn');
+var $quickPushBtn= document.getElementById('quickPushBtn');
 var $appMenu     = document.getElementById('app-menu');
 var $backdrop    = document.getElementById('menu-backdrop');
 
@@ -4036,7 +4057,13 @@ function updateStatusBar() {
         if (broken.length === 0) { sb.textContent = 'AST: ✓'; sb.className = 'sb-item sb-ok'; sb.style.color = ''; }
         else { sb.textContent = 'AST: ⚠'; sb.className = 'sb-item sb-warn'; sb.style.color = ''; }
       }
-        }
+
+  var canPush = !!(ghRepo && ghToken);
+  var qPush = document.getElementById('quickPushBtn');
+  if (qPush) qPush.disabled = !canPush;
+  var gPush = document.getElementById('ghPushBtn');
+  if (gPush) gPush.disabled = !canPush;
+}
 
     function flash(color) {
   var c = color || 'var(--green)';
@@ -4069,34 +4096,35 @@ function syncSidebarHeightToControls() {
 }
 
 function updateMenuPosition() {
-  var rect    = $toggleBtn.getBoundingClientRect();
+  var anchor  = $fabContainer || $toggleBtn;
+  var rect    = anchor.getBoundingClientRect();
   var isRight  = (rect.left + rect.width / 2) > (window.innerWidth / 2);
   var isBottom = (rect.top  + rect.height/ 2) > (window.innerHeight/ 2);
   $appMenu.style.left   = 'auto'; $appMenu.style.right  = 'auto';
   $appMenu.style.top    = 'auto'; $appMenu.style.bottom = 'auto';
   
-  // Dynamic transform-origin so it smoothly scales out of the button
   $appMenu.style.transformOrigin = (isBottom ? 'bottom' : 'top') + ' ' + (isRight ? 'right' : 'left');
   
-  // Adjusted offsets to be closer to the button
   if (isRight) { $appMenu.style.right  = (window.innerWidth - rect.right + 10) + 'px'; }
   else         { $appMenu.style.left   = (rect.left + 10) + 'px'; }
   
   if (isBottom) { $appMenu.style.bottom = (window.innerHeight - rect.top + 10) + 'px'; }
-    else          { $appMenu.style.top    = (rect.bottom - 10) + 'px'; }
+  else          { $appMenu.style.top    = (rect.bottom - 10) + 'px'; }
 
-    syncSidebarHeightToControls();
-      }
+  syncSidebarHeightToControls();
+}
 
-    $toggleBtn.addEventListener('pointerdown', function(e) {
+var dragTarget = $fabContainer || $toggleBtn;
+dragTarget.addEventListener('pointerdown', function(e) {
+  if (e.target.closest('#quickPushBtn')) return;
   isDragging  = false;
   dragStartX  = e.clientX; dragStartY  = e.clientY;
-  var rect    = $toggleBtn.getBoundingClientRect();
+  var rect    = dragTarget.getBoundingClientRect();
   initialBtnX = rect.left; initialBtnY = rect.top;
-  try { if($toggleBtn.setPointerCapture) { $toggleBtn.setPointerCapture(e.pointerId); } } catch(err) {}
-  $toggleBtn.addEventListener('pointermove', onPtrMove);
-  $toggleBtn.addEventListener('pointerup',   onPtrUp);
-  $toggleBtn.addEventListener('pointercancel', onPtrUp);
+  try { if(dragTarget.setPointerCapture) { dragTarget.setPointerCapture(e.pointerId); } } catch(err) {}
+  dragTarget.addEventListener('pointermove', onPtrMove);
+  dragTarget.addEventListener('pointerup',   onPtrUp);
+  dragTarget.addEventListener('pointercancel', onPtrUp);
 });
 function onPtrMove(e) {
   var dx = e.clientX - dragStartX, dy = e.clientY - dragStartY;
@@ -4110,41 +4138,49 @@ function onPtrMove(e) {
         
         var minX = margin;
         var minY = margin;
-        var maxX = window.innerWidth - $toggleBtn.offsetWidth - margin;
-                var maxY = window.innerHeight - 24 - $toggleBtn.offsetHeight - margin;
+        var maxX = window.innerWidth - dragTarget.offsetWidth - margin;
+        var maxY = window.innerHeight - 24 - dragTarget.offsetHeight - margin;
         
         if ($appMenu.classList.contains('open')) {
-            var isRight = (initialBtnX + dx + $toggleBtn.offsetWidth / 2) > (window.innerWidth / 2);
-            var isBottom = (initialBtnY + dy + $toggleBtn.offsetHeight / 2) > (window.innerHeight / 2);
+            var isRight = (initialBtnX + dx + dragTarget.offsetWidth / 2) > (window.innerWidth / 2);
+            var isBottom = (initialBtnY + dy + dragTarget.offsetHeight / 2) > (window.innerHeight / 2);
             
             if (isRight) { minX = Math.max(minX, menuW); }
-            else { maxX = Math.min(maxX, window.innerWidth - menuW - $toggleBtn.offsetWidth); }
+            else { maxX = Math.min(maxX, window.innerWidth - menuW - dragTarget.offsetWidth); }
             
             if (isBottom) { minY = Math.max(minY, menuH); }
-            else { maxY = Math.min(maxY, window.innerHeight - menuH - $toggleBtn.offsetHeight); }
+            else { maxY = Math.min(maxY, window.innerHeight - menuH - dragTarget.offsetHeight); }
         }
 
         var newX = Math.max(minX, Math.min(initialBtnX + dx, maxX));
         var newY = Math.max(minY, Math.min(initialBtnY + dy, maxY));
         
-        $toggleBtn.style.left = newX + 'px'; $toggleBtn.style.top  = newY + 'px';
-                $toggleBtn.style.right = 'auto'; $toggleBtn.style.bottom = 'auto';
-                if ($appMenu.classList.contains('open')) updateMenuPosition();
-                                window.dragAnimationFrame = null;
-              });
-            }
+        dragTarget.style.left = newX + 'px'; dragTarget.style.top  = newY + 'px';
+        dragTarget.style.right = 'auto'; dragTarget.style.bottom = 'auto';
+        if ($appMenu.classList.contains('open')) updateMenuPosition();
+        window.dragAnimationFrame = null;
+      });
+    }
   }
 }
 function onPtrUp(e) {
-  $toggleBtn.removeEventListener('pointermove', onPtrMove);
-  $toggleBtn.removeEventListener('pointerup',   onPtrUp);
-  $toggleBtn.removeEventListener('pointercancel', onPtrUp);
+  dragTarget.removeEventListener('pointermove', onPtrMove);
+  dragTarget.removeEventListener('pointerup',   onPtrUp);
+  dragTarget.removeEventListener('pointercancel', onPtrUp);
   if (isDragging && window.self === window.top) {
-    var rect = $toggleBtn.getBoundingClientRect();
+    var rect = dragTarget.getBoundingClientRect();
     settings.toggleBtnPos = { left: rect.left, top: rect.top };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     ghSaveConfig();
   }
+}
+
+if ($quickPushBtn) {
+  $quickPushBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    if (isDragging) return;
+    document.getElementById('ghPushBtn').click();
+  });
 }
 function toggleMenu() {
   var isOpen = $appMenu.classList.toggle('open');
