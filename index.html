@@ -1631,6 +1631,36 @@ window.toggleBookmarkRepo = function(r, e) {
     if(window.renderBookmarks) window.renderBookmarks();
 };
 
+window._wsStore = window._wsStore || {};
+window._wsRepo = window._wsRepo || '';
+window.ensureWsRepo = function() {
+    if (!window._wsRepo) { window._wsRepo = ghRepo; return; }
+    if (window._wsRepo === ghRepo) return;
+    window._wsStore[window._wsRepo] = window.workspaceFiles || {};
+    window.workspaceFiles = window._wsStore[ghRepo] || {};
+    window._wsRepo = ghRepo;
+};
+window.stashCurrentRepoWork = function() {
+    window.ensureWsRepo();
+    try { syncEditorToSource(); } catch (e) {}
+    if (sourceContent && ghFilePath && sourceContent !== lastSavedContent) {
+        window.workspaceFiles[ghFilePath] = { content: sourceContent, modified: true };
+    }
+};
+window.resetEditorForRepoSwitch = function() {
+    window.ensureWsRepo();
+    sourceContent = '';
+    lastSavedContent = '';
+    undoStack = [];
+    redoStack = [];
+    ghFilePath = '';
+    $codeView.value = '';
+    var fp = document.getElementById('ghFilePath');
+    if (fp) fp.value = '';
+    render('', false);
+    syncUndoRedo();
+};
+
 window.switchRepo = function(r) {
     if (ghRepo === r) return;
     
@@ -1645,7 +1675,9 @@ window.switchRepo = function(r) {
     document.querySelectorAll('#repoTabsContainer .repo-item').forEach(el => el.classList.remove('active'));
     
     setTimeout(() => {
-        ghRepo = r;
+            window.stashCurrentRepoWork();
+            ghRepo = r;
+            window.resetEditorForRepoSwitch();
         currentDirectory = '';
         ghSaveConfig();
         renderRepoTabs();
@@ -3578,13 +3610,15 @@ async function fetchFileTree(autoLoad = false, silent = false) {
                ghBranch = window._branchCache[ghRepo];
             }
 
-            const res = await fetch(`https://api.github.com/repos/${ghRepo}/git/trees/${ghBranch}?recursive=1`, {
+            const _treeRepo = ghRepo;
+                        const res = await fetch(`https://api.github.com/repos/${ghRepo}/git/trees/${ghBranch}?recursive=1`, {
                                 headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
                             });
         if (!res.ok) throw new Error('Tree fetch failed');
         const data = await res.json();
         
-        const IGNORED = ['node_modules/', '.git/', '.gradle/', 'build/', 'dist/', '.next/', 'vendor/', '.cache/'];
+        if (_treeRepo !== ghRepo) return;
+                const IGNORED = ['node_modules/', '.git/', '.gradle/', 'build/', 'dist/', '.next/', 'vendor/', '.cache/'];
         currentTreeFiles = data.tree.filter(t => t.type === 'blob' && !IGNORED.some(dir => t.path.includes(dir)));
         window._treeCache[ghRepo] = currentTreeFiles;
         
@@ -5248,7 +5282,7 @@ async function executeGeminiMagicEdit() {
       encodeURIComponent(cleanModelName) + ':streamGenerateContent?alt=sse&key=' + encodeURIComponent(geminiApiKey);
 
     // Enough room for the whole section to come back (a too-small limit truncates and destroys code)
-    const genConfig = { maxOutputTokens: 16384, temperature: 0.1 };
+    const genConfig = { temperature: 0.1 };
     if (cleanModelName.indexOf('2.5') !== -1) {
       genConfig.thinkingConfig = { thinkingBudget: 0 };
     }
@@ -5767,7 +5801,7 @@ async function executeGeminiMagicEdit() {
       try {
         var endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' +
           encodeURIComponent(cleanModelName) + ':streamGenerateContent?alt=sse&key=' + encodeURIComponent(geminiApiKey);
-        var genConfig = { maxOutputTokens: 4096, temperature: 0 };
+        var genConfig = { temperature: 0 };
         if (cleanModelName.indexOf('2.5') !== -1) genConfig.thinkingConfig = { thinkingBudget: 0 };
 
         var response = await fetch(endpoint, {
@@ -7152,6 +7186,8 @@ document.getElementById('ghFetchReposBtn').addEventListener('click', function() 
 });
 
 window.syncCurrentFile = async function() {
+  window.ensureWsRepo();
+  var _reqRepo = ghRepo, _reqFile = ghFilePath;
   if (!ghToken || !ghRepo) { toast('❌ Configure GitHub settings and select a repo first.', 'warn'); return; }
   showProgress(20);
   try {
@@ -7173,6 +7209,7 @@ window.syncCurrentFile = async function() {
 
       const url = `https://api.github.com/repos/${ghRepo}/contents/${ghFilePath}?ref=${ghBranch}`;
       const res = await fetch(url, { headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' } });
+            if (_reqRepo !== ghRepo || _reqFile !== ghFilePath) { hideProgress(); return; }
     
     if (!res.ok) {
         if (res.status === 404) {
@@ -8501,7 +8538,9 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                                       return;
                                                   }
                                                   if (ghRepo !== r) {
-                                                      ghRepo = r;
+                                                  window.stashCurrentRepoWork();
+                                                  ghRepo = r;
+                                                  window.resetEditorForRepoSwitch();
                                                       currentDirectory = '';
                                                       ghSaveConfig();
                                                       renderRepoTabs();
