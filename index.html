@@ -5920,7 +5920,9 @@ async function executeGeminiMagicEdit() {
         var endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/' +
           encodeURIComponent(cleanModelName) + ':streamGenerateContent?alt=sse&key=' + encodeURIComponent(geminiApiKey);
         var genConfig = { temperature: 0 };
-                if (cleanModelName.indexOf('2.5') !== -1) genConfig.thinkingConfig = { thinkingBudget: 0 };
+                if (cleanModelName.includes('2.5') || cleanModelName.includes('3.1')) {
+                  genConfig.thinkingConfig = { thinkingBudget: 0 };
+                }
 
         var response = await fetch(endpoint, {
                   method: 'POST',
