@@ -5122,51 +5122,8 @@ async function executeGeminiMagicEdit() {
     durationBadge.textContent = ((performance.now() - startTime) / 1000).toFixed(2) + 's';
   }, 50);
 
-  .\n\n" : "") +
-      "=== INSTRUCTIONS ===\n" + instruction + "\n\n" +
-      "=== CODE SECTION ===\n" + section;
-
-    try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(cleanModelName)}:streamGenerateContent?alt=sse&key=${geminiApiKey}`;
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: promptText }] }],
-          generationConfig: {
-            maxOutputTokens: 1500,
-            temperature: 0.2
-          }
-        })
-      });
-  ===SPLIT===
-    const systemText = SUPER_PROMPT + "\n\n" +
-      "CRITICAL RULES FOR EXTREME SPEED:\n" +
-      "1. NEVER RETURN THE FULL FILE. ONLY output the specific lines that are changing.\n" +
-      "2. Keep the OLD block AS SMALL AS POSSIBLE (ideally 1 to 5 lines). It MUST exactly match existing text.\n" +
-      "3. NEVER use markdown code fences (```). Output plain text only.\n" +
-      "4. Format strictly:\n" +
-      "EXACT_EXISTING_OLD_BLOCK\n" +
-      "===SPLIT===\n" +
-      "NEW_REPLACEMENT_BLOCK";
-
-    const userText = (isSubSection ? "=== RELEVANT CODE SECTION ===\n" : "=== FULL SOURCE CODE ===\n") + section + "\n\n" +
-      "=== USER CHANGE REQUEST ===\n" + instruction;
-
-    try {
-      const endpoint = `[https://generativelanguage.googleapis.com/v1beta/models/$](https://generativelanguage.googleapis.com/v1beta/models/$){encodeURIComponent(cleanModelName)}:streamGenerateContent?alt=sse&key=${geminiApiKey}`;
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: systemText }] },
-          contents: [{ role: 'user', parts: [{ text: userText }] }],
-          generationConfig: {
-            maxOutputTokens: 800,
-            temperature: 0.0
-          }
-        })
-      }); ===SPLIT===.\n\n" : "") +
+  const promptText = SUPER_PROMPT + "\n\n" +
+    (isSubSection ? "NOTE: You are provided with the relevant target section of the file. Return EXACT find-and-replace block using ===SPLIT===.\n\n" : "") +
     "=== INSTRUCTIONS ===\n" + instruction + "\n\n" +
     "=== CODE SECTION ===\n" + section;
 
