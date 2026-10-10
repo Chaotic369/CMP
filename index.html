@@ -1663,6 +1663,19 @@ window.resetEditorForRepoSwitch = function() {
     $codeView.value = '';
     var fp = document.getElementById('ghFilePath');
     if (fp) fp.value = '';
+    
+    // Force reset UI mode back to clean preview state
+    viewMode = 'preview';
+    var viewBtn = document.getElementById('viewBtn');
+    if (viewBtn) viewBtn.style.color = '#ffffff';
+    $codeView.style.display = 'none';
+    var ceActions = document.getElementById('codeEditorActions');
+    if (ceActions) ceActions.style.display = 'none';
+    var fnr = document.getElementById('fnrPanel');
+    if (fnr) fnr.style.display = 'none';
+    $pv.srcdoc = '';
+    $pv.style.display = 'none';
+    
     render('', false);
     syncUndoRedo();
 };
@@ -6482,27 +6495,38 @@ function render(src, skipEditorUpdate) {
   clearTimeout(renderTimer);
   document.getElementById('sb-status').textContent = 'rendering…';
   
+  var isHtml = fileName && (fileName.toLowerCase().endsWith('.html') || fileName.toLowerCase().endsWith('.htm')) || /<!doctype|<html/i.test(src || '');
+
   if (!src) {
-            $pv.style.display = 'none';
-            $codeView.style.display = 'none';
-            document.getElementById('emptyState').style.display = 'flex';
-            document.getElementById('codeEditorActions').style.display = 'none';
-            document.getElementById('fnrPanel').style.display = 'none';
-            $codeView.style.paddingTop = '46px';
-        } else {
-            document.getElementById('emptyState').style.display = 'none';
-            if (viewMode === 'preview') {
-                $pv.style.display = 'block';
-                $codeView.style.display = 'none';
-                document.getElementById('codeEditorActions').style.display = 'none';
-                document.getElementById('fnrPanel').style.display = 'none';
-                $codeView.style.paddingTop = '46px';
-            } else {
-                $pv.style.display = 'none';
-              $codeView.style.display = 'block';
-              document.getElementById('codeEditorActions').style.display = 'flex';
-          }
+    $pv.style.display = 'none';
+    $pv.srcdoc = '';
+    $codeView.style.display = 'none';
+    document.getElementById('emptyState').style.display = 'flex';
+    document.getElementById('codeEditorActions').style.display = 'none';
+    document.getElementById('fnrPanel').style.display = 'none';
+    $codeView.style.paddingTop = '46px';
+  } else {
+    document.getElementById('emptyState').style.display = 'none';
+    if (viewMode === 'preview') {
+      if (!isHtml) {
+        // If file is not HTML, gracefully render syntax wrapper instead of broken raw blank frame
+        $pv.style.display = 'block';
+        $codeView.style.display = 'none';
+        document.getElementById('codeEditorActions').style.display = 'none';
+        document.getElementById('fnrPanel').style.display = 'none';
+      } else {
+        $pv.style.display = 'block';
+        $codeView.style.display = 'none';
+        document.getElementById('codeEditorActions').style.display = 'none';
+        document.getElementById('fnrPanel').style.display = 'none';
+        $codeView.style.paddingTop = '46px';
       }
+    } else {
+      $pv.style.display = 'none';
+      $codeView.style.display = 'block';
+      document.getElementById('codeEditorActions').style.display = 'flex';
+    }
+  }
   
   if (!skipEditorUpdate && $codeView.value !== src) {
     $codeView.value = src;
@@ -6534,13 +6558,19 @@ function render(src, skipEditorUpdate) {
               '</scr' + 'ipt>'
             ].join('');
 
-            var isHtmlExt = fileName && (fileName.toLowerCase().endsWith('.html') || fileName.toLowerCase().endsWith('.htm'));
+            if (!src) {
+                          $pv.srcdoc = '';
+                          document.getElementById('sb-status').textContent = 'ready';
+                          updateStatusBar();
+                          return;
+                        }
+                        var isHtmlExt = fileName && (fileName.toLowerCase().endsWith('.html') || fileName.toLowerCase().endsWith('.htm'));
                         if (isHtmlExt || /<!doctype|<html/i.test(src)) {
-                                $pv.srcdoc = src.replace(/<head([^>]*)>/i, '<head$1>' + bridge) || bridge + src;
-                              } else {
-                                                              var safeText = String(src).replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
-                                                              $pv.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8">' + bridge + '<style>body{background:transparent;color:#eee;font-family:monospace;padding:20px;white-space:pre-wrap;word-break:break-all;margin:0;}</style></head><body>' + safeText + '</body></html>';
-                                                            }
+                          $pv.srcdoc = src.replace(/<head([^>]*)>/i, '<head$1>' + bridge) || (bridge + src);
+                        } else {
+                          var safeText = String(src).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                          $pv.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8">' + bridge + '<style>body{background:#08080a;color:#ffffff;font-family:"JetBrains Mono",monospace;font-size:12px;padding:24px;white-space:pre-wrap;word-break:break-word;margin:0;box-sizing:border-box;}</style></head><body>' + safeText + '</body></html>';
+                        }
                 } catch(e) {
       showErr('Render engine error: ' + e.message);
     }
