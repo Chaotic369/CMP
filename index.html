@@ -6715,10 +6715,12 @@ function render(src, skipEditorUpdate) {
   }
   
   if (!skipEditorUpdate && $codeView.value !== src) {
-    $codeView.value = src;
-  }
+      $codeView.value = src;
+    }
   
-  renderTimer = setTimeout(function() {
+    updateCodeGutter();
+  
+    renderTimer = setTimeout(function() {
       if (currentNestingDepth >= MAX_NESTING_DEPTH) {
         document.getElementById('sb-status').textContent = 'preview capped';
         return;
