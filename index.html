@@ -5101,7 +5101,7 @@ var SUPER_PROMPT = 'Give me the results as Combined Find-and-Replace blocks. Put
 
       for (let line of lines) {
         if (line.startsWith('data: ')) {
-          const jsonStr = line.replace(/^data:\s*/, '').trim();
+          const jsonStr = line.replace(/^data:\s+/, '').trim();
           if (jsonStr === '[DONE]') continue;
           try {
             const parsed = JSON.parse(jsonStr);
@@ -5267,7 +5267,7 @@ async function executeGeminiMagicEdit() {
 
       for (let line of lines) {
         if (line.startsWith('data: ')) {
-          const jsonStr = line.replace(/^data:\s*/, '').trim();
+          const jsonStr = line.replace(/^data:\s+/, '').trim();
           if (jsonStr === '[DONE]') continue;
           try {
             const parsed = JSON.parse(jsonStr);
@@ -5350,7 +5350,7 @@ async function executeGeminiMagicEdit() {
 
       for (let line of lines) {
         if (line.startsWith('data: ')) {
-          const jsonStr = line.replace(/^data:\s*/, '').trim();
+          const jsonStr = line.replace(/^data:\s+/, '').trim();
           if (jsonStr === '[DONE]') continue;
           try {
             const parsed = JSON.parse(jsonStr);
