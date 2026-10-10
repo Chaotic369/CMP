@@ -3084,7 +3084,7 @@ window.deleteRepo = async function(full_name, e) {
 
 window.createNewFile = async function() {
     if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
-    let path = prompt('Enter new file path (append / to create a folder):');
+    let path = await window.inAppPrompt('Enter new file path (append / to create a folder):', '', 'New File');
     if (!path) return;
     path = path.trim();
     if (path.endsWith('/')) path += '.gitkeep';
@@ -3127,7 +3127,7 @@ window.createNewFile = async function() {
 
                         window.createNewFileInDir = async function() {
                             if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
-                            let fileName = prompt('Enter file name (append / to create a folder)' + (currentDirectory ? ` in ${currentDirectory}/ :` : ':'));
+                            let fileName = await window.inAppPrompt('Enter file name (append / to create a folder)' + (currentDirectory ? ` in ${currentDirectory}/ :` : ':'), '', 'New File In Directory');
                             if (!fileName) return;
                             fileName = fileName.trim();
                             if (fileName.endsWith('/')) fileName += '.gitkeep';
@@ -3300,7 +3300,7 @@ window.renameFile = async function(path, e) {
     e.stopPropagation();
     if (!ghToken) return;
     let name = path.split('/').pop();
-    let newName = prompt('Rename file:', name);
+    let newName = await window.inAppPrompt('Rename file:', name, 'Rename File');
     if (!newName || newName === name) return;
     
     let newPath = path.substring(0, path.lastIndexOf(name)) + newName;
@@ -3339,7 +3339,7 @@ window.renameFile = async function(path, e) {
 window.deleteFile = async function(path, e) {
     e.stopPropagation();
     if (!ghToken) return;
-    if (!confirm(`Delete ${path}? This cannot be undone.`)) return;
+    if (!(await window.inAppConfirm(`Delete ${path}? This cannot be undone.`, 'Delete File'))) return;
     showProgress(30);
     try {
         let getRes = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}?ref=${ghBranch}`, { headers: { Authorization: `token ${ghToken}` }});
@@ -3373,7 +3373,7 @@ window.deleteFile = async function(path, e) {
             e.stopPropagation();
             if (!ghToken) return;
             let filesToDelete = currentTreeFiles.filter(f => f.path.startsWith(dirPath + '/'));
-            if (!confirm(`Delete folder '${dirPath}' and its ${filesToDelete.length} file(s)? This cannot be undone.`)) return;
+            if (!(await window.inAppConfirm(`Delete folder '${dirPath}' and its ${filesToDelete.length} file(s)? This cannot be undone.`, 'Delete Folder'))) return;
     
             showProgress(10);
             let deleted = 0;
@@ -4453,8 +4453,8 @@ $backdrop.addEventListener('click', function(e) {
   };
 
   window.deployBranch = async function(branchName, e) {
-      if (e) e.stopPropagation();
-      if (!confirm(`Deploy the '${branchName}' branch to your live site?`)) return;
+        if (e) e.stopPropagation();
+        if (!(await window.inAppConfirm(`Deploy the '${branchName}' branch to your live site?`, 'Deploy Branch'))) return;
     
       showProgress(30);
       toast(`⏳ Configuring Pages to deploy '${branchName}'...`, 'info');
@@ -4566,8 +4566,8 @@ $backdrop.addEventListener('click', function(e) {
   });
 
   window.deleteBranch = async function(branchName, e) {
-    if (e) e.stopPropagation();
-    if (!confirm(`Delete remote branch '${branchName}'? This cannot be undone.`)) return;
+      if (e) e.stopPropagation();
+      if (!(await window.inAppConfirm(`Delete remote branch '${branchName}'? This cannot be undone.`, 'Delete Branch'))) return;
     showProgress(30);
     try {
       const res = await fetch(`https://api.github.com/repos/${ghRepo}/git/refs/heads/${branchName}`, {
@@ -5024,8 +5024,8 @@ document.getElementById('searchCodeBtn').addEventListener('click', () => {
   }
 });
 
-document.getElementById('gotoLineBtn').addEventListener('click', () => {
-  var numStr = prompt('Enter line number to jump to:');
+document.getElementById('gotoLineBtn').addEventListener('click', async () => {
+  var numStr = await window.inAppPrompt('Enter line number to jump to:', '', 'Jump To Line');
   if (!numStr) return;
   var targetLine = parseInt(numStr, 10);
   var lines = $codeView.value.split('\n');
