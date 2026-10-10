@@ -5172,6 +5172,7 @@ $fnrFind.addEventListener('input', doCodeSearch);
 $codeView.addEventListener('input', function() {
   doCodeSearch();
   updateStatusBar();
+  updateCodeGutter();
 });
 function doCodeSearch() {
   let text = $codeView.value;
