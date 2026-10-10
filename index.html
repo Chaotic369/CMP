@@ -194,26 +194,31 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #bookmarkSidebar > div:last-child > button.btn {
   background: transparent;
   width: auto;
-  min-width: 18px;
+  min-width: 15px;
   height: auto;
-  min-height: 20px;
+  min-height: 18px;
   flex-direction: column;
   gap: 1px;
-  padding: 2px 2px;
+  padding: 1px 1px;
 }
 #repoSidebar > div:first-child > button.btn .btn-lbl {
-  max-width: 24px;
+  max-width: 20px;
+  font-size: 4px;
+  line-height: 1;
+}
+#repoSidebar > div:first-child > button.btn i {
+  font-size: 5px;
 }
 #repoSidebar > div:first-child > button.btn:hover,
 #bookmarkSidebar > div:last-child > button.btn:hover {
   background: rgba(255, 255, 255, 0.1);
 }
 
-#repoToggleBtn { font-weight: bold; width: 18px; font-size: 6px; }
-#repoAddBtn { width: 18px; font-size: 6px; color: var(--green); }
-#fileAddBtn { width: 18px; font-size: 6px; color: var(--amber); }
-#fileUploadBtn { width: 18px; font-size: 6px; color: var(--blue); }
-#bulkFileAddBtn { width: 18px; font-size: 6px; color: var(--purple); }
+#repoToggleBtn { font-weight: bold; width: 15px; font-size: 5px; }
+#repoAddBtn { width: 15px; font-size: 5px; color: var(--green); }
+#fileAddBtn { width: 15px; font-size: 5px; color: var(--amber); }
+#fileUploadBtn { width: 15px; font-size: 5px; color: var(--blue); }
+#bulkFileAddBtn { width: 15px; font-size: 5px; color: var(--purple); }
 
 #repoSidebar { display: flex; flex-direction: row; gap: 4px; flex-shrink: 0; height: fit-content; }
 #sidebarContent { display: flex; flex-direction: column; width: 140px; height: auto; max-height: 260px; border: none !important; padding-right: 4px; overflow-x: hidden; overflow-y: auto; }
