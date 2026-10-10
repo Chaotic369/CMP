@@ -246,12 +246,12 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   display: none;
   align-items: center;
   gap: 4px;
-  padding: 6px 6px;
+  padding: 4px 6px;
   margin-bottom: 2px;
   background: rgba(255,255,255,0.05);
   border-radius: 6px;
   border: none !important;
-  font-size: 8px;
+  font-size: 5px;
   color: rgba(255,255,255,0.7);
 }
 #directoryNav.open {
@@ -262,7 +262,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   border: none !important;
   color: rgba(255,255,255,0.6);
   cursor: pointer;
-  font-size: 8px;
+  font-size: 5px;
   padding: 0 2px;
 }
 #directoryNav button:hover {
@@ -274,26 +274,29 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   text-overflow: ellipsis;
   flex: 1;
   font-family: 'JetBrains Mono', monospace;
+  font-size: 5px;
 }
 
 #fileTreeContainer { display: none; flex-direction: column; gap: 0px; flex: 1; min-height: 40px; max-height: 100%; overflow-y: auto; border: none !important; padding-top: 2px; margin-top: 2px; }
 
 .repo-item {
-  padding: 0px 6px; font-size: 7px; border-radius: 8px; border: none !important; background: transparent;
+  padding: 2px 4px; font-size: 5px; border-radius: 6px; border: none !important; background: transparent;
   cursor: pointer; text-align: left; font-weight: 500;
   display: flex; align-items: center; justify-content: space-between; gap: 4px; user-select: none; color: #ffffff;
-  min-height: 12px; line-height: 12px;
+  min-height: 10px; line-height: 10px;
 }
-.repo-item.file-item { padding: 3px 6px; border-radius: 6px; }
+.repo-item.file-item { padding: 2px 4px; }
+.repo-item i { font-size: 6px; flex-shrink: 0; }
 .repo-item.ready-to-drag { background: rgba(255,255,255,0.1); cursor: grab; }
 .repo-item.ready-to-drag:active { cursor: grabbing; }
 .repo-item.drag-over { background: rgba(255,255,255,0.05); opacity: 0.8; }
-.repo-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; pointer-events: none; color: #ffffff; opacity: 1; }
+.repo-name { font-size: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; pointer-events: none; color: #ffffff; opacity: 1; }
 .repo-item.active { background: rgba(255,255,255,0.15); color: #ffffff; font-weight: 600; }
 
 .repo-actions { display: none; align-items: center; gap: 3px; }
 .repo-item.active .repo-actions { display: flex; }
-.repo-btn { background: transparent; border: none !important; color: #ffffff; cursor: pointer; padding: 2px 4px; font-size: 6px; border-radius: 6px; }
+.repo-btn { background: transparent; border: none !important; color: #ffffff; cursor: pointer; padding: 1px 3px; font-size: 5px; border-radius: 4px; }
+.repo-btn i { font-size: 5px; }
 .repo-btn.del { color: var(--red); }
 
 #main-controls { display: grid; grid-template-columns: repeat(5, 24px); grid-auto-rows: 24px; gap: 4px; align-content: start; flex-shrink: 0; height: fit-content; }
@@ -1103,13 +1106,12 @@ select.bm-select option { background: var(--elevated); color: #fff; }
   <div id="astContent">Load a file to analyse.</div>
 </div>
 
-<div id="errOverlay" style="font-size:10px !important;">
-  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
-    <span id="errText" style="flex: 1; font-size: 10px; line-height: 1.4;"></span>
-    <button id="undoErrBtn" class="btn" style="padding: 4px 10px; font-size: 9px; width:auto; border-radius: 8px; color: var(--amber); background: rgba(227, 179, 65, 0.2);" title="Undo Last Change"><i class="fa-solid fa-arrow-rotate-left"></i> Undo</button>
-    <button id="copyErrBtn" class="btn" style="padding: 4px 10px; font-size: 9px; width:auto; border-radius: 8px;" title="Copy Error">📋</button>
-  </div>
-  <div style="margin-top: 10px; font-size: 8px; color: var(--red); cursor: pointer; opacity: 0.8;" id="dismissErrText">[tap here to dismiss]</div>
+<div id="errOverlay">
+  <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+    <span id="errText" style="flex: 1;"></span>
+    <button id="copyErrBtn" class="btn" style="padding: 4px 12px; font-size: 6px; width:auto; margin-left: 10px; border-radius: 12px;">📋</button>
+      </div>
+      <div style="margin-top: 12px; font-size: 6px; color: var(--red); cursor: pointer; opacity: 0.8;" id="dismissErrText">[tap here to dismiss]</div>
 </div>
 
 <div id="logPanel">
@@ -4168,6 +4170,34 @@ document.getElementById('dismissErrText').addEventListener('click', function(e) 
   clearTimeout(errTimer);
 });
 
+var undoErrBtn = document.getElementById('undoErrBtn');
+if (undoErrBtn) {
+  undoErrBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    if (undoStack.length > 0) {
+      document.getElementById('undoBtn').click();
+      $errOverlay.style.display = 'none';
+      toast('↺ Reverted to last working state!', 'ok');
+    } else {
+      toast('No previous state to undo to.', 'warn');
+    }
+  });
+}
+
+var undoErrBtn = document.getElementById('undoErrBtn');
+if (undoErrBtn) {
+  undoErrBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    if (undoStack.length > 0) {
+      document.getElementById('undoBtn').click();
+      $errOverlay.style.display = 'none';
+      toast('↺ Reverted to last working state!', 'ok');
+    } else {
+      toast('No previous state to undo to.', 'warn');
+    }
+  });
+}
+
 // Global error handlers
 window.addEventListener('error', function(e) {
   showErr('App Error: ' + e.message + '\nAt: ' + (e.filename || 'unknown') + ':' + e.lineno);
@@ -6743,19 +6773,41 @@ document.getElementById('exportBtn').addEventListener('click', function() {
 })();
 
 function fixEncoding(src) {
+  if (!src) return '';
   var text = src
     .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
     .replace(/[\u2018\u2019]/g, "'")
-    .replace(/[\u201C\u201D]/g, '"');
-  if (text.indexOf('<') !== -1 && !/<[a-zA-Z!/]/.test(text)) {
-    return text
-      .replace(/&/g, '&')
-      .replace(/</g, '<')
-      .replace(/>/g, '>')
-      .replace(/"/g, '"')
-      .replace(/'/g, "'")
-      .replace(/'/g, "'")
-      .replace(/ /g, ' ');
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/\\vert\{\}\\vert\{\}/g, '||')
+    .replace(/\\vert\{\}/g, '|')
+    .replace(/\\vert\s*\\vert/g, '||')
+    .replace(/\\vert/g, '|')
+    .replace(/\\&/g, '&');
+
+  if (/&(?:amp|lt|gt|quot|#39|nbsp);/.test(text)) {
+    text = text
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&nbsp;/g, ' ');
+  }
+  return text;
+}\\vert\{\}/g, '||')
+    .replace(/\\vert\{\}/g, '|')
+    .replace(/\\vert\s*\\vert/g, '||')
+    .replace(/\\vert/g, '|')
+    .replace(/\\&/g, '&');
+
+  if (/&(?:amp|lt|gt|quot|#39|nbsp);/.test(text)) {
+    text = text
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&nbsp;/g, ' ');
   }
   return text;
 }
@@ -7151,6 +7203,36 @@ function parseAllBlocks(text) {
   return blocks;
 }
 
+found.\nDid you forget to use the Super Prompt?\nIf pasting full HTML, paste when no file is loaded.', 'err', 7000);
+    } else {
+      toast('No valid ===SPLIT=== blocks found.\nCheck separator or stray fences.', 'err', 5000);
+    }
+    addLog('err', 'Parse failed: no SPLIT blocks in clipboard.');
+    return;
+  }
+
+  showProgress(10);
+  var applied  = 0;
+  var total    = blocks.length;
+
+  for (var bi = blocks.length - 1; bi >= 0; bi--) {
+    showProgress(10 + ((total - bi) / total) * 80);
+    var ok = autoLockAndApply(blocks[bi], bi + 1);
+    if (ok) { applied++; }
+    else if (!ok && applied < total - bi) { break; } 
+  }
+
+  hideProgress();
+
+  if (applied > 0) {
+    toast('✓ Applied ' + applied + '/' + total + ' patch(es)!', applied === total ? 'ok' : 'warn');
+    addLog('ok', 'Applied ' + applied + '/' + total + ' blocks.');
+  } else {
+    toast('✗ No patches applied. Check the log.', 'err', 5000);
+    addLog('err', 'Zero blocks applied from ' + total + ' parsed.');
+  }
+}
+===SPLIT===
 function countOccurrences(source, chunk) {
   if (!chunk) return 0;
   var count = 0, pos = 0;
@@ -7237,11 +7319,10 @@ function findFingerprintedChunk(source, chunk) {
 
 function reindent(code, baseIndent) {
   if (!code || !settings.indentFix) return code;
-  var lines    = code.split('\n');
+  var lines = code.split('\n');
   var nonEmpty = lines.filter(function(l) { return l.trim(); });
   if (nonEmpty.length === 0) return code;
-  var minIndent = Math.min.apply(null, nonEmpty.map(function(l) { return l.match(/^[ \t]*/)[0].length; }));
-  if (minIndent === baseIndent.length) return code;
+  var minIndent = Math.min.apply(null, nonEmpty.map(function(l) { return (l.match(/^[ \t]*/) || [''])[0].length; }));
   return lines.map(function(l, i) {
     if (i === 0 || !l.trim()) return l;
     return baseIndent + l.slice(minIndent);
@@ -7252,78 +7333,38 @@ function applyBlockToContent(parsed, blockNum, contentStr) {
   var cleanOld = parsed.oldCode ? parsed.oldCode.replace(/\r\n/g, '\n').replace(/\r/g, '\n') : '';
 
   if (!cleanOld) {
-    if (parsed.newCode) {
-      if (/<body[^>]*>/i.test(contentStr)) {
-        return { success: true, newContent: contentStr.replace(/(<body[^>]*>)/i, '$1\n' + parsed.newCode) };
-      } else {
-        return { success: true, newContent: parsed.newCode + '\n' + contentStr };
-      }
-    }
-    return { success: false, newContent: contentStr };
+    addLog('err', 'Block ' + blockNum + ' rejected: empty OLD block without context target.');
+    return { success: false, newContent: contentStr, reason: 'Empty OLD target block' };
   }
 
   var loc = findFingerprintedChunk(contentStr, cleanOld);
-
-  // Recovery 1: Detect and auto-swap if Gemini inverted OLD and NEW
-  if (!loc && parsed.newCode) {
-    var cleanNew = parsed.newCode.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
-    var invertedLoc = findFingerprintedChunk(contentStr, cleanNew);
-    if (invertedLoc) {
-      addLog('warn', 'Auto-recovered inverted OLD/NEW block from AI.');
-      var swapTemp = cleanOld;
-      cleanOld = cleanNew;
-      parsed.newCode = swapTemp;
-      loc = invertedLoc;
-    }
-  }
-
-  // Recovery 2: Trim conversational preambles from oldCode lines
-  if (!loc) {
-    var oldLines = cleanOld.split('\n');
-    while (oldLines.length > 1 && !contentStr.includes(oldLines[0].trim())) {
-      oldLines.shift();
-    }
-    while (oldLines.length > 1 && !contentStr.includes(oldLines[oldLines.length - 1].trim())) {
-      oldLines.pop();
-    }
-    cleanOld = oldLines.join('\n').trim();
-    loc = findFingerprintedChunk(contentStr, cleanOld);
-  }
-
   if (!loc) {
     var preview = cleanOld.substring(0, 60).replace(/\n/g, '↵');
     addLog('err', 'Block ' + blockNum + ' MISS: "' + preview + '"');
-    return { success: false, newContent: contentStr };
+    return { success: false, newContent: contentStr, reason: 'No matching location for: "' + preview + '"' };
   }
 
   var fixedNew = fixEncoding(parsed.newCode.replace(/\r\n/g, '\n').replace(/\r/g, '\n'));
-  var newT     = reindent(fixedNew, loc.baseIndent);
-  var res      = contentStr.slice(0, loc.startIndex) + newT + contentStr.slice(loc.endIndex);
-  
+  var newT = reindent(fixedNew, loc.baseIndent);
+  var res = contentStr.slice(0, loc.startIndex) + newT + contentStr.slice(loc.endIndex);
+
   return { success: true, newContent: res };
 }
 
-function autoLockAndApply(parsed, blockNum) {
-  if (!sourceContent) { addLog('err', 'No source loaded.'); return false; }
-  var result = applyBlockToContent(parsed, blockNum, sourceContent);
-  if (!result.success) {
-      var cleanOld = parsed.oldCode ? parsed.oldCode.replace(/\r\n/g, '\n').replace(/\r/g, '\n') : '';
-      var preview = cleanOld.substring(0, 60).replace(/\n/g, '↵');
-      toast('Block ' + blockNum + ': no match found.\n"' + preview + '…"', 'err', 7000);
-      return false;
+function verifySyntaxHealth(original, modified) {
+  var oldBrackets = tokenBalance(original);
+  var newBrackets = tokenBalance(modified);
+  var diff = [];
+  ['{', '(', '['].forEach(function(b) {
+    var delta = (newBrackets[b] || 0) - (oldBrackets[b] || 0);
+    if (delta !== 0) {
+      diff.push("'" + b + "': " + (delta > 0 ? '+' + delta : delta));
+    }
+  });
+  if (diff.length > 0) {
+    return { ok: false, reason: 'Unbalanced bracket change (' + diff.join(', ') + ')' };
   }
-  pushState();
-  sourceContent = result.newContent;
-  window.workspaceFiles = window.workspaceFiles || {};
-  if (ghFilePath) {
-    window.workspaceFiles[ghFilePath] = window.workspaceFiles[ghFilePath] || {};
-    window.workspaceFiles[ghFilePath].content = sourceContent;
-    window.workspaceFiles[ghFilePath].modified = true;
-  }
-  render(sourceContent, false);
-  updateStatusBar();
-  addLog('ok', 'Block ' + blockNum + ' applied.');
-  return astGuardAfterApply();
+  return { ok: true };
 }
 
 function doPaste(raw) {
@@ -7333,45 +7374,95 @@ function doPaste(raw) {
   }
 
   var fixed = fixEncoding(raw);
-    if (fixed !== raw) {
-      addLog('info', 'Encoding fixed in pasted content.');
-      raw = fixed;
-    }
+  raw = fixed;
 
-    if (!sourceContent && (/<!doctype\s+html/i.test(raw) || /<html[\s>]/i.test(raw))) {
-      sourceContent = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-      showControls();
+  if (!sourceContent && (/<!doctype\s+html/i.test(raw) || /<html[\s>]/i.test(raw))) {
+    sourceContent = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    showControls();
+    render(sourceContent, false);
+    toast('Initialised from clipboard!');
+    addLog('ok', 'Initialised from full HTML paste.');
+    updateStatusBar();
+    return;
+  }
+
+  var blocks = parseAllBlocks(raw);
+
+  if (!sourceContent && blocks.length === 0) {
+    sourceContent = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    showControls();
+    $codeView.value = sourceContent;
+    if (viewMode === 'preview') {
+      document.getElementById('viewBtn').click();
+    } else {
       render(sourceContent, false);
-      toast('Initialised from clipboard!');
-      addLog('ok', 'Initialised from full HTML paste (' + (sourceContent.length / 1024).toFixed(1) + ' KB).');
-      updateStatusBar();
-      return;
     }
+    toast('Initialised from pasted snippet!');
+    updateStatusBar();
+    return;
+  }
 
-    var blocks = parseAllBlocks(raw);
-  
-    if (!sourceContent && blocks.length === 0) {
-      sourceContent = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-      showControls();
-      $codeView.value = sourceContent;
-      if (viewMode === 'preview') {
-         document.getElementById('viewBtn').click();
-      } else {
-         render(sourceContent, false);
-      }
-      toast('Initialised from pasted snippet!');
-      addLog('ok', 'Started new file from clipboard paste.');
-      updateStatusBar();
-      return;
-    }
+  if (!sourceContent) {
+    toast('Load a file first, or paste a full HTML page.', 'warn', 4000);
+    return;
+  }
 
-    if (!sourceContent) {
-      toast('Load a file first, or paste a full HTML page.', 'warn', 4000);
-      return;
-    }
   if (blocks.length === 0) {
-    if (raw.includes('<') || raw.includes('function') || raw.includes('{')) {
-      toast('No ===SPLIT=== found.\nDid you forget to use the Super Prompt?\nIf pasting full HTML, paste when no file is loaded.', 'err', 7000);
+    toast('No valid ===SPLIT=== blocks found.\nEnsure you copied the entire patch.', 'err', 5000);
+    addLog('err', 'Parse failed: no SPLIT blocks in clipboard.');
+    return;
+  }
+
+  showProgress(10);
+
+  // ATOMIC PATCH ENGINE: Apply blocks sequentially to a staging draft
+  var stagingContent = sourceContent;
+  var failure = null;
+
+  for (var bi = 0; bi < blocks.length; bi++) {
+    showProgress(10 + ((bi + 1) / blocks.length) * 70);
+    var res = applyBlockToContent(blocks[bi], bi + 1, stagingContent);
+    if (!res.success) {
+      failure = { blockNum: bi + 1, reason: res.reason || 'No match found' };
+      break;
+    }
+    stagingContent = res.newContent;
+  }
+
+  if (failure) {
+    hideProgress();
+    toast('❌ Patch aborted at Block ' + failure.blockNum + ':\n' + failure.reason + '\nFile kept completely safe.', 'err', 7000);
+    addLog('err', 'Atomic transaction aborted at block ' + failure.blockNum + '. Zero changes committed.');
+    return;
+  }
+
+  // Pre-commit syntax health check
+  var health = verifySyntaxHealth(sourceContent, stagingContent);
+  if (!health.ok) {
+    hideProgress();
+    toast('⚠ Syntax Alert: ' + health.reason + '\nPatch rejected to prevent app crash.', 'err', 8000);
+    addLog('err', 'Syntax validation failed: ' + health.reason);
+    return;
+  }
+
+  // Commit transaction atomically with a single undo point
+  pushState();
+  sourceContent = stagingContent;
+
+  window.workspaceFiles = window.workspaceFiles || {};
+  if (ghFilePath) {
+    window.workspaceFiles[ghFilePath] = window.workspaceFiles[ghFilePath] || {};
+    window.workspaceFiles[ghFilePath].content = sourceContent;
+    window.workspaceFiles[ghFilePath].modified = true;
+  }
+
+  render(sourceContent, false);
+  updateStatusBar();
+  hideProgress();
+
+  toast('✓ Safely applied ' + blocks.length + ' patch(es)!', 'ok');
+  addLog('ok', 'Atomic commit: ' + blocks.length + ' blocks applied with verified syntax.');
+} ===SPLIT=== found.\nDid you forget to use the Super Prompt?\nIf pasting full HTML, paste when no file is loaded.', 'err', 7000);
     } else {
       toast('No valid ===SPLIT=== blocks found.\nCheck separator or stray fences.', 'err', 5000);
     }
