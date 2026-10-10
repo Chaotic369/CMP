@@ -3934,36 +3934,22 @@ var $codeView    = document.getElementById('codeView');
 var $fring       = document.getElementById('fring');
 
 function updateCodeGutter() {
-  if (!$codeGutter \vert{}\vert{} !$codeView) return;
-  if (viewMode !== 'code' || $codeView.style.display === 'none') {$codeGutter.style.display = 'none';
+  if (!$codeGutter || !$codeView) return;
+  if (viewMode !== 'code' || $codeView.style.display === 'none') {
+    $codeGutter.style.display = 'none';
     return;
   }
   $codeGutter.style.display = 'block';
-  $codeGutter.style.paddingTop =$codeView.style.paddingTop || '50px';
+  $codeGutter.style.paddingTop = $codeView.style.paddingTop || '50px';
   var lineCount = ($codeView.value || '').split('\n').length;
   var nums = '';
   for (var i = 1; i <= lineCount; i++) {
     nums += i + '\n';
   }
   $codeGutter.textContent = nums;
-  $codeGutter.scrollTop =$codeView.scrollTop;
+  $codeGutter.scrollTop = $codeView.scrollTop;
 }
 
-function updateCodeGutter() {
-  if (!$codeGutter \vert{}\vert{} !$codeView) return;
-  if (viewMode !== 'code' || $codeView.style.display === 'none') {$codeGutter.style.display = 'none';
-    return;
-  }
-  $codeGutter.style.display = 'block';
-  $codeGutter.style.paddingTop =$codeView.style.paddingTop || '50px';
-  var lineCount = ($codeView.value || '').split('\n').length;
-  var nums = '';
-  for (var i = 1; i <= lineCount; i++) {
-    nums += i + '\n';
-  }
-  $codeGutter.textContent = nums;
-  $codeGutter.scrollTop =$codeView.scrollTop;
-}
 var $toast       = document.getElementById('toast');
 var $astPanel    = document.getElementById('astPanel');
 var $astContent  = document.getElementById('astContent');
