@@ -2264,9 +2264,9 @@ async function ghLoadConfigFromFirebase() {
                                                                                         geminiApiKey = cfg.geminiApiKey || geminiApiKey;
                                                                                         geminiModel = cfg.geminiModel || geminiModel;
                         if (ghBookmarkedRepos && ghBookmarkedRepos.length > 0) {
-                          ghRepo = ghBookmarkedRepos[0];
-                        } else {
-                          ghRepo = cfg.repo || ghRepo;
+                          ghRepo = cfg.repo || ghBookmarkedRepos[0] || ghRepo;
+                                                  } else {
+                                                    ghRepo = cfg.repo || ghRepo;
                         }
                         console.log('[bookmarks] ghBookmarkedRepos set to:', ghBookmarkedRepos);
         if (cfg.wallpaper !== undefined) {
@@ -6468,14 +6468,14 @@ window.addEventListener('DOMContentLoaded', async function() {
                       new Promise(r => setTimeout(r, 15000)).then(() => { ghConfigLoaded = true; })
                     ]);
           if (ghBookmarkedRepos && ghBookmarkedRepos.length > 0) {
-                      ghRepo = ghBookmarkedRepos[0];
-                    }
-                    renderRepoTabs();
+                      if (!ghRepo) ghRepo = ghBookmarkedRepos[0];
+                                          }
+                                          renderRepoTabs();
 
                     if (ghRepo && ghToken) {
                       showMenuLoader('Loading Repository...');
                       await fetchFileTree(false, true);
-                      // Auto-load file removed to open to wallpaper by default
+                      if (currentTreeFiles.some(f => f.path === ghFilePath)) { await syncCurrentFile(); } else { await fetchFileTree(true, false); }
                     } else if (ghRepos.length === 0 && ghToken) {
                       showMenuLoader('Fetching Repositories...');
                       await ghFetchAllRepos();
@@ -7826,6 +7826,7 @@ window.syncCurrentFile = async function() {
             }
     
             fileName = ghFilePath.split('/').pop() || 'index.html';
+                    if (!sourceContent.trim()) { sourceContent = '\n'; lastSavedContent = '\n'; window.workspaceFiles[ghFilePath].content = '\n'; }
     
         if (fileName.toLowerCase().endsWith('.html') || fileName.toLowerCase().endsWith('.htm')) {
             viewMode = 'preview';
@@ -7838,6 +7839,7 @@ window.syncCurrentFile = async function() {
         showControls();
         document.getElementById('ghPushBtn').disabled = false;
         toast(`✅ Loaded ${fileName} from ${ghRepo}`);
+                if (sourceContent === '\n' && viewMode === 'preview') document.getElementById('viewBtn').click();
     addLog('ok', `Synced ${ghFilePath} from ${ghRepo}`);
     undoStack = []; redoStack = []; syncUndoRedo(); updateStatusBar();
   } catch(e) {
