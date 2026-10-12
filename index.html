@@ -1365,7 +1365,7 @@ window.inAppPrompt = function(message, defaultValue = '', title = 'Input Require
 };
 
 // Override standard browser window blockers
-window.confirm = (msg) => { console.warn('Sync confirm redirected to toast; use await inAppConfirm()'); toast(msg, 'warn'); return true; };
+window.confirm = (msg) => { console.warn('Sync confirm redirected to toast; use await inAppConfirm()'); toast(msg, 'warn'); return false; };
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CONSTANTS & STATE
@@ -2120,7 +2120,7 @@ window.renderBookmarks = function() {
 
             window.bulkDeleteModalSelected = async function() {
             if (!window.modalSelectedPaths || window.modalSelectedPaths.size === 0) return;
-            if (!confirm(`Delete ${window.modalSelectedPaths.size} selected item(s)?`)) return;
+            if (!(await window.inAppConfirm(`Delete ${window.modalSelectedPaths.size} selected item(s)?`, 'Delete Items'))) return;
             window.closeFullTreeModal();
             showProgress(10);
             let pathsToDelete = Array.from(window.modalSelectedPaths);
@@ -3189,7 +3189,7 @@ async function handleRepoUpload(e) {
       let confirmMsg = files.length === 1
     ? `Upload "${files[0].name}" to "${baseDir || '/'}"?`
     : `Upload ${files.length} items to "${baseDir || '/'}"?`;
-  if (!confirm(confirmMsg)) { e.target.value = ''; return; }
+  if (!(await window.inAppConfirm(confirmMsg, 'Upload Files'))) { e.target.value = ''; return; }
 
   showProgress(10);
   let uploaded = 0, failed = 0;
@@ -4032,10 +4032,10 @@ function renderFileTreeUI() {
   }
 }
 
-window.selectFileFromTree = function(path) {
+window.selectFileFromTree = async function(path) {
     syncEditorToSource();
     if (sourceContent !== lastSavedContent) {
-        if(!confirm("You have unsaved changes. Switch file anyway?")) return;
+        if (!(await window.inAppConfirm('You have unsaved changes. Switch file anyway?', 'Unsaved Changes'))) return;
     }
     ghFilePath = path;
     document.getElementById('ghFilePath').value = path;
@@ -6494,12 +6494,12 @@ document.getElementById('fileBtn').addEventListener('click', function() {
   document.getElementById('fileInput').click();
 });
 
-document.getElementById('fileInput').addEventListener('change', function(e) {
+document.getElementById('fileInput').addEventListener('change', async function(e) {
   var file = e.target.files[0];
   if (!file) return;
 
   if (file.size > 5 * 1024 * 1024) {
-    if (!confirm('File is ' + (file.size / 1024 / 1024).toFixed(1) + ' MB. Large files may be slow. Continue?')) {
+    if (!(await window.inAppConfirm('File is ' + (file.size / 1024 / 1024).toFixed(1) + ' MB. Large files may be slow. Continue?', 'Large File'))) {
       e.target.value = ''; return;
     }
   }
@@ -6757,6 +6757,36 @@ document.getElementById('exportBtn').addEventListener('click', function() {
 })();
 
 function fixEncoding(src) {
+  if (!src) return '';
+  var AMP = String.fromCharCode(38);
+  var AP = String.fromCharCode(39);
+  var DQ = String.fromCharCode(34);
+  var BS = String.fromCharCode(92);
+  var vert = BS + 'vert';
+  var text = src
+    .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
+    .replace(/[\u2018\u2019]/g, AP)
+    .replace(/[\u201C\u201D]/g, DQ)
+    .split(vert + '{}' + vert + '{}').join('||')
+    .split(vert + '{}').join('|')
+    .replace(new RegExp(BS + BS + 'vert\\s*' + BS + BS + 'vert', 'g'), '||')
+    .split(vert).join('|')
+    .split(BS + AMP).join(AMP);
+
+  var entityRx = new RegExp(AMP + '(?:amp|lt|gt|quot|#39|nbsp);');
+  if (entityRx.test(text) && !/[<>]/.test(text)) {
+    text = text
+      .split(AMP + 'lt;').join('<')
+      .split(AMP + 'gt;').join('>')
+      .split(AMP + 'quot;').join(DQ)
+      .split(AMP + '#39;').join(AP)
+      .split(AMP + 'nbsp;').join(' ')
+      .split(AMP + 'amp;').join(AMP);
+  }
+  return text;
+}
+
+function fixEncodingLegacy(src) {
   if (!src) return '';
   var text = src
     .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
@@ -7282,7 +7312,7 @@ function applyBlockToContent(parsed, blockNum, contentStr) {
     return { success: false, newContent: contentStr, reason: 'No matching location for: "' + preview + '"' };
   }
 
-  var fixedNew = fixEncoding(parsed.newCode.replace(/\r\n/g, '\n').replace(/\r/g, '\n'));
+  var fixedNew = parsed.newCode.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   var newT = reindent(fixedNew, loc.baseIndent);
   var res = contentStr.slice(0, loc.startIndex) + newT + contentStr.slice(loc.endIndex);
 
@@ -7295,7 +7325,7 @@ function verifySyntaxHealth(original, modified) {
   var diff = [];
   ['{', '(', '['].forEach(function(b) {
     var delta = (newBrackets[b] || 0) - (oldBrackets[b] || 0);
-    if (delta !== 0) {
+    if (Math.abs(delta) > 5) {
       diff.push("'" + b + "': " + (delta > 0 ? '+' + delta : delta));
     }
   });
@@ -8144,7 +8174,7 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                   };
 
                   window.deleteWorkflowFile = async function(path, sha) {
-                    if (!confirm('Delete workflow file "' + path + '"? This cannot be undone.')) return;
+                    if (!(await window.inAppConfirm('Delete workflow file "' + path + '"? This cannot be undone.', 'Delete Workflow'))) return;
                     showProgress(30);
                     try {
                       const res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path}`, {
@@ -8936,7 +8966,7 @@ document.getElementById('cmConfirmBtn').addEventListener('click', async function
                                       `This action destroys all branches, commit histories, and Pages deployments.\n\n` +
                                       `Type 'DELETE' to confirm and proceed:`;
 
-                                    const confirmInput = prompt(warningMessage);
+                                    const confirmInput = await window.inAppPrompt(warningMessage, '', 'Delete Repositories');
                                     if (confirmInput !== 'DELETE') {
                                         toast('❌ Deletion cancelled. Repositories were preserved.', 'warn', 4000);
                                         return;
