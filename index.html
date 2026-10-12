@@ -4301,14 +4301,16 @@ dragTarget.addEventListener('pointerdown', function(e) {
   dragStartX  = e.clientX; dragStartY  = e.clientY;
   var rect    = dragTarget.getBoundingClientRect();
   initialBtnX = rect.left; initialBtnY = rect.top;
-  try { if(dragTarget.setPointerCapture) { dragTarget.setPointerCapture(e.pointerId); } } catch(err) {}
   dragTarget.addEventListener('pointermove', onPtrMove);
   dragTarget.addEventListener('pointerup',   onPtrUp);
   dragTarget.addEventListener('pointercancel', onPtrUp);
 });
 function onPtrMove(e) {
   var dx = e.clientX - dragStartX, dy = e.clientY - dragStartY;
-  if (!isDragging && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) isDragging = true;
+  if (!isDragging && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
+      isDragging = true;
+      try { if (dragTarget.setPointerCapture) { dragTarget.setPointerCapture(e.pointerId); } } catch(err) {}
+    }
   if (isDragging) {
     if (!window.dragAnimationFrame) {
       window.dragAnimationFrame = requestAnimationFrame(() => {
