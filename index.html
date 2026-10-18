@@ -314,14 +314,14 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #toastCopyBtn { display: none; background: rgba(255,255,255,0.08); border: none !important; color: inherit; border-radius: 8px; width: 18px; height: 18px; flex-shrink: 0; align-items: center; justify-content: center; cursor: pointer; font-size: 6px; }
 #toast.err #toastCopyBtn { display: flex; }
 
-#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal, #branchModal, #moreModal {
+#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #buildModal, #workflowsModal, #fullTreeModal, #bulkModal, #errLogModal, #branchModal, #moreModal {
   position: fixed; z-index: 30000; background: #0f1013; border: none !important; outline: none !important; border-radius: 14px;
   padding: 14px 18px; color: #ffffff; font-size: 11px; box-shadow: 0 16px 48px rgba(0,0,0,0.7);
   max-height: calc(100vh - 40px); overflow-y: auto;
   scrollbar-width: none; -ms-overflow-style: none;
 }
 #astPanel::-webkit-scrollbar, #logPanel::-webkit-scrollbar, #ghConfigPanel::-webkit-scrollbar,
-#commitModal::-webkit-scrollbar, #newRepoModal::-webkit-scrollbar, #wallpaperModal::-webkit-scrollbar,
+#commitModal::-webkit-scrollbar, #newRepoModal::-webkit-scrollbar,
 #buildModal::-webkit-scrollbar, #workflowsModal::-webkit-scrollbar, #fullTreeModal::-webkit-scrollbar,
 #bulkModal::-webkit-scrollbar, #errLogModal::-webkit-scrollbar, #branchModal::-webkit-scrollbar, #moreModal::-webkit-scrollbar {
   display: none; width: 0; height: 0;
@@ -329,12 +329,12 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 #astPanel, #logPanel { width: calc(100vw - 40px); max-width: 420px; max-height: 48vh; overflow-y: auto; display: none; line-height: 1.6; }
 #logPanel { z-index: 30005; }
 
-#ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal { width: 90vw; max-width: 420px; display: none; flex-direction: column; gap: 12px; }
-#ghConfigPanel.open, #commitModal.open, #newRepoModal.open, #wallpaperModal.open,
+#ghConfigPanel, #commitModal, #newRepoModal { width: 90vw; max-width: 420px; display: none; flex-direction: column; gap: 12px; }
+#ghConfigPanel.open, #commitModal.open, #newRepoModal.open,
 #buildModal.open, #workflowsModal.open, #fullTreeModal.open, #bulkModal.open, #errLogModal.open, #branchModal.open, #moreModal.open { display: flex !important; flex-direction: column !important; }
 #astPanel.open, #logPanel.open { display: block !important; }
 
-#astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4, #wallpaperModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border: none !important; padding-bottom: 12px; }
+#astPanel h4, #logPanel h5, #ghConfigPanel h4, #commitModal h4, #newRepoModal h4 { color: #ffffff; margin-bottom: 16px; font-size: 14px; font-weight: 600; border: none !important; padding-bottom: 12px; }
 .ast-ok { color: var(--green); } .ast-warn { color: var(--amber); } .ast-err { color: var(--red); font-weight: bold; }
 .log-ok { color: var(--green); } .log-warn { color: var(--amber); } .log-err { color: var(--red); } .log-info { color: var(--blue); }
 
