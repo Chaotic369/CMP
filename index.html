@@ -753,22 +753,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 
 
-<div id="wallpaperModal">
-  <div class="window-header">
-    <div class="win-title"><i class="fa-solid fa-image"></i> Workspace Wallpaper</div>
-    <button class="panel-close" onclick="document.getElementById('wallpaperModal').classList.remove('open'); document.getElementById('wallpaperModal').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
-  </div>
-  <div class="gh-row"><label>Image URL</label><input type="text" id="wpUrlInput" placeholder=""></div>
-  <div style="display:flex; justify-content:center; margin: 10px 0;">
-    <button id="wpUploadBtn" style="background: rgba(255, 255, 255, 0.1); border: none; color: #ffffff; padding: 10px 16px; border-radius: 20px; cursor: pointer; display:flex; align-items:center; gap:8px; transition: background 0.2s;"><i class="fa-solid fa-upload"></i> Or Upload Image</button>
-    <input type="file" id="wpFileInput" accept="image/*" style="display:none;">
-  </div>
-  <div class="gh-actions">
-    <button id="wpClearBtn" style="color:var(--red); margin-right:auto; background:rgba(248, 81, 73, 0.2);"><i class="fa-solid fa-trash"></i> Clear</button>
-    <button id="wpCancelBtn"><i class="fa-solid fa-xmark"></i> Close</button>
-    <button id="wpSaveBtn" style="color:var(--green); background: rgba(57, 211, 83, 0.2);"><i class="fa-solid fa-check"></i> Apply</button>
-  </div>
-</div>
+
 
 <div id="newRepoModal">
   <div class="window-header">
