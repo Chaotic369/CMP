@@ -6806,7 +6806,7 @@ async function executeGeminiMagicEdit() {
           }
         }
 
-        document.getElementById('magicWandBtn').addEventListener('click', executeGeminiMagicEditChunked);
+        document.getElementById('magicWandBtn').addEventListener('click', executeGeminiMagicEdit);
 
     /* ===== Magic Edit Lite: AI returns ONLY the changed lines (line-numbered edits) ===== */
     function applyLineEdits(lines, text) {
@@ -8023,7 +8023,7 @@ document.getElementById('payloadBtn').addEventListener('click', function(ev) {
   syncEditorToSource();
   var instruction = document.getElementById('aiInstruction').value.trim();
   var LITE_LIMIT = 20000;
-  var useLite = !!sourceContent && sourceContent.length > LITE_LIMIT && !(ev && ev.shiftKey) && typeof getMagicContext === 'function';
+  var useLite = false;
   var body = sourceContent ? sourceContent : "(No source loaded)";
   var label = "=== CURRENT SOURCE ===\n";
   if (useLite) {
