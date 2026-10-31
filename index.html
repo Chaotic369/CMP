@@ -6588,7 +6588,12 @@ async function executeGeminiMagicEdit() {
           return gc;
         }
 
-        async function magicReadStream(response, onText) {
+        function magicHash(s) {
+                  var h = 5381;
+                  for (var i = 0; i < s.length; i++) { h = ((h << 5) + h + s.charCodeAt(i)) | 0; }
+                  return h + ':' + s.length;
+                }
+                async function magicReadStream(response, onText) {
           var reader = response.body.getReader();
           var decoder = new TextDecoder('utf-8');
           var buffer = '', acc = '', finish = '';
@@ -6661,7 +6666,7 @@ async function executeGeminiMagicEdit() {
 
           try {
             var chunks = buildChunkMap(sourceContent);
-            var baseHash = cmHash(sourceContent);
+            var baseHash = magicHash(sourceContent);
             var byId = {};
             chunks.forEach(function (c) { byId[c.id] = c; });
 
@@ -6768,7 +6773,7 @@ async function executeGeminiMagicEdit() {
               if (!ok) throw new Error('AI edited lines outside the chunks shown: ' + l.trim() + '. Nothing applied.');
             });
 
-            if (cmHash(sourceContent) !== baseHash) {
+            if (magicHash(sourceContent) !== baseHash) {
               throw new Error('File changed while the AI was working. Nothing applied.');
             }
 
@@ -6806,7 +6811,16 @@ async function executeGeminiMagicEdit() {
           }
         }
 
-        document.getElementById('magicWandBtn').addEventListener('click', executeGeminiMagicEdit);
+        document.getElementById('magicWandBtn').addEventListener('click', function() {
+                  if (window._magicBusy) { toast('⏳ Magic edit is already running', 'warn'); return; }
+                  window._magicBusy = true;
+                  var run;
+                  try { run = executeGeminiMagicEditChunked(); } catch (err) { run = Promise.reject(err); }
+                  Promise.resolve(run).catch(function(err) {
+                    toast('❌ Gemini Error: ' + err.message, 'err', 6000);
+                    addLog('err', 'Gemini AI Error: ' + err.message);
+                  }).then(function() { window._magicBusy = false; });
+                });
 
     /* ===== Magic Edit Lite: AI returns ONLY the changed lines (line-numbered edits) ===== */
     function applyLineEdits(lines, text) {
@@ -6981,16 +6995,13 @@ async function executeGeminiMagicEdit() {
                           genConfig.thinkingConfig = { thinkingBudget: 0 };
                         }
 
-        var response = await fetch(endpoint, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                    contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-                    generationConfig: genConfig
-                  })
-                });
-                if (!response.ok) throw new Error('HTTP ' + response.status + ': ' + (await response.text()));
+        var response = await geminiFetch([cleanModelName], function() {
+                          return JSON.stringify({
+                            systemInstruction: { parts: [{ text: systemPrompt }] },
+                            contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+                            generationConfig: genConfig
+                          });
+                        }, geminiApiKey);
 
         statusEl.textContent = 'Streaming edits...';
         streamBar.style.width = '45%';
