@@ -3657,6 +3657,7 @@ async function handleRepoUpload(e) {
         if (failed > 0) msg += `, ${failed} failed`;
     
         toast(msg, failed ? 'warn' : 'ok');
+                window.treeApply(readyUploadFiles.map(function(f) { return f.path; }), []);
         ghFilePath = lastPath;
         document.getElementById('ghFilePath').value = ghFilePath;
         ghSaveConfig();
@@ -3727,6 +3728,7 @@ window.renameFile = async function(path, e) {
         });
         
         toast('✅ File renamed!');
+                window.treeApply([newPath], [path]);
         if (ghFilePath === path) {
             ghFilePath = newPath;
             document.getElementById('ghFilePath').value = ghFilePath;
@@ -3757,6 +3759,7 @@ window.deleteFile = async function(path, e) {
         if (!delRes.ok) throw new Error('Failed to delete');
         
         toast('✅ File deleted!');
+                window.treeApply([], [path]);
         if (ghFilePath === path) {
             sourceContent = '';
             ghFilePath = '';
@@ -3798,6 +3801,7 @@ window.deleteFile = async function(path, e) {
                     if (!delRes.ok) throw new Error('Failed to delete');
             
                     deleted++;
+                                        window.treeApply([], [file.path]);
                     if (ghFilePath === file.path) {
                         sourceContent = '';
                         ghFilePath = '';
@@ -4113,6 +4117,27 @@ window.toggleNesting = function(path, e) {
 
 window._treeCache = window._treeCache || {};
 
+window._treePending = window._treePending || { add: {}, del: {} };
+window.treeApply = function(addPaths, delPaths) {
+    var now = Date.now();
+    (addPaths || []).forEach(function(p) { window._treePending.add[p] = now; delete window._treePending.del[p]; });
+    (delPaths || []).forEach(function(p) { window._treePending.del[p] = now; delete window._treePending.add[p]; });
+    currentTreeFiles = window.treeOverlay(currentTreeFiles);
+    window._treeCache[ghRepo] = currentTreeFiles;
+    try { renderFileTreeUI(); updateRepoSidebar(); } catch (e) { console.warn('treeApply render failed:', e); }
+};
+window.treeOverlay = function(files) {
+    var now = Date.now(), TTL = 90000, p;
+    for (p in window._treePending.add) { if (now - window._treePending.add[p] > TTL) delete window._treePending.add[p]; }
+    for (p in window._treePending.del) { if (now - window._treePending.del[p] > TTL) delete window._treePending.del[p]; }
+    var out = (files || []).filter(function(f) { return !window._treePending.del[f.path]; });
+    Object.keys(window._treePending.add).forEach(function(path) {
+        if (!out.some(function(f) { return f.path === path; })) out.push({ path: path, type: 'blob' });
+    });
+    out.sort(function(a, b) { return a.path.localeCompare(b.path); });
+    return out;
+};
+
 async function fetchFileTree(autoLoad = false, silent = false) {
     if (!ghToken || !ghRepo) return;
     const ftc = document.getElementById('fileTreeContainer');
@@ -4166,6 +4191,7 @@ async function fetchFileTree(autoLoad = false, silent = false) {
 
             const _treeRepo = ghRepo;
                         const res = await fetch(`https://api.github.com/repos/${ghRepo}/git/trees/${ghBranch}?recursive=1`, {
+                                                        cache: 'no-store',
                                 headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json' }
                             });
         if (!res.ok) throw new Error('Tree fetch failed');
@@ -4173,7 +4199,7 @@ async function fetchFileTree(autoLoad = false, silent = false) {
         
         if (_treeRepo !== ghRepo) return;
                 const IGNORED = ['node_modules/', '.git/', '.gradle/', 'build/', 'dist/', '.next/', 'vendor/', '.cache/'];
-        currentTreeFiles = data.tree.filter(t => t.type === 'blob' && !IGNORED.some(dir => t.path.includes(dir)));
+        currentTreeFiles = window.treeOverlay(data.tree.filter(t => t.type === 'blob' && !IGNORED.some(dir => t.path.includes(dir))));
         window._treeCache[ghRepo] = currentTreeFiles;
         
         if (autoLoad) {
