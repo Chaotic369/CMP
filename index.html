@@ -333,9 +333,10 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--surf
 /* Action Pop Up Button */
 /* Floating Action Pop Up & External Push Dock */
 #fabContainer {
-  position: fixed; bottom: calc(130px + 24px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 999999 !important;
+  position: fixed; bottom: calc(130px + 24px + env(safe-area-inset-bottom, 0px)); right: calc(20px + env(safe-area-inset-right, 0px)); z-index: 29995 !important;
   display: flex; align-items: center; gap: 6px; user-select: none; touch-action: none;
 }
+body:has(#menu-backdrop.dimmed) #fabContainer { z-index: 29980 !important; }
 .fab-btn {
   width: 28px; height: 28px; border-radius: 7px;
   background: rgba(22, 22, 22, 0.75); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: none !important; outline: none !important;
@@ -585,7 +586,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
   border: none !important;
   user-select: none;
   touch-action: none;
-  cursor: move;
+  cursor: default;
   flex-shrink: 0;
 }
 .win-title {
@@ -622,6 +623,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 }
 
 .window-resize-handle {
+  display: none !important;
   position: absolute;
   bottom: 0;
   left: 0;
@@ -782,7 +784,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 /* Cropper Modal */
 #iconCropModal {
-  position: fixed; z-index: 9999999 !important; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+  position: fixed; z-index: 1000004 !important; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
   display: none; align-items: center; justify-content: center; padding: 16px;
 }
 #iconCropModal.open { display: flex; }
@@ -1092,7 +1094,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <div id="wallpaperModal">
   <div class="window-header">
     <div class="win-title"><i class="fa-solid fa-image"></i> Workspace Wallpaper</div>
-    <button class="panel-close" onclick="document.getElementById('wallpaperModal').classList.remove('open'); document.getElementById('wallpaperModal').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
+    <button class="panel-close" onclick="closeModalEl(document.getElementById('wallpaperModal'))">✕</button>
   </div>
   <div class="gh-row"><label>Image URL</label><input type="text" id="wpUrlInput" placeholder=""></div>
   <div style="display:flex; justify-content:center; margin: 10px 0;">
@@ -1159,7 +1161,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <div id="bulkModal" style="width:92vw; max-width:440px; display:none; flex-direction:column; padding:16px; box-sizing:border-box;">
   <div class="window-header" style="margin-bottom:12px; padding-bottom:8px;">
     <div class="win-title"><i class="fa-solid fa-cubes" style="margin-right:6px;"></i> Bulk Create Files & Folders</div>
-    <button class="panel-close" onclick="document.getElementById('bulkModal').classList.remove('open'); document.getElementById('bulkModal').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
+    <button class="panel-close" onclick="closeModalEl(document.getElementById('bulkModal'))">✕</button>
   </div>
 
   <div style="display:flex; flex-direction:column; gap:10px;">
@@ -1222,7 +1224,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <div id="ghConfigPanel" style="width:92vw; max-width:440px; padding:16px; box-sizing:border-box;">
   <div class="window-header" style="margin-bottom:12px; padding-bottom:8px;">
     <div class="win-title"><i class="fa-solid fa-sliders" style="margin-right:6px;"></i> Settings & Integration</div>
-    <button class="panel-close" id="ghClosePanelTopBtn" onclick="document.getElementById('ghConfigPanel').classList.remove('open'); document.getElementById('ghConfigPanel').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
+    <button class="panel-close" id="ghClosePanelTopBtn" onclick="closeModalEl(document.getElementById('ghConfigPanel'))">✕</button>
   </div>
 
   <div style="display:flex; flex-direction:column; gap:14px;">
@@ -1271,7 +1273,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 <div id="commitModal">
   <div class="window-header">
     <div class="win-title"><i class="fa-solid fa-arrow-up-from-bracket"></i> Commit & Push</div>
-    <button class="panel-close" onclick="document.getElementById('commitModal').classList.remove('open'); document.getElementById('commitModal').style.display='none'; document.getElementById('menu-backdrop').classList.remove('open');">✕</button>
+    <button class="panel-close" onclick="closeModalEl(document.getElementById('commitModal'))">✕</button>
   </div>
   <textarea id="commitMsgInput" placeholder=""></textarea>
   <div class="gh-actions">
@@ -1784,11 +1786,35 @@ function bringModalToFront(modal) {
     topModalZ = 30000 + (allModals.length * 2);
   }
   modal.style.zIndex = topModalZ;
-}
+  }
+
+  function closeModalEl(el) {
+    if (!el) return;
+    el.classList.remove('open');
+    el.style.display = 'none';
+    var sel = '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, ' +
+              '#workflowsModal, #fullTreeModal, #bulkModal, #errLogModal, #branchModal, #moreModal, #artifactsModal, #liveEditModal';
+    var anyOpen = Array.from(document.querySelectorAll(sel)).some(function(m) {
+      return m !== el && (m.classList.contains('open') || (m.style.display && m.style.display !== 'none'));
+    });
+    if (!anyOpen && $backdrop) {
+      $backdrop.classList.remove('dimmed');
+      if (!$appMenu || !$appMenu.classList.contains('open')) $backdrop.classList.remove('open');
+    }
+  }
 var MAX_NESTING_DEPTH = 4;
 
 function centerModal(el) {
   if (!el) return;
+  el.style.setProperty('--modal-scale', 1);
+  el.style.margin = '0';
+  el.style.right = 'auto';
+  el.style.bottom = 'auto';
+  el.style.left = '50%';
+  el.style.top = '50%';
+  el.style.transformOrigin = 'center center';
+  el.style.transform = 'translate(-50%, -50%)';
+  return;
   
   var hasRestored = restoreWindowState(el);
   var scale = parseFloat(el.style.getPropertyValue('--modal-scale')) || 1;
@@ -1900,6 +1926,7 @@ function centerModal(el) {
 var WINDOW_SCALE_PREFIX = 'win_scale_state_';
 
 function saveWindowState(win) {
+  return;
   if (!win || !win.id) return;
   var scale = parseFloat(win.style.getPropertyValue('--modal-scale')) || 1;
   var state = {
@@ -1913,6 +1940,7 @@ function saveWindowState(win) {
 }
 
 function restoreWindowState(win) {
+  return false;
   if (!win || !win.id) return false;
   try {
     var raw = localStorage.getItem(WINDOW_SCALE_PREFIX + win.id);
@@ -1933,6 +1961,7 @@ function restoreWindowState(win) {
 }
 
 function makeWindowResizable(win) {
+  return;
   if (!win || win.querySelector('.window-resize-handle')) return;
 
   var handle = document.createElement('div');
@@ -1992,7 +2021,8 @@ function makeWindowDraggable(win) {
 
   bar.addEventListener('pointerdown', function(e) {
     if (e.button !== 0 && e.pointerType === 'mouse') return;
-    if (e.target.closest('button, input, textarea, select, a, .panel-close')) return;
+    return;
+        if (e.target.closest('button, input, textarea, select, a, .panel-close')) return;
     bringModalToFront(win);
     try { if (bar.setPointerCapture) bar.setPointerCapture(e.pointerId); } catch(err) {}
 
@@ -9294,9 +9324,7 @@ if (ghShowLabelsEl) {
 }
 
 document.getElementById('ghClosePanelBtn').addEventListener('click', function() {
-  document.getElementById('ghConfigPanel').classList.remove('open');
-  document.getElementById('ghConfigPanel').style.display = 'none';
-  $backdrop.classList.remove('open');
+  closeModalEl(document.getElementById('ghConfigPanel'));
 });
 
 document.getElementById('geminiModelSelect').addEventListener('change', function() {
@@ -9319,10 +9347,8 @@ document.getElementById('ghSaveBtn').addEventListener('click', function() {
   localStorage.setItem('gemini_model_v1', geminiModel);
 
     ghSaveConfig();
-  document.getElementById('ghConfigPanel').classList.remove('open');
-  document.getElementById('ghConfigPanel').style.display = 'none';
-  $backdrop.classList.remove('open');
-  toast('💾 Settings Saved!');
+  closeModalEl(document.getElementById('ghConfigPanel'));
+    toast('💾 Settings Saved!');
 
   
 });
