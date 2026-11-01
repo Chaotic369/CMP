@@ -1214,7 +1214,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                               <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.15); color:var(--amber); border:1px solid rgba(227,179,65,0.3); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; height:26px;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
                               <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.15); color:var(--blue); border:1px solid rgba(92,157,255,0.3); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; align-items:center; gap:5px; height:26px;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
                               <button id="modalRepoBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:1px solid rgba(248,81,73,0.35); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; height:26px;" onclick="window.bulkDeleteSelectedReposWithWarning()"><i class="fa-solid fa-trash"></i> Repos (<span id="modalRepoBulkCount">0</span>)</button>
-                              <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:1px solid rgba(248,81,73,0.35); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; align-items:center; gap:5px; height:26px;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
+                              <button id="modalMoveBtn" style="display:none; background:rgba(92,157,255,0.15); color:var(--blue); border:1px solid rgba(92,157,255,0.3); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; align-items:center; gap:5px; height:26px;" onclick="window.moveModalSelected()"><i class="fa-solid fa-folder-tree"></i> Move (<span id="modalMoveCount">0</span>)</button>
+                                                            <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:1px solid rgba(248,81,73,0.35); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; align-items:center; gap:5px; height:26px;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
                               <button class="panel-close" onclick="window.closeFullTreeModal()">✕</button>
                             </div>
     </div>
@@ -3757,6 +3758,12 @@ window.renameFile = async function(path, e) {
     let name = path.split('/').pop();
     let newName = await window.inAppPrompt('Rename file:', name, 'Rename File');
     if (!newName || newName === name) return;
+        if (window.gitMovePaths) {
+            newName = newName.trim();
+            if (!newName || newName.indexOf('\\') !== -1 || newName.indexOf('..') !== -1) return;
+            await window.gitMovePaths([{ from: path, to: path.substring(0, path.lastIndexOf(name)) + newName }], 'Rename ' + path + ' to ' + newName);
+            return;
+        }
     
     let newPath = path.substring(0, path.lastIndexOf(name)) + newName;
     showProgress(30);
@@ -4374,7 +4381,8 @@ function renderFileTreeUI() {
                                     </div>
                                 <div class="repo-actions">
                                                 <button class="repo-btn" style="display:flex; font-size:9px; color:${selColor};" title="Select/Deselect" onclick="if(!window.modalSelectedPaths) window.modalSelectedPaths = new Set(); window.toggleModalSelection('${f.path}', event); renderFileTreeUI();"><i class="${selIcon}"></i></button>
-                                                <button class="repo-btn" title="Rename File" onclick="window.renameFile('${f.path}', event)"><i class="fa-solid fa-pen"></i></button>
+                                                <button class="repo-btn" title="Move File" onclick="window.moveFile('${f.path}', event)"><i class="fa-solid fa-arrows-up-down-left-right"></i></button>
+                                                                                                <button class="repo-btn" title="Rename File" onclick="window.renameFile('${f.path}', event)"><i class="fa-solid fa-pen"></i></button>
                                                 <button class="repo-btn del" title="Delete File" onclick="window.deleteFile('${f.path}', event)"><i class="fa-solid fa-trash"></i></button>
                                             </div>
                 </div>`;
@@ -4463,7 +4471,8 @@ function renderFileTreeUI() {
                       <span style="font-size:8px; color:#ffffff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${dirName}</span>
                     </div>
                     <div style="display:flex; align-items:center;">
-                                    <button class="repo-btn del" style="display:flex;" title="Delete Folder" onclick="window.deleteDirectory('${dir}', event)"><i class="fa-solid fa-trash"></i></button>
+                                    <button class="repo-btn" style="display:flex;" title="Rename Folder" onclick="window.renameDirectory('${dir}', event)"><i class="fa-solid fa-pen"></i></button>
+                                                                        <button class="repo-btn del" style="display:flex;" title="Delete Folder" onclick="window.deleteDirectory('${dir}', event)"><i class="fa-solid fa-trash"></i></button>
                                 </div>
                   </div>`;
                   htmlStr += str;
@@ -10769,6 +10778,264 @@ window.oneClickPush = async function(customMsg) {
       window.modalTreeExpanded = {};
             window.modalSelectedPaths = new Set();
 
+            // ===== Atomic Git Tree File Manager =====
+            window.gitAtomicCommit = async function(buildEntries, message) {
+                const H = { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' };
+                const api = `https://api.github.com/repos/${ghRepo}/git`;
+                const refRes = await fetch(`${api}/ref/heads/${ghBranch}`, { headers: H, cache: 'no-store' });
+                if (!refRes.ok) throw new Error('Failed to get branch ref: ' + await refRes.text());
+                const latestSha = (await refRes.json()).object.sha;
+                const commitRes = await fetch(`${api}/commits/${latestSha}`, { headers: H });
+                if (!commitRes.ok) throw new Error('Failed to get base commit: ' + await commitRes.text());
+                const baseTreeSha = (await commitRes.json()).tree.sha;
+                const treeRes = await fetch(`${api}/trees/${baseTreeSha}?recursive=1`, { headers: H, cache: 'no-store' });
+                if (!treeRes.ok) throw new Error('Failed to read tree: ' + await treeRes.text());
+                const treeData = await treeRes.json();
+                if (treeData.truncated) throw new Error('Repo tree too large for an atomic edit');
+                const map = {};
+                treeData.tree.forEach(t => { if (t.type === 'blob') map[t.path] = { sha: t.sha, mode: t.mode }; });
+                const entries = buildEntries(map);
+                if (!entries || !entries.length) throw new Error('Nothing to commit');
+                const newTreeRes = await fetch(`${api}/trees`, { method: 'POST', headers: H, body: JSON.stringify({ base_tree: baseTreeSha, tree: entries }) });
+                if (!newTreeRes.ok) throw new Error('Failed to create tree: ' + await newTreeRes.text());
+                const newTree = await newTreeRes.json();
+                const newCommitRes = await fetch(`${api}/commits`, { method: 'POST', headers: H, body: JSON.stringify({ message: message, tree: newTree.sha, parents: [latestSha] }) });
+                if (!newCommitRes.ok) throw new Error('Failed to create commit: ' + await newCommitRes.text());
+                const newCommit = await newCommitRes.json();
+                const updRes = await fetch(`${api}/refs/heads/${ghBranch}`, { method: 'PATCH', headers: H, body: JSON.stringify({ sha: newCommit.sha }) });
+                if (!updRes.ok) throw new Error('Failed to update branch: ' + await updRes.text());
+                return entries.length;
+            };
+
+            window.gitMovePaths = async function(spec, message) {
+                if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return false; }
+                let resolved = [];
+                let ok = false;
+                showProgress(20);
+                try {
+                    await window.gitAtomicCommit(function(map) {
+                        const seen = new Set();
+                        resolved = (typeof spec === 'function' ? spec(map) : spec).filter(p => p.from !== p.to && !seen.has(p.from) && seen.add(p.from));
+                        if (!resolved.length) throw new Error('Nothing to move');
+                        const froms = new Set(resolved.map(p => p.from));
+                        const tos = new Set();
+                        const out = [];
+                        resolved.forEach(p => {
+                            const src = map[p.from];
+                            if (!src) throw new Error('Not found in repo: ' + p.from);
+                            if (tos.has(p.to)) throw new Error('Duplicate target: ' + p.to);
+                            tos.add(p.to);
+                            if (map[p.to] && !froms.has(p.to)) throw new Error('Target already exists: ' + p.to);
+                            out.push({ path: p.to, mode: src.mode, type: 'blob', sha: src.sha });
+                        });
+                        resolved.forEach(p => { if (!tos.has(p.from)) out.push({ path: p.from, mode: '100644', type: 'blob', sha: null }); });
+                        return out;
+                    }, message);
+                    const tset = new Set(resolved.map(p => p.to));
+                    window.treeApply(resolved.map(p => p.to), resolved.map(p => p.from).filter(f => !tset.has(f)));
+                    resolved.forEach(p => {
+                        if (window.workspaceFiles && window.workspaceFiles[p.from]) {
+                            window.workspaceFiles[p.to] = window.workspaceFiles[p.from];
+                            delete window.workspaceFiles[p.from];
+                        }
+                        if (ghFilePath === p.from) {
+                            ghFilePath = p.to;
+                            document.getElementById('ghFilePath').value = p.to;
+                            ghSaveConfig();
+                        }
+                    });
+                    if (window.modalSelectedPaths) window.modalSelectedPaths.clear();
+                    toast('✅ Moved ' + resolved.length + ' file(s) in 1 commit');
+                    ok = true;
+                    fetchFileTree(false, true);
+                } catch (err) {
+                    toast('❌ Move failed: ' + err.message, 'err', 5000);
+                    addLog('err', 'Atomic move failed: ' + err.message);
+                }
+                hideProgress();
+                return ok;
+            };
+
+            window.gitDeleteTargets = async function(targets, message) {
+                if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return false; }
+                let deleted = [];
+                let ok = false;
+                showProgress(20);
+                try {
+                    await window.gitAtomicCommit(function(map) {
+                        deleted = Object.keys(map).filter(p => targets.some(t => p === t || p.startsWith(t + '/')));
+                        return deleted.map(p => ({ path: p, mode: '100644', type: 'blob', sha: null }));
+                    }, message);
+                    window.treeApply([], deleted);
+                    deleted.forEach(p => {
+                        if (window.workspaceFiles) delete window.workspaceFiles[p];
+                        if (ghFilePath === p) {
+                            sourceContent = '';
+                            ghFilePath = '';
+                            document.getElementById('ghFilePath').value = '';
+                            $codeView.value = '';
+                            ghSaveConfig();
+                            render('', false);
+                        }
+                    });
+                    if (window.modalSelectedPaths) window.modalSelectedPaths.clear();
+                    toast('✅ Deleted ' + deleted.length + ' file(s) in 1 commit');
+                    ok = true;
+                    fetchFileTree(false, true);
+                } catch (err) {
+                    toast('❌ Delete failed: ' + err.message, 'err', 5000);
+                    addLog('err', 'Atomic delete failed: ' + err.message);
+                }
+                hideProgress();
+                return ok;
+            };
+
+            function _gitCleanPath(p) { return (p || '').trim().replace(/\\/g, '/').replace(/\/\/+/g, '/').replace(/^\/+|\/+$/g, ''); }
+
+            window.moveFile = async function(path, e) {
+                if (e) e.stopPropagation();
+                if (!ghToken || !ghRepo) return;
+                let np = await window.inAppPrompt('Move file to new path:', path, 'Move File');
+                if (!np) return;
+                np = _gitCleanPath(np);
+                if (!np || np === path || np.indexOf('..') !== -1) return;
+                await window.gitMovePaths([{ from: path, to: np }], 'Move ' + path + ' to ' + np);
+            };
+
+            window.renameDirectory = async function(dir, e) {
+                if (e) e.stopPropagation();
+                if (!ghToken || !ghRepo) return;
+                const name = dir.split('/').pop();
+                let nn = await window.inAppPrompt('Rename folder:', name, 'Rename Folder');
+                if (!nn) return;
+                nn = nn.trim();
+                if (!nn || nn === name || nn.indexOf('/') !== -1 || nn.indexOf('\\') !== -1 || nn.indexOf('..') !== -1) return;
+                const parent = dir.indexOf('/') !== -1 ? dir.substring(0, dir.lastIndexOf('/') + 1) : '';
+                const newDir = parent + nn;
+                await window.gitMovePaths(function(map) {
+                    return Object.keys(map).filter(p => p.startsWith(dir + '/')).map(p => ({ from: p, to: newDir + p.slice(dir.length) }));
+                }, 'Rename folder ' + dir + ' to ' + newDir);
+                if (currentDirectory === dir) currentDirectory = newDir;
+                else if (currentDirectory.startsWith(dir + '/')) currentDirectory = newDir + currentDirectory.slice(dir.length);
+                renderFileTreeUI();
+            };
+
+            window.moveModalSelected = async function() {
+                if (!window.modalSelectedPaths || window.modalSelectedPaths.size === 0) return;
+                let dest = await window.inAppPrompt('Move selected items into folder ("/" = repo root):', currentDirectory || '/', 'Move Items');
+                if (!dest) return;
+                dest = _gitCleanPath(dest);
+                if (dest.indexOf('..') !== -1) return;
+                const targets = Array.from(window.modalSelectedPaths);
+                window.closeFullTreeModal();
+                await window.gitMovePaths(function(map) {
+                    const pairs = [];
+                    targets.forEach(t => {
+                        if (dest === t || dest.startsWith(t + '/')) throw new Error('Cannot move a folder into itself: ' + t);
+                        const base = t.split('/').pop();
+                        Object.keys(map).forEach(p => {
+                            if (p === t || p.startsWith(t + '/')) {
+                                pairs.push({ from: p, to: (dest ? dest + '/' : '') + base + p.slice(t.length) });
+                            }
+                        });
+                    });
+                    return pairs;
+                }, 'Move ' + targets.length + ' item(s) to ' + (dest || '/'));
+            };
+
+            window.bulkDeleteModalSelected = async function() {
+                if (!window.modalSelectedPaths || window.modalSelectedPaths.size === 0) return;
+                const targets = Array.from(window.modalSelectedPaths);
+                const count = currentTreeFiles.filter(f => targets.some(t => f.path === t || f.path.startsWith(t + '/'))).length;
+                if (!(await window.inAppConfirm(`Delete ${targets.length} selected item(s) (${count} file(s)) in one commit?`, 'Delete Items'))) return;
+                window.closeFullTreeModal();
+                await window.gitDeleteTargets(targets, 'Delete ' + count + ' file(s) via AI Compile');
+            };
+
+            window.deleteDirectory = async function(dirPath, e) {
+                if (e) e.stopPropagation();
+                if (!ghToken) return;
+                const count = currentTreeFiles.filter(f => f.path.startsWith(dirPath + '/')).length;
+                if (!(await window.inAppConfirm(`Delete folder '${dirPath}' and its ${count} file(s) in one commit? This cannot be undone.`, 'Delete Folder'))) return;
+                await window.gitDeleteTargets([dirPath], 'Delete folder ' + dirPath);
+                if (currentDirectory === dirPath || currentDirectory.startsWith(dirPath + '/')) {
+                    currentDirectory = dirPath.indexOf('/') !== -1 ? dirPath.substring(0, dirPath.lastIndexOf('/')) : '';
+                    renderFileTreeUI();
+                }
+            };
+
+            // ===== Persistent IndexedDB workspace =====
+            (function() {
+                var DB_NAME = 'aicompile_ws_v1', STORE = 'ws', lastSig = '';
+                function openDb() {
+                    return new Promise(function(res, rej) {
+                        if (!window.indexedDB) { rej(new Error('IndexedDB unavailable')); return; }
+                        var r = indexedDB.open(DB_NAME, 1);
+                        r.onupgradeneeded = function() { r.result.createObjectStore(STORE); };
+                        r.onsuccess = function() { res(r.result); };
+                        r.onerror = function() { rej(r.error); };
+                    });
+                }
+                window.wsDbPut = function(key, val) {
+                    return openDb().then(function(db) {
+                        return new Promise(function(res, rej) {
+                            var tx = db.transaction(STORE, 'readwrite');
+                            tx.objectStore(STORE).put(val, key);
+                            tx.oncomplete = function() { db.close(); res(); };
+                            tx.onerror = function() { db.close(); rej(tx.error); };
+                        });
+                    });
+                };
+                window.wsDbGet = function(key) {
+                    return openDb().then(function(db) {
+                        return new Promise(function(res, rej) {
+                            var rq = db.transaction(STORE, 'readonly').objectStore(STORE).get(key);
+                            rq.onsuccess = function() { db.close(); res(rq.result); };
+                            rq.onerror = function() { db.close(); rej(rq.error); };
+                        });
+                    });
+                };
+                function sig() {
+                    var f = window.workspaceFiles || {}, s = window._wsStore || {};
+                    return Object.keys(f).map(function(k) { return k + ':' + ((f[k] && f[k].content) || '').length + ':' + (f[k] && f[k].modified ? 1 : 0); }).join('|') + '#' + Object.keys(s).join('|') + '#' + ghRepo + '#' + ghFilePath;
+                }
+                function save(force) {
+                    try {
+                        var sg = sig();
+                        if (!force && sg === lastSig) return;
+                        lastSig = sg;
+                        var snap = JSON.parse(JSON.stringify({ files: window.workspaceFiles || {}, store: window._wsStore || {}, repo: ghRepo, file: ghFilePath, ts: Date.now() }));
+                        window.wsDbPut('state', snap).catch(function(e) { console.warn('IndexedDB save failed:', e); });
+                    } catch (e) { console.warn('IndexedDB snapshot failed:', e); }
+                }
+                function restore() {
+                    window.wsDbGet('state').then(function(st) {
+                        var n = 0;
+                        if (st) {
+                            if (st.repo === ghRepo) {
+                                window.workspaceFiles = window.workspaceFiles || {};
+                                Object.keys(st.files || {}).forEach(function(k) {
+                                    if (!window.workspaceFiles[k]) { window.workspaceFiles[k] = st.files[k]; n++; }
+                                });
+                            }
+                            window._wsStore = window._wsStore || {};
+                            Object.keys(st.store || {}).forEach(function(k) { if (!window._wsStore[k]) window._wsStore[k] = st.store[k]; });
+                        }
+                        if (n) { toast('♻️ Restored ' + n + ' workspace file(s)', 'info'); try { updateStatusBar(); } catch (e) {} }
+                    }).catch(function(e) { console.warn('IndexedDB restore failed:', e); }).then(function() {
+                        lastSig = sig();
+                        setInterval(function() { save(false); }, 3000);
+                        window.addEventListener('pagehide', function() { save(true); });
+                        document.addEventListener('visibilitychange', function() { if (document.visibilityState === 'hidden') save(true); });
+                    });
+                }
+                var tries = 0;
+                var waiter = setInterval(function() {
+                    tries++;
+                    if (ghConfigLoaded || tries > 30) { clearInterval(waiter); restore(); }
+                }, 500);
+            })();
+
             window.openFullTreeModal = function() {
                                   var _ftSearch = document.getElementById('modalTreeSearch'); if (_ftSearch) _ftSearch.value = '';
                       if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
@@ -11032,9 +11299,12 @@ window.oneClickPush = async function(customMsg) {
                 if (window.modalSelectedPaths && window.modalSelectedPaths.size > 0) {
                                     bulkBtn.style.display = 'flex';
                                     bulkCount.textContent = window.modalSelectedPaths.size;
+                                                                        var _mvB = document.getElementById('modalMoveBtn'), _mvC = document.getElementById('modalMoveCount');
+                                                                        if (_mvB) { _mvB.style.display = 'flex'; if (_mvC) _mvC.textContent = window.modalSelectedPaths.size; }
                                     if(wsBtn) { wsBtn.style.display = 'flex'; wsCount.textContent = window.modalSelectedPaths.size; }
                                 } else {
                                     bulkBtn.style.display = 'none';
+                                                                        var _mvB2 = document.getElementById('modalMoveBtn'); if (_mvB2) _mvB2.style.display = 'none';
                                     if(wsBtn) wsBtn.style.display = 'none';
                                 }
 
@@ -11101,7 +11371,8 @@ window.oneClickPush = async function(customMsg) {
                                             </div>
                                             <div style="display:flex; align-items:center;" class="repo-actions">
                                                                           <button class="repo-btn" style="display:flex; font-size:10px; color:${selColor};" title="Select/Deselect Folder" onclick="window.toggleModalSelection('${child.path}', event)"><i class="${selIcon}"></i></button>
-                                                                          <button class="repo-btn del" style="display:flex; font-size:10px; color:var(--red);" title="Delete Folder" onclick="window.deleteDirectory('${child.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
+                                                                          <button class="repo-btn" style="display:flex; font-size:10px; color:#fff;" title="Rename Folder" onclick="window.renameDirectory('${child.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-pen"></i></button>
+                                                                                                                                                    <button class="repo-btn del" style="display:flex; font-size:10px; color:var(--red);" title="Delete Folder" onclick="window.deleteDirectory('${child.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
                                                                       </div>
                                           </div>`;
                                         if (isExpanded) {
@@ -11123,7 +11394,8 @@ window.oneClickPush = async function(customMsg) {
                                                 <div class="repo-actions">
                                                                                                                                   <button class="repo-btn" style="font-size:10px; color:${selColor};" title="Select/Deselect" onclick="window.toggleModalSelection('${f.path}', event)"><i class="${selIcon}"></i></button>
                                                                                                                                   <button class="repo-btn" style="font-size:10px; color:var(--blue);" title="Download File" onclick="window.downloadFile('${f.path}', event)"><i class="fa-solid fa-download"></i></button>
-                                                                                                                                  <button class="repo-btn" style="font-size:10px;" title="Rename File" onclick="window.renameFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-pen"></i></button>
+                                                                                                                                  <button class="repo-btn" style="font-size:10px; color:var(--teal);" title="Move File" onclick="window.moveFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-arrows-up-down-left-right"></i></button>
+                                                                                                                                                                                                                                                                    <button class="repo-btn" style="font-size:10px;" title="Rename File" onclick="window.renameFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-pen"></i></button>
                                                                                                                                   <button class="repo-btn del" style="font-size:10px; color:var(--red);" title="Delete File" onclick="window.deleteFile('${f.path}', event); window.closeFullTreeModal();"><i class="fa-solid fa-trash"></i></button>
                                                                                                                               </div>
                                             </div>`;
