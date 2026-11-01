@@ -11036,6 +11036,198 @@ window.oneClickPush = async function(customMsg) {
                 }, 500);
             })();
 
+            window.pickMoveDestination = function(title, subtitle, excludes, startDir) {
+                return new Promise(function(resolve) {
+                    excludes = excludes || [];
+                    var extra = new Set();
+                    var selected = startDir || '';
+                    var expanded = new Set(['']);
+                    function isExcluded(p) { return excludes.some(function(t) { return p === t || p.indexOf(t + '/') === 0; }); }
+                    function addWithAncestors(set, p) {
+                        var parts = p.split('/'), cur = '';
+                        for (var i = 0; i < parts.length; i++) { cur = cur ? cur + '/' + parts[i] : parts[i]; if (cur) set.add(cur); }
+                    }
+                    function allFolders() {
+                        var s = new Set();
+                        (currentTreeFiles || []).forEach(function(f) {
+                            var idx = f.path.lastIndexOf('/');
+                            if (idx > 0) addWithAncestors(s, f.path.substring(0, idx));
+                        });
+                        extra.forEach(function(p) { addWithAncestors(s, p); });
+                        return Array.from(s).filter(function(p) { return !isExcluded(p); }).sort(function(a, b) { return a.localeCompare(b); });
+                    }
+                    addWithAncestors(expanded, selected);
+
+                    var overlay = document.createElement('div');
+                    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000005; display:flex; align-items:center; justify-content:center; padding:12px; box-sizing:border-box;';
+                    var card = document.createElement('div');
+                    card.style.cssText = 'width:100%; max-width:420px; max-height:80vh; display:flex; flex-direction:column; background:#111215; border:1px solid rgba(255,255,255,0.12); border-radius:14px; box-shadow:0 12px 40px rgba(0,0,0,0.7); overflow:hidden; color:#fff;';
+                    overlay.appendChild(card);
+
+                    var head = document.createElement('div');
+                    head.style.cssText = 'display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 14px; border-bottom:1px solid rgba(255,255,255,0.08);';
+                    var ht = document.createElement('div');
+                    ht.style.cssText = 'min-width:0; flex:1;';
+                    var h1 = document.createElement('div');
+                    h1.style.cssText = 'font-size:12px; font-weight:600;';
+                    h1.textContent = title || 'Move to folder';
+                    var h2 = document.createElement('div');
+                    h2.style.cssText = 'font-size:9.5px; color:rgba(255,255,255,0.5); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+                    h2.textContent = subtitle || '';
+                    ht.appendChild(h1); ht.appendChild(h2);
+                    var plusBtn = document.createElement('button');
+                    plusBtn.type = 'button';
+                    plusBtn.title = 'New folder';
+                    plusBtn.style.cssText = 'background:rgba(57,211,83,0.15); color:var(--green); border:1px solid rgba(57,211,83,0.35); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; height:28px; display:flex; align-items:center; gap:5px;';
+                    plusBtn.innerHTML = '<i class="fa-solid fa-plus"></i> Folder';
+                    head.appendChild(ht); head.appendChild(plusBtn);
+                    card.appendChild(head);
+
+                    var newRow = document.createElement('div');
+                    newRow.style.cssText = 'display:none; align-items:center; gap:6px; padding:8px 14px; border-bottom:1px solid rgba(255,255,255,0.08);';
+                    var newInput = document.createElement('input');
+                    newInput.type = 'text';
+                    newInput.placeholder = 'New folder name';
+                    newInput.style.cssText = 'flex:1; min-width:0; font-size:12px; padding:6px 10px; border-radius:8px;';
+                    var newOk = document.createElement('button');
+                    newOk.type = 'button';
+                    newOk.textContent = 'Add';
+                    newOk.style.cssText = 'background:rgba(57,211,83,0.15); color:var(--green); border:1px solid rgba(57,211,83,0.35); padding:4px 12px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; height:28px;';
+                    newRow.appendChild(newInput); newRow.appendChild(newOk);
+                    card.appendChild(newRow);
+
+                    var list = document.createElement('div');
+                    list.style.cssText = 'flex:1; overflow-y:auto; padding:6px 6px;';
+                    card.appendChild(list);
+
+                    var foot = document.createElement('div');
+                    foot.style.cssText = 'display:flex; align-items:center; gap:8px; padding:10px 14px; border-top:1px solid rgba(255,255,255,0.08);';
+                    var dest = document.createElement('div');
+                    dest.style.cssText = 'flex:1; min-width:0; font-size:10px; color:rgba(255,255,255,0.7); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-family:monospace;';
+                    var cancelBtn = document.createElement('button');
+                    cancelBtn.type = 'button';
+                    cancelBtn.textContent = 'Cancel';
+                    cancelBtn.style.cssText = 'background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15); padding:4px 12px; border-radius:8px; font-size:10.5px; font-weight:600; cursor:pointer; height:30px;';
+                    var okBtn = document.createElement('button');
+                    okBtn.type = 'button';
+                    okBtn.innerHTML = '<i class="fa-solid fa-folder-tree"></i> Move here';
+                    okBtn.style.cssText = 'background:rgba(92,157,255,0.2); color:var(--blue); border:1px solid rgba(92,157,255,0.4); padding:4px 12px; border-radius:8px; font-size:10.5px; font-weight:600; cursor:pointer; height:30px; display:flex; align-items:center; gap:5px;';
+                    foot.appendChild(dest); foot.appendChild(cancelBtn); foot.appendChild(okBtn);
+                    card.appendChild(foot);
+
+                    function row(label, path, depth, hasKids, isRoot) {
+                        var r = document.createElement('div');
+                        var sel = selected === path;
+                        r.style.cssText = 'display:flex; align-items:center; gap:6px; padding:8px 8px 8px ' + (8 + depth * 16) + 'px; border-radius:8px; cursor:pointer; font-size:12px; user-select:none; background:' + (sel ? 'rgba(92,157,255,0.18)' : 'transparent') + '; color:' + (sel ? 'var(--blue)' : '#fff') + ';';
+                        var chev = document.createElement('span');
+                        chev.style.cssText = 'width:14px; text-align:center; font-size:9px; color:rgba(255,255,255,0.6); flex-shrink:0;';
+                        if (hasKids) {
+                            chev.innerHTML = '<i class="fa-solid fa-chevron-' + (expanded.has(path) ? 'down' : 'right') + '"></i>';
+                            chev.addEventListener('click', function(ev) {
+                                ev.stopPropagation();
+                                if (expanded.has(path)) expanded.delete(path); else expanded.add(path);
+                                draw();
+                            });
+                        }
+                        var ic = document.createElement('i');
+                        ic.className = isRoot ? 'fa-solid fa-house' : 'fa-solid fa-folder';
+                        ic.style.cssText = 'font-size:13px; flex-shrink:0; color:' + (isRoot ? 'var(--teal)' : 'var(--amber)') + ';';
+                        var nm = document.createElement('span');
+                        nm.style.cssText = 'flex:1; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;';
+                        nm.textContent = label;
+                        r.appendChild(chev); r.appendChild(ic); r.appendChild(nm);
+                        r.addEventListener('click', function() { selected = path; draw(); });
+                        return r;
+                    }
+
+                    function draw() {
+                        var folders = allFolders();
+                        var kids = {};
+                        folders.forEach(function(p) {
+                            var par = p.indexOf('/') !== -1 ? p.substring(0, p.lastIndexOf('/')) : '';
+                            (kids[par] = kids[par] || []).push(p);
+                        });
+                        list.innerHTML = '';
+                        list.appendChild(row('/ (repo root)', '', 0, false, true));
+                        (function walk(parent, depth) {
+                            (kids[parent] || []).forEach(function(p) {
+                                var has = !!(kids[p] && kids[p].length);
+                                list.appendChild(row(p.split('/').pop(), p, depth, has, false));
+                                if (has && expanded.has(p)) walk(p, depth + 1);
+                            });
+                        })('', 1);
+                        dest.textContent = 'To: /' + selected;
+                    }
+
+                    function finish(val) {
+                        document.removeEventListener('keydown', onKey, true);
+                        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                        resolve(val);
+                    }
+                    function onKey(ev) { if (ev.key === 'Escape') { ev.stopPropagation(); finish(null); } }
+                    document.addEventListener('keydown', onKey, true);
+
+                    function addFolder() {
+                        var n = newInput.value.trim();
+                        if (!n || n.indexOf('/') !== -1 || n.indexOf('\\') !== -1 || n.indexOf('..') !== -1) { toast('❌ Invalid folder name', 'warn'); return; }
+                        var p = selected ? selected + '/' + n : n;
+                        if (isExcluded(p)) { toast('❌ Cannot create a folder there', 'warn'); return; }
+                        extra.add(p);
+                        addWithAncestors(expanded, p);
+                        selected = p;
+                        newInput.value = '';
+                        newRow.style.display = 'none';
+                        draw();
+                    }
+                    plusBtn.addEventListener('click', function() {
+                        newRow.style.display = newRow.style.display === 'none' ? 'flex' : 'none';
+                        if (newRow.style.display === 'flex') newInput.focus();
+                    });
+                    newOk.addEventListener('click', addFolder);
+                    newInput.addEventListener('keydown', function(ev) { if (ev.key === 'Enter') { ev.preventDefault(); addFolder(); } });
+                    cancelBtn.addEventListener('click', function() { finish(null); });
+                    okBtn.addEventListener('click', function() { finish(selected); });
+                    overlay.addEventListener('click', function(ev) { if (ev.target === overlay) finish(null); });
+
+                    draw();
+                    document.body.appendChild(overlay);
+                });
+            };
+
+            window.moveFile = async function(path, e) {
+                if (e) e.stopPropagation();
+                if (!ghToken || !ghRepo) return;
+                var name = path.split('/').pop();
+                var parent = path.indexOf('/') !== -1 ? path.substring(0, path.lastIndexOf('/')) : '';
+                var dest = await window.pickMoveDestination('Move file', path, [], parent);
+                if (dest === null) return;
+                var np = (dest ? dest + '/' : '') + name;
+                if (np === path) return;
+                await window.gitMovePaths([{ from: path, to: np }], 'Move ' + path + ' to ' + np);
+            };
+
+            window.moveModalSelected = async function() {
+                if (!window.modalSelectedPaths || window.modalSelectedPaths.size === 0) return;
+                var targets = Array.from(window.modalSelectedPaths);
+                var label = targets.length === 1 ? targets[0] : targets.length + ' selected items';
+                var dest = await window.pickMoveDestination('Move to folder', label, targets, currentDirectory || '');
+                if (dest === null) return;
+                window.closeFullTreeModal();
+                await window.gitMovePaths(function(map) {
+                    var pairs = [];
+                    targets.forEach(function(t) {
+                        if (dest === t || dest.indexOf(t + '/') === 0) throw new Error('Cannot move a folder into itself: ' + t);
+                        var base = t.split('/').pop();
+                        Object.keys(map).forEach(function(p) {
+                            if (p === t || p.indexOf(t + '/') === 0) {
+                                pairs.push({ from: p, to: (dest ? dest + '/' : '') + base + p.slice(t.length) });
+                            }
+                        });
+                    });
+                    return pairs;
+                }, 'Move ' + targets.length + ' item(s) to ' + (dest || '/'));
+            };
+
             window.openFullTreeModal = function() {
                                   var _ftSearch = document.getElementById('modalTreeSearch'); if (_ftSearch) _ftSearch.value = '';
                       if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
