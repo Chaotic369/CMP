@@ -1170,7 +1170,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
       <div style="display:flex; align-items:center; justify-content:space-between;">
               <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-folder-tree" style="margin-right:6px;"></i>Project Structure</span>
               <div style="display:flex; gap:4px;">
-                <button id="bulkMiniClearBtn" type="button" class="btn" style="width:auto; padding:2px 8px; font-size:9px; height:22px; border-radius:6px; color:var(--red); background:transparent; border:1px solid rgba(248,81,73,0.3);" title="Clear paths"><i class="fa-solid fa-trash" style="margin-right:4px;"></i>Clear</button>
+                <button id="bulkPromptCopyBtn" type="button" class="btn" style="width:auto; padding:2px 8px; font-size:9px; height:22px; border-radius:6px; color:var(--purple); background:transparent; border:1px solid rgba(188,140,255,0.3);" title="Copy a short AI prompt for generating a file/folder structure"><i class="fa-regular fa-copy" style="margin-right:4px;"></i>Prompt</button>
+                                <button id="bulkMiniClearBtn" type="button" class="btn" style="width:auto; padding:2px 8px; font-size:9px; height:22px; border-radius:6px; color:var(--red); background:transparent; border:1px solid rgba(248,81,73,0.3);" title="Clear paths"><i class="fa-solid fa-trash" style="margin-right:4px;"></i>Clear</button>
                 <button id="bulkPasteBtn" type="button" class="btn" style="width:auto; padding:2px 8px; font-size:9px; height:22px; border-radius:6px; color:#ffffff; background:transparent; border:1px solid rgba(255,255,255,0.2);" title="Paste paths from clipboard"><i class="fa-solid fa-paste" style="margin-right:4px;"></i>Paste</button>
               </div>
             </div>
@@ -11642,7 +11643,43 @@ window.oneClickPush = async function(customMsg) {
                 document.getElementById('menu-backdrop').classList.remove('open');
             });
 
-            var bulkMiniClearBtnEl = document.getElementById('bulkMiniClearBtn');
+            var bulkPromptCopyBtnEl = document.getElementById('bulkPromptCopyBtn');
+                        if (bulkPromptCopyBtnEl) {
+                          bulkPromptCopyBtnEl.addEventListener('click', () => {
+                            const promptText = [
+                              'Output ONLY a plain list of file and folder paths for my project, one per line.',
+                              'Rules:',
+                              '- A folder ends with / (example: src/components/)',
+                              '- A file has its extension (example: src/index.js)',
+                              '- Use full paths from the repo root, no leading /',
+                              '- No explanations, no numbering, no bullets, no code fences.',
+                              '',
+                              'Project: <describe your project here>'
+                            ].join('\n');
+                            const done = () => toast('📋 Bulk structure prompt copied', 'ok');
+                            const fallback = () => {
+                              try {
+                                const ta = document.createElement('textarea');
+                                ta.value = promptText;
+                                ta.style.cssText = 'position:fixed; left:-9999px; top:0;';
+                                document.body.appendChild(ta);
+                                ta.select();
+                                document.execCommand('copy');
+                                document.body.removeChild(ta);
+                                done();
+                              } catch (err) {
+                                toast('❌ Copy failed', 'err');
+                              }
+                            };
+                            if (navigator.clipboard && navigator.clipboard.writeText) {
+                              navigator.clipboard.writeText(promptText).then(done).catch(fallback);
+                            } else {
+                              fallback();
+                            }
+                          });
+                        }
+
+                        var bulkMiniClearBtnEl = document.getElementById('bulkMiniClearBtn');
             if (bulkMiniClearBtnEl) {
               bulkMiniClearBtnEl.addEventListener('click', () => {
                 document.getElementById('bulkPathsInput').value = '';
