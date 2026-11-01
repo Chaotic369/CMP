@@ -502,6 +502,7 @@ button.btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; c
 
 .repo-actions { display: none; align-items: center; gap: 3px; }
 .repo-item.active .repo-actions { display: flex; }
+.repo-item:hover .repo-actions { display: flex; }
 .repo-btn { background: transparent; border: none !important; color: #ffffff; cursor: pointer; padding: 1px 3px; font-size: 8px; border-radius: 4px; }
 .repo-btn i { font-size: 8px; }
 .repo-btn.del { color: var(--red); }
@@ -1211,13 +1212,18 @@ select.bm-select option { background: var(--elevated); color: #fff; }
       </div>
       <div style="display:flex; align-items:center; gap:6px;">
                               <button id="modalDownloadZipBtn" style="background:rgba(227,179,65,0.15); color:var(--amber); border:1px solid rgba(227,179,65,0.3); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; height:26px;" onclick="window.downloadRepoZip()"><i class="fa-solid fa-file-zipper"></i> Zip</button>
-                              <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.15); color:var(--blue); border:1px solid rgba(92,157,255,0.3); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; height:26px;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
+                              <button id="modalWorkspaceBtn" style="display:none; background:rgba(92,157,255,0.15); color:var(--blue); border:1px solid rgba(92,157,255,0.3); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; align-items:center; gap:5px; height:26px;" onclick="window.loadModalSelectedToWorkspace()"><i class="fa-solid fa-briefcase"></i> Load (<span id="modalWorkspaceCount">0</span>)</button>
                               <button id="modalRepoBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:1px solid rgba(248,81,73,0.35); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; height:26px;" onclick="window.bulkDeleteSelectedReposWithWarning()"><i class="fa-solid fa-trash"></i> Repos (<span id="modalRepoBulkCount">0</span>)</button>
-                              <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:1px solid rgba(248,81,73,0.35); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:5px; height:26px;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
+                              <button id="modalBulkDeleteBtn" style="display:none; background:rgba(248,81,73,0.2); color:var(--red); border:1px solid rgba(248,81,73,0.35); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; align-items:center; gap:5px; height:26px;" onclick="window.bulkDeleteModalSelected()"><i class="fa-solid fa-trash"></i> Delete (<span id="modalBulkCount">0</span>)</button>
                               <button class="panel-close" onclick="window.closeFullTreeModal()">✕</button>
                             </div>
     </div>
-    <div id="fullTreeContent" style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; overflow-x: hidden;"></div>
+    <div style="display:flex; align-items:center; gap:6px; padding:6px 2px;">
+          <input type="text" id="modalTreeSearch" placeholder="Filter files by name or path..." oninput="window.renderFullTreeModal()" style="flex:1; min-width:0; font-size:11px; padding:6px 10px; border-radius:8px;">
+          <button type="button" style="background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; height:26px;" onclick="window.modalSelectAllVisible()">All</button>
+          <button type="button" style="background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; height:26px;" onclick="window.modalClearSelection()">None</button>
+        </div>
+        <div id="fullTreeContent" style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; overflow-x: hidden;"></div>
     <div id="modalRepoList" style="display:none; flex-direction:column; gap:4px; overflow-y:auto; flex:1; padding-right:4px;"></div>
   </div>
 
@@ -2533,7 +2539,12 @@ window.renderBookmarks = function() {
             if (!(await window.inAppConfirm(`Delete ${window.modalSelectedPaths.size} selected item(s)?`, 'Delete Items'))) return;
             window.closeFullTreeModal();
             showProgress(10);
-            let pathsToDelete = Array.from(window.modalSelectedPaths);
+            let pathsToDelete = [];
+                        window.modalSelectedPaths.forEach(p => {
+                            if (currentTreeFiles.some(f => f.path === p)) pathsToDelete.push(p);
+                            else currentTreeFiles.filter(f => f.path.startsWith(p + '/')).forEach(f => pathsToDelete.push(f.path));
+                        });
+                        pathsToDelete = Array.from(new Set(pathsToDelete));
             let deleted = 0, failed = 0;
             for (let path of pathsToDelete) {
                 let isFile = currentTreeFiles.some(f => f.path === path);
@@ -10759,6 +10770,7 @@ window.oneClickPush = async function(customMsg) {
             window.modalSelectedPaths = new Set();
 
             window.openFullTreeModal = function() {
+                                  var _ftSearch = document.getElementById('modalTreeSearch'); if (_ftSearch) _ftSearch.value = '';
                       if (!ghToken || !ghRepo) { toast('❌ Select a repo first', 'warn'); return; }
           
                       document.getElementById('modalRepoTitle').textContent = ghRepo.split('/')[1] || ghRepo;
@@ -11000,15 +11012,27 @@ window.oneClickPush = async function(customMsg) {
                 window.renderFullTreeModal();
             };
 
-            window.renderFullTreeModal = function() {
+            window.modalSelectAllVisible = function() {
+                            var q = (document.getElementById('modalTreeSearch') || { value: '' }).value.trim().toLowerCase();
+                            if (!window.modalSelectedPaths) window.modalSelectedPaths = new Set();
+                            currentTreeFiles.forEach(f => { if (!q || f.path.toLowerCase().includes(q)) window.modalSelectedPaths.add(f.path); });
+                            window.renderFullTreeModal();
+                        };
+
+                        window.modalClearSelection = function() {
+                            if (window.modalSelectedPaths) window.modalSelectedPaths.clear();
+                            window.renderFullTreeModal();
+                        };
+
+                        window.renderFullTreeModal = function() {
                 let bulkBtn = document.getElementById('modalBulkDeleteBtn');
                 let bulkCount = document.getElementById('modalBulkCount');
                 let wsBtn = document.getElementById('modalWorkspaceBtn');
                 let wsCount = document.getElementById('modalWorkspaceCount');
                 if (window.modalSelectedPaths && window.modalSelectedPaths.size > 0) {
-                                    bulkBtn.style.display = 'block';
+                                    bulkBtn.style.display = 'flex';
                                     bulkCount.textContent = window.modalSelectedPaths.size;
-                                    if(wsBtn) { wsBtn.style.display = 'block'; wsCount.textContent = window.modalSelectedPaths.size; }
+                                    if(wsBtn) { wsBtn.style.display = 'flex'; wsCount.textContent = window.modalSelectedPaths.size; }
                                 } else {
                                     bulkBtn.style.display = 'none';
                                     if(wsBtn) wsBtn.style.display = 'none';
@@ -11108,7 +11132,34 @@ window.oneClickPush = async function(customMsg) {
               return html;
           }
 
-          document.getElementById('fullTreeContent').innerHTML = renderNode(root, 0);
+          var _qEl = document.getElementById('modalTreeSearch');
+                    var _q = _qEl ? _qEl.value.trim().toLowerCase() : '';
+                    if (_q) {
+                        var _matches = currentTreeFiles.filter(f => f.path.toLowerCase().includes(_q));
+                        var _sh = '';
+                        _matches.forEach(f => {
+                            const ic = getIconLocal(f.path);
+                            const isTarget = f.path === ghFilePath;
+                            const sel = window.modalSelectedPaths.has(f.path);
+                            const selIcon = sel ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle';
+                            const selColor = sel ? 'var(--green)' : 'rgba(255,255,255,0.6)';
+                            _sh += `<div class="repo-item file-item ${isTarget ? 'active' : ''}" style="padding-left:12px;" onclick="window.selectFileFromModal('${f.path}')" title="${f.path}">
+                                <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
+                                    <i class="${ic.i}" style="margin-right:10px; font-size:14px; color:${isTarget ? 'var(--blue)' : ic.c};"></i>
+                                    <span style="font-size:13px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${f.path}</span>
+                                </div>
+                                <div class="repo-actions">
+                                    <button class="repo-btn" style="font-size:10px; color:${selColor};" title="Select/Deselect" onclick="window.toggleModalSelection('${f.path}', event)"><i class="${selIcon}"></i></button>
+                                    <button class="repo-btn" style="font-size:10px; color:var(--blue);" title="Download File" onclick="window.downloadFile('${f.path}', event)"><i class="fa-solid fa-download"></i></button>
+                                </div>
+                            </div>`;
+                        });
+                        if (!_matches.length) _sh = '<div style="color:rgba(255,255,255,0.5); font-size:11px; padding:12px; text-align:center;">No files match your filter</div>';
+                        document.getElementById('fullTreeContent').innerHTML = _sh;
+                        return;
+                    }
+
+                    document.getElementById('fullTreeContent').innerHTML = renderNode(root, 0);
       };
 
       window.openBulkModal = function() {
