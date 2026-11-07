@@ -4967,7 +4967,17 @@ function closeTopmostModal() {
 
 $backdrop.addEventListener('click', function(e) {
   if (e.target !== $backdrop) return;
+  var _bo = document.getElementById('buildProgressOverlay');
+  var _bvis = !!(_bo && _bo.style.display !== 'none');
+  var _bmin = !!(_bo && _bo.classList.contains('minimized'));
+  var _bsaved = null;
+  try { _bsaved = localStorage.getItem('active_build_v1'); } catch (err) {}
   closeTopmostModal();
+  if (_bvis && _bo && _bsaved) {
+    try { if (!localStorage.getItem('active_build_v1')) localStorage.setItem('active_build_v1', _bsaved); } catch (err) {}
+    _bo.style.display = 'flex';
+    if (_bmin) _bo.classList.add('minimized');
+  }
 });
 
 (function initMenuResize() {
@@ -10741,25 +10751,31 @@ window.oneClickPush = async function(customMsg) {
 
             
 
-            window.restoreActiveBuild = function() {
-              var ab = null;
+            window._bpInstallKeepAlive = function() {
+                          var ov = document.getElementById('buildProgressOverlay');
+                          if (!ov || window._bpKeepAlive || !window.MutationObserver) return;
+                          try {
+                            window._bpKeepAlive = new MutationObserver(function() {
+                              try {
+                                if (ov.style.display === 'none' && localStorage.getItem('active_build_v1')) {
+                                  ov.style.display = 'flex';
+                                  ov.classList.add('minimized');
+                                  window.persistActiveBuild({ minimized: true });
+                                }
+                              } catch (e) {}
+                            });
+                            window._bpKeepAlive.observe(ov, { attributes: true, attributeFilter: ['style'] });
+                          } catch (e) {}
+                        };
+                        window._bpInstallKeepAlive();
+
+                        window.restoreActiveBuild = function() {
+                          window._bpRestored = true;
+                          var ab = null;
               try { ab = JSON.parse(localStorage.getItem('active_build_v1')); } catch (e) {}
               var ov = document.getElementById('buildProgressOverlay');
               if (!ov) return;
-              try {
-                if (window.MutationObserver && !window._bpKeepAlive) {
-                  window._bpKeepAlive = new MutationObserver(function() {
-                    try {
-                      if (ov.style.display === 'none' && localStorage.getItem('active_build_v1')) {
-                        ov.style.display = 'flex';
-                        ov.classList.add('minimized');
-                        window.persistActiveBuild({ minimized: true });
-                      }
-                    } catch (e) {}
-                  });
-                  window._bpKeepAlive.observe(ov, { attributes: true, attributeFilter: ['style'] });
-                }
-              } catch (e) {}
+              window._bpInstallKeepAlive();
               if (!ab || !ab.workflowFile) return;
               window._activeBuildRepo = ab.repo || '';
               var logEl = document.getElementById('bpLogs');
@@ -12922,6 +12938,7 @@ sourceContent = '';
 fileName = 'ready';
 render('', false); 
 addLog('info', 'AI Compile PRO Sovereign IDE ready.');
+try { if (window.restoreActiveBuild && !window._bpRestored) window.restoreActiveBuild(); } catch (e) {}
 if (window.bootDone) window.bootDone();
 if (window.bootProgress) window.bootProgress('Ready');
 </script>
