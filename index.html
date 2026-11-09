@@ -828,6 +828,18 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 .bm-ui-dropdown-item:hover { background: rgba(255,255,255,0.1); }
 .bm-ui-dropdown-item i { width: 13px; text-align: center; font-size: 10px; }
 
+/* Custom Select Dropdown UI (Zero System UI) */
+.custom-select-wrapper { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; user-select: none; }
+.custom-select-trigger { width: 100%; background: #08080a; color: #ffffff; padding: 7px 12px; border-radius: 10px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; box-sizing: border-box; }
+.custom-select-trigger:hover { background: #0f1013; }
+.custom-select-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.custom-select-trigger i { font-size: 9px; color: rgba(255,255,255,0.6); flex-shrink: 0; }
+.custom-select-menu { position: absolute; top: calc(100% + 5px); left: 0; right: 0; background: #181a1f; border-radius: 10px; padding: 4px; display: none; flex-direction: column; gap: 2px; z-index: 100050; box-shadow: 0 12px 32px rgba(0,0,0,0.85); max-height: 210px; overflow-y: auto; }
+.custom-select-menu.open { display: flex; }
+.custom-select-option { background: transparent; color: #ffffff; padding: 7px 10px; font-size: 10px; font-weight: 500; text-align: left; border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.custom-select-option:hover { background: rgba(255,255,255,0.1); }
+.custom-select-option.selected { background: rgba(92,157,255,0.18); color: var(--blue); font-weight: 600; }
+
 /* Cropper Modal */
 #iconCropModal {
   position: fixed; z-index: 1000004 !important; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
@@ -1797,8 +1809,96 @@ window.inAppPrompt = function(message, defaultValue = '', title = 'Input Require
   });
 };
 
-// Override standard browser window blockers
+// Override standard browser window blockers & native select UI
 window.confirm = (msg) => { console.warn('Sync confirm redirected to toast; use await inAppConfirm()'); toast(msg, 'warn'); return false; };
+window.alert = (msg) => { toast(String(msg || ''), 'info', 4000); };
+window.prompt = (msg, def) => { console.warn('Sync prompt blocked; use await inAppPrompt()'); toast(String(msg || 'Input required'), 'warn'); return def || null; };
+
+window.upgradeSelectToCustomUI = function(sel) {
+  if (!sel || sel.dataset.customUpgraded === '1') return;
+  sel.dataset.customUpgraded = '1';
+  sel.style.display = 'none';
+
+  var wrapper = document.createElement('div');
+  wrapper.className = 'custom-select-wrapper';
+
+  var trigger = document.createElement('div');
+  trigger.className = 'custom-select-trigger';
+  var labelSpan = document.createElement('span');
+  var caret = document.createElement('i');
+  caret.className = 'fa-solid fa-chevron-down';
+  trigger.appendChild(labelSpan);
+  trigger.appendChild(caret);
+
+  var menu = document.createElement('div');
+  menu.className = 'custom-select-menu';
+
+  function syncFromSelect() {
+    var idx = sel.selectedIndex >= 0 ? sel.selectedIndex : 0;
+    var activeOpt = sel.options[idx];
+    labelSpan.textContent = activeOpt ? activeOpt.textContent : 'Select...';
+    menu.innerHTML = '';
+    Array.from(sel.options).forEach(function(opt) {
+      var item = document.createElement('div');
+      item.className = 'custom-select-option' + (opt.value === sel.value ? ' selected' : '');
+      var txt = document.createElement('span');
+      txt.textContent = opt.textContent;
+      item.appendChild(txt);
+      if (opt.value === sel.value) {
+        var chk = document.createElement('i');
+        chk.className = 'fa-solid fa-check';
+        chk.style.fontSize = '9px';
+        item.appendChild(chk);
+      }
+      item.addEventListener('click', function(ev) {
+        ev.stopPropagation();
+        sel.value = opt.value;
+        syncFromSelect();
+        menu.classList.remove('open');
+        caret.className = 'fa-solid fa-chevron-down';
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      menu.appendChild(item);
+    });
+  }
+
+  trigger.addEventListener('click', function(ev) {
+    ev.stopPropagation();
+    var wasOpen = menu.classList.contains('open');
+    document.querySelectorAll('.custom-select-menu.open').forEach(function(m) {
+      m.classList.remove('open');
+    });
+    if (!wasOpen) {
+      syncFromSelect();
+      menu.classList.add('open');
+      caret.className = 'fa-solid fa-chevron-up';
+    } else {
+      caret.className = 'fa-solid fa-chevron-down';
+    }
+  });
+
+  sel._syncCustomSelect = syncFromSelect;
+  syncFromSelect();
+  wrapper.appendChild(trigger);
+  wrapper.appendChild(menu);
+  if (sel.parentNode) sel.parentNode.insertBefore(wrapper, sel.nextSibling);
+};
+
+window.initAllCustomSelects = function() {
+  document.querySelectorAll('select').forEach(function(s) {
+    window.upgradeSelectToCustomUI(s);
+  });
+};
+
+document.addEventListener('click', function() {
+  document.querySelectorAll('.custom-select-menu.open').forEach(function(m) {
+    m.classList.remove('open');
+  });
+  document.querySelectorAll('.custom-select-trigger i').forEach(function(ic) {
+    ic.className = 'fa-solid fa-chevron-down';
+  });
+});
+setTimeout(function() { if (window.initAllCustomSelects) window.initAllCustomSelects(); }, 50);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CONSTANTS & STATE
@@ -9371,14 +9471,16 @@ document.getElementById('ghSettingsBtn').addEventListener('click', function() {
   var hasOpt = Array.from(sel.options).some(function(o) { return o.value === geminiModel; });
 
   if (hasOpt && geminiModel !== 'custom') {
-    sel.value = geminiModel;
-    if (customRow) customRow.style.display = 'none';
-  } else {
-    sel.value = 'custom';
-    if (customRow) customRow.style.display = 'flex';
-    if (customInput) customInput.value = geminiModel;
-  }
-  var ghPanel = document.getElementById('ghConfigPanel');
+      sel.value = geminiModel;
+      if (customRow) customRow.style.display = 'none';
+    } else {
+      sel.value = 'custom';
+      if (customRow) customRow.style.display = 'flex';
+      if (customInput) customInput.value = geminiModel;
+    }
+    if (window.initAllCustomSelects) window.initAllCustomSelects();
+    if (sel._syncCustomSelect) sel._syncCustomSelect();
+    var ghPanel = document.getElementById('ghConfigPanel');
   ghPanel.classList.add('open');
   centerModal(ghPanel);
   bringModalToFront(ghPanel);
