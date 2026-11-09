@@ -2006,7 +2006,8 @@ function bringModalToFront(modal) {
     if (!el) return;
     el.classList.remove('open');
     el.style.display = 'none';
-        if (id === 'buildProgressOverlay' && window.restoreActiveBuild) window.restoreActiveBuild();
+        var id = el.id;
+                if (id === 'buildProgressOverlay' && window.restoreActiveBuild) window.restoreActiveBuild();
     var sel = '#astPanel, #logPanel, #ghConfigPanel, #commitModal, #newRepoModal, #wallpaperModal, #buildModal, ' +
               '#workflowsModal, #fullTreeModal, #bulkModal, #errLogModal, #branchModal, #moreModal, #artifactsModal, #liveEditModal';
     var anyOpen = Array.from(document.querySelectorAll(sel)).some(function(m) {
