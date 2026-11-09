@@ -834,7 +834,21 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 .custom-select-trigger:hover { background: #0f1013; }
 .custom-select-trigger span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .custom-select-trigger i { font-size: 9px; color: rgba(255,255,255,0.6); flex-shrink: 0; }
-.custom-select-menu { position: absolute; top: calc(100% + 5px); left: 0; right: 0; background: #181a1f; border-radius: 10px; padding: 4px; display: none; flex-direction: column; gap: 2px; z-index: 100050; box-shadow: 0 12px 32px rgba(0,0,0,0.85); max-height: 210px; overflow-y: auto; }
+.custom-select-menu {
+  max-height: 140px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+.custom-select-menu::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-select-menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+}
 .custom-select-menu.open { display: flex; }
 .custom-select-option { background: transparent; color: #ffffff; padding: 7px 10px; font-size: 10px; font-weight: 500; text-align: left; border-radius: 7px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .custom-select-option:hover { background: rgba(255,255,255,0.1); }
