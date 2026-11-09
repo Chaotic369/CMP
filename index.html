@@ -985,11 +985,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
 <div id="codeEditorActions">
   <button class="ce-action-btn" id="ceUndoBtn" title="Undo" disabled style="width:auto; padding:2px 6px;">
-    <div style="display:flex; align-items:center; gap:3px;"><i class="fa-solid fa-arrow-rotate-left"></i><span id="ceUndoCount" style="font-size:8px; font-weight:600;">0</span></div>
+    <div style="display:flex; align-items:center; gap:3px;"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg><span id="ceUndoCount" style="font-size:8px; font-weight:600;">0</span></div>
     <span class="ce-lbl">Undo</span>
   </button>
   <button class="ce-action-btn" id="ceRedoBtn" title="Redo" disabled style="width:auto; padding:2px 6px;">
-    <div style="display:flex; align-items:center; gap:3px;"><i class="fa-solid fa-arrow-rotate-right"></i><span id="ceRedoCount" style="font-size:8px; font-weight:600;">0</span></div>
+    <div style="display:flex; align-items:center; gap:3px;"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg><span id="ceRedoCount" style="font-size:8px; font-weight:600;">0</span></div>
     <span class="ce-lbl">Redo</span>
   </button>
   <button class="ce-action-btn" id="selectAllCodeBtn" title="Select All">
@@ -1097,8 +1097,8 @@ select.bm-select option { background: var(--elevated); color: #fff; }
 
   <div id="main-controls">
         <button id="pasteBtn" class="btn" title="Paste & Apply" style="color:var(--green);"><i class="fa-solid fa-bolt"></i><span class="btn-lbl">Paste</span></button>
-        <button id="undoBtn" class="btn" title="Undo" disabled><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg><span class="btn-lbl">Undo</span></button>
-        <button id="redoBtn" class="btn" title="Redo" disabled><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.13-9.36L23 10"/></svg><span class="btn-lbl">Redo</span></button>
+        <button id="undoBtn" class="btn" title="Undo" disabled><i class="fa-solid fa-arrow-rotate-left"></i><span class="btn-lbl">Undo</span></button>
+        <button id="redoBtn" class="btn" title="Redo" disabled><i class="fa-solid fa-arrow-rotate-right"></i><span class="btn-lbl">Redo</span></button>
         <button id="fileBtn" class="btn" title="Load File" style="color:var(--amber);"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span class="btn-lbl">File</span></button>
         <button id="fullScreenBtn" class="btn" title="Full Screen"><svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg><span class="btn-lbl">Full</span></button>
   
