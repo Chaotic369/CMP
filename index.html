@@ -1332,18 +1332,15 @@ select.bm-select option { background: var(--elevated); color: #fff; }
           <span style="font-size:11px; font-weight:600;"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px; color:var(--teal);"></i>Gemini AI Engine</span>
           <div class="gh-row" style="margin:0;"><label>API Key</label><input type="password" id="geminiApiKey" placeholder="AIzaSy..."></div>
           <div class="gh-row" style="margin:0;">
-                  <label>Model</label>
-                  <select id="geminiModelSelect" style="flex: 1; min-width: 0; background: #08080a; border: none; color: #ffffff; padding: 7px 12px; border-radius: 10px; outline: none; font-size: 10px;">
-                                                                          <option value="gemini-3.8-flash" selected>Gemini 3.8 Flash (Flagship Code & Speed)</option>
-                                                                          <option value="gemini-3.7-flash">Gemini 3.7 Flash</option>
-                                                                          <option value="gemini-3.5-flash">Gemini 3.5 Flash</option>
-                                                                          <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (Low Latency)</option>
-                                                                          <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro (Deep Multimodal Reasoning)</option>
-                                                                          <option value="gemini-argon">Gemini Argon (Next-Gen Reasoning & Code)</option>
-                                                                          <option value="gemini-argon-flash">Gemini Argon Flash (Ultra-Fast Code)</option>
-                                                                          <option value="custom">Custom 3.x Model ID...</option>
-                                                                        </select>
-                </div>
+                            <label>Model</label>
+                            <select id="geminiModelSelect" style="flex: 1; min-width: 0; background: #08080a; border: none; color: #ffffff; padding: 7px 12px; border-radius: 10px; outline: none; font-size: 10px;">
+                                                                                    <option value="gemini-3.8-flash" selected>Gemini 3.8 Flash (Flagship Code & Speed)</option>
+                                                                                    <option value="gemini-3.6-flash">Gemini 3.6 Flash (Fast & Versatile)</option>
+                                                                                    <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite (Ultra Low Latency)</option>
+                                                                                    <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro Preview (Deep Reasoning)</option>
+                                                                                    <option value="custom">Custom Model ID...</option>
+                                                                                  </select>
+                          </div>
                 <div class="gh-row" id="geminiCustomModelRow" style="display:none; margin:0;">
                   <label>Custom ID</label>
                   <input type="text" id="geminiCustomModelInput" placeholder="e.g. gemini-3.8-flash-cyber">
@@ -9522,8 +9519,6 @@ document.getElementById('ghSaveBtn').addEventListener('click', function() {
     ghSaveConfig();
   closeModalEl(document.getElementById('ghConfigPanel'));
     toast('💾 Settings Saved!');
-
-  
 });
 
 function readFileAsBase64(file) {
