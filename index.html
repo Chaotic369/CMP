@@ -4567,9 +4567,34 @@ function addLog(type, msg) {
   if ($logPanel.style.display === 'block') renderLog();
 }
 function renderLog() {
-  $logContent.innerHTML = patchLog.map(function(e) {
-    return '<div class="log-' + e.type + '">[' + e.ts + '] ' + escHtml(e.msg) + '</div>';
-  }).join('');
+  $logContent.innerHTML = '';
+  patchLog.forEach(function(e) {
+    var row = document.createElement('div');
+    row.className = 'log-' + e.type;
+    row.style.marginBottom = '4px';
+    row.style.display = 'flex';
+    row.style.alignItems = 'flex-start';
+    if (e.type === 'err') {
+      var btn = document.createElement('button');
+      btn.title = 'Copy Error';
+      btn.style.cssText = 'margin-right:6px; padding:2px 6px; border:none; border-radius:4px; background:rgba(248,81,73,0.15); color:var(--red); cursor:pointer; flex-shrink:0;';
+      var icon = document.createElement('i');
+      icon.className = 'fa-regular fa-copy';
+      btn.appendChild(icon);
+      btn.onclick = function() {
+        navigator.clipboard.writeText(e.msg).then(function() {
+          toast('Error copied!');
+        }).catch(function(err) {
+          console.error(err);
+        });
+      };
+      row.appendChild(btn);
+    }
+    var txt = document.createElement('span');
+    txt.textContent = '[' + e.ts + '] ' + e.msg;
+    row.appendChild(txt);
+    $logContent.appendChild(row);
+  });
 }
 
 var toastTimer;
