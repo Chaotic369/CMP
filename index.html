@@ -6965,7 +6965,7 @@ async function executeGeminiMagicEdit() {
                   lines.slice(c.a, c.b + 1).map(function (l, i) { return (c.a + i + 1) + '| ' + l; }).join('\n');
               }).join('\n\n');
               var outline = chunks.filter(function (c) { return pickedIds.indexOf(c.id) === -1; })
-                .map(function (c) { return c.id + ' ' + c.kind + ' ' + c.name; }).join('\n');
+                              .map(function (c) { return c.id + ' ' + c.name.slice(0, 30); }).join('\n');
               var step2User = 'INSTRUCTION:\n' + instruction + '\n\n=== OUTLINE OF CHUNKS NOT SHOWN ===\n' + (outline || '[none]') + '\n\n=== SELECTED CHUNKS ===\n' + body;
 
               statusEl.textContent = 'Step 2 of 2: ' + picked.length + ' chunks picked by ' + how + ', requesting edits...';
@@ -7683,6 +7683,7 @@ var CHUNK_NOTE =
   '- Never copy a header line into OLD or NEW.\n' +
   '- Every OLD block must be copied verbatim from inside ONE chunk (never span two chunks) and must be unique within what is shown.\n' +
   '- The OUTLINE lists all other chunks so you know what exists. Do not guess their code.\n' +
+  '- A line like /* [N unrelated lines omitted] */ is a placeholder, not code: never copy it into OLD or NEW, and keep each OLD inside one unbroken stretch of shown code. If you need an omitted part, reply: NEED: Cxx\n' +
   '- If you realise you need a chunk that is not shown, do NOT guess. Reply in plain text only with: NEED: Cxx, Cyy\n' +
   '- All rules above (patch format, indentation, brackets, etc.) still apply.';
 
@@ -7700,8 +7701,8 @@ var MULTI_CHUNK_NOTE =
 function cmIndexText(chunks, total) {
   var kb = function (n) { return n < 1024 ? n + 'B' : (n / 1024).toFixed(1) + 'K'; };
   return chunks.map(function (c) {
-    return c.id + ' | ' + c.kind + ' | ' + c.name + ' | L' + (c.a + 1) + '-' + (c.b + 1) + ' | ' + kb(c.chars) +
-           (c.desc ? ' | ' + cmClean(c.desc, 80) : '');
+    var d = (c.desc || '').replace(/\|?\s*contains:.*$/, '').trim();
+        return c.id + ' ' + c.kind.charAt(0) + ' ' + c.name.slice(0, 45) + (d ? ' | ' + cmClean(d, 50) : '');
   }).join('\n');
 }
 
@@ -7741,17 +7742,44 @@ var lastPatchFailure = null;  // { kind, raw, blockNum, reason, oldCode }
 var lastMultiProjectMap = null;
 
 /* 13.9 payload builder shared by 🧩 (AI-picked) and 🧠 (auto-picked) */
-function cmBuildPayload(chunks, picked, instruction, how) {
+function cmTrimChunk(txt, terms) {
+  var lines = txt.split('\n'), keep = [], hit = false, W = 25;
+  lines.forEach(function (l, i) {
+    var low = l.toLowerCase();
+    for (var k = 0; k < terms.length; k++) {
+      if (low.indexOf(terms[k]) !== -1) {
+        hit = true;
+        for (var j = Math.max(0, i - W); j <= Math.min(lines.length - 1, i + W); j++) keep[j] = true;
+        break;
+      }
+    }
+  });
+  if (!hit) return txt;
+  var out = [], skipped = 0;
+  lines.forEach(function (l, i) {
+    if (keep[i]) {
+      if (skipped) { out.push('/* [' + skipped + ' unrelated lines omitted] */'); skipped = 0; }
+      out.push(l);
+    } else skipped++;
+  });
+  if (skipped) out.push('/* [' + skipped + ' unrelated lines omitted] */');
+  var res = out.join('\n');
+  return res.length < txt.length * 0.75 ? res : txt;
+}
+
+function cmBuildPayload(chunks, picked, instruction, how, terms) {
   picked.sort(function (x, y) { return x.a - y.a; });
   var pickedIds = picked.map(function (c) { return c.id; });
   lastChunkMap = { hash: cmHash(sourceContent), chunks: chunks, file: cmFileId() };
   lastChunkSelection = pickedIds;
   patchScope = { base: sourceContent, ranges: picked.map(function (c) { return { s: c.startIndex, e: c.endIndex }; }) };
   var body = picked.map(function (c) {
-    return '##### CHUNK ' + c.id + ' ' + c.name + ' (lines ' + (c.a + 1) + '-' + (c.b + 1) + ') #####\n' + sourceContent.slice(c.startIndex, c.endIndex);
+    var txt = sourceContent.slice(c.startIndex, c.endIndex);
+        if (how === 'auto' && terms && terms.length && c.chars > 3500) txt = cmTrimChunk(txt, terms);
+        return '##### CHUNK ' + c.id + ' ' + c.name + ' (lines ' + (c.a + 1) + '-' + (c.b + 1) + ') #####\n' + txt;
   }).join('\n\n');
   var outline = chunks.filter(function (c) { return pickedIds.indexOf(c.id) === -1; })
-    .map(function (c) { return c.id + ' ' + c.kind + ' ' + c.name; }).join('\n');
+      .map(function (c) { return c.id + ' ' + c.name.slice(0, 30); }).join('\n');
   var payload = RULES_LITE + '\n\n' + CHUNK_NOTE.replace('only the SELECTED CHUNKS', 'only the SELECTED CHUNKS' + (how === 'auto' ? ' (picked automatically by keyword and dependency matching, so something may be missing)' : '')) + '\n\n' +
     (instruction ? '=== INSTRUCTIONS ===\n' + instruction + '\n\n' : '') +
     '=== OUTLINE OF CHUNKS NOT SHOWN ===\n' + (outline || '(none)') + '\n\n' +
@@ -8100,7 +8128,7 @@ function copyAutoPayload() {
     toast('🧠 Could not match your words to any code, so I copied the 🗺 index instead (step 1).\nTip: name a function, button id or visible text.', 'warn', 6000);
     copyChunkIndexPayload(); return;
   }
-  var r = cmBuildPayload(chunks, res.picks, instruction, 'auto');
+  var r = cmBuildPayload(chunks, res.picks, instruction, 'auto', res.terms);
   var list = r.ids.map(function (id) { var c = chunks.filter(function (x) { return x.id === id; })[0]; return id + ' ' + c.name; });
   cmCopy(r.payload, '🧠 Auto payload copied: ' + r.ids.length + ' chunk(s), ' + Math.round(r.chars / 1024) + ' KB of ' + Math.round(sourceContent.length / 1024) + ' KB.\n' +
     list.slice(0, 4).join('\n') + (list.length > 4 ? '\n+' + (list.length - 4) + ' more' : '') + '\nIf the AI says NEED: Cxx, copy that reply and click 🧩.');
