@@ -1125,6 +1125,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                                                                                                   <button id="payloadBtn" class="btn" title="Copy Payload" style="color: var(--purple); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-rocket" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Payload</span></button>
                                                                                     <button id="multiProjectIndexBtn" class="btn" title="Multi-Project / Multi-File Step 1: Copy Index of all project files + instruction" style="color: var(--teal); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-map" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">MIndex</span></button>
                                                                                                                    <button id="multiProjectChunksBtn" class="btn" title="Multi-Project / Multi-File Step 2: Copy Chunks requested by AI across files" style="color: var(--green); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-puzzle-piece" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">MChunk</span></button>
+                                                                                                                  <button id="aiPickBtn" class="btn" title="AI PICK: Gemini Flash-Lite picks the chunks from your instruction, then copies the payload (Auto stays keyword-based)" style="color: #f5a623; width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-robot" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">AI Pick</span></button>
                                                                                                                   <button id="commitAllFilesBtn" class="btn" title="Commit and push all modified workspace files at once" style="color: var(--blue); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-code-commit" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Commit</span></button>
                                                                                                                   <button id="repairBtn" class="btn" title="REPAIR: after a rejected patch, copy a fix-it prompt for the AI" style="color: var(--amber); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-screwdriver-wrench" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Repair</span></button>
                                                                                                                 </div>
@@ -8117,6 +8118,63 @@ function copyChunkSelectionPayload(replyText) {
   addLog('info', 'Chunk payload copied: ' + r.ids.join(', '));
 }
 
+var CM_AI_PICK_MODEL = 'gemini-3.5-flash-lite';
+async function copyAiPickPayload() {
+  var chunks = cmCurrentMap(); if (!chunks) return;
+  var instruction = document.getElementById('aiInstruction').value.trim();
+  if (!instruction) { toast('Type your instruction first.', 'warn', 3000); document.getElementById('aiInstruction').focus(); return; }
+  if (!geminiApiKey) { copyAutoPayload(); return; }
+  toast('🤖 Flash-Lite is picking chunks...', 'info', 2500);
+  try {
+    var prompt = MAP_PROMPT + '\n\n=== INSTRUCTIONS ===\n' + instruction + '\n\n' +
+      '=== FILE INDEX (' + chunks.length + ' chunks, ' + Math.round(sourceContent.length / 1024) + ' KB total) ===\n' + cmIndexText(chunks);
+    var resp = await geminiFetch([CM_AI_PICK_MODEL], function (m) {
+      return JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: magicGenConfig(m) });
+    }, geminiApiKey);
+    var rd = await magicReadStream(resp);
+    if (rd.finish && rd.finish !== 'STOP') throw new Error('cut off [' + rd.finish + ']');
+    var byId = {};
+    chunks.forEach(function (c) { byId[c.id] = c; });
+    var ids = cmParseIds(rd.text).filter(function (id) { return !!byId[id]; }).slice(0, 12);
+    if (!ids.length) throw new Error('no chunk ids returned');
+    var r = cmBuildPayload(chunks, ids.map(function (id) { return byId[id]; }), instruction, 'ai');
+    cmCopy(r.payload, '🤖 AI-picked payload copied: ' + r.ids.length + ' chunk(s), ' + Math.round(r.chars / 1024) + ' KB of ' + Math.round(sourceContent.length / 1024) + ' KB.\n' + r.ids.join(', ') + '\nIf the AI says NEED: Cxx, copy that reply and click 🧩.');
+    addLog('info', 'AI-pick (' + CM_AI_PICK_MODEL + '): ' + r.ids.join(', '));
+  } catch (e) {
+    addLog('info', 'AI-pick failed, used keyword pick: ' + (e && e.message ? e.message : e));
+    toast('⚠ AI pick failed, using keyword pick', 'warn', 3000);
+    copyAutoPayload();
+  }
+}
+
+var CM_AI_PICK_MODEL = 'gemini-3.5-flash-lite';
+async function copyAiPickPayload() {
+  var chunks = cmCurrentMap(); if (!chunks) return;
+  var instruction = document.getElementById('aiInstruction').value.trim();
+  if (!instruction) { toast('Type your instruction first.', 'warn', 3000); document.getElementById('aiInstruction').focus(); return; }
+  if (!geminiApiKey) { toast('❌ Add your Gemini API key in Settings first', 'warn', 3000); return; }
+  toast('🤖 Flash-Lite is picking chunks...', 'info', 2500);
+  try {
+    var prompt = MAP_PROMPT + '\n\n=== INSTRUCTIONS ===\n' + instruction + '\n\n' +
+      '=== FILE INDEX (' + chunks.length + ' chunks, ' + Math.round(sourceContent.length / 1024) + ' KB total) ===\n' + cmIndexText(chunks);
+    var resp = await geminiFetch([CM_AI_PICK_MODEL], function (m) {
+      return JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: magicGenConfig(m) });
+    }, geminiApiKey);
+    var rd = await magicReadStream(resp);
+    if (rd.finish && rd.finish !== 'STOP') throw new Error('cut off [' + rd.finish + ']');
+    var byId = {};
+    chunks.forEach(function (c) { byId[c.id] = c; });
+    var ids = cmParseIds(rd.text).filter(function (id) { return !!byId[id]; }).slice(0, 12);
+    if (!ids.length) throw new Error('no chunk ids returned');
+    var r = cmBuildPayload(chunks, ids.map(function (id) { return byId[id]; }), instruction, 'ai');
+    cmCopy(r.payload, '🤖 AI-picked payload copied: ' + r.ids.length + ' chunk(s), ' + Math.round(r.chars / 1024) + ' KB of ' + Math.round(sourceContent.length / 1024) + ' KB.\n' + r.ids.join(', ') + '\nIf the AI says NEED: Cxx, copy that reply and click 🧩.');
+    addLog('info', 'AI-pick (' + CM_AI_PICK_MODEL + '): ' + r.ids.join(', '));
+  } catch (e) {
+    addLog('info', 'AI-pick failed: ' + (e && e.message ? e.message : e));
+    toast('⚠ AI pick failed: ' + (e && e.message ? e.message : e) + '\nUse 🧠 Auto instead.', 'warn', 4000);
+  }
+}
+
 function copyAutoPayload() {
   var chunks = cmCurrentMap(); if (!chunks) return;
   var instruction = document.getElementById('aiInstruction').value.trim();
@@ -8246,6 +8304,7 @@ function copyRepairPrompt() {
 
 document.getElementById('autoPickBtn').addEventListener('click', copyAutoPayload);
 document.getElementById('repairBtn').addEventListener('click', copyRepairPrompt);
+document.getElementById('aiPickBtn').addEventListener('click', copyAiPickPayload);
 document.getElementById('chunkMapBtn').addEventListener('click', copyChunkIndexPayload);
 document.getElementById('chunkPickBtn').addEventListener('click', function () {
   var go = function (t) { copyChunkSelectionPayload(t || ''); };
