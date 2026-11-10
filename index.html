@@ -1128,7 +1128,6 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                                                                                                   
                                                                                                                   <button id="commitAllFilesBtn" class="btn" title="Commit and push all modified workspace files at once" style="color: var(--blue); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-code-commit" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Commit</span></button>
                                                                                                                   <button id="repairBtn" class="btn" title="REPAIR: after a rejected patch, copy a fix-it prompt for the AI" style="color: var(--amber); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-screwdriver-wrench" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Repair</span></button>
-                                                                                                                                                                                                                                    <button id="aiPickBtn" class="btn" title="AI PICK: Gemini reads the file index + your instruction, picks the exact chunks, and copies a payload with only those" style="color: var(--teal); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-robot" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">AiPick</span></button>
                                                                                                                 </div>
     </div>
   
@@ -1302,7 +1301,11 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                               <button class="panel-close" onclick="window.closeFullTreeModal()">✕</button>
                             </div>
     </div>
-    
+    <div style="display:flex; align-items:center; gap:6px; padding:6px 2px;">
+          <input type="text" id="modalTreeSearch" placeholder="Filter files by name or path..." oninput="window.renderFullTreeModal()" style="flex:1; min-width:0; font-size:11px; padding:6px 10px; border-radius:8px;">
+          <button type="button" style="background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; height:26px;" onclick="window.modalSelectAllVisible()">All</button>
+          <button type="button" style="background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; height:26px;" onclick="window.modalClearSelection()">None</button>
+        </div>
         <div id="fullTreeContent" style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; overflow-x: hidden;"></div>
     <div id="modalRepoList" style="display:none; flex-direction:column; gap:4px; overflow-y:auto; flex:1; padding-right:4px;"></div>
   </div>
@@ -8246,39 +8249,6 @@ function copyRepairPrompt() {
   cmCopy(p, '🛠 Repair prompt copied (' + Math.round(p.length / 1024) + ' KB). Send it to the AI, then paste its new patch.');
 }
 
-async function copyAiPickPayload() {
-  var chunks = cmCurrentMap(); if (!chunks) return;
-  var instruction = document.getElementById('aiInstruction').value.trim();
-  if (!instruction) { toast('Type your instruction first - Gemini picks the chunks from it.', 'warn', 4000); document.getElementById('aiInstruction').focus(); return; }
-  if (!geminiApiKey) {
-    toast('❌ Configure Gemini API Key in Settings first', 'warn');
-    document.getElementById('ghSettingsBtn').click();
-    return;
-  }
-  var model = (geminiModel || 'gemini-3.8-flash').replace(/^models\//, '');
-  if (model === 'custom' || model.startsWith('gemini-2.') || model.startsWith('gemini-1.')) model = 'gemini-3.8-flash';
-  var prompt = MAP_PROMPT + '\n\n=== INSTRUCTIONS ===\n' + instruction + '\n\n' +
-    '=== FILE INDEX (' + chunks.length + ' chunks, ' + Math.round(sourceContent.length / 1024) + ' KB total) ===\n' + cmIndexText(chunks);
-  toast('🤖 Asking Gemini which chunks are needed...');
-  try {
-    var resp = await geminiFetch([model], function () {
-      return JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0 } });
-    }, geminiApiKey);
-    var out = await magicReadStream(resp, null);
-    var ids = cmParseIds(out.text);
-    var picks = chunks.filter(function (c) { return ids.indexOf(c.id) !== -1; });
-    if (!picks.length) {
-      toast('🤖 Gemini returned no valid chunk ids, so I copied the 🗺 index instead (step 1).', 'warn', 6000);
-      copyChunkIndexPayload(); return;
-    }
-    var r = cmBuildPayload(chunks, picks, instruction, 'ai', []);
-    cmCopy(r.payload, '🤖 AiPick payload copied: ' + r.ids.length + ' chunk(s), ' + Math.round(r.chars / 1024) + ' KB of ' + Math.round(sourceContent.length / 1024) + ' KB.\n' + r.ids.join(', '));
-    addLog('info', 'AiPick: ' + r.ids.join(', '));
-  } catch (e) {
-    toast('❌ AiPick failed: ' + (e && e.message ? e.message : e), 'err', 6000);
-  }
-}
-document.getElementById('aiPickBtn').addEventListener('click', copyAiPickPayload);
 document.getElementById('autoPickBtn').addEventListener('click', copyAutoPayload);
 document.getElementById('repairBtn').addEventListener('click', copyRepairPrompt);
 document.getElementById('chunkMapBtn').addEventListener('click', copyChunkIndexPayload);
@@ -11794,7 +11764,12 @@ window.oneClickPush = async function(customMsg) {
                 window.renderFullTreeModal();
             };
 
-            
+            window.modalSelectAllVisible = function() {
+                            var q = (document.getElementById('modalTreeSearch') || { value: '' }).value.trim().toLowerCase();
+                            if (!window.modalSelectedPaths) window.modalSelectedPaths = new Set();
+                            currentTreeFiles.forEach(f => { if (!q || f.path.toLowerCase().includes(q)) window.modalSelectedPaths.add(f.path); });
+                            window.renderFullTreeModal();
+                        };
 
                         window.modalClearSelection = function() {
                             if (window.modalSelectedPaths) window.modalSelectedPaths.clear();
@@ -11914,7 +11889,32 @@ window.oneClickPush = async function(customMsg) {
               return html;
           }
 
-          
+          var _qEl = document.getElementById('modalTreeSearch');
+                    var _q = _qEl ? _qEl.value.trim().toLowerCase() : '';
+                    if (_q) {
+                        var _matches = currentTreeFiles.filter(f => f.path.toLowerCase().includes(_q));
+                        var _sh = '';
+                        _matches.forEach(f => {
+                            const ic = getIconLocal(f.path);
+                            const isTarget = f.path === ghFilePath;
+                            const sel = window.modalSelectedPaths.has(f.path);
+                            const selIcon = sel ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle';
+                            const selColor = sel ? 'var(--green)' : 'rgba(255,255,255,0.6)';
+                            _sh += `<div class="repo-item file-item ${isTarget ? 'active' : ''}" style="padding-left:12px;" onclick="window.selectFileFromModal('${f.path}')" title="${f.path}">
+                                <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
+                                    <i class="${ic.i}" style="margin-right:10px; font-size:14px; color:${isTarget ? 'var(--blue)' : ic.c};"></i>
+                                    <span style="font-size:13px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${f.path}</span>
+                                </div>
+                                <div class="repo-actions">
+                                    <button class="repo-btn" style="font-size:10px; color:${selColor};" title="Select/Deselect" onclick="window.toggleModalSelection('${f.path}', event)"><i class="${selIcon}"></i></button>
+                                    <button class="repo-btn" style="font-size:10px; color:var(--blue);" title="Download File" onclick="window.downloadFile('${f.path}', event)"><i class="fa-solid fa-download"></i></button>
+                                </div>
+                            </div>`;
+                        });
+                        if (!_matches.length) _sh = '<div style="color:rgba(255,255,255,0.5); font-size:11px; padding:12px; text-align:center;">No files match your filter</div>';
+                        document.getElementById('fullTreeContent').innerHTML = _sh;
+                        return;
+                    }
 
                     document.getElementById('fullTreeContent').innerHTML = renderNode(root, 0);
       };
