@@ -1128,6 +1128,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                                                                                                   
                                                                                                                   <button id="commitAllFilesBtn" class="btn" title="Commit and push all modified workspace files at once" style="color: var(--blue); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-code-commit" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Commit</span></button>
                                                                                                                   <button id="repairBtn" class="btn" title="REPAIR: after a rejected patch, copy a fix-it prompt for the AI" style="color: var(--amber); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-screwdriver-wrench" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Repair</span></button>
+                                                                                                                                                                                                                                    <button id="aiPickBtn" class="btn" title="AI PICK: Gemini reads the file index + your instruction, picks the exact chunks, and copies a payload with only those" style="color: var(--teal); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-robot" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">AiPick</span></button>
                                                                                                                 </div>
     </div>
   
@@ -8249,6 +8250,39 @@ function copyRepairPrompt() {
   cmCopy(p, '🛠 Repair prompt copied (' + Math.round(p.length / 1024) + ' KB). Send it to the AI, then paste its new patch.');
 }
 
+async function copyAiPickPayload() {
+  var chunks = cmCurrentMap(); if (!chunks) return;
+  var instruction = document.getElementById('aiInstruction').value.trim();
+  if (!instruction) { toast('Type your instruction first - Gemini picks the chunks from it.', 'warn', 4000); document.getElementById('aiInstruction').focus(); return; }
+  if (!geminiApiKey) {
+    toast('❌ Configure Gemini API Key in Settings first', 'warn');
+    document.getElementById('ghSettingsBtn').click();
+    return;
+  }
+  var model = (geminiModel || 'gemini-3.8-flash').replace(/^models\//, '');
+  if (model === 'custom' || model.startsWith('gemini-2.') || model.startsWith('gemini-1.')) model = 'gemini-3.8-flash';
+  var prompt = MAP_PROMPT + '\n\n=== INSTRUCTIONS ===\n' + instruction + '\n\n' +
+    '=== FILE INDEX (' + chunks.length + ' chunks, ' + Math.round(sourceContent.length / 1024) + ' KB total) ===\n' + cmIndexText(chunks);
+  toast('🤖 Asking Gemini which chunks are needed...');
+  try {
+    var resp = await geminiFetch([model], function () {
+      return JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }], generationConfig: { temperature: 0 } });
+    }, geminiApiKey);
+    var out = await magicReadStream(resp, null);
+    var ids = cmParseIds(out.text);
+    var picks = chunks.filter(function (c) { return ids.indexOf(c.id) !== -1; });
+    if (!picks.length) {
+      toast('🤖 Gemini returned no valid chunk ids, so I copied the 🗺 index instead (step 1).', 'warn', 6000);
+      copyChunkIndexPayload(); return;
+    }
+    var r = cmBuildPayload(chunks, picks, instruction, 'ai', []);
+    cmCopy(r.payload, '🤖 AiPick payload copied: ' + r.ids.length + ' chunk(s), ' + Math.round(r.chars / 1024) + ' KB of ' + Math.round(sourceContent.length / 1024) + ' KB.\n' + r.ids.join(', '));
+    addLog('info', 'AiPick: ' + r.ids.join(', '));
+  } catch (e) {
+    toast('❌ AiPick failed: ' + (e && e.message ? e.message : e), 'err', 6000);
+  }
+}
+document.getElementById('aiPickBtn').addEventListener('click', copyAiPickPayload);
 document.getElementById('autoPickBtn').addEventListener('click', copyAutoPayload);
 document.getElementById('repairBtn').addEventListener('click', copyRepairPrompt);
 document.getElementById('chunkMapBtn').addEventListener('click', copyChunkIndexPayload);
