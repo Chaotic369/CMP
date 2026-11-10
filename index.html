@@ -1302,11 +1302,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                               <button class="panel-close" onclick="window.closeFullTreeModal()">✕</button>
                             </div>
     </div>
-    <div style="display:flex; align-items:center; gap:6px; padding:6px 2px;">
-          <input type="text" id="modalTreeSearch" placeholder="Filter files by name or path..." oninput="window.renderFullTreeModal()" style="flex:1; min-width:0; font-size:11px; padding:6px 10px; border-radius:8px;">
-          <button type="button" style="background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; height:26px;" onclick="window.modalSelectAllVisible()">All</button>
-          <button type="button" style="background:rgba(255,255,255,0.08); color:#fff; border:1px solid rgba(255,255,255,0.15); padding:4px 10px; border-radius:8px; font-size:10px; font-weight:600; cursor:pointer; height:26px;" onclick="window.modalClearSelection()">None</button>
-        </div>
+    
         <div id="fullTreeContent" style="display: flex; flex-direction: column; flex: 1; overflow-y: auto; overflow-x: hidden;"></div>
     <div id="modalRepoList" style="display:none; flex-direction:column; gap:4px; overflow-y:auto; flex:1; padding-right:4px;"></div>
   </div>
@@ -11798,12 +11794,7 @@ window.oneClickPush = async function(customMsg) {
                 window.renderFullTreeModal();
             };
 
-            window.modalSelectAllVisible = function() {
-                            var q = (document.getElementById('modalTreeSearch') || { value: '' }).value.trim().toLowerCase();
-                            if (!window.modalSelectedPaths) window.modalSelectedPaths = new Set();
-                            currentTreeFiles.forEach(f => { if (!q || f.path.toLowerCase().includes(q)) window.modalSelectedPaths.add(f.path); });
-                            window.renderFullTreeModal();
-                        };
+            
 
                         window.modalClearSelection = function() {
                             if (window.modalSelectedPaths) window.modalSelectedPaths.clear();
@@ -11923,32 +11914,7 @@ window.oneClickPush = async function(customMsg) {
               return html;
           }
 
-          var _qEl = document.getElementById('modalTreeSearch');
-                    var _q = _qEl ? _qEl.value.trim().toLowerCase() : '';
-                    if (_q) {
-                        var _matches = currentTreeFiles.filter(f => f.path.toLowerCase().includes(_q));
-                        var _sh = '';
-                        _matches.forEach(f => {
-                            const ic = getIconLocal(f.path);
-                            const isTarget = f.path === ghFilePath;
-                            const sel = window.modalSelectedPaths.has(f.path);
-                            const selIcon = sel ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle';
-                            const selColor = sel ? 'var(--green)' : 'rgba(255,255,255,0.6)';
-                            _sh += `<div class="repo-item file-item ${isTarget ? 'active' : ''}" style="padding-left:12px;" onclick="window.selectFileFromModal('${f.path}')" title="${f.path}">
-                                <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
-                                    <i class="${ic.i}" style="margin-right:10px; font-size:14px; color:${isTarget ? 'var(--blue)' : ic.c};"></i>
-                                    <span style="font-size:13px; color:${isTarget ? 'var(--blue)' : '#ffffff'}; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${f.path}</span>
-                                </div>
-                                <div class="repo-actions">
-                                    <button class="repo-btn" style="font-size:10px; color:${selColor};" title="Select/Deselect" onclick="window.toggleModalSelection('${f.path}', event)"><i class="${selIcon}"></i></button>
-                                    <button class="repo-btn" style="font-size:10px; color:var(--blue);" title="Download File" onclick="window.downloadFile('${f.path}', event)"><i class="fa-solid fa-download"></i></button>
-                                </div>
-                            </div>`;
-                        });
-                        if (!_matches.length) _sh = '<div style="color:rgba(255,255,255,0.5); font-size:11px; padding:12px; text-align:center;">No files match your filter</div>';
-                        document.getElementById('fullTreeContent').innerHTML = _sh;
-                        return;
-                    }
+          
 
                     document.getElementById('fullTreeContent').innerHTML = renderNode(root, 0);
       };
