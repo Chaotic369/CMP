@@ -1406,6 +1406,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                                                                 <button id="bmWinPromptBtn" type="button" class="bm-ui-dropdown-item" title="Copy Windows EXE prompt for AI"><i class="fa-brands fa-windows" style="color:var(--teal);"></i>Windows EXE Prompt</button>
                                                                                 <button type="button" class="bm-ui-dropdown-item" data-wf="playwright" title="Load Playwright Visual Tests YAML"><i class="fa-solid fa-masks-theater" style="color:var(--green);"></i>Playwright Visual Tests</button>
                                                                                 <button type="button" class="bm-ui-dropdown-item" data-wf="lighthouse" title="Load Lighthouse CI Audit YAML"><i class="fa-solid fa-gauge-high" style="color:var(--amber);"></i>Lighthouse CI Audit</button>
+                                                                                                                                                                <button type="button" class="bm-ui-dropdown-item" data-wf="existing" title="Load a workflow file already in this repo"><i class="fa-solid fa-file-import" style="color:var(--blue);"></i>Load From Repo</button>
                                                                                                                               </div>
                                                                             </div>
                                                             </div>
@@ -10173,7 +10174,8 @@ window.oneClickPush = async function(customMsg) {
                       }
                       listEl.innerHTML = files.map(function(f) {
                         return '<div class="repo-item" style="display:flex; align-items:center; justify-content:space-between;">' +
-                          '<span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">' + escHtml(f.name) + '</span>' +
+                          '<span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; cursor:pointer;" title="Load into YAML field" onclick="window.loadWorkflowIntoYaml(\'' + f.path + '\')">' + escHtml(f.name) + '</span>' +
+                                                    '<button class="repo-btn" title="Load into YAML field" onclick="window.loadWorkflowIntoYaml(\'' + f.path + '\')"><i class="fa-solid fa-file-import"></i></button>' +
                           '<button class="repo-btn del" title="Delete" onclick="window.deleteWorkflowFile(\'' + f.path + '\', \'' + f.sha + '\')"><i class="fa-solid fa-trash"></i></button>' +
                         '</div>';
                       }).join('');
@@ -10183,7 +10185,35 @@ window.oneClickPush = async function(customMsg) {
                     }
                   };
 
-                  window.deleteWorkflowFile = async function(path, sha) {
+                  window.loadWorkflowIntoYaml = async function(path) {
+                                      var yamlEl = document.getElementById('bmWorkflowYaml');
+                                      var nameEl = document.getElementById('bmWorkflowFilename');
+                                      if (!yamlEl || !nameEl) return;
+                                      var shortName = path.split('/').pop();
+                                      if (yamlEl.value.trim() && !(await window.inAppConfirm('Replace the current YAML with "' + shortName + '"?', 'Load Workflow'))) return;
+                                      showProgress(30);
+                                      try {
+                                        const res = await fetch(`https://api.github.com/repos/${ghRepo}/contents/${path.split('/').map(encodeURIComponent).join('/')}?ref=${ghBranch}`, {
+                                          headers: { Authorization: `token ${ghToken}`, Accept: 'application/vnd.github.v3.raw' },
+                                          cache: 'no-store'
+                                        });
+                                        if (!res.ok) throw new Error(await res.text());
+                                        const text = await res.text();
+                                        yamlEl.value = text.replace(/\r\n/g, '\n');
+                                        nameEl.value = shortName;
+                                        saveBuildConfig();
+                                        var wfCloseEl = document.getElementById('wfModalCloseBtn');
+                                        if (wfCloseEl) wfCloseEl.click();
+                                        toast('✅ Loaded ' + shortName + ' into YAML field');
+                                        addLog('ok', 'Loaded workflow file into YAML field: ' + path);
+                                      } catch (err) {
+                                        toast('❌ Load failed: ' + err.message, 'err');
+                                        addLog('err', 'Load workflow into YAML failed: ' + err.message);
+                                      }
+                                      hideProgress();
+                                    };
+
+                                    window.deleteWorkflowFile = async function(path, sha) {
                     if (!(await window.inAppConfirm('Delete workflow file "' + path + '"? This cannot be undone.', 'Delete Workflow'))) return;
                     showProgress(30);
                     try {
@@ -10478,6 +10508,7 @@ window.oneClickPush = async function(customMsg) {
                                                                                                     var wf = this.getAttribute('data-wf');
                                                                                                     if (wf === 'playwright' && window.loadPlaywrightWorkflow) window.loadPlaywrightWorkflow();
                                                                                                                                                                                       else if (wf === 'lighthouse' && window.loadLighthouseWorkflow) window.loadLighthouseWorkflow();
+                                                                                                                                                                                                                                                                                          else if (wf === 'existing' && window.openWorkflowsModal) window.openWorkflowsModal();
                                                                                                                                                                                       bmYamlDropdownMenuEl.classList.remove('open');
                                                                                                   });
                                                                                                 });
