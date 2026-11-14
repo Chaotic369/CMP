@@ -1104,7 +1104,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
         <button id="pasteBtn" class="btn" title="Paste & Apply" style="color:var(--green);"><i class="fa-solid fa-bolt"></i><span class="btn-lbl">Paste</span></button>
         <button id="undoBtn" class="btn" title="Undo" disabled><i class="fa-solid fa-arrow-rotate-left"></i><span class="btn-lbl">Undo</span></button>
         <button id="redoBtn" class="btn" title="Redo" disabled><i class="fa-solid fa-arrow-rotate-right"></i><span class="btn-lbl">Redo</span></button>
-        <button id="fileBtn" class="btn" title="Load File" style="color:var(--amber);"><i class="fa-solid fa-folder"></i><span class="btn-lbl">File</span></button>
+        <button id="fileBtn" class="btn" title="Load File" style="display:none !important; color:var(--amber);"><i class="fa-solid fa-folder"></i><span class="btn-lbl">File</span></button>
         <button id="fullScreenBtn" class="btn" title="Full Screen"><i class="fa-solid fa-expand"></i><span class="btn-lbl">Full</span></button>
   
         <button id="ghSettingsBtn" class="btn" title="Account & Settings"><i class="fa-solid fa-circle-user"></i><span class="btn-lbl">Config</span></button>
@@ -1115,7 +1115,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                 <button id="viewBtn" class="btn" title="Toggle View"><i class="fa-solid fa-eye"></i><span class="btn-lbl">View</span></button>
                         <button id="installBtn" class="btn" title="Install App" style="display:none; color:var(--blue);"><i class="fa-solid fa-download"></i><span class="btn-lbl">Get</span></button>
                         <button id="masterBuildBtn" class="btn" title="GitHub Action (Native or Wrapper)" style="color:var(--green);"><i class="fa-solid fa-hammer"></i><span class="btn-lbl">Action</span></button>
-                <button id="moreBtn" class="btn" title="More Tools & Compilers" style="color:var(--teal);"><i class="fa-solid fa-cubes-stacked"></i><span class="btn-lbl">More</span></button>
+                
                                     
                 <button id="buildApkBtn" class="btn" style="display:none;"></button>
                 <input type="file" id="fileInput" style="display:none;" accept=".html,.htm,.js,.css,.txt,.jsx,.ts,.tsx,.vue,.php,.py,.rb,.json,.xml,.svg,.md">
@@ -1133,6 +1133,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                                                                                                                   
                                                                                                                   <button id="commitAllFilesBtn" class="btn" title="Commit and push all modified workspace files at once" style="color: var(--blue); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-code-commit" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Commit</span></button>
                                                                                                                   <button id="repairBtn" class="btn" title="REPAIR: after a rejected patch, copy a fix-it prompt for the AI" style="color: var(--amber); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-screwdriver-wrench" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Repair</span></button>
+                                                                                                                                                                                                                                    <button id="moreBtn" class="btn" title="More Tools & Compilers" style="color: var(--teal); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-cubes-stacked" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">More</span></button>
                                                                                                                 </div>
     </div>
   
