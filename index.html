@@ -482,7 +482,7 @@ body:has(#authOverlay.checking) #bookmarkSidebar,
 #bookmarkContent .repo-item { background: transparent; border-radius: 8px; margin-bottom: 2px; }
 #bookmarkContent .repo-item:active { background: rgba(255,255,255,0.15); }
 #bookmarkContent .repo-item.active { background: rgba(255,255,255,0.15); }
-#bookmarkContent.mini { height: auto; max-height: 165px !important; width: 44px; padding-left: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
+#bookmarkContent.mini { height: auto; max-height: 165px !important; width: 62px; padding-left: 2px; align-items: stretch; justify-content: flex-start; overflow-y: auto; overflow-x: hidden; }
 #bookmarkContent.mini .repo-name { font-size: 8.5px; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 1; color: #ffffff; margin-top: 0px; line-height: 1.2; }
 #bookmarkContent.mini .repo-actions { display: none !important; }
 #bookmarkContent.mini .repo-item { padding: 2px 3px; margin-bottom: 0px; justify-content: flex-start; align-items: flex-start; text-align: left; flex-direction: row; min-height: 15px; line-height: 1.2; }
@@ -541,9 +541,13 @@ body:has(#authOverlay.checking) #bookmarkSidebar,
 .repo-name { font-size: 9px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1; pointer-events: none; color: #ffffff; opacity: 1; }
 .repo-item.active { background: rgba(255,255,255,0.15); color: #ffffff; font-weight: 600; }
 
-.repo-actions { display: none; align-items: center; gap: 3px; }
-.repo-item.active .repo-actions { display: flex; }
-.repo-item:hover .repo-actions { display: flex; }
+.repo-actions { display: none !important; align-items: center; gap: 3px; }
+.repo-actions.keep { display: flex !important; }
+.repo-btn.aic-dots { flex-shrink: 0; width: 18px; min-width: 18px; height: 15px; padding: 0 !important; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.9); }
+.repo-btn.aic-dots i { font-size: 10px; margin: 0 !important; }
+#fullTreeContent .repo-btn.aic-dots { width: 30px; min-width: 30px; height: 26px; }
+#fullTreeContent .repo-btn.aic-dots i { font-size: 15px; }
+.aic-dots-item:hover, .aic-dots-item:active { background: rgba(255,255,255,0.12) !important; }
 .repo-btn { background: transparent; border: none !important; color: #ffffff; cursor: pointer; padding: 1px 3px; font-size: 8px; border-radius: 4px; }
 .repo-btn i { font-size: 8px; }
 .repo-btn.del { color: var(--red); }
@@ -2651,7 +2655,8 @@ window.renderBookmarks = function() {
         rightList.appendChild(rBtn);
     });
     
-    if (document.getElementById('app-menu').classList.contains('open')) {
+    if (window.aicAddDots) window.aicAddDots(rightList);
+        if (document.getElementById('app-menu').classList.contains('open')) {
             updateMenuPosition();
         }
     };
@@ -3201,7 +3206,8 @@ function renderRepoTabs() {
             
                 if (window.repoBulkMode) {
                                     actions.style.display = 'flex';
-                                    const isSel = window.selectedBulkRepos.has(r);
+                                    actions.classList.add('keep');
+                                                                        const isSel = window.selectedBulkRepos.has(r);
                                     actions.innerHTML = `
                                       <button class="repo-btn" style="color:${isSel ? 'var(--green)' : 'rgba(255,255,255,0.6)'}; font-size:10px;"><i class="${isSel ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle'}"></i></button>
                                     `;
@@ -3219,7 +3225,8 @@ function renderRepoTabs() {
                                             btn.appendChild(actions);
             container.appendChild(btn);
           });
-          if(window.renderBookmarks) window.renderBookmarks();
+          if (window.aicAddDots) window.aicAddDots(container);
+                    if(window.renderBookmarks) window.renderBookmarks();
         }
 
 function updateRepoSidebar() {
@@ -12885,16 +12892,93 @@ window.oneClickPush = async function(customMsg) {
     add('fa-solid fa-xmark', 'Clear selection', '#fff', function() { sel.clear(); renderFileTreeUI(); });
     ftc.insertBefore(bar, ftc.firstChild);
   }
-  var _origTree = renderFileTreeUI;
+  // ---------- three-dot action menu (replaces the always-listed row buttons) ----------
+    var dotsMenu = null;
+    function closeDots() { if (dotsMenu) { dotsMenu.remove(); dotsMenu = null; } }
+    function openDots(btn, ev) {
+      ev.stopPropagation(); ev.preventDefault();
+      var wasOpen = dotsMenu && dotsMenu._for === btn;
+      closeDots();
+      if (wasOpen) return;
+      var row = btn.closest('.repo-item'), actions = null;
+      if (!row) return;
+      for (var i = 0; i < row.children.length; i++) if (row.children[i].classList.contains('repo-actions')) actions = row.children[i];
+      if (!actions) return;
+      var srcBtns = actions.querySelectorAll('button');
+      if (!srcBtns.length) return;
+      var m = document.createElement('div');
+      m._for = btn;
+      m.className = 'aic-dots-menu';
+      m.style.cssText = 'position:fixed; z-index:2147483000; min-width:140px; max-width:72vw; padding:4px; background:#15161a; border:1px solid rgba(255,255,255,0.15); border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,0.7); display:flex; flex-direction:column; gap:1px;';
+      Array.prototype.forEach.call(srcBtns, function(b) {
+        var it = document.createElement('button');
+        it.type = 'button';
+        it.className = 'aic-dots-item';
+        it.style.cssText = 'display:flex; align-items:center; gap:8px; width:100%; padding:8px 10px; font-size:12px; background:transparent; border:none; color:' + (b.classList.contains('del') ? 'var(--red)' : '#ffffff') + '; border-radius:6px; text-align:left; cursor:pointer; white-space:nowrap;';
+        var ic = document.createElement('span');
+        ic.style.cssText = 'width:16px; display:inline-flex; justify-content:center; font-size:12px; flex-shrink:0; color:' + getComputedStyle(b).color + ';';
+        ic.innerHTML = b.innerHTML;
+        var lb = document.createElement('span');
+        lb.textContent = b.getAttribute('title') || b.textContent.trim() || 'Action';
+        it.appendChild(ic); it.appendChild(lb);
+        it.addEventListener('click', function(e2) {
+          e2.stopPropagation();
+          closeDots();
+          b.dispatchEvent(new MouseEvent('click', { bubbles: false, cancelable: true }));
+        });
+        m.appendChild(it);
+      });
+      document.body.appendChild(m);
+      dotsMenu = m;
+      var r = btn.getBoundingClientRect(), mw = m.offsetWidth, mh = m.offsetHeight;
+      var left = Math.max(6, Math.min(window.innerWidth - mw - 6, r.right - mw));
+      var top = r.bottom + 4;
+      if (top + mh > window.innerHeight - 6) top = Math.max(6, r.top - mh - 4);
+      m.style.left = left + 'px'; m.style.top = top + 'px';
+    }
+    function addDots(container) {
+      if (!container) return;
+      container.querySelectorAll('.repo-item').forEach(function(row) {
+        var actions = null, hasDots = false, i, c;
+        for (i = 0; i < row.children.length; i++) {
+          c = row.children[i];
+          if (c.classList.contains('aic-dots')) hasDots = true;
+          else if (c.classList.contains('repo-actions')) actions = c;
+        }
+        if (hasDots) return;
+        if (!actions) {
+          for (i = row.children.length - 1; i >= 0; i--) {
+            c = row.children[i];
+            if (c.tagName === 'DIV' && c.querySelector('button.repo-btn')) { c.classList.add('repo-actions'); actions = c; break; }
+          }
+        }
+        if (!actions || actions.classList.contains('keep') || !actions.querySelector('button')) return;
+        var d = document.createElement('button');
+        d.type = 'button'; d.className = 'repo-btn aic-dots'; d.title = 'Actions';
+        d.innerHTML = '<i class="fa-solid fa-ellipsis-vertical"></i>';
+        d.addEventListener('pointerdown', function(e3) { e3.stopPropagation(); });
+        d.addEventListener('click', function(e3) { openDots(d, e3); });
+        row.appendChild(d);
+      });
+    }
+    window.aicAddDots = addDots;
+    document.addEventListener('pointerdown', function(e) {
+      if (dotsMenu && !dotsMenu.contains(e.target) && !(e.target.closest && e.target.closest('.aic-dots'))) closeDots();
+    }, true);
+    document.addEventListener('scroll', closeDots, true);
+    window.addEventListener('resize', closeDots);
+    try { addDots(document.getElementById('repoTabsContainer')); addDots(document.getElementById('bookmarkRightList')); } catch (e) {}
+
+    var _origTree = renderFileTreeUI;
   renderFileTreeUI = function() {
     var r = _origTree.apply(this, arguments);
-    try { var ftc = document.getElementById('fileTreeContainer'); decorate(ftc); selBar(ftc); } catch (e) { console.warn('tree decorate failed', e); }
+    try { var ftc = document.getElementById('fileTreeContainer'); decorate(ftc); addDots(ftc); selBar(ftc); } catch (e) { console.warn('tree decorate failed', e); }
     return r;
   };
   var _origModal = window.renderFullTreeModal;
   window.renderFullTreeModal = function() {
     var r = _origModal.apply(this, arguments);
-    try { decorate(document.getElementById('fullTreeContent')); } catch (e) {}
+    try { var _ftc = document.getElementById('fullTreeContent'); decorate(_ftc); addDots(_ftc); } catch (e) {}
     return r;
   };
 
