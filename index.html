@@ -13077,7 +13077,7 @@ window.oneClickPush = async function(customMsg) {
       var m = document.createElement('div');
       m._for = btn;
       m.className = 'aic-dots-menu';
-      m.style.cssText = 'position:fixed; z-index:2147483000; min-width:140px; max-width:72vw; padding:4px; background:#15161a; border:1px solid rgba(255,255,255,0.15); border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,0.7); display:flex; flex-direction:column; gap:1px;';
+      m.style.cssText = 'position:fixed; z-index:2147483000; min-width:140px; max-width:72vw; padding:4px; background:#15161a; border:1px solid rgba(255,255,255,0.15); border-radius:0; box-shadow:0 8px 28px rgba(0,0,0,0.7); display:flex; flex-direction:column; gap:1px;';
       var fullName = row.getAttribute('title') || ((row.querySelector('.repo-name') || {}).textContent || '');
           if (fullName) {
             var baseName = fullName.split('/').pop();
@@ -13099,7 +13099,7 @@ window.oneClickPush = async function(customMsg) {
         var it = document.createElement('button');
         it.type = 'button';
         it.className = 'aic-dots-item';
-        it.style.cssText = 'display:flex; align-items:center; gap:8px; width:100%; padding:8px 10px; font-size:12px; background:transparent; border:none; color:' + (b.classList.contains('del') ? 'var(--red)' : '#ffffff') + '; border-radius:6px; text-align:left; cursor:pointer; white-space:nowrap;';
+        it.style.cssText = 'display:flex; align-items:center; gap:8px; width:100%; padding:8px 10px; font-size:12px; background:transparent; border:none; color:' + (b.classList.contains('del') ? 'var(--red)' : '#ffffff') + '; border-radius:0; text-align:left; cursor:pointer; white-space:nowrap;';
         var ic = document.createElement('span');
         ic.style.cssText = 'width:16px; display:inline-flex; justify-content:center; font-size:12px; flex-shrink:0; color:' + getComputedStyle(b).color + ';';
         ic.innerHTML = b.innerHTML;
