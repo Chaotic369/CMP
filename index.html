@@ -12877,20 +12877,25 @@ window.oneClickPush = async function(customMsg) {
   }
   function selBar(ftc) {
     var old = document.getElementById('aicSelBar'); if (old) old.remove();
-    var sel = window.modalSelectedPaths; if (!sel || !sel.size || !ftc) return;
+    var sel = window.modalSelectedPaths; if (!ftc || !sel) return;
+        if (!sel.size && !currentDirectory) return;
     var bar = document.createElement('div');
     bar.id = 'aicSelBar';
     bar.style.cssText = 'position:sticky; top:0; z-index:3; display:flex; align-items:center; gap:4px; justify-content:space-between; flex-wrap:wrap; padding:4px 6px; margin-bottom:4px; border-radius:6px; background:rgba(92,157,255,0.22); border:1px solid rgba(92,157,255,0.4);';
-    var lbl = document.createElement('span'); lbl.style.cssText = 'font-size:9px; font-weight:600; flex:0 0 100%;'; lbl.textContent = sel.size + ' selected';
+    var lbl = document.createElement('span'); lbl.style.cssText = 'font-size:9px; font-weight:600; flex:0 0 100%;'; lbl.textContent = sel.size ? sel.size + ' selected' : 'In ' + currentDirectory.split('/').pop();
     bar.appendChild(lbl);
     function add(icon, title, color, fn) { var b = mkBtn(icon, title, color, fn); b.classList.remove('aic-x'); b.style.padding = '2px 6px'; bar.appendChild(b); }
-    add('fa-solid fa-arrows-up-down-left-right', 'Move selected', 'var(--blue)', function() { window.moveModalSelected(); });
-    add('fa-regular fa-clone', 'Duplicate selected', 'var(--teal)', function() { window.duplicatePaths(Array.from(sel)); });
-    add('fa-solid fa-trash', 'Delete selected (1 commit)', 'var(--red)', function() { window.bulkDeleteModalSelected(); });
-    add('fa-solid fa-check-double', 'Select everything in this view', 'var(--green)', function() {
-      ftc.querySelectorAll('[data-aic-path]').forEach(function(r) { sel.add(r.dataset.aicPath); }); renderFileTreeUI();
+    if (sel.size) {
+          add('fa-solid fa-arrows-up-down-left-right', 'Move selected', 'var(--blue)', function() { window.moveModalSelected(); });
+          add('fa-regular fa-clone', 'Duplicate selected', 'var(--teal)', function() { window.duplicatePaths(Array.from(sel)); });
+          add('fa-solid fa-trash', 'Delete selected (1 commit)', 'var(--red)', function() { window.bulkDeleteModalSelected(); });
+        }
+    add('fa-solid fa-check-double', currentDirectory ? 'Select all files in this folder' : 'Select all files', 'var(--green)', function() {
+      var _pre = currentDirectory ? currentDirectory + '/' : '';
+            treePaths().forEach(function(p) { if (!_pre || p.indexOf(_pre) === 0) sel.add(p); });
+            renderFileTreeUI();
     });
-    add('fa-solid fa-xmark', 'Clear selection', '#fff', function() { sel.clear(); renderFileTreeUI(); });
+    if (sel.size) add('fa-solid fa-xmark', 'Clear selection', '#fff', function() { sel.clear(); renderFileTreeUI(); });
     ftc.insertBefore(bar, ftc.firstChild);
   }
   // ---------- three-dot action menu (replaces the always-listed row buttons) ----------
