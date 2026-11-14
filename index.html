@@ -533,7 +533,18 @@ body:has(#authOverlay.checking) #bookmarkSidebar,
   display: flex; align-items: center; justify-content: space-between; gap: 4px; user-select: none; color: #ffffff;
   min-height: 15px; line-height: 15px;
 }
-.repo-item.file-item { padding: 2px 4px; }
+.repo-item.file-item { padding: 0 3px; min-height: 16px; line-height: 16px; gap: 2px; border-radius: 5px; }
+#fileTreeContainer .file-item > div[style*="overflow:hidden"] > i { margin-right: 4px !important; font-size: 10px !important; }
+#fileTreeContainer .file-item > div[style*="overflow:hidden"] > i.fa-minus,
+#fileTreeContainer .file-item > div[style*="overflow:hidden"] > i[class*="fa-chevron"] { width: 6px !important; margin-right: 2px !important; font-size: 7px !important; }
+#fileTreeContainer .file-item > div[style*="overflow:hidden"] > span { font-size: 8.5px !important; }
+#fileTreeContainer .file-item[style*="margin-left"] { margin-left: 7px !important; }
+#fileTreeContainer .repo-btn.aic-dots { width: 16px; min-width: 16px; height: 16px; }
+#fullTreeContent .repo-item.file-item { min-height: 26px; line-height: 26px; padding-top: 0; padding-bottom: 0; }
+#fullTreeContent .file-item > div[style*="overflow:hidden"] > i { margin-right: 7px !important; }
+#fullTreeContent .file-item > div[style*="overflow:hidden"] > i.fa-minus,
+#fullTreeContent .file-item > div[style*="overflow:hidden"] > i[class*="fa-chevron"] { width: 10px !important; margin-right: 6px !important; }
+#fullTreeContent .file-item > div[style*="overflow:hidden"] > span { font-size: 12px !important; }
 .repo-item i { font-size: 9px; flex-shrink: 0; }
 .repo-item.ready-to-drag { background: rgba(255,255,255,0.1); cursor: grab; }
 .repo-item.ready-to-drag:active { cursor: grabbing; }
@@ -4554,7 +4565,7 @@ function renderFileTreeUI() {
                 htmlStr = renderNode(root, 0);
             } else {
                 // Render directories first
-                directoriesInView.forEach(dir => {
+                Array.from(directoriesInView).sort((a, b) => a.localeCompare(b)).forEach(dir => {
                   const dirName = dir.split('/').pop();
                   const str = `<div class="repo-item file-item" onclick="window.openDirectory('${dir}')" title="${dir}" style="cursor:pointer;">
                     <div style="display:flex; align-items:center; overflow:hidden; flex:1;">
@@ -12032,7 +12043,7 @@ window.oneClickPush = async function(customMsg) {
 
               keys.forEach(k => {
                   const child = node.children[k];
-                  const indent = depth * 20; 
+                  const indent = depth * 12; 
                   if (child.type === 'folder') {
                                         const isExpanded = !!window.modalTreeExpanded[child.path];
                                         const isSelected = window.modalSelectedPaths.has(child.path);
@@ -13067,7 +13078,24 @@ window.oneClickPush = async function(customMsg) {
       m._for = btn;
       m.className = 'aic-dots-menu';
       m.style.cssText = 'position:fixed; z-index:2147483000; min-width:140px; max-width:72vw; padding:4px; background:#15161a; border:1px solid rgba(255,255,255,0.15); border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,0.7); display:flex; flex-direction:column; gap:1px;';
-      Array.prototype.forEach.call(srcBtns, function(b) {
+      var fullName = row.getAttribute('title') || ((row.querySelector('.repo-name') || {}).textContent || '');
+          if (fullName) {
+            var baseName = fullName.split('/').pop();
+            var hd = document.createElement('div');
+            hd.style.cssText = 'padding:6px 10px 5px; margin-bottom:3px; border-bottom:1px solid rgba(255,255,255,0.12); max-width:240px;';
+            var nm = document.createElement('div');
+            nm.style.cssText = 'font-size:12px; font-weight:600; color:#ffffff; word-break:break-all;';
+            nm.textContent = baseName;
+            hd.appendChild(nm);
+            if (fullName.length > baseName.length) {
+              var pp = document.createElement('div');
+              pp.style.cssText = 'font-size:9px; color:rgba(255,255,255,0.5); word-break:break-all; margin-top:1px;';
+              pp.textContent = fullName.slice(0, fullName.length - baseName.length - 1);
+              hd.appendChild(pp);
+            }
+            m.appendChild(hd);
+          }
+          Array.prototype.forEach.call(srcBtns, function(b) {
         var it = document.createElement('button');
         it.type = 'button';
         it.className = 'aic-dots-item';
