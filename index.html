@@ -1122,7 +1122,7 @@ select.bm-select option { background: var(--elevated); color: #fff; }
                 <div style="grid-column: 1 / -1; display: flex; background: rgba(255,255,255,0.1); border-radius: 8px; align-items: center; height: 26px; padding: 0 4px; box-sizing: border-box; border: none; margin-top: 3px;">
                                                   <input type="text" id="aiInstruction" placeholder="Instructions" style="flex: 1; min-width: 0; background: transparent; border: none; color: #ffffff; padding: 0 6px; outline: none; font-size: 9.5px; height: 24px; line-height: 24px;">
                                                 </div>
-                                                <div style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; padding: 3px 0 0 0; box-sizing: border-box; width: 100%;">
+                                                <div id="subControls" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; padding: 3px 0 0 0; box-sizing: border-box; width: 100%;">
                                                                                                                   <button id="magicWandBtn" class="btn" title="Magic AI Edit" style="color: var(--teal); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-wand-magic-sparkles" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Magic</span></button>
                                                                                                                   <button id="autoPickBtn" class="btn" title="AUTO (one click): picks the right code chunks from your instruction, no AI step 1 needed" style="display: none !important; color: var(--purple); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-brain" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Auto</span></button>
                                                                                                                   <button id="chunkMapBtn" class="btn" title="Step 1: copy file INDEX + instruction (AI replies with the chunks it needs)" style="color: var(--teal); width: 100%; min-width: 0; height: 24px; background: rgba(255,255,255,0.08); padding: 2px 1px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 6px;"><i class="fa-solid fa-map" style="font-size: 8px;"></i><span class="btn-lbl" style="font-size: 6px; max-width: 100%;">Index</span></button>
@@ -2900,6 +2900,7 @@ async function ghLoadConfigFromFirebase() {
                                                     ghRepo = cfg.repo || ghRepo;
                         }
                         console.log('[bookmarks] ghBookmarkedRepos set to:', ghBookmarkedRepos);
+                                                if (cfg.toolbarOrder && window.aicApplyToolbarOrder) window.aicApplyToolbarOrder(cfg.toolbarOrder);
         if (cfg.wallpaper !== undefined) {
           settings.wallpaper = cfg.wallpaper;
           localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
@@ -2953,6 +2954,7 @@ function ghSaveConfig() {
                   wallpaper: settings.wallpaper || '',
                   toggleBtnPos: settings.toggleBtnPos || null,
                   menuScale: settings.menuScale || 1,
+                                    toolbarOrder: (window.aicToolbarOrder ? window.aicToolbarOrder() : null),
                   geminiApiKey: geminiApiKey || '',
                                     geminiModel: geminiModel || 'gemini-3.8-flash'
                                   };
@@ -8535,6 +8537,150 @@ document.getElementById('exportBtn').addEventListener('click', function() {
   } catch(e) { toast('Export failed: ' + e.message, 'err'); }
 });
 
+// --- Sub-toolbar drag + Firebase-synced toolbar order ---
+(function initSubControls() {
+  var sc = document.getElementById('subControls');
+  var mc = document.getElementById('main-controls');
+  var MAIN_KEY = 'main_controls_order_v1', SUB_KEY = 'sub_controls_order_v1';
+  var syncTimer = null;
+
+  function kids(box) {
+    return box ? Array.prototype.filter.call(box.children, function(el) { return el.tagName === 'BUTTON' && el.id; }) : [];
+  }
+  function idsOf(box) { return kids(box).map(function(el) { return el.id; }); }
+  function toArr(v) {
+    if (Array.isArray(v)) return v;
+    if (v && typeof v === 'object') return Object.keys(v).sort(function(a, b) { return a - b; }).map(function(k) { return v[k]; });
+    return [];
+  }
+  function lsRead(k) { try { var a = JSON.parse(localStorage.getItem(k) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function lsWrite(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function applyOrder(box, order) {
+    if (!box || !Array.isArray(order) || !order.length) return;
+    var cur = kids(box);
+    if (!cur.length) return;
+    var ref = cur[cur.length - 1].nextSibling;
+    order.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el && cur.indexOf(el) !== -1) box.insertBefore(el, ref);
+    });
+  }
+
+  window.aicToolbarOrder = function() { return { main: idsOf(mc), sub: idsOf(sc) }; };
+  window.aicApplyToolbarOrder = function(o) {
+    if (!o || typeof o !== 'object') return;
+    var m = toArr(o.main), s = toArr(o.sub);
+    if (m.length) { applyOrder(mc, m); lsWrite(MAIN_KEY, idsOf(mc)); }
+    if (s.length) { applyOrder(sc, s); lsWrite(SUB_KEY, idsOf(sc)); }
+  };
+  window.aicSyncToolbarOrder = function() {
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(function() {
+      try { if (typeof ghSaveConfig === 'function') ghSaveConfig(); } catch (e) { console.warn('toolbar order sync failed', e); }
+    }, 400);
+  };
+
+  if (!sc) return;
+  applyOrder(sc, lsRead(SUB_KEY));
+
+  function saveSub() { lsWrite(SUB_KEY, idsOf(sc)); window.aicSyncToolbarOrder(); }
+
+  function attachDrag(btn) {
+    var holdTimer = null, ready = false, dragging = false, startX = 0, startY = 0, clone = null;
+
+    btn.addEventListener('pointerdown', function(e) {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      startX = e.clientX; startY = e.clientY;
+      clearTimeout(holdTimer);
+      ready = false;
+      window.addEventListener('pointermove', onMove, { passive: false });
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onUp);
+      holdTimer = setTimeout(function() {
+        ready = true;
+        btn.classList.add('ready-to-drag');
+        if (navigator.vibrate) navigator.vibrate(50);
+      }, 400);
+    });
+    btn.addEventListener('touchmove', function(e) {
+      if ((ready || dragging) && e.cancelable) e.preventDefault();
+    }, { passive: false });
+    btn.addEventListener('contextmenu', function(e) { if (ready || dragging) e.preventDefault(); });
+    btn.addEventListener('click', function(e) {
+      if (btn.dataset.dragReady === '1') { e.stopPropagation(); e.preventDefault(); }
+    }, true);
+
+    function onMove(e) {
+      if (!ready && holdTimer) {
+        if (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10) clearTimeout(holdTimer);
+        return;
+      }
+      if (!ready) return;
+
+      if (!dragging) {
+        dragging = true;
+        var rect = btn.getBoundingClientRect();
+        clone = btn.cloneNode(true);
+        clone.removeAttribute('id');
+        clone.classList.add('stray-clone-guard');
+        clone.style.position = 'fixed';
+        clone.style.top = rect.top + 'px';
+        clone.style.left = rect.left + 'px';
+        clone.style.width = rect.width + 'px';
+        clone.style.height = rect.height + 'px';
+        clone.style.zIndex = '99999';
+        clone.style.pointerEvents = 'none';
+        clone.style.opacity = '0.9';
+        clone.style.boxShadow = 'none';
+        clone.style.transform = 'scale(1.1)';
+        document.body.appendChild(clone);
+        btn.style.opacity = '0.3';
+      }
+
+      if (dragging && clone) {
+        clone.style.top = (e.clientY - clone.offsetHeight / 2) + 'px';
+        clone.style.left = (e.clientX - clone.offsetWidth / 2) + 'px';
+        var below = document.elementFromPoint(e.clientX, e.clientY);
+        var target = below && below.closest ? below.closest('#subControls > button') : null;
+        if (target && target !== btn && target.parentNode === sc) {
+          var list = kids(sc);
+          if (list.indexOf(btn) < list.indexOf(target)) sc.insertBefore(btn, target.nextSibling);
+          else sc.insertBefore(btn, target);
+        }
+      }
+    }
+
+    function onUp() {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+
+      var wasDragging = dragging, wasReady = ready;
+      clearTimeout(holdTimer);
+      if (!dragging) btn.classList.remove('ready-to-drag');
+
+      if (wasReady) {
+        btn.dataset.dragReady = '1';
+        setTimeout(function() { ready = false; btn.dataset.dragReady = '0'; }, 200);
+      } else {
+        ready = false;
+      }
+
+      if (wasDragging) {
+        dragging = false;
+        if (clone) { clone.remove(); clone = null; }
+        btn.style.opacity = '1';
+        btn.classList.remove('ready-to-drag');
+        saveSub();
+      }
+
+      document.querySelectorAll('.stray-clone-guard').forEach(function(el) { el.remove(); });
+    }
+  }
+
+  kids(sc).forEach(attachDrag);
+})();
+
 // --- Draggable toolbar icon reordering ---
 (function initIconDrag() {
   var mc = document.getElementById('main-controls');
@@ -8551,9 +8697,11 @@ document.getElementById('exportBtn').addEventListener('click', function() {
     try {
       var saved = JSON.parse(localStorage.getItem(ORDER_KEY) || '[]');
       if (!saved.length) return;
+            var _cur = getDraggableChildren();
+            var _ref = _cur.length ? _cur[_cur.length - 1].nextSibling : null;
       saved.forEach(function(id) {
         var el = document.getElementById(id);
-        if (el && el.parentNode === mc) mc.appendChild(el);
+        if (el && el.parentNode === mc && _cur.indexOf(el) !== -1) mc.insertBefore(el, _ref);
       });
     } catch (e) {}
   }
@@ -8561,6 +8709,7 @@ document.getElementById('exportBtn').addEventListener('click', function() {
   function saveOrder() {
     var ids = getDraggableChildren().map(function(el) { return el.id; });
     try { localStorage.setItem(ORDER_KEY, JSON.stringify(ids)); } catch (e) {}
+        if (window.aicSyncToolbarOrder) window.aicSyncToolbarOrder();
   }
 
   function attachDrag(btn) {
