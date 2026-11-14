@@ -12970,16 +12970,37 @@ window.oneClickPush = async function(customMsg) {
     window.addEventListener('resize', closeDots);
     try { addDots(document.getElementById('repoTabsContainer')); addDots(document.getElementById('bookmarkRightList')); } catch (e) {}
 
-    var _origTree = renderFileTreeUI;
+    function selCircles(container) {
+        if (!container) return;
+        var sel = window.modalSelectedPaths;
+        if (!sel || !sel.size) return;
+        container.querySelectorAll('[data-aic-path]').forEach(function(row) {
+          if (row.querySelector(':scope > .aic-sel')) return;
+          var p = row.dataset.aicPath, on = sel.has(p);
+          var b = document.createElement('button');
+          b.type = 'button'; b.className = 'repo-btn aic-sel'; b.title = 'Select/Deselect';
+          b.style.cssText = 'display:flex; align-items:center; justify-content:center; flex-shrink:0; width:16px; margin-right:2px; padding:0; color:' + (on ? 'var(--green)' : 'rgba(255,255,255,0.6)') + ';';
+          b.innerHTML = '<i class="' + (on ? 'fa-solid fa-circle-check' : 'fa-regular fa-circle') + '" style="font-size:11px;"></i>';
+          b.addEventListener('pointerdown', function(e4) { e4.stopPropagation(); });
+          b.addEventListener('click', function(e4) {
+            e4.stopPropagation();
+            if (sel.has(p)) sel.delete(p); else sel.add(p);
+            if (container.id === 'fullTreeContent') window.renderFullTreeModal(); else renderFileTreeUI();
+          });
+          row.insertBefore(b, row.firstChild);
+        });
+      }
+
+      var _origTree = renderFileTreeUI;
   renderFileTreeUI = function() {
     var r = _origTree.apply(this, arguments);
-    try { var ftc = document.getElementById('fileTreeContainer'); decorate(ftc); addDots(ftc); selBar(ftc); } catch (e) { console.warn('tree decorate failed', e); }
+    try { var ftc = document.getElementById('fileTreeContainer'); decorate(ftc); addDots(ftc); selCircles(ftc); selBar(ftc); } catch (e) { console.warn('tree decorate failed', e); }
     return r;
   };
   var _origModal = window.renderFullTreeModal;
   window.renderFullTreeModal = function() {
     var r = _origModal.apply(this, arguments);
-    try { var _ftc = document.getElementById('fullTreeContent'); decorate(_ftc); addDots(_ftc); } catch (e) {}
+    try { var _ftc = document.getElementById('fullTreeContent'); decorate(_ftc); addDots(_ftc); selCircles(_ftc); } catch (e) {}
     return r;
   };
 
