@@ -7923,20 +7923,8 @@ function cmCurrentMap() {
 }
 
 function cmCopy(text, okMsg) {
-  var legacyCopy = function () {
-    try {
-      var ta = document.createElement('textarea');
-      ta.value = text; ta.setAttribute('readonly', '');
-      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
-      document.body.appendChild(ta); ta.focus(); ta.select();
-      var ok = document.execCommand('copy');
-      document.body.removeChild(ta);
-      return ok;
-    } catch (e) { return false; }
-  };
-  var fail = function () { if (legacyCopy()) toast(okMsg); else toast('❌ Failed to copy', 'err'); };
-  if (!navigator.clipboard || !navigator.clipboard.writeText) { fail(); return; }
-  navigator.clipboard.writeText(text).then(function () { toast(okMsg); }).catch(fail);
+  navigator.clipboard.writeText(text).then(function () { toast(okMsg); })
+    .catch(function () { toast('❌ Failed to copy', 'err'); });
 }
 
 function copyChunkIndexPayload() {
@@ -7965,15 +7953,12 @@ async function getMultiProjectFilesMap() {
     fileMap[ghFilePath] = sourceContent;
   }
 
-  if (typeof currentTreeFiles !== 'undefined' && currentTreeFiles && currentTreeFiles.length > 0 && ghToken && ghRepo) {
+  if (Object.keys(fileMap).length <= 1 && typeof currentTreeFiles !== 'undefined' && currentTreeFiles && currentTreeFiles.length > 0 && ghToken && ghRepo) {
     var textExts = ['.html', '.htm', '.js', '.css', '.json', '.txt', '.md', '.ts', '.tsx', '.jsx', '.xml', '.svg', '.yaml', '.yml', '.py', '.java', '.kt', '.c', '.cpp', '.h', '.sh', '.gradle'];
     var candidates = currentTreeFiles.filter(function(f) {
-          var low = f.path.toLowerCase();
-          if (fileMap[f.path] !== undefined) return false;
-          if (/(^|\/)(node_modules|dist|build|\.git)\//.test(low) || /\.min\.(js|css)$/.test(low) || /package-lock\.json$/.test(low)) return false;
-          if (typeof f.size === 'number' && f.size > 900000) return false;
-          return textExts.some(function(ext) { return low.endsWith(ext); });
-        }).slice(0, 60);
+      var low = f.path.toLowerCase();
+      return textExts.some(function(ext) { return low.endsWith(ext); });
+    }).slice(0, 30);
 
     var toFetch = candidates.filter(function(f) { return !fileMap[f.path]; });
     if (toFetch.length > 0) {
@@ -7982,12 +7967,11 @@ async function getMultiProjectFilesMap() {
       for (var fi = 0; fi < toFetch.length; fi++) {
         var tf = toFetch[fi];
         try {
-          var getRes = await fetch('https://api.github.com/repos/' + ghRepo + '/contents/' + tf.path.split('/').map(encodeURIComponent).join('/') + '?ref=' + ghBranch, {
+          var getRes = await fetch('https://api.github.com/repos/' + ghRepo + '/contents/' + tf.path + '?ref=' + ghBranch, {
             headers: { Authorization: 'token ' + ghToken, Accept: 'application/vnd.github.v3+json' }
           });
           if (getRes.ok) {
             var fileData = await getRes.json();
-                        if (!fileData || typeof fileData.content !== 'string' || !fileData.content) continue;
             var bStr = atob((fileData.content || '').replace(/\s/g, ''));
             var bArr = new Uint8Array(bStr.length);
             for (var bi = 0; bi < bStr.length; bi++) bArr[bi] = bStr.charCodeAt(bi);
@@ -8021,11 +8005,7 @@ async function copyMultiProjectIndexPayload() {
     var content = fileMap[path];
     totalChars += content.length;
     var prefix = 'F' + (fIdx + 1) + '_';
-    var chunks;
-        try { chunks = buildChunkMap(content); } catch (e) { chunks = []; }
-        if (!chunks.length) {
-          chunks = [{ id: 'C01', kind: 'text', name: path.split('/').pop() || path, desc: 'whole file (could not split)', a: 0, b: Math.max(0, content.split('\n').length - 1), startIndex: 0, endIndex: content.length, chars: content.length }];
-        }
+    var chunks = buildChunkMap(content);
     chunks.forEach(function(c) {
       c.globalId = prefix + c.id;
       c.filePath = path;
@@ -8304,14 +8284,12 @@ document.getElementById('chunkPickBtn').addEventListener('click', function () {
 });
 
 var mIdxBtn = document.getElementById('multiProjectIndexBtn');
-if (mIdxBtn) mIdxBtn.addEventListener('click', function() {
-  copyMultiProjectIndexPayload().catch(function(e) { toast('❌ MIndex failed: ' + (e && e.message ? e.message : e), 'err', 6000); });
-});
+if (mIdxBtn) mIdxBtn.addEventListener('click', copyMultiProjectIndexPayload);
 
 var mChkBtn = document.getElementById('multiProjectChunksBtn');
 if (mChkBtn) {
   mChkBtn.addEventListener('click', function() {
-    var go = function(t) { copyMultiProjectChunksPayload(t || '').catch(function(e) { toast('❌ MChunk failed: ' + (e && e.message ? e.message : e), 'err', 6000); }); };
+    var go = function(t) { copyMultiProjectChunksPayload(t || ''); };
     if (navigator.clipboard && navigator.clipboard.readText) {
       navigator.clipboard.readText().then(go).catch(function() { go(window.prompt('Paste the AI reply (the NEEDED: line) here:') || ''); });
     } else {
