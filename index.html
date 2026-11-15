@@ -7923,8 +7923,20 @@ function cmCurrentMap() {
 }
 
 function cmCopy(text, okMsg) {
-  navigator.clipboard.writeText(text).then(function () { toast(okMsg); })
-    .catch(function () { toast('❌ Failed to copy', 'err'); });
+  var legacyCopy = function () {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;';
+      document.body.appendChild(ta); ta.focus(); ta.select();
+      var ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (e) { return false; }
+  };
+  var fail = function () { if (legacyCopy()) toast(okMsg); else toast('❌ Failed to copy', 'err'); };
+  if (!navigator.clipboard || !navigator.clipboard.writeText) { fail(); return; }
+  navigator.clipboard.writeText(text).then(function () { toast(okMsg); }).catch(fail);
 }
 
 function copyChunkIndexPayload() {
@@ -7953,12 +7965,15 @@ async function getMultiProjectFilesMap() {
     fileMap[ghFilePath] = sourceContent;
   }
 
-  if (Object.keys(fileMap).length <= 1 && typeof currentTreeFiles !== 'undefined' && currentTreeFiles && currentTreeFiles.length > 0 && ghToken && ghRepo) {
+  if (typeof currentTreeFiles !== 'undefined' && currentTreeFiles && currentTreeFiles.length > 0 && ghToken && ghRepo) {
     var textExts = ['.html', '.htm', '.js', '.css', '.json', '.txt', '.md', '.ts', '.tsx', '.jsx', '.xml', '.svg', '.yaml', '.yml', '.py', '.java', '.kt', '.c', '.cpp', '.h', '.sh', '.gradle'];
     var candidates = currentTreeFiles.filter(function(f) {
-      var low = f.path.toLowerCase();
-      return textExts.some(function(ext) { return low.endsWith(ext); });
-    }).slice(0, 30);
+          var low = f.path.toLowerCase();
+          if (fileMap[f.path] !== undefined) return false;
+          if (/(^|\/)(node_modules|dist|build|\.git)\//.test(low) || /\.min\.(js|css)$/.test(low) || /package-lock\.json$/.test(low)) return false;
+          if (typeof f.size === 'number' && f.size > 900000) return false;
+          return textExts.some(function(ext) { return low.endsWith(ext); });
+        }).slice(0, 60);
 
     var toFetch = candidates.filter(function(f) { return !fileMap[f.path]; });
     if (toFetch.length > 0) {
@@ -7967,11 +7982,12 @@ async function getMultiProjectFilesMap() {
       for (var fi = 0; fi < toFetch.length; fi++) {
         var tf = toFetch[fi];
         try {
-          var getRes = await fetch('https://api.github.com/repos/' + ghRepo + '/contents/' + tf.path + '?ref=' + ghBranch, {
+          var getRes = await fetch('https://api.github.com/repos/' + ghRepo + '/contents/' + tf.path.split('/').map(encodeURIComponent).join('/') + '?ref=' + ghBranch, {
             headers: { Authorization: 'token ' + ghToken, Accept: 'application/vnd.github.v3+json' }
           });
           if (getRes.ok) {
             var fileData = await getRes.json();
+                        if (!fileData || typeof fileData.content !== 'string' || !fileData.content) continue;
             var bStr = atob((fileData.content || '').replace(/\s/g, ''));
             var bArr = new Uint8Array(bStr.length);
             for (var bi = 0; bi < bStr.length; bi++) bArr[bi] = bStr.charCodeAt(bi);
@@ -8005,7 +8021,11 @@ async function copyMultiProjectIndexPayload() {
     var content = fileMap[path];
     totalChars += content.length;
     var prefix = 'F' + (fIdx + 1) + '_';
-    var chunks = buildChunkMap(content);
+    var chunks;
+        try { chunks = buildChunkMap(content); } catch (e) { chunks = []; }
+        if (!chunks.length) {
+          chunks = [{ id: 'C01', kind: 'text', name: path.split('/').pop() || path, desc: 'whole file (could not split)', a: 0, b: Math.max(0, content.split('\n').length - 1), startIndex: 0, endIndex: content.length, chars: content.length }];
+        }
     chunks.forEach(function(c) {
       c.globalId = prefix + c.id;
       c.filePath = path;
@@ -8284,12 +8304,14 @@ document.getElementById('chunkPickBtn').addEventListener('click', function () {
 });
 
 var mIdxBtn = document.getElementById('multiProjectIndexBtn');
-if (mIdxBtn) mIdxBtn.addEventListener('click', copyMultiProjectIndexPayload);
+if (mIdxBtn) mIdxBtn.addEventListener('click', function() {
+  copyMultiProjectIndexPayload().catch(function(e) { toast('❌ MIndex failed: ' + (e && e.message ? e.message : e), 'err', 6000); });
+});
 
 var mChkBtn = document.getElementById('multiProjectChunksBtn');
 if (mChkBtn) {
   mChkBtn.addEventListener('click', function() {
-    var go = function(t) { copyMultiProjectChunksPayload(t || ''); };
+    var go = function(t) { copyMultiProjectChunksPayload(t || '').catch(function(e) { toast('❌ MChunk failed: ' + (e && e.message ? e.message : e), 'err', 6000); }); };
     if (navigator.clipboard && navigator.clipboard.readText) {
       navigator.clipboard.readText().then(go).catch(function() { go(window.prompt('Paste the AI reply (the NEEDED: line) here:') || ''); });
     } else {
@@ -13077,7 +13099,7 @@ window.oneClickPush = async function(customMsg) {
       var m = document.createElement('div');
       m._for = btn;
       m.className = 'aic-dots-menu';
-      m.style.cssText = 'position:fixed; z-index:2147483000; min-width:140px; max-width:72vw; padding:4px; background:#15161a; border:1px solid rgba(255,255,255,0.15); border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,0.7); display:flex; flex-direction:column; gap:1px;';
+      m.style.cssText = 'position:fixed; z-index:2147483000; min-width:140px; max-width:72vw; padding:4px; background:#15161a; border:1px solid rgba(255,255,255,0.15); border-radius:0; box-shadow:0 8px 28px rgba(0,0,0,0.7); display:flex; flex-direction:column; gap:1px;';
       var fullName = row.getAttribute('title') || ((row.querySelector('.repo-name') || {}).textContent || '');
           if (fullName) {
             var baseName = fullName.split('/').pop();
@@ -13099,7 +13121,7 @@ window.oneClickPush = async function(customMsg) {
         var it = document.createElement('button');
         it.type = 'button';
         it.className = 'aic-dots-item';
-        it.style.cssText = 'display:flex; align-items:center; gap:8px; width:100%; padding:8px 10px; font-size:12px; background:transparent; border:none; color:' + (b.classList.contains('del') ? 'var(--red)' : '#ffffff') + '; border-radius:6px; text-align:left; cursor:pointer; white-space:nowrap;';
+        it.style.cssText = 'display:flex; align-items:center; gap:8px; width:100%; padding:8px 10px; font-size:12px; background:transparent; border:none; color:' + (b.classList.contains('del') ? 'var(--red)' : '#ffffff') + '; border-radius:0; text-align:left; cursor:pointer; white-space:nowrap;';
         var ic = document.createElement('span');
         ic.style.cssText = 'width:16px; display:inline-flex; justify-content:center; font-size:12px; flex-shrink:0; color:' + getComputedStyle(b).color + ';';
         ic.innerHTML = b.innerHTML;
